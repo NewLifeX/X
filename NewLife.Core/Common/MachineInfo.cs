@@ -338,7 +338,7 @@ public class MachineInfo : IExtend
         str = "reg".Execute(@"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid", 0, false);
         if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
 
-        var csproduct = ReadWmic("csproduct", "Name", "UUID", "Vendor");
+        var csproduct = ReadWmiComMulti("csproduct", "Name", "UUID", "Vendor");
         if (csproduct != null)
         {
             if (csproduct.TryGetValue("Name", out str)) Product = str;
@@ -384,7 +384,7 @@ public class MachineInfo : IExtend
         //        OSName = GetInfo("Win32_OperatingSystem", "Caption")?.TrimStart("Microsoft").Trim();
         //        OSVersion = GetInfo("Win32_OperatingSystem", "Version");
 #else
-        var os = ReadWmic("os", "Caption", "Version");
+        var os = ReadWmiComMulti("os", "Caption", "Version");
         if (os == null || os.Count == 0)
         {
             os = ReadPowerShell("Get-WmiObject Win32_OperatingSystem | Select-Object Caption, Version | ConvertTo-Json");
@@ -407,23 +407,15 @@ public class MachineInfo : IExtend
         if (!sn.IsNullOrEmpty() && !sn.EqualIgnoreCase("System Serial Number")) Serial = sn;
         Board = GetInfo("Win32_BaseBoard", "SerialNumber");
 #else
-        var disk = ReadWmic("diskdrive where mediatype=\"Fixed hard disk media\"", "serialnumber");
-        if (disk != null)
-        {
-            if (disk.TryGetValue("serialnumber", out str)) DiskID = str?.Trim();
-        }
+        var diskStr = ReadWmiComSingle("diskdrive where mediatype=\"Fixed hard disk media\"", "serialnumber");
+        if (!diskStr.IsNullOrEmpty()) DiskID = diskStr?.Trim();
 
-        var sn = ReadWmic("bios", "serialnumber");
-        if (sn != null)
-        {
-            if (sn.TryGetValue("serialnumber", out str) && !str.EqualIgnoreCase("System Serial Number")) Serial = str?.Trim();
-        }
+        var sn = ReadWmiComSingle("bios", "serialnumber");
+        if (!sn.IsNullOrEmpty() && !sn.EqualIgnoreCase("System Serial Number")) Serial = sn?.Trim();
 
-        var board = ReadWmic("baseboard", "serialnumber");
-        if (board != null)
-        {
-            if (board.TryGetValue("serialnumber", out str)) Board = str?.Trim();
-        }
+        var boardStr = ReadWmiComSingle("baseboard", "serialnumber");
+        if (!boardStr.IsNullOrEmpty()) Board = boardStr?.Trim();
+
 
         //// 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
         //var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
@@ -688,11 +680,10 @@ public class MachineInfo : IExtend
 #else
         if (!_excludes.Contains(nameof(Temperature)))
         {
-            var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-            if (temp != null && temp.Count > 0)
+            var str = ReadWmiComSingle(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+            if (!str.IsNullOrEmpty())
             {
-                if (temp.TryGetValue("CurrentTemperature", out var str) && !str.IsNullOrEmpty())
-                    Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
             }
             else
             {
@@ -706,11 +697,10 @@ public class MachineInfo : IExtend
             Battery = power.BatteryLifePercent;
         else if (!_excludes.Contains(nameof(Battery)))
         {
-            var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
-            if (battery != null && battery.Count > 0)
+            var str = ReadWmiComSingle("path win32_battery", "EstimatedChargeRemaining");
+            if (!str.IsNullOrEmpty())
             {
-                if (battery.TryGetValue("EstimatedChargeRemaining", out var str) && !str.IsNullOrEmpty())
-                    Battery = str.SplitAsInt().Average() / 100.0;
+                Battery = str.SplitAsInt().Average() / 100.0;
             }
             else
             {
@@ -1035,6 +1025,71 @@ public class MachineInfo : IExtend
         return dic2;
     }
 
+    private static readonly Dictionary<String, String> _wmiAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "csproduct", "Win32_ComputerSystemProduct" },
+        { "os", "Win32_OperatingSystem" },
+        { "diskdrive", "Win32_DiskDrive" },
+        { "bios", "Win32_BIOS" },
+        { "baseboard", "Win32_BaseBoard" },
+        { "win32_battery", "Win32_Battery" },
+    };
+
+    /// <summary>通过 WMI 查询多属性（自动选择 COM/wmic）。优先使用 COM 避免开进程</summary>
+    /// <param name="type">WMI 类型，支持 wmic 格式如 "csproduct"、"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature"</param>
+    /// <param name="keys">查询字段</param>
+    /// <returns>属性字典</returns>
+    public static IDictionary<String, String> ReadWmiComMulti(String type, params String[] keys)
+    {
+        // 解析命名空间和类名
+        var nameSpace = "root\\cimv2";
+        var wmiClass = type;
+
+        if (type.StartsWith("/namespace:"))
+        {
+            var p = type.IndexOf(" path ", StringComparison.Ordinal);
+            if (p > 0)
+            {
+                nameSpace = type["/namespace:".Length..p].Trim('\\');
+                wmiClass = type[(p + 6)..].Trim();
+            }
+        }
+        else if (type.StartsWith("path "))
+        {
+            wmiClass = type[5..].Trim();
+        }
+
+        // 映射 wmic 别名到 WMI 类名
+        var alias = wmiClass;
+        var whereIdx = wmiClass.IndexOf(" where ", StringComparison.OrdinalIgnoreCase);
+        if (whereIdx > 0) alias = wmiClass[..whereIdx];
+
+        if (_wmiAliases.TryGetValue(alias, out var fullClass))
+        {
+            wmiClass = whereIdx > 0 ? $"{fullClass}{wmiClass[whereIdx..]}" : fullClass;
+        }
+
+        // 逐属性查询
+        var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        foreach (var key in keys)
+        {
+            var value = GetInfo(wmiClass, key, nameSpace);
+            if (!value.IsNullOrEmpty()) dic[key] = value;
+        }
+
+        return dic;
+    }
+
+    /// <summary>通过 WMI 查询单个属性（自动回退 wmic）。优先使用 COM 避免开进程</summary>
+    /// <param name="type">WMI 类型</param>
+    /// <param name="property">属性名</param>
+    /// <returns>属性值，失败返回 null</returns>
+    private static String? ReadWmiComSingle(String type, String property)
+    {
+        var dic = ReadWmiComMulti(type, property);
+        return dic.TryGetValue(property, out var v) && !v.IsNullOrEmpty() ? v : null;
+    }
+
     /// <summary>获取设备信息。用于Xamarin</summary>
     /// <returns>设备信息字典</returns>
     public static IDictionary<String, String?> ReadDeviceInfo()
@@ -1357,14 +1412,14 @@ public class MachineInfo : IExtend
 
     private SystemTime? _systemTime;
 
-#if NETFRAMEWORK
-    /// <summary>获取WMI信息</summary>
+    /// <summary>获取WMI信息。内部自动选择 ManagementObjectSearcher (NETFX) 或 COM (NET5+Windows) 或 wmic</summary>
     /// <param name="path">WMI路径</param>
     /// <param name="property">属性名</param>
-    /// <param name="nameSpace">命名空间</param>
+    /// <param name="nameSpace">命名空间，默认 root\cimv2</param>
     /// <returns>查询结果</returns>
     public static String GetInfo(String path, String property, String? nameSpace = null)
     {
+#if NETFRAMEWORK
         // Linux Mono不支持WMI
         if (Runtime.Mono) return "";
 
@@ -1393,6 +1448,116 @@ public class MachineInfo : IExtend
         bbs.Sort();
 
         return bbs.Distinct().Join();
+#else
+        // 非 NETFRAMEWORK：优先 COM，失败回退 wmic
+#if NET5_0_OR_GREATER
+        if (OperatingSystem.IsWindows())
+#else
+        if (Runtime.Windows)
+#endif
+        {
+            var value = QueryWmiCom(path, property, nameSpace ?? "root\\cimv2");
+            if (value != null) return value;
+        }
+
+        // 回退 wmic。不带命名空间时也要用 path 前缀以支持完整类名
+        var ns = nameSpace;
+        if (ns != null) ns = ns.Replace("/", "\\");
+        var type = ns != null ? $"/namespace:\\\\{ns} path {path}" : $"path {path}";
+        var dic = ReadWmic(type, property);
+        return dic.TryGetValue(property, out var v) ? v : "";
+#endif
+    }
+
+#if !NETFRAMEWORK
+    /// <summary>通过 COM 查询 WMI 属性。使用 Windows 内置 WbemScripting.SWbemLocator，不开进程</summary>
+#if NET5_0_OR_GREATER
+    [SupportedOSPlatform("windows")]
+#endif
+    private static String? QueryWmiCom(String wmiClass, String property, String nameSpace)
+    {
+        try
+        {
+            var locatorType = Type.GetTypeFromProgID("WbemScripting.SWbemLocator");
+            if (locatorType == null) return null;
+
+            var locator = Activator.CreateInstance(locatorType);
+            if (locator == null) return null;
+
+            var services = locatorType.InvokeMember("ConnectServer",
+                BindingFlags.InvokeMethod, null, locator,
+                [".", nameSpace, null, null, null, null, 0, null]);
+            if (services == null) return null;
+
+            try
+            {
+                var wql = $"SELECT {property} FROM {wmiClass}";
+                var results = services.GetType().InvokeMember("ExecQuery",
+                    BindingFlags.InvokeMethod, null, services, [wql, "WQL", 0, null]);
+                if (results == null) return null;
+
+                try
+                {
+                    var resultsType = results.GetType();
+                    var count = (Int32)(resultsType.InvokeMember("Count",
+                        BindingFlags.GetProperty, null, results, null) ?? 0);
+
+                    var bbs = new List<String>();
+                    for (var i = 0; i < count; i++)
+                    {
+                        var item = resultsType.InvokeMember("Item",
+                            BindingFlags.GetProperty, null, results, [i]);
+                        if (item == null) continue;
+
+                        try
+                        {
+                            var props = item.GetType().InvokeMember("Properties_",
+                                BindingFlags.GetProperty, null, item, null);
+                            if (props == null) continue;
+
+                            try
+                            {
+                                var prop = props.GetType().InvokeMember("Item",
+                                    BindingFlags.GetProperty, null, props, [property]);
+                                if (prop == null) continue;
+
+                                try
+                                {
+                                    var val = prop.GetType().InvokeMember("Value",
+                                        BindingFlags.GetProperty, null, prop, null);
+                                    if (val != null)
+                                    {
+                                        var v = val.ToString()?.TrimInvisible()?.Trim();
+                                        if (!v.IsNullOrEmpty()) bbs.Add(v);
+                                    }
+                                }
+                                finally { try { Marshal.FinalReleaseComObject(prop); } catch { } }
+                            }
+                            finally { try { Marshal.FinalReleaseComObject(props); } catch { } }
+                        }
+                        finally { try { Marshal.FinalReleaseComObject(item); } catch { } }
+                    }
+
+                    if (bbs.Count > 0)
+                    {
+                        bbs.Sort();
+                        return bbs.Distinct().Join();
+                    }
+                }
+                finally { try { Marshal.FinalReleaseComObject(results); } catch { } }
+            }
+            finally
+            {
+                try { Marshal.FinalReleaseComObject(services); } catch { }
+                try { Marshal.FinalReleaseComObject(locator); } catch { }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+        }
+
+        return null;
     }
 #endif
     #endregion
