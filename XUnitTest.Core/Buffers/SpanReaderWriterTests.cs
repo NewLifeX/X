@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using NewLife;
 using NewLife.Buffers;
 using NewLife.Data;
@@ -126,6 +126,57 @@ public class SpanReaderWriterTests
         Assert.Equal(16, writer.WrittenCount); // Guid 固定16字节，无长度前缀
         reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
         Assert.Equal(guid, (Guid)reader.ReadValue(typeof(Guid))!);
+    }
+
+    [Fact]
+    [DisplayName("WriteUInt24/ReadUInt24: 小端和大端往返")]
+    public void WriteReadUInt24_LittleAndBigEndian()
+    {
+        var buf = new Byte[256];
+
+        // 测试值：0x123456
+        var testValues = new UInt32[] { 0x000000, 0x123456, 0xFFFFFF };
+
+        foreach (var value in testValues)
+        {
+            // 小端测试
+            var writer = new SpanWriter(buf) { IsLittleEndian = true };
+            writer.WriteUInt24(value);
+            var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount)) { IsLittleEndian = true };
+            var result = reader.ReadUInt24();
+            Assert.Equal(value, result);
+
+            // 大端测试
+            writer = new SpanWriter(buf) { IsLittleEndian = false };
+            writer.WriteUInt24(value);
+            reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount)) { IsLittleEndian = false };
+            result = reader.ReadUInt24();
+            Assert.Equal(value, result);
+        }
+    }
+
+    [Fact]
+    [DisplayName("WriteUInt24/ReadUInt24: 小端和大端字节序验证")]
+    public void WriteReadUInt24_EndianessVerification()
+    {
+        var buf = new Byte[256];
+        var value = 0x123456u;
+
+        // 小端：低字节在前 (0x56, 0x34, 0x12)
+        var writer = new SpanWriter(buf) { IsLittleEndian = true };
+        writer.WriteUInt24(value);
+        Assert.Equal(3, writer.WrittenCount);
+        Assert.Equal(0x56, buf[0]);
+        Assert.Equal(0x34, buf[1]);
+        Assert.Equal(0x12, buf[2]);
+
+        // 大端：高字节在前 (0x12, 0x34, 0x56)
+        writer = new SpanWriter(buf) { IsLittleEndian = false };
+        writer.WriteUInt24(value);
+        Assert.Equal(3, writer.WrittenCount);
+        Assert.Equal(0x12, buf[0]);
+        Assert.Equal(0x34, buf[1]);
+        Assert.Equal(0x56, buf[2]);
     }
 
     [Fact]

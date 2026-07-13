@@ -97,6 +97,18 @@ public class SpanWriterTests
     }
 
     [Fact]
+    public void TestWriteUInt24LittleEndian()
+    {
+        var buffer = new Byte[10];
+        var writer = new SpanWriter(buffer) { IsLittleEndian = true };
+        writer.WriteUInt24(0x123456);
+        Assert.Equal(3, writer.Position);
+        Assert.Equal(0x56, buffer[0]);
+        Assert.Equal(0x34, buffer[1]);
+        Assert.Equal(0x12, buffer[2]);
+    }
+
+    [Fact]
     public void TestWriteInt64()
     {
         var buffer = new Byte[10];
@@ -531,6 +543,18 @@ public class SpanWriterTests
 
         Assert.Equal(0x01, buffer[0]);
         Assert.Equal(0x08, buffer[7]);
+    }
+
+    [Fact]
+    public void WriteBigEndianUInt24()
+    {
+        var buffer = new Byte[10];
+        var writer = new SpanWriter(buffer) { IsLittleEndian = false };
+        writer.WriteUInt24(0x123456);
+        Assert.Equal(3, writer.Position);
+        Assert.Equal(0x12, buffer[0]);
+        Assert.Equal(0x34, buffer[1]);
+        Assert.Equal(0x56, buffer[2]);
     }
     #endregion
 

@@ -400,6 +400,14 @@ public class SpanReaderTests
         var span = reader.GetSpan();
         Assert.Equal(3, span.Length);
     }
+
+    [Fact]
+    public void ReadUInt24LittleEndian()
+    {
+        var data = new Byte[] { 0x56, 0x34, 0x12 };
+        var reader = new SpanReader(data) { IsLittleEndian = true };
+        Assert.Equal(0x123456u, reader.ReadUInt24());
+    }
     #endregion
 
     #region 大端字节序独立测试
@@ -449,6 +457,14 @@ public class SpanReaderTests
         var data = new Byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
         var reader = new SpanReader(data) { IsLittleEndian = false };
         Assert.Equal(0x0102030405060708UL, reader.ReadUInt64());
+    }
+
+    [Fact]
+    public void ReadBigEndianUInt24()
+    {
+        var data = new Byte[] { 0x12, 0x34, 0x56 };
+        var reader = new SpanReader(data) { IsLittleEndian = false };
+        Assert.Equal(0x123456u, reader.ReadUInt24());
     }
     #endregion
 

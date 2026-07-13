@@ -272,6 +272,20 @@ public ref struct SpanReader
         return result;
     }
 
+    /// <summary>读取24位无符号整数（3字节），受 <see cref="IsLittleEndian"/> 控制</summary>
+    /// <returns>读取的无符号整数值（24位有效）</returns>
+    public UInt32 ReadUInt24()
+    {
+        const Int32 size = 3;
+        EnsureSpace(size);
+        var span = _span.Slice(_index, size);
+        var result = IsLittleEndian
+            ? (UInt32)(span[0] | (span[1] << 8) | (span[2] << 16))
+            : (UInt32)((span[0] << 16) | (span[1] << 8) | span[2]);
+        _index += size;
+        return result;
+    }
+
     /// <summary>读取Int64整数。当 <see cref="EncodeInt"/> 为 true 时读取7位压缩编码整数</summary>
     /// <returns>读取的长整数值</returns>
     public Int64 ReadInt64()

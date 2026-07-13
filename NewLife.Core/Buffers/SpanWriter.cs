@@ -245,6 +245,30 @@ public ref struct SpanWriter
         return size;
     }
 
+    /// <summary>写入24位无符号整数（3字节），受 <see cref="IsLittleEndian"/> 控制</summary>
+    /// <param name="value">要写入的无符号整数值（仅低24位有效）</param>
+    /// <returns>写入的字节数（固定为3）</returns>
+    public Int32 WriteUInt24(UInt32 value)
+    {
+        const Int32 size = 3;
+        EnsureSpace(size);
+        var span = _span.Slice(_index, size);
+        if (IsLittleEndian)
+        {
+            span[0] = (Byte)(value & 0xFF);
+            span[1] = (Byte)((value >> 8) & 0xFF);
+            span[2] = (Byte)((value >> 16) & 0xFF);
+        }
+        else
+        {
+            span[0] = (Byte)((value >> 16) & 0xFF);
+            span[1] = (Byte)((value >> 8) & 0xFF);
+            span[2] = (Byte)(value & 0xFF);
+        }
+        _index += size;
+        return size;
+    }
+
     /// <summary>写入 64 位整数。当 <see cref="EncodeInt"/> 为 true 时使用7位压缩编码</summary>
     /// <param name="value">要写入的整数值</param>
     /// <returns>写入的字节数</returns>
