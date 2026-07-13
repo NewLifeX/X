@@ -26,9 +26,10 @@ jobs:
       run: |
         dotnet build -c Release
     - name: Test
+      # 使用单线程串行执行，避免测试间共享资源（端口/文件/静态状态）冲突失败
       env:
         XUNIT_MAX_PARALLEL_THREADS: 1
       run: |
-        dotnet test -f net8.0
-        dotnet test -f net9.0
-        dotnet test -f net10.0
+        dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net8.0 --no-build
+        dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net9.0 --no-build
+        dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net10.0 --no-build
