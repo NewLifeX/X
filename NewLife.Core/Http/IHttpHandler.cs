@@ -56,10 +56,18 @@ public class DelegateHandler : IHttpHandler
         var args = new Object?[pis.Length];
         for (var i = 0; i < pis.Length; i++)
         {
-            if (parameters.TryGetValue(pis[i].Name + "", out var v))
-                args[i] = v.ChangeType(pis[i].ParameterType);
-            else if (pis[i].HasDefaultValue)
-                args[i] = pis[i].DefaultValue;
+            var pi = pis[i];
+            var name = pi.Name;
+            if (name.IsNullOrEmpty()) continue;
+
+            if (parameters.TryGetValue(name, out var v))
+                args[i] = v.ChangeType(pi.ParameterType);
+            else if (pi.HasDefaultValue)
+                args[i] = pi.DefaultValue;
+            else if (pi.ParameterType == typeof(IHttpContext))
+                args[i] = context;
+            else if (pi.ParameterType == typeof(IServiceProvider))
+                args[i] = context.ServiceProvider;
         }
 
         // 如果只有一个参数，且参数为空，则需要尝试从字典来反序列化

@@ -401,5 +401,84 @@ Content-Type: image/jpeg
             return new HttpSession { MaxRequestLength = Limit };
         }
     }
+
+    #region Controller 上下文注入测试
+    [Fact]
+    public async Task Controller_IHttpContext_ParameterInjection()
+    {
+        _server.MapController<ContextTestController>("/ctx");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var txt = await client.GetStringAsync("/ctx/test?msg=hello");
+        // 返回 Path + msg
+        Assert.Equal("/ctx/test:hello", txt);
+    }
+
+    [Fact]
+    public async Task Controller_IHttpContext_InterfaceInjection()
+    {
+        _server.MapController<InterfaceTestController>("/iface");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var txt = await client.GetStringAsync("/iface/info");
+        // 控制器通过 IHttpController 接口属性拿到 Context
+        Assert.Equal("/iface/info", txt);
+    }
+
+    [Fact]
+    public async Task Controller_IServiceProvider_Injection()
+    {
+        _server.MapController<ServiceProviderTestController>("/sp");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var txt = await client.GetStringAsync("/sp/info?name=test");
+        Assert.Equal("test", txt);
+    }
+
+    [Fact]
+    public async Task Controller_Constructor_DI()
+    {
+        _server.MapController<DiTestController>("/di");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var txt = await client.GetStringAsync("/di/path");
+        Assert.Equal("/di/path", txt);
+    }
+
+    class ContextTestController
+    {
+        public String Test(IHttpContext ctx, String msg)
+        {
+            return $"{ctx.Path}:{msg}";
+        }
+    }
+
+    class InterfaceTestController : IHttpController
+    {
+        public IHttpContext? Context { get; set; }
+
+        public String Info() => Context?.Path ?? "";
+    }
+
+    class ServiceProviderTestController
+    {
+        public String Info(IServiceProvider sp, String name)
+        {
+            var ctx = sp.GetService(typeof(IHttpContext));
+            Assert.NotNull(ctx);
+            return name;
+        }
+    }
+
+    /// <summary>通过构造函数 DI 获取 IHttpContext</summary>
+    class DiTestController
+    {
+        private readonly IHttpContext _ctx;
+        public DiTestController(IHttpContext ctx) => _ctx = ctx;
+
+        public String Path() => _ctx.Path;
+    }
+    #endregion
+
     #endregion
 }

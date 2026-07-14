@@ -2,6 +2,7 @@
 using System.Web;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Serialization;
 
@@ -209,6 +210,21 @@ public class HttpSession : INetHandler
             ServiceProvider = _session as IServiceProvider
         };
 
+        // 创建请求级作用域，注册 IHttpContext 使构造函数 DI 可获取
+        var sp = context.ServiceProvider;
+        if (sp != null)
+        {
+            var scope = sp.CreateScope();
+            if (scope is IServiceRegistry registry)
+            {
+                registry.TryAdd(typeof(IHttpContext), context);
+                context.ServiceProvider = scope.ServiceProvider;
+            }
+        }
+
+        // 设置为当前上下文，便于静态访问
+        DefaultHttpContext.Current = context;
+
         try
         {
             PrepareRequest(context);
@@ -235,6 +251,11 @@ public class HttpSession : INetHandler
         {
             span?.SetError(ex, null);
             context.Response.SetResult(ex);
+        }
+        finally
+        {
+            // 清理当前上下文，避免泄漏到后续请求
+            DefaultHttpContext.Current = null;
         }
 
         return context.Response;
@@ -280,6 +301,10 @@ public class HttpSession : INetHandler
     {
         var req = context.Request;
         var ps = context.Parameters;
+
+        // 注入 IHttpContext 和 IServiceProvider 到参数列表（隐藏参数，供下游按名称匹配）
+        ps["__context"] = context;
+        ps["__serviceProvider"] = context.ServiceProvider;
 
         // 解析地址参数
         var uri = req.RequestUri;
