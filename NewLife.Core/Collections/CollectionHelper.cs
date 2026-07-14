@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 using NewLife.Serialization;
-using NewLife.Data;
 #if NETCOREAPP
 using System.Text.Json;
 #endif
@@ -110,7 +110,7 @@ public static class CollectionHelper
         //if (target == null) return null;
         if (source is IDictionary<String, Object?> dic) return dic;
         var type = source?.GetType();
-        if (type != null && type.IsBaseType())
+        if (type != null && (type.IsBaseType() || type.IsArray || typeof(IList).IsAssignableFrom(type)))
             throw new InvalidDataException("source is not Object");
 
         dic = new NullableDictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
@@ -215,7 +215,10 @@ public static class CollectionHelper
     /// <returns>合并后的同一 <paramref name="dic"/> 引用</returns>
     public static IDictionary<String, Object?> Merge(this IDictionary<String, Object?> dic, Object target, Boolean overwrite = true, String[]? excludes = null)
     {
-        if (target == null || target.GetType().IsBaseType()) return dic;
+        if (target == null) return dic;
+
+        var type = target.GetType();
+        if (type.IsBaseType() || type.IsArray || typeof(IList).IsAssignableFrom(type)) return dic;
 
         var exs = excludes != null ? new HashSet<String>(excludes, StringComparer.OrdinalIgnoreCase) : null;
         foreach (var item in target.ToDictionary())

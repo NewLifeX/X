@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections;
+using System.Net;
 using System.Net.Http.Headers;
 using NewLife.Collections;
 using NewLife.Data;
@@ -159,9 +160,14 @@ public static class ApiHelper
             }
             else if (args != null)
             {
-                var ps = args?.ToDictionary();
-                var url = GetUrl(action, ps);
-                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                var type = args.GetType();
+                // 数组/列表类型不转换为字典，避免丢失原始数据
+                if (!type.IsArray && !typeof(IList).IsAssignableFrom(type))
+                {
+                    var ps = args.ToDictionary();
+                    var url = GetUrl(action, ps);
+                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                }
             }
         }
         else if (method == HttpMethod.Post || method == HttpMethod.Put || method.Method == "PATCH")
