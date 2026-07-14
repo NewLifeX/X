@@ -149,6 +149,8 @@ public class HttpServer : NetServer, IHttpHost
 
         if (path.IsNullOrEmpty()) path = "/" + controllerType.Name.TrimSuffix("Controller");
 
+        // 移除尾部 /* 防止重复通配，再统一追加
+        path = path.EndsWith("/*") ? path[..^2] : path;
         var path2 = path.EnsureStart("/").EnsureEnd("/*");
         SetRoute(path2, new ControllerHandler { ControllerType = controllerType });
     }
@@ -160,6 +162,8 @@ public class HttpServer : NetServer, IHttpHost
     {
         if (contentPath.IsNullOrEmpty()) throw new ArgumentNullException(nameof(contentPath));
 
+        // 移除尾部 /* 防止重复通配，再统一追加
+        path = path.EndsWith("/*") ? path[..^2] : path;
         path = path.EnsureStart("/");
         var path2 = path.EnsureEnd("/").EnsureEnd("*");
         SetRoute(path2, new StaticFilesHandler { Path = path.EnsureEnd("/"), ContentPath = contentPath });
@@ -177,6 +181,8 @@ public class HttpServer : NetServer, IHttpHost
     {
         if (contentPath.IsNullOrEmpty()) throw new ArgumentNullException(nameof(contentPath));
 
+        // 移除尾部 /* 防止重复通配，再统一追加
+        path = path.EndsWith("/*") ? path[..^2] : path;
         path = path.EnsureStart("/");
         var path2 = path.EnsureEnd("/").EnsureEnd("*");
         SetRoute(path2, new EmbeddedFileHandler { Path = path.EnsureEnd("/"), ContentPath = contentPath, Assembly = assembly });
