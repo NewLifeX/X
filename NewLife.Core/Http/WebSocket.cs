@@ -178,7 +178,7 @@ public class WebSocket
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
         var data2 = msg.ToPacket();
-        session.Host.SendAllAsync(data2, predicate).Wait(30_000);
+        session.Host.SendAllAsync(data2, predicate).ConfigureAwait(false).GetAwaiter().GetResult();
         data.TryDispose();
     }
 

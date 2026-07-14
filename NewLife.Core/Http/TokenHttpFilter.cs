@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using System.Diagnostics;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -36,7 +37,10 @@ public class TokenHttpFilter : IHttpFilter
     /// <summary>令牌有效期</summary>
     public DateTime Expire { get; set; }
 
+    private volatile Int32 _refreshing;
+    private volatile Int32 _acquiring;
     private DateTime _refresh;
+    private readonly Object _lock = new();
 
     /// <summary>清空令牌的错误码。默认401和403</summary>
     public IList<Int32> ErrorCodes { get; set; } = [ApiCode.Unauthorized, ApiCode.Forbidden];
@@ -76,36 +80,71 @@ public class TokenHttpFilter : IHttpFilter
         var token = Token;
         if (token == null || Expire < now)
         {
-            token = await SendAuth(client, cancellationToken).ConfigureAwait(false);
-            if (token != null)
+            // 防止并发申请令牌：Interlocked 原子操作确保只有一个线程执行网络调用
+            if (Interlocked.CompareExchange(ref _acquiring, 1, 0) == 0)
             {
-                Token = token;
+                try
+                {
+                    token = await SendAuth(client, cancellationToken).ConfigureAwait(false);
+                    if (token != null)
+                    {
+                        lock (_lock)
+                        {
+                            Token = token;
 
-                // 过期时间和刷新令牌的时间
-                Expire = now.AddSeconds(token.ExpireIn);
-                _refresh = now.AddSeconds(token.ExpireIn / 2);
+                            // 过期时间和刷新令牌的时间
+                            Expire = now.AddSeconds(token.ExpireIn);
+                            _refresh = now.AddSeconds(token.ExpireIn / 2);
+                        }
+                    }
+                }
+                finally
+                {
+                    _acquiring = 0;
+                }
+            }
+            else
+            {
+                // 另一线程正在申请令牌，短暂等待后读取
+                var sw = Stopwatch.StartNew();
+                while (_acquiring != 0 && sw.ElapsedMilliseconds < 3000)
+                {
+                    Thread.Sleep(50);
+                }
+                token = Token;
             }
         }
 
         // 刷新令牌。要求已有令牌，且未过期，且达到了刷新时间
         if (token != null && Expire > now && _refresh < now)
         {
-            try
+            // 防止并发刷新
+            if (Interlocked.CompareExchange(ref _refreshing, 1, 0) == 0)
             {
-                token = await SendRefresh(client, cancellationToken).ConfigureAwait(false);
-                if (token != null)
+                try
                 {
-                    Token = token;
+                    token = await SendRefresh(client, cancellationToken).ConfigureAwait(false);
+                    if (token != null)
+                    {
+                        lock (_lock)
+                        {
+                            Token = token;
 
-                    // 过期时间和刷新令牌的时间
-                    Expire = now.AddSeconds(token.ExpireIn);
-                    _refresh = now.AddSeconds(token.ExpireIn / 2);
+                            // 过期时间和刷新令牌的时间
+                            Expire = now.AddSeconds(token.ExpireIn);
+                            _refresh = now.AddSeconds(token.ExpireIn / 2);
+                        }
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine("刷新令牌异常 {0}", token?.ToJson());
-                XTrace.WriteException(ex);
+                catch (Exception ex)
+                {
+                    XTrace.WriteLine("刷新令牌异常 {0}", token?.ToJson());
+                    XTrace.WriteException(ex);
+                }
+                finally
+                {
+                    _refreshing = 0;
+                }
             }
         }
 
