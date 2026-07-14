@@ -125,6 +125,29 @@ public class HttpServer : NetServer, IHttpHost
         SetRoute(path2, new StaticFilesHandler { Path = path.EnsureEnd("/"), ContentPath = contentPath });
     }
 
+    /// <summary>映射内嵌资源目录</summary>
+    /// <remarks>
+    /// 将程序集中的嵌入资源映射为 HTTP 静态文件服务。
+    /// 例如 MapEmbedded("/panel", "MyApp.Resources.Panel") 将 /panel/ 下的请求映射到嵌入资源。
+    /// </remarks>
+    /// <param name="path">映射路径，如 /panel</param>
+    /// <param name="contentPath">资源名前缀，如 MyApp.Resources.Panel</param>
+    /// <param name="assembly">资源所在的程序集。为 null 时使用入口程序集</param>
+    public void MapEmbedded(String path, String contentPath, System.Reflection.Assembly? assembly = null)
+    {
+        if (contentPath.IsNullOrEmpty()) throw new ArgumentNullException(nameof(contentPath));
+
+        path = path.EnsureStart("/");
+        var path2 = path.EnsureEnd("/").EnsureEnd("*");
+        SetRoute(path2, new EmbeddedFileHandler { Path = path.EnsureEnd("/"), ContentPath = contentPath, Assembly = assembly });
+    }
+
+    /// <summary>映射内嵌资源目录（泛型重载，从类型推断程序集）</summary>
+    /// <typeparam name="T">目标程序集中的任一类型</typeparam>
+    /// <param name="path">映射路径，如 /panel</param>
+    /// <param name="contentPath">资源名前缀，如 MyApp.Resources.Panel</param>
+    public void MapEmbedded<T>(String path, String contentPath) => MapEmbedded(path, contentPath, typeof(T).Assembly);
+
     /// <summary>统一设置路由。自动处理前导斜杠</summary>
     /// <param name="path">路径</param>
     /// <param name="handler">处理器</param>
