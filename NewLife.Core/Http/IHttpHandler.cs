@@ -51,30 +51,7 @@ public class DelegateHandler : IHttpHandler
         var pis = mi.GetParameters();
         if (pis.Length == 0) return handler.DynamicInvoke();
 
-        var parameters = context.Parameters;
-
-        var args = new Object?[pis.Length];
-        for (var i = 0; i < pis.Length; i++)
-        {
-            var pi = pis[i];
-            var name = pi.Name;
-            if (name.IsNullOrEmpty()) continue;
-
-            if (parameters.TryGetValue(name, out var v))
-                args[i] = v.ChangeType(pi.ParameterType);
-            else if (pi.HasDefaultValue)
-                args[i] = pi.DefaultValue;
-            else if (pi.ParameterType == typeof(IHttpContext))
-                args[i] = context;
-            else if (pi.ParameterType == typeof(IServiceProvider))
-                args[i] = context.ServiceProvider;
-        }
-
-        // 如果只有一个参数，且参数为空，则需要尝试从字典来反序列化
-        if (args.Length == 1 && args[0] == null)
-        {
-            args[0] = JsonHelper.Default.Convert(parameters, pis[0].ParameterType);
-        }
+        var args = ParameterBinder.Bind(mi, context);
 
         return handler.DynamicInvoke(args);
     }

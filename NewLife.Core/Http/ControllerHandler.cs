@@ -68,21 +68,8 @@ public class ControllerHandler : IHttpHandler
         }
         if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{type.FullName}]");
 
-        // 自动注入上下文对象到方法参数（按类型匹配 IHttpContext 和 IServiceProvider）
-        var parameters = context.Parameters;
-        foreach (var pi in method.GetParameters())
-        {
-            var name = pi.Name;
-            if (name.IsNullOrEmpty()) continue;
-            if (parameters.ContainsKey(name)) continue;
-
-            if (pi.ParameterType == typeof(IHttpContext))
-                parameters[name] = context;
-            else if (pi.ParameterType == typeof(IServiceProvider))
-                parameters[name] = serviceProvider;
-        }
-
-        var result = controller.InvokeWithParams(method, parameters as IDictionary);
+        var args = ParameterBinder.Bind(method, context);
+        var result = controller.InvokeWithParams(method, args);
         if (result is Task task) result = TaskHelper.GetTaskResult(task);
         if (result != null)
             context.Response.SetResult(result);
