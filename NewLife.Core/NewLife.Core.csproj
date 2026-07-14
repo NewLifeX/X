@@ -109,107 +109,14 @@
   <ItemGroup>
     <Compile Remove="Agent\**" />
     <Compile Remove="Applications\**" />
-    <Compile Remove="Expressions\**" />
-    <Compile Remove="Json\**" />
-    <Compile Remove="Remoting\Controllers\**" />
-    <Compile Remove="Remoting\Filters\**" />
-    <Compile Remove="Web\OAuth\**" />
-    <Compile Remove="Yun\**" />
-    <EmbeddedResource Remove="Applications\**" />
-    <EmbeddedResource Remove="Expressions\**" />
-    <EmbeddedResource Remove="Json\**" />
-    <EmbeddedResource Remove="Remoting\Controllers\**" />
-    <EmbeddedResource Remove="Remoting\Filters\**" />
-    <EmbeddedResource Remove="Yun\**" />
-    <None Remove="Applications\**" />
-    <None Remove="Expressions\**" />
-    <None Remove="Json\**" />
-    <None Remove="Remoting\Controllers\**" />
-    <None Remove="Remoting\Filters\**" />
-    <None Remove="Yun\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Algorithms\BilinearInterpolation.cs" />
-    <Compile Remove="Algorithms\BucketModes.cs" />
-    <Compile Remove="Algorithms\BucketSource.cs" />
-    <Compile Remove="Algorithms\LagrangeInterpolation.cs" />
-    <Compile Remove="Algorithms\LTOBSampling.cs" />
-    <Compile Remove="Algorithms\LTTBSampling.cs" />
-    <Compile Remove="Algorithms\MaxSampling.cs" />
-    <Compile Remove="Algorithms\MinSampling.cs" />
-    <Compile Remove="Algorithms\SumSampling.cs" />
-    <Compile Remove="Buffers\BufferSegment.cs" />
-    <Compile Remove="Caching\Redis.cs" />
-    <Compile Remove="Caching\RedisClient.cs" />
-    <Compile Remove="Caching\RedisEncoder.cs" />
-    <Compile Remove="Collections\BloomFilter.cs" />
-    <Compile Remove="Collections\DictionaryCache.cs" />
-    <Compile Remove="Collections\IArrayPool.cs" />
-    <Compile Remove="Collections\ICluster.cs" />
-    <Compile Remove="Collections\QueueService.cs" />
-    <Compile Remove="Data\BinaryTree.cs" />
-    <Compile Remove="Data\GeoAddress.cs" />
-    <Compile Remove="Data\GeoArea.cs" />
-    <Compile Remove="Data\GeoPoint.cs" />
-    <Compile Remove="Data\IMemoryEncoder.cs" />
-    <Compile Remove="Extension\EndPointExtensions.cs" />
-    <Compile Remove="Http\DefaultHttpClientFactory.cs" />
-    <Compile Remove="Http\HttpClient.cs" />
-    <Compile Remove="Http\HttpCodec.cs" />
-    <Compile Remove="Http\HttpEncoder.cs" />
-    <Compile Remove="Http\IHttpClientFactory.cs" />
-    <Compile Remove="IO\EncodingHelper.cs" />
-    <Compile Remove="IO\FileSource.cs" />
-    <Compile Remove="Log\CodeTimer.cs" />
-    <Compile Remove="Log\TimeCost.cs" />
-    <Compile Remove="Log\TraceStream.cs" />
-    <Compile Remove="Model\IFactory.cs" />
-    <Compile Remove="Net\NetException.cs" />
-    <Compile Remove="Net\SerialPortConfig.cs" />
-    <Compile Remove="Net\SerialTransport.cs" />
-    <Compile Remove="Net\WebSocketSession.cs" />
-    <Compile Remove="Properties\AssemblyInfo.cs" />
-    <Compile Remove="Reflection\EmitHelper.cs" />
-    <Compile Remove="Reflection\EmitReflect.cs" />
-    <Compile Remove="Reflection\IIndexAccessor.cs" />
-    <Compile Remove="Remoting\ApiAction.cs" />
-    <Compile Remove="Remoting\ApiAttribute.cs" />
-    <Compile Remove="Remoting\ApiClient.cs" />
-    <Compile Remove="Remoting\ApiHost.cs" />
-    <Compile Remove="Remoting\ApiHttpServer.cs" />
-    <Compile Remove="Remoting\ApiNetServer.cs" />
-    <Compile Remove="Remoting\ApiServer.cs" />
-    <Compile Remove="Remoting\ClientPoolCluster.cs" />
-    <Compile Remove="Remoting\ClientSingleCluster.cs" />
-    <Compile Remove="Remoting\IApi.cs" />
-    <Compile Remove="Remoting\IApiHandler.cs" />
-    <Compile Remove="Remoting\IApiHost.cs" />
-    <Compile Remove="Remoting\IApiManager.cs" />
-    <Compile Remove="Remoting\IApiServer.cs" />
-    <Compile Remove="Remoting\IApiSession.cs" />
-    <Compile Remove="Remoting\IEncoder.cs" />
-    <Compile Remove="Remoting\JsonEncoder.cs" />
-    <Compile Remove="Security\AlgorithmKeyBlob.cs" />
-    <Compile Remove="Security\Certificate.cs" />
-    <Compile Remove="Security\ECDsaHelper.cs" />
-    <Compile Remove="Security\ECKey.cs" />
-    <Compile Remove="Serialization\Accessor.cs" />
-    <Compile Remove="Serialization\BinaryCodec.cs" />
-    <Compile Remove="Serialization\BinaryCodec2.cs" />
-    <Compile Remove="Serialization\Binary\BinaryPair.cs" />
-    <Compile Remove="Serialization\Binary\BinaryUnknown.cs" />
-    <Compile Remove="Serialization\JsonCodec.cs" />
-    <Compile Remove="Serialization\JsonCodec2.cs" />
-    <Compile Remove="Serialization\Json\JsonTest.cs" />
-    <Compile Remove="Web\OAuthClient.cs" />
-    <Compile Remove="Web\OAuthConfig.cs" />
-    <Compile Remove="Web\OAuthServer.cs" />
-    <Compile Remove="Web\Pager.cs" />
-    <Compile Remove="Web\WebHelper.cs" />
-    <Compile Remove="Windows\MySpeech.cs" />
-    <Compile Remove="Windows\SpeechRecognition.cs" />
-    <Compile Remove="Xml\SerializableDictionary.cs" />
-    <Compile Remove="发布NuGet.cs" />
+    <EmbeddedResource Remove="Agent\**" />
+    <EmbeddedResource Remove="Applications\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Agent\**" />
+    <None Remove="Applications\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Remoting\ApiClient.cd" />
@@ -217,9 +124,6 @@
     <None Remove="UpdateInfo.txt" />
     <None Remove="X组件.txt" />
     <None Remove="说明.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Yun\OssClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />

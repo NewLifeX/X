@@ -57,7 +57,6 @@
     <Compile Include="Remoting\ApiHttpClientUnitTests.cs" />
     <Compile Include="Remoting\ConfigServiceResolverTests.cs" />
     <Compile Include="Remoting\LoadBalancerTests.cs" />
-    <Compile Include="Yun\OssClientTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="certs\newlifex.com.pem" />
