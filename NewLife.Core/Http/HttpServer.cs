@@ -6,14 +6,14 @@ namespace NewLife.Http;
 /// <summary>Http服务器</summary>
 /// <remarks>
 /// 主要职责：
-/// 1. 保存路由映射 <see cref="Routes"/> 并在收到请求时根据路径匹配处理器；
-/// 2. 为每个网络会话创建对应的 <see cref="HttpSession"/> 协议处理器；
-/// 3. 提供多种 Map 重载（委托/控制器/静态文件）。
+/// 1. 路由映射：支持精确路径、参数化路由 {param}、通配符 * 三种模式；
+/// 2. 中间件管道：通过 Use() 注册中间件，按顺序执行；
+/// 3. 方法感知注册：MapGet/MapPost/MapPut/MapDelete 按 HTTP 方法过滤；
+/// 4. 为每个网络会话创建对应的 <see cref="HttpSession"/> 协议处理器。
 /// 
 /// 线程安全说明：
 /// - 典型使用场景下，路由在启动阶段集中注册，运行期只读访问；
-/// - 若需要在运行期动态增删路由，应在外部自行序列化（加锁）调用 Map 方法，或者在未来引入并发字典方案；
-/// - 当前实现为了保持兼容性，不直接改为 ConcurrentDictionary，仅在匹配时使用快照数组降低并发修改风险（仍不保证完全线程安全）。
+/// - 若需要在运行期动态增删路由，应在外部自行序列化（加锁）调用 Map 方法。
 /// </remarks>
 [DisplayName("Http服务器")]
 public class HttpServer : NetServer, IHttpHost
@@ -46,7 +46,7 @@ public class HttpServer : NetServer, IHttpHost
 
     #region 路由注册
     /// <summary>映射路由处理器</summary>
-    /// <param name="path">路径，如 /api/test 或 /api/*</param>
+    /// <param name="path">路径，如 /api/test、/api/{id} 或 /api/*</param>
     /// <param name="handler">处理器</param>
     public void Map(String path, IHttpHandler handler) => SetRoute(path, handler);
 
@@ -94,6 +94,46 @@ public class HttpServer : NetServer, IHttpHost
     /// <param name="path">路径</param>
     /// <param name="handler">处理委托</param>
     public void Map<T1, T2, T3, T4, TResult>(String path, Func<T1, T2, T3, T4, TResult> handler) => SetRoute(path, new DelegateHandler { Callback = handler });
+
+    /// <summary>映射 GET 路由</summary>
+    /// <param name="path">路径，支持 {param} 参数化</param>
+    /// <param name="handler">处理委托</param>
+    public void MapGet(String path, HttpProcessDelegate handler) => SetRoute(path, new MethodFilterHandler("GET", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 GET 路由（无参）</summary>
+    public void MapGet<TResult>(String path, Func<TResult> handler) => SetRoute(path, new MethodFilterHandler("GET", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 GET 路由（单参）</summary>
+    public void MapGet<TModel, TResult>(String path, Func<TModel, TResult> handler) => SetRoute(path, new MethodFilterHandler("GET", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 POST 路由</summary>
+    /// <param name="path">路径，支持 {param} 参数化</param>
+    /// <param name="handler">处理委托</param>
+    public void MapPost(String path, HttpProcessDelegate handler) => SetRoute(path, new MethodFilterHandler("POST", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 POST 路由（无参）</summary>
+    public void MapPost<TResult>(String path, Func<TResult> handler) => SetRoute(path, new MethodFilterHandler("POST", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 POST 路由（单参）</summary>
+    public void MapPost<TModel, TResult>(String path, Func<TModel, TResult> handler) => SetRoute(path, new MethodFilterHandler("POST", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 PUT 路由</summary>
+    public void MapPut(String path, HttpProcessDelegate handler) => SetRoute(path, new MethodFilterHandler("PUT", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 PUT 路由（无参）</summary>
+    public void MapPut<TResult>(String path, Func<TResult> handler) => SetRoute(path, new MethodFilterHandler("PUT", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 PUT 路由（单参）</summary>
+    public void MapPut<TModel, TResult>(String path, Func<TModel, TResult> handler) => SetRoute(path, new MethodFilterHandler("PUT", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 DELETE 路由</summary>
+    public void MapDelete(String path, HttpProcessDelegate handler) => SetRoute(path, new MethodFilterHandler("DELETE", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 DELETE 路由（无参）</summary>
+    public void MapDelete<TResult>(String path, Func<TResult> handler) => SetRoute(path, new MethodFilterHandler("DELETE", new DelegateHandler { Callback = handler }));
+
+    /// <summary>映射 DELETE 路由（单参）</summary>
+    public void MapDelete<TModel, TResult>(String path, Func<TModel, TResult> handler) => SetRoute(path, new MethodFilterHandler("DELETE", new DelegateHandler { Callback = handler }));
 
     /// <summary>映射控制器</summary>
     /// <typeparam name="TController">控制器类型</typeparam>
@@ -148,7 +188,7 @@ public class HttpServer : NetServer, IHttpHost
     /// <param name="contentPath">资源名前缀，如 MyApp.Resources.Panel</param>
     public void MapEmbedded<T>(String path, String contentPath) => MapEmbedded(path, contentPath, typeof(T).Assembly);
 
-    /// <summary>统一设置路由。自动处理前导斜杠</summary>
+    /// <summary>统一设置路由。自动识别 {param} 语法注册到参数化路由器</summary>
     /// <param name="path">路径</param>
     /// <param name="handler">处理器</param>
     private void SetRoute(String path, IHttpHandler handler)
@@ -158,7 +198,14 @@ public class HttpServer : NetServer, IHttpHost
 
         // 统一路径格式：必须以 / 开头
         path = path.EnsureStart("/");
-        Routes[path] = handler; // 保持原语义：后注册覆盖
+
+        // 参数化路由（含 {param} 语法）注册到 HttpRouter
+        if (path.Contains('{'))
+            _router.Register(path, handler);
+        else
+            Routes[path] = handler; // 精确/通配符路由保持原语义
+    }
+    #endregion
 
     #region 中间件
     private readonly List<HttpMiddlewareDelegate> _middlewares = [];
@@ -236,14 +283,29 @@ public class HttpServer : NetServer, IHttpHost
     #endregion
 
     #region 路由匹配
+    /// <summary>参数化路由器，处理 {param} 模式路由</summary>
+    private readonly HttpRouter _router = new();
+
     /// <summary>路径匹配缓存。Key 为请求路径，Value 为匹配到的路由键</summary>
     private readonly IDictionary<String, String> _pathCache = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>匹配处理器</summary>
+    /// <summary>匹配处理器（兼容 IHttpHost 接口）</summary>
     /// <param name="path">已规范化后的请求路径（不含查询字符串）</param>
     /// <param name="request">Http请求对象（可用于深度匹配）</param>
     /// <returns>匹配到的处理器；找不到时返回 null</returns>
     public IHttpHandler? MatchHandler(String path, HttpRequest? request)
+    {
+        // 使用临时字典兼容旧接口（参数化路由的参数不会丢失，因为调用方会通过新重载获取）
+        var tempParams = new Dictionary<String, Object?>();
+        return MatchHandler(path, request, tempParams);
+    }
+
+    /// <summary>匹配处理器（增强版，同时输出路由参数）</summary>
+    /// <param name="path">已规范化后的请求路径（不含查询字符串）</param>
+    /// <param name="request">Http请求对象（可用于深度匹配）</param>
+    /// <param name="parameters">输出路由参数（如 {id}=123）</param>
+    /// <returns>匹配到的处理器；找不到时返回 null</returns>
+    public IHttpHandler? MatchHandler(String path, HttpRequest? request, IDictionary<String, Object?> parameters)
     {
         if (path.IsNullOrEmpty()) return null;
 
@@ -253,7 +315,16 @@ public class HttpServer : NetServer, IHttpHost
         // 缓存匹配
         if (_pathCache.TryGetValue(path, out var p) && Routes.TryGetValue(p, out handler)) return handler;
 
-        // 模糊匹配（使用快照避免运行期新增导致枚举异常）
+        // 参数化路由匹配（{param} 模式）
+        handler = _router.Match(path, parameters);
+        if (handler != null)
+        {
+            // 参数化路由结果也缓存
+            if (path.Split('/').Length <= 3) _pathCache[path] = path;
+            return handler;
+        }
+
+        // 模糊匹配（* 通配符模式）
         foreach (var item in Routes)
         {
             var key = item.Key;
@@ -262,7 +333,7 @@ public class HttpServer : NetServer, IHttpHost
 
             if (Routes.TryGetValue(key, out handler))
             {
-                // 大于3段的路径不做缓存，避免动态Url引起缓存膨胀（保持原逻辑）
+                // 大于3段的路径不做缓存，避免动态Url引起缓存膨胀
                 if (handler is StaticFilesHandler || path.Split('/').Length <= 3) _pathCache[path] = key;
                 return handler;
             }

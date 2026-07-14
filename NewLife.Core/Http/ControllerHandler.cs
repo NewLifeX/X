@@ -69,7 +69,7 @@ public class ControllerHandler : IHttpHandler
         if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{type.FullName}]");
 
         var args = ParameterBinder.Bind(method, context);
-        var result = controller.InvokeWithParams(method, args);
+        var result = method.Invoke(controller, args);
         if (result is Task task) result = TaskHelper.GetTaskResult(task);
         if (result != null)
             context.Response.SetResult(result);

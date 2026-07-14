@@ -203,12 +203,25 @@ public class HttpSession : INetHandler
             }
         }
 
-        var handler = Host?.MatchHandler(path, request);
+        // 匹配路由处理器。优先使用增强匹配以支持参数化路由
+        var parameters = new Dictionary<String, Object?>();
+        IHttpHandler? handler;
+
+        if (Host is HttpServer server)
+            handler = server.MatchHandler(path, request, parameters);
+        else
+            handler = Host?.MatchHandler(path, request);
 
         var context = new DefaultHttpContext(_session, request, path, handler)
         {
             ServiceProvider = _session as IServiceProvider
         };
+
+        // 路由参数合并到上下文
+        foreach (var kv in parameters)
+        {
+            context.Parameters[kv.Key] = kv.Value;
+        }
 
         // 创建请求级作用域，注册 IHttpContext 使构造函数 DI 可获取
         var sp = context.ServiceProvider;
@@ -238,7 +251,7 @@ public class HttpSession : INetHandler
                 if (Host is HttpServer svr)
                     svr.ExecutePipeline(context, handler).GetAwaiter().GetResult();
                 else
-                handler.ProcessRequest(context);
+                    handler.ProcessRequest(context);
             }
             else if (_websocket == null)
                 return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
@@ -302,10 +315,10 @@ public class HttpSession : INetHandler
         }
     }
 
-    /// <summary>简单路径安全检查，防止目录穿越</summary>
+    /// <summary>简单路径安全检查，防止目录穿越和空字节注入</summary>
     /// <param name="path">请求路径</param>
     /// <returns>路径是否安全</returns>
-    private static Boolean IsPathSafe(String path) => path.IndexOf("..", StringComparison.Ordinal) < 0;
+    private static Boolean IsPathSafe(String path) => path.IndexOf("..", StringComparison.Ordinal) < 0 && path.IndexOf('\0') < 0;
 
     /// <summary>准备请求参数</summary>
     /// <param name="context">Http上下文</param>

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -60,6 +61,8 @@ public class DelegateHandler : IHttpHandler
 /// <summary>Task结果提取辅助类</summary>
 internal static class TaskHelper
 {
+    private static readonly ConcurrentDictionary<Type, PropertyInfo?> _resultCache = new();
+
     /// <summary>同步获取Task的结果。仅用于简单Http处理场景</summary>
     /// <param name="task">要获取结果的Task</param>
     /// <returns>Task的Result属性值；若Task无返回值则返回null</returns>
@@ -70,7 +73,8 @@ internal static class TaskHelper
         var taskType = task.GetType();
         if (!taskType.IsGenericType) return null;
 
-        var resultProperty = taskType.GetProperty("Result", BindingFlags.Public | BindingFlags.Instance);
+        // 缓存 PropertyInfo 避免每次反射查找
+        var resultProperty = _resultCache.GetOrAdd(taskType, t => t.GetProperty("Result", BindingFlags.Public | BindingFlags.Instance));
         return resultProperty?.GetValue(task);
     }
 }

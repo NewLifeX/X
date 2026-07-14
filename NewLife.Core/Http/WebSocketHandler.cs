@@ -17,7 +17,7 @@ public class WebSocketHandler : IHttpHandler
         var ws = context.WebSocket;
         ws?.Handler = ProcessMessage;
 
-        WriteLog("WebSocket连接 {0}", context.Connection?.Remote);
+        WriteLog(context, "WebSocket连接 {0}", context.Connection?.Remote);
     }
 
     /// <summary>处理消息。可在子类中重写。</summary>
@@ -33,26 +33,36 @@ public class WebSocketHandler : IHttpHandler
         {
             case WebSocketMessageType.Text:
                 var msg = payload?.ToStr();
-                WriteLog("WebSocket收到[{0}] {1}", remote, msg);
+                WriteLog(socket.Context, "WebSocket收到[{0}] {1}", remote, msg);
                 // 群发所有客户端
                 socket.SendAll($"[{remote}]说，{msg}");
                 break;
             case WebSocketMessageType.Binary:
-                // 示例：只记录长度。实际可根据业务解码。
-                WriteLog("WebSocket收到[{0}] {1} bytes", remote, payload?.Total ?? 0);
+                WriteLog(socket.Context, "WebSocket收到[{0}] {1} bytes", remote, payload?.Total ?? 0);
                 break;
             case WebSocketMessageType.Close:
-                WriteLog("WebSocket关闭[{0}] [{1}] {2}", remote, message.CloseStatus, message.StatusDescription);
+                WriteLog(socket.Context, "WebSocket关闭[{0}] [{1}] {2}", remote, message.CloseStatus, message.StatusDescription);
                 break;
             case WebSocketMessageType.Ping:
             case WebSocketMessageType.Pong:
-                WriteLog("WebSocket心跳[{0}] {1}", message.Type, payload?.ToStr());
+                WriteLog(socket.Context, "WebSocket心跳[{0}] {1}", message.Type, payload?.ToStr());
                 break;
             default:
-                WriteLog("WebSocket收到[{0}] {1} bytes", message.Type, payload?.Total ?? 0);
+                WriteLog(socket.Context, "WebSocket收到[{0}] {1} bytes", message.Type, payload?.Total ?? 0);
                 break;
         }
     }
 
-    private void WriteLog(String format, params Object?[] args) => XTrace.WriteLine(format, args);
+    /// <summary>写日志。优先使用 DI 注入的 ILog，回退到 XTrace</summary>
+    /// <param name="context">Http上下文（可为null）</param>
+    /// <param name="format">格式字符串</param>
+    /// <param name="args">参数</param>
+    private static void WriteLog(IHttpContext? context, String format, params Object?[] args)
+    {
+        var log = (ILog?)context?.ServiceProvider?.GetService(typeof(ILog));
+        if (log != null)
+            log.Info(format, args);
+        else
+            XTrace.WriteLine(format, args);
+    }
 }
