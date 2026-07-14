@@ -146,23 +146,27 @@ public static class ApiHelper
         {
             if (args is IPacket pk)
             {
-                var url = action;
-                url += url.Contains('?') ? "&" : "?";
-                url += pk.ToArray().ToUrlBase64();
-                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                request.RequestUri = new Uri(AppendUrl(action, pk.ToArray().ToUrlBase64()), UriKind.RelativeOrAbsolute);
             }
             else if (args is Byte[] buf)
             {
-                var url = action;
-                url += url.Contains('?') ? "&" : "?";
-                url += buf.ToUrlBase64();
-                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                request.RequestUri = new Uri(AppendUrl(action, buf.ToUrlBase64()), UriKind.RelativeOrAbsolute);
             }
             else if (args != null)
             {
                 var type = args.GetType();
-                // 数组/列表类型不转换为字典，避免丢失原始数据
-                if (!type.IsArray && !typeof(IList).IsAssignableFrom(type))
+                if (type.IsBaseType())
+                {
+                    // 基础类型没有命名属性，直接转为字符串放到 Url 尾部
+                    request.RequestUri = new Uri(AppendUrl(action, Uri.EscapeDataString(args + "")), UriKind.RelativeOrAbsolute);
+                }
+                else if (type.IsArray || args is IList)
+                {
+                    // 数组/列表没有命名属性，JSON 序列化后放到 Url 尾部
+                    jsonHost ??= JsonHelper.Default;
+                    request.RequestUri = new Uri(AppendUrl(action, Uri.EscapeDataString(jsonHost.Write(args, jsonOptions: null))), UriKind.RelativeOrAbsolute);
+                }
+                else
                 {
                     var ps = args.ToDictionary();
                     var url = GetUrl(action, ps);
@@ -420,6 +424,10 @@ public static class ApiHelper
 
         return url;
     }
+
+    /// <summary>追加参数到Url。自动识别是否需要添加 ? 或 &amp;</summary>
+    private static String AppendUrl(String action, String parameter) =>
+        action + (action.Contains('?') ? "&" : "?") + parameter;
 
     private static String Encode(String data)
     {
