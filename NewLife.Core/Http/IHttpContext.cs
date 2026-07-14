@@ -1,5 +1,8 @@
-﻿using NewLife.Collections;
+﻿using System.Net;
+using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Net;
+using NewLife.Serialization;
 
 namespace NewLife.Http;
 
@@ -105,4 +108,71 @@ public class DefaultHttpContext : IHttpContext
     /// <summary>当前上下文</summary>
     public static IHttpContext? Current { get => _current; set => _current = value; }
     #endregion
+}
+
+/// <summary>Http上下文扩展方法</summary>
+/// <remarks>提供便捷的响应写入方法</remarks>
+public static class HttpContextExtensions
+{
+    /// <summary>写入JSON响应</summary>
+    /// <param name="context">Http上下文</param>
+    /// <param name="data">数据对象</param>
+    /// <param name="statusCode">状态码，默认200</param>
+    public static void WriteJson(this IHttpContext context, Object data, HttpStatusCode statusCode = HttpStatusCode.OK)
+    {
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/json; charset=utf-8";
+        context.Response.Body = (ArrayPacket)data.ToJson().GetBytes();
+    }
+
+    /// <summary>写入纯文本响应</summary>
+    /// <param name="context">Http上下文</param>
+    /// <param name="text">文本内容</param>
+    /// <param name="statusCode">状态码，默认200</param>
+    public static void WriteText(this IHttpContext context, String text, HttpStatusCode statusCode = HttpStatusCode.OK)
+    {
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "text/plain; charset=utf-8";
+        context.Response.Body = (ArrayPacket)text.GetBytes();
+    }
+
+    /// <summary>写入HTML响应</summary>
+    /// <param name="context">Http上下文</param>
+    /// <param name="html">HTML内容</param>
+    /// <param name="statusCode">状态码，默认200</param>
+    public static void WriteHtml(this IHttpContext context, String html, HttpStatusCode statusCode = HttpStatusCode.OK)
+    {
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "text/html; charset=utf-8";
+        context.Response.Body = (ArrayPacket)html.GetBytes();
+    }
+
+    /// <summary>重定向</summary>
+    /// <param name="context">Http上下文</param>
+    /// <param name="url">目标URL</param>
+    /// <param name="statusCode">重定向状态码，默认302</param>
+    public static void Redirect(this IHttpContext context, String url, HttpStatusCode statusCode = HttpStatusCode.Redirect)
+    {
+        context.Response.StatusCode = statusCode;
+        context.Response.Headers["Location"] = url;
+    }
+
+    /// <summary>发送文件</summary>
+    /// <param name="context">Http上下文</param>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="contentType">内容类型，为空时自动检测</param>
+    public static void WriteFile(this IHttpContext context, String filePath, String? contentType = null)
+    {
+        var fi = filePath.AsFile();
+        if (!fi.Exists)
+        {
+            context.Response.StatusCode = HttpStatusCode.NotFound;
+            return;
+        }
+
+        contentType ??= MimeHelper.GetContentType(fi.Extension) ?? "application/octet-stream";
+
+        using var fs = fi.OpenRead();
+        context.Response.SetResult(fs, contentType);
+    }
 }

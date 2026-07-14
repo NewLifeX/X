@@ -23,22 +23,8 @@ public class EmbeddedFileHandler : IHttpHandler
     /// <summary>资源所在的程序集。为 null 时使用入口程序集</summary>
     public Assembly? Assembly { get; set; }
 
-    private static readonly Dictionary<String, String> _mimeTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        [".html"] = "text/html; charset=utf-8",
-        [".htm"] = "text/html; charset=utf-8",
-        [".css"] = "text/css; charset=utf-8",
-        [".js"] = "text/javascript; charset=utf-8",
-        [".json"] = "application/json",
-        [".png"] = "image/png",
-        [".jpg"] = "image/jpeg",
-        [".jpeg"] = "image/jpeg",
-        [".gif"] = "image/gif",
-        [".svg"] = "image/svg+xml",
-        [".ico"] = "image/x-icon",
-        [".woff"] = "font/woff",
-        [".woff2"] = "font/woff2",
-    };
+    /// <summary>默认文档。当请求路径为目录时返回的默认文件名，默认 index.html</summary>
+    public String DefaultDocument { get; set; } = "index.html";
     #endregion
 
     /// <summary>处理请求</summary>
@@ -51,7 +37,7 @@ public class EmbeddedFileHandler : IHttpHandler
 
         // 默认文档
         if (file.IsNullOrEmpty() || file == "/")
-            file = "index.html";
+            file = DefaultDocument;
 
         // 安全：防止路径穿越
         if (file.Contains(".."))
@@ -79,7 +65,7 @@ public class EmbeddedFileHandler : IHttpHandler
         }
 
         var ext = System.IO.Path.GetExtension(file) ?? "";
-        var contentType = _mimeTypes.TryGetValue(ext, out var mime) ? mime : "application/octet-stream";
+        var contentType = MimeHelper.GetContentType(ext) ?? "application/octet-stream";
 
         ctx.Response.SetResult(stream, contentType);
     }

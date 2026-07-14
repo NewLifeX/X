@@ -40,38 +40,5 @@ public class StaticFilesHandler : IHttpHandler
     /// <summary>根据文件扩展名获取MIME类型</summary>
     /// <param name="extension">文件扩展名（含点号）</param>
     /// <returns>MIME类型；未知类型返回null</returns>
-    protected virtual String? GetContentType(String extension) => extension switch
-    {
-        // 文本类型
-        ".htm" or ".html" => "text/html",
-        ".txt" or ".log" => "text/plain",
-        ".xml" => "text/xml",
-        ".css" => "text/css",
-        ".csv" => "text/csv",
-
-        // 脚本和数据
-        ".js" => "text/javascript",
-        ".json" => "application/json",
-        ".map" => "application/json",
-
-        // 图片类型
-        ".png" => "image/png",
-        ".jpg" or ".jpeg" => "image/jpeg",
-        ".gif" => "image/gif",
-        ".ico" => "image/x-icon",
-        ".svg" => "image/svg+xml",
-        ".webp" => "image/webp",
-
-        // 字体类型
-        ".woff" => "font/woff",
-        ".woff2" => "font/woff2",
-        ".ttf" => "font/ttf",
-        ".eot" => "application/vnd.ms-fontobject",
-
-        // 二进制类型
-        ".zip" => "application/zip",
-        ".pdf" => "application/pdf",
-
-        _ => null,
-    };
+    protected virtual String? GetContentType(String extension) => MimeHelper.GetContentType(extension);
 }
