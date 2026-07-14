@@ -159,6 +159,79 @@ public class HttpServer : NetServer, IHttpHost
         // 统一路径格式：必须以 / 开头
         path = path.EnsureStart("/");
         Routes[path] = handler; // 保持原语义：后注册覆盖
+
+    #region 中间件
+    private readonly List<HttpMiddlewareDelegate> _middlewares = [];
+
+    /// <summary>注册中间件。中间件按注册顺序依次执行，可在处理器前后添加逻辑</summary>
+    /// <param name="middleware">中间件委托：第一个参数为上下文，第二个为调用下一中间件的委托</param>
+    /// <remarks>
+    /// <code>
+    /// server.Use(async (ctx, next) => {
+    ///     // 请求前逻辑
+    ///     await next();
+    ///     // 请求后逻辑
+    /// });
+    /// </code>
+    /// </remarks>
+    public void Use(HttpMiddlewareDelegate middleware)
+    {
+        if (middleware == null) throw new ArgumentNullException(nameof(middleware));
+        _middlewares.Add(middleware);
+    }
+
+    /// <summary>启用 CORS 跨域支持</summary>
+    /// <param name="allowOrigin">允许的源，默认 *</param>
+    /// <param name="allowMethods">允许的方法</param>
+    /// <param name="allowHeaders">允许的请求头</param>
+    public void UseCors(String allowOrigin = "*", String allowMethods = "GET, POST, PUT, DELETE, OPTIONS", String allowHeaders = "Content-Type, Authorization, X-Requested-With")
+    {
+        var cors = new CorsMiddleware
+        {
+            AllowOrigin = allowOrigin,
+            AllowMethods = allowMethods,
+            AllowHeaders = allowHeaders
+        };
+        Use(cors.Invoke);
+    }
+
+    /// <summary>启用全局错误处理中间件（推荐在最外层注册）</summary>
+    /// <param name="includeDetails">是否返回详细异常信息（开发环境建议true）</param>
+    public void UseErrorHandler(Boolean includeDetails = false)
+    {
+        var handler = new ErrorHandlerMiddleware { IncludeDetails = includeDetails };
+        Use(handler.Invoke);
+    }
+
+    /// <summary>构建中间件管道，将最终处理器包装为管道末端</summary>
+    /// <param name="context">Http上下文</param>
+    /// <param name="finalHandler">最终业务处理器（可为null）</param>
+    /// <returns>可等待的任务</returns>
+    internal Task ExecutePipeline(IHttpContext context, IHttpHandler? finalHandler)
+    {
+        // 无中间件时直接执行处理器
+        if (_middlewares.Count == 0)
+        {
+            finalHandler?.ProcessRequest(context);
+            return TaskEx.CompletedTask;
+        }
+
+        // 构建管道链：middleware1 → middleware2 → ... → finalHandler
+        Func<Task> handler = () =>
+        {
+            finalHandler?.ProcessRequest(context);
+            return TaskEx.CompletedTask;
+        };
+
+        // 反向构建：最内层是 handler，往外逐层包装中间件
+        for (var i = _middlewares.Count - 1; i >= 0; i--)
+        {
+            var middleware = _middlewares[i];
+            var next = handler;
+            handler = () => middleware(context, next);
+        }
+
+        return handler();
     }
     #endregion
 

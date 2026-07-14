@@ -233,7 +233,13 @@ public class HttpSession : INetHandler
             _websocket ??= WebSocket.Handshake(context);
 
             if (handler != null)
+            {
+                // 通过 HttpServer 的中间件管道执行处理器
+                if (Host is HttpServer svr)
+                    svr.ExecutePipeline(context, handler).GetAwaiter().GetResult();
+                else
                 handler.ProcessRequest(context);
+            }
             else if (_websocket == null)
                 return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
@@ -246,6 +252,12 @@ public class HttpSession : INetHandler
                 if (code == HttpStatusCode.BadRequest || code > HttpStatusCode.NotFound)
                     span.SetError(new HttpRequestException($"Http Error {(Int32)code} {code}"), null);
             }
+        }
+        catch (HttpException hex)
+        {
+            span?.SetError(hex, null);
+            context.Response.StatusCode = hex.StatusCode;
+            context.Response.StatusDescription = hex.Message;
         }
         catch (Exception ex)
         {
