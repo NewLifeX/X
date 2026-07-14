@@ -109,10 +109,24 @@ public class FormFile
         var full = fileName.GetFullPath();
         if (!overwrite && File.Exists(full)) throw new IOException("目标文件已存在且不允许覆盖：" + full);
 
-        // 使用 FileMode.Create 统一（自动截断旧文件），避免旧实现写短文件后尾部残留的风险
-        using var fs = File.Open(full, FileMode.Create, FileAccess.Write, FileShare.None);
-        Data?.CopyTo(fs);
-        fs.Flush();
+        // 先写入临时文件，再原子移动到目标路径，防止写入中断产生损坏文件
+        var tmp = full + ".tmp";
+        try
+        {
+            using var fs = File.Open(tmp, FileMode.Create, FileAccess.Write, FileShare.None);
+            Data?.CopyTo(fs);
+            fs.Flush();
+        }
+        catch
+        {
+            // 清理不完整的临时文件
+            try { File.Delete(tmp); } catch { }
+            throw;
+        }
+
+        // 原子替换：先删除旧文件（如存在），再移动临时文件
+        if (File.Exists(full)) File.Delete(full);
+        File.Move(tmp, full);
     }
     #endregion
 }

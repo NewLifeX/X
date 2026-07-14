@@ -99,57 +99,58 @@ public class HttpResponse : HttpBase
     {
         if (result == null) return;
 
-        if (result is Exception ex)
+        switch (result)
         {
-            if (ex is ApiException aex)
-                StatusCode = (HttpStatusCode)aex.Code;
-            else
-                StatusCode = HttpStatusCode.InternalServerError;
+            case Exception ex:
+                SetExceptionResult(ex);
+                return;
+            case ISpanSerializable span:
+                contentType ??= "application/octet-stream";
+                Body = span.ToPacket();
+                break;
+            case IAccessor accessor:
+                contentType ??= "application/octet-stream";
 
-            StatusDescription = ex.Message;
-        }
-        else if (result is ISpanSerializable span)
-        {
-            if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
-
-            Body = span.ToPacket();
-        }
-        else if (result is IAccessor accessor)
-        {
-            if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
-
-            var ms = new MemoryStream();
-            accessor.Write(ms, null);
-            ms.Position = 0;
-            Body = new ArrayPacket(ms);
-        }
-        else if (result is IPacket pk)
-        {
-            if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
-            Body = pk;
-        }
-        else if (result is Byte[] buffer)
-        {
-            if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
-            Body = (ArrayPacket)buffer;
-        }
-        else if (result is Stream stream)
-        {
-            if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
-            Body = (ArrayPacket)stream.ReadBytes(-1);
-        }
-        else if (result is String str)
-        {
-            if (contentType.IsNullOrEmpty()) contentType = "text/html";
-            Body = (ArrayPacket)str.GetBytes();
-        }
-        else
-        {
-            if (contentType.IsNullOrEmpty()) contentType = "application/json";
-            Body = (ArrayPacket)result.ToJson().GetBytes();
+                var ms = new MemoryStream();
+                accessor.Write(ms, null);
+                ms.Position = 0;
+                Body = new ArrayPacket(ms);
+                break;
+            case IPacket pk:
+                contentType ??= "application/octet-stream";
+                Body = pk;
+                break;
+            case Byte[] buffer:
+                contentType ??= "application/octet-stream";
+                Body = (ArrayPacket)buffer;
+                break;
+            case Stream stream:
+                contentType ??= "application/octet-stream";
+                Body = (ArrayPacket)stream.ReadBytes(-1);
+                break;
+            case String str:
+                contentType ??= "text/html";
+                Body = (ArrayPacket)str.GetBytes();
+                break;
+            default:
+                contentType ??= "application/json";
+                Body = (ArrayPacket)result.ToJson().GetBytes();
+                break;
         }
 
         if (ContentType.IsNullOrEmpty()) ContentType = contentType;
+    }
+
+    /// <summary>设置异常结果，自动映射ApiException到对应状态码</summary>
+    /// <param name="ex">异常</param>
+    private void SetExceptionResult(Exception ex)
+    {
+        if (ex is ApiException aex)
+            StatusCode = (HttpStatusCode)aex.Code;
+        else
+            StatusCode = HttpStatusCode.InternalServerError;
+
+        StatusDescription = ex.Message;
     }
 
     /// <summary>已重载。</summary>

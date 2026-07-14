@@ -30,9 +30,9 @@ public abstract class HttpBase : IDisposable
     /// <summary>头部集合</summary>
     public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>获取/设置 头部</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <summary>获取/设置 头部。获取时若键不存在返回空字符串（而非null）</summary>
+    /// <param name="key">头部名称</param>
+    /// <returns>头部值；键不存在时返回空字符串</returns>
     public String this[String key] { get => Headers[key] + ""; set => Headers[key] = value; }
     #endregion
 
