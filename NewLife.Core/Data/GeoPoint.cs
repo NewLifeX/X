@@ -1,49 +1,7 @@
-﻿using System;
+﻿namespace NewLife.Data;
 
-namespace NewLife.Data
-{
-    /// <summary>经纬度坐标</summary>
-    public class GeoPoint
-    {
-        #region 属性
-        /// <summary>经度</summary>
-        public Double Longitude { get; set; }
-
-        /// <summary>纬度</summary>
-        public Double Latitude { get; set; }
-        #endregion
-
-        #region 构造
-        /// <summary>经纬度坐标</summary>
-        public GeoPoint() { }
-
-        /// <summary>实例化经纬度坐标</summary>
-        /// <param name="longitude"></param>
-        /// <param name="latitude"></param>
-        public GeoPoint(Double longitude, Double latitude)
-        {
-            Longitude = longitude;
-            Latitude = latitude;
-        }
-
-        /// <summary>经纬度坐标</summary>
-        /// <param name="location"></param>
-        public GeoPoint(String location)
-        {
-            if (!location.IsNullOrEmpty())
-            {
-                var ss = location.Split(',');
-                if (ss.Length >= 2)
-                {
-                    Longitude = ss[0].ToDouble();
-                    Latitude = ss[1].ToDouble();
-                }
-            }
-        }
-        #endregion
-
-        /// <summary>已重载</summary>
-        /// <returns></returns>
-        public override String ToString() => $"{Longitude},{Latitude}";
-    }
-}
+/// <summary>经纬度坐标。值类型，栈分配，零GC压力</summary>
+/// <remarks>
+/// 默认值为 (0,0)，即几内亚湾。需要表示"无坐标"时使用 GeoPoint?。
+/// </remarks>
+public readonly record struct GeoPoint(Double Longitude, Double Latitude);
