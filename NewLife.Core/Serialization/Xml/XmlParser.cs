@@ -11,15 +11,16 @@ public class XmlParser
     #endregion
 
     /// <summary>实例化</summary>
-    /// <param name="xml"></param>
+    /// <param name="xml">XML 字符串</param>
     public XmlParser(String xml)
     {
         var set = new XmlReaderSettings();
         _reader = XmlReader.Create(new StringReader(xml), set);
     }
 
-    /// <summary>解码</summary>
-    /// <returns></returns>
+    /// <summary>解码 XML 字符串为字典</summary>
+    /// <param name="xml">XML 字符串</param>
+    /// <returns>字典结果</returns>
     public static IDictionary<String, Object?> Decode(String xml)
     {
         xml = xml.TrimStart((Char)0xFEFF);

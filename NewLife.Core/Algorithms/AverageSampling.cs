@@ -51,9 +51,7 @@ public class AverageSampling : ISampling
         return sampled;
     }
 
-    /// <summary>
-    /// 混合处理，降采样和插值，不保留边界节点
-    /// </summary>
+    /// <summary>混合处理，降采样和插值，不保留边界节点</summary>
     /// <param name="data">原始数据（升序）</param>
     /// <param name="size">桶大小。如60/3600/86400</param>
     /// <param name="offset">偏移量。时间不是对齐零点时使用</param>
