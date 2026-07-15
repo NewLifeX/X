@@ -48,8 +48,8 @@ public static class XTrace
     }
 
     /// <summary>写日志</summary>
-    /// <param name="format"></param>
-    /// <param name="args"></param>
+    /// <param name="format">格式化字符串</param>
+    /// <param name="args">格式化参数</param>
     public static void WriteLine(String format, params Object?[] args)
     {
         // 只过滤null，保留包含空格的字符串
