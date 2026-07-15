@@ -3,9 +3,9 @@
 namespace NewLife;
 
 /// <summary>泛型事件参数</summary>
-/// <typeparam name="TArg"></typeparam>
+/// <typeparam name="TArg">参数类型</typeparam>
 /// <remarks>使用参数初始化</remarks>
-/// <param name="arg"></param>
+/// <param name="arg">事件参数值</param>
 [Serializable]
 [ComVisible(true)]
 public class EventArgs<TArg>(TArg arg) : EventArgs
@@ -13,17 +13,17 @@ public class EventArgs<TArg>(TArg arg) : EventArgs
     /// <summary>参数</summary>
     public TArg Arg { get; set; } = arg;
 
-    /// <summary>弹出</summary>
-    /// <param name="arg"></param>
+    /// <summary>弹出参数值</summary>
+    /// <param name="arg">输出参数值</param>
     public void Pop(ref TArg arg) => arg = Arg;
 }
 
 /// <summary>泛型事件参数</summary>
-/// <typeparam name="TArg1"></typeparam>
-/// <typeparam name="TArg2"></typeparam>
+/// <typeparam name="TArg1">参数1类型</typeparam>
+/// <typeparam name="TArg2">参数2类型</typeparam>
 /// <remarks>使用参数初始化</remarks>
-/// <param name="arg1"></param>
-/// <param name="arg2"></param>
+/// <param name="arg1">事件参数1值</param>
+/// <param name="arg2">事件参数2值</param>
 public class EventArgs<TArg1, TArg2>(TArg1 arg1, TArg2 arg2) : EventArgs
 {
     /// <summary>参数</summary>
@@ -32,9 +32,9 @@ public class EventArgs<TArg1, TArg2>(TArg1 arg1, TArg2 arg2) : EventArgs
     /// <summary>参数2</summary>
     public TArg2 Arg2 { get; set; } = arg2;
 
-    /// <summary>弹出</summary>
-    /// <param name="arg1"></param>
-    /// <param name="arg2"></param>
+    /// <summary>弹出参数值</summary>
+    /// <param name="arg1">输出参数1值</param>
+    /// <param name="arg2">输出参数2值</param>
     public void Pop(ref TArg1 arg1, ref TArg2 arg2)
     {
         arg1 = Arg1;

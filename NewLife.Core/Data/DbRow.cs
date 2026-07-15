@@ -3,13 +3,10 @@ using System.Xml.Serialization;
 
 namespace NewLife.Data;
 
-/// <summary>数据行</summary>
-/// <remarks>
-/// 文档 https://newlifex.com/core/dbtable
-/// </remarks>
-/// <remarks>构造数据行</remarks>
-/// <param name="table"></param>
-/// <param name="index"></param>
+/// <summary>数据行。表示数据表中的一行记录</summary>
+/// <remarks>文档 https://newlifex.com/core/dbtable</remarks>
+/// <param name="table">所属数据表</param>
+/// <param name="index">行索引</param>
 public readonly struct DbRow(DbTable table, Int32 index) : IModel
 {
     #region 属性

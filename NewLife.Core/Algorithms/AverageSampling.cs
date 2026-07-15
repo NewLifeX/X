@@ -2,24 +2,16 @@
 
 namespace NewLife.Algorithms;
 
-/// <summary>
-/// 平均值采样算法
-/// </summary>
+/// <summary>平均值采样算法</summary>
 public class AverageSampling : ISampling
 {
-    /// <summary>
-    /// 对齐模式。每个桶X轴对齐方式
-    /// </summary>
+    /// <summary>对齐模式。每个桶X轴对齐方式</summary>
     public AlignModes AlignMode { get; set; }
 
-    /// <summary>
-    /// 插值填充算法
-    /// </summary>
+    /// <summary>插值填充算法</summary>
     public IInterpolation? Interpolation { get; set; } = new LinearInterpolation();
 
-    /// <summary>
-    /// 降采样处理。保留边界两个点
-    /// </summary>
+    /// <summary>降采样处理。保留边界两个点</summary>
     /// <param name="data">原始数据（升序）</param>
     /// <param name="threshold">阈值，采样数</param>
     /// <returns>降采样后的数据</returns>
