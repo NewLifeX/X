@@ -74,7 +74,6 @@ dotnet run
 | **缓存**         | [统一缓存接口ICache](https://newlifex.com/core/icache)                       | 定义标准缓存操作，提供内存、Redis等多种实现。    |
 |                  | [缓存架构ICacheProvider](https://newlifex.com/core/icacheprovider)           | 用于管理和提供ICache实例，支持多缓存并存。       |
 |                  | [内存缓存MemoryCache](https://newlifex.com/core/memory_cache)                | 高性能的单机内存缓存，支持过期和容量策略。       |
-|                  | [字典缓存DictionaryCache](https://newlifex.com/core/dictionary_cache)        | 增强型字典，增加缓存有效期和上限等实用功能。     |
 |                  | [对象池ObjectPool](https://newlifex.com/core/object_pool)                    | 用于复用昂贵对象，提高性能并减少GC压力。         |
 |                  | [对象池Pool](/core/pool)                                                     | 基于CAS的高性能通用对象池，降低GC压力。          |
 |                  | [分布式缓存NewLife.Redis](https://newlifex.com/core/redis)                   | 基于Redis的分布式缓存实现，支持多种数据结构。    |
@@ -102,10 +101,8 @@ dotnet run
 |                  | [雪花算法Snowflake](https://newlifex.com/core/snow_flake)                    | 分布式唯一ID生成算法，保证高并发下ID唯一性。     |
 | **安全与令牌**   | [分布式数字签名令牌TokenProvider](https://newlifex.com/core/token_provider)  | 用于生成和验证分布式令牌，保障多节点间安全。     |
 |                  | [Web通用令牌JwtBuilder](https://newlifex.com/core/jwt)                       | 提供JWT令牌的生成、解码和验证，简化Web验证。     |
-| **云服务**       | [百度地图接口BaiduMap](https://newlifex.com/core/baidu_map)                  | 封装百度地图API，提供IP定位和地址解析等功能。    |
-|                  | [高德地图接口AMap](https://newlifex.com/core/amap)                           | 封装高德地图API，提供地址解析等服务。            |
-|                  | [经纬度哈希GeoHash](https://newlifex.com/core/geo_hash)                      | 将经纬度编码为字符串，用于附近位置搜索。         |
-|                  | [阿里云对象存储OssClient](https://newlifex.com/core/oss)                     | 简化阿里云OSS操作，提供文件上传下载管理功能。    |
+| **云服务**       | [经纬度哈希GeoHash](https://newlifex.com/core/geo_hash)                      | 将经纬度编码为字符串，用于附近位置搜索。         |
+|                  | ⚠️ 百度地图/高德地图/阿里云OSS 已提取到独立 NuGet 包。                       |                                                  |
 | **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP服务端，封装了会话和数据处理。      |
 |                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP网络客户端，简化连接与收发。        |
 |                  | [消息IMessage](/core/message)                                                | 请求-响应消息接口，支持池化内存和释放链。        |
@@ -113,8 +110,8 @@ dotnet run
 |                  | [数据包编码器PacketCodec](https://newlifex.com/core/packet_codec)            | 用于网络粘包处理，支持多种消息分包解决方案。     |
 |                  | [简易远程消息交换协议SRMP](https://newlifex.com/core/srmp)                   | 轻量级RPC协议，支持二进制序列化和UDP传输。       |
 |                  | [负载均衡与故障转移LoadBalancer](/core/load_balancer)                        | 提供Failover/轮询/竞速三种多节点调度策略。       |
-|                  | [RPC通信ApiServer](https://newlifex.com/core/api_server)                     | 快速构建RPC服务端，自动注册服务并提供接口。      |
-|                  | [RPC通信ApiClient](https://newlifex.com/core/api_client)                     | 快速创建RPC客户端，支持服务发现和故障转移。      |
+|                  | [RPC通信ApiServer](https://newlifex.com/core/api_server)                     | ⚠️ 已移至 [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting) |
+|                  | [RPC通信ApiClient](https://newlifex.com/core/api_client)                     | ⚠️ 已移至 [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting) |
 |                  | [HTTP客户端ApiHttpClient](https://newlifex.com/core/api_http)                | 基于HttpClient封装，简化Web API的调用和处理。    |
 |                  | [HTTP服务端HttpServer（嵌入式设备）](https://newlifex.com/core/httpserver)   | 轻量级Http服务器，适合嵌入式和物联网设备使用。  |
 |                  | [网络下载WebClientX](https://newlifex.com/core/webclient)                    | 增强版WebClient，支持多线程、断点续传下载。      |

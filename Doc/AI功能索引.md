@@ -1,7 +1,7 @@
 ---
 title: NewLife.Core AI 功能索引
-version: "11.10"
-updated: "2026-03-19"
+version: "11.17"
+updated: "2026-07-15"
 description: NewLife.Core 核心库全部功能模块的结构化索引，供 AI 工具和 MCP Server 检索使用
 ---
 
@@ -21,31 +21,28 @@ NuGet 包：`NewLife.Core`
 | 命名空间 | 模块 | 一句话描述 | 核心类型 |
 |----------|------|-----------|---------|
 | NewLife | 基础扩展 | 类型转换、字符串操作、进程管理等基础工具 | Utility, StringHelper, DisposeBase |
-| NewLife.Caching | 缓存系统 | 统一缓存接口，内存缓存和 Redis 客户端 | ICache, MemoryCache, Redis |
-| NewLife.Collections | 集合与池化 | 对象池、线程安全集合、布隆过滤器 | Pool\<T\>, ObjectPool\<T\>, DictionaryCache |
+| NewLife.Caching | 缓存系统 | 统一缓存接口，内存缓存和队列 | ICache, MemoryCache, IProducerConsumer |
+| NewLife.Collections | 集合与池化 | 对象池、线程安全集合 | Pool\<T\>, ObjectPool\<T\>, ConcurrentHashSet |
 | NewLife.Configuration | 配置系统 | 多源配置框架，支持 JSON/XML/INI/HTTP/Apollo | IConfigProvider, Config\<T\>, HttpConfigProvider |
 | NewLife.Data | 数据结构 | 数据包接口、分页、雪花ID、地理哈希 | IPacket, PageParameter, Snowflake, GeoHash |
 | NewLife.Http | HTTP 与 WebSocket | 轻量级 HTTP 服务器/客户端和 WebSocket | HttpServer, WebSocketClient, TinyHttpClient |
-| NewLife.IO | 文件与存储 | CSV/Excel 读写、对象存储、路径工具 | CsvFile, ExcelReader, OssClient |
+| NewLife.IO | 文件与存储 | CSV/Excel 读写、路径工具 | CsvFile, ExcelReader, PathHelper |
 | NewLife.Log | 日志与追踪 | 多输出日志框架，分布式链路追踪 APM | ILog, ITracer, DefaultTracer, XTrace |
 | NewLife.Model | 应用框架 | 依赖注入、插件管理、管道模型、Actor 并发 | ObjectContainer, Host, Actor, IPipeline |
 | NewLife.Net | 网络库 | 高性能 TCP/UDP 服务端/客户端，编解码管道 | NetServer, TcpServer, StandardCodec |
 | NewLife.Reflection | 反射扩展 | 高性能反射、程序集工具、脚本引擎 | IReflect, AssemblyX, ScriptEngine |
-| NewLife.Remoting | RPC 框架 | API 客户端/服务端，负载均衡，故障转移 | ApiClient, ApiServer, ApiHttpClient |
-| NewLife.Security | 安全加密 | RSA/AES/SM4 加解密，哈希校验，证书操作 | SecurityHelper, RSAHelper, SM4, Crc32 |
+| NewLife.Remoting | RPC 框架 | HTTP API 客户端，负载均衡，故障转移 | IApiClient, ApiHttpClient, ILoadBalancer |
+| NewLife.Security | 安全加密 | RSA/DSA/AES/SM4 加解密，哈希校验 | SecurityHelper, RSAHelper, SM4, Crc32 |
 | NewLife.Serialization | 序列化 | JSON/XML/Binary 多格式序列化，高性能 Span 序列化 | Json, Binary, Xml, SpanSerializer |
 | NewLife.Threading | 定时调度 | 高精度定时器，Cron 表达式调度 | TimerX, Cron, ThreadPoolX |
-| NewLife.Algorithms | 数据算法 | 时序降采样、插值算法 | LTTBSampling, LinearInterpolation |
+| NewLife.Algorithms | 数据算法 | 时序降采样、插值算法 | AverageSampling, LinearInterpolation |
 | NewLife.Buffers | 高性能缓冲区 | 池化写入器，零分配 Span 读写器 | PooledByteBufferWriter, SpanWriter, SpanReader |
 | NewLife.Compression | 压缩归档 | Tar/7Zip 压缩解压 | TarFile, SevenZip |
 | NewLife.Messaging | 消息与事件 | 消息接口，事件总线，事件中心 | IMessage, IEventBus, EventHub |
-| NewLife.Web | Web 工具 | JWT 令牌、OAuth 客户端/服务端、令牌提供者 | JwtBuilder, OAuthClient, TokenProvider |
-| NewLife.Windows | Windows 特定 | 电源状态、语音识别、控制台扩展 | PowerStatus, SpeechRecognition |
+| NewLife.Web | Web 工具 | JWT 令牌、令牌提供者、HTTP 下载 | JwtBuilder, TokenProvider, WebClientX |
+| NewLife.Windows | Windows 特定 | 电源状态、控制台扩展 | PowerStatus, ConsoleHelper |
 | NewLife.Xml | XML 配置 | XML 配置文件基类 | XmlConfig\<T\>, XmlHelper |
-| NewLife.Json | JSON 配置 | JSON 配置文件基类 | JsonConfig |
-| NewLife.Expressions | 表达式计算 | 逆波兰表达式、数学表达式求值 | RpnExpression, MathExpression |
-| NewLife.Yun | 云服务 | 百度/高德/腾讯地图 API、阿里云 OSS | BaiduMap, AMap, OssClient |
-| NewLife.Common | 系统信息 | 机器硬件信息、运行时统计、系统配置 | MachineInfo, Runtime, SysConfig |
+| NewLife.Common | 系统信息 | 机器硬件信息、运行时统计、系统配置 | MachineInfo, Runtime, SysConfig, PinYin |
 
 ---
 
@@ -72,7 +69,7 @@ NuGet 包：`NewLife.Core`
 | ICache | [统一缓存接口](https://newlifex.com/core/icache) | 标准缓存操作接口，Get/Set/Remove/GetAll 等 |
 | MemoryCache | [内存缓存](https://newlifex.com/core/memory_cache) | 高性能单机内存缓存，支持过期和容量策略 |
 | ICacheProvider | [缓存架构](https://newlifex.com/core/icacheprovider) | 缓存提供者，管理多 ICache 实例 |
-| Redis | [Redis客户端](https://newlifex.com/core/redis) | 高性能 Redis 客户端（另有独立包 NewLife.Redis） |
+| Redis | — | ⚠️ 已完全提取到独立包 [NewLife.Redis](https://www.nuget.org/packages/NewLife.Redis) |
 | CacheLock | — | 基于缓存的分布式锁 |
 | MemoryQueue\<T\> | — | 内存队列实现 |
 | IProducerConsumer\<T\> | — | 生产者-消费者队列接口 |
@@ -83,9 +80,7 @@ NuGet 包：`NewLife.Core`
 |------|------|------|
 | Pool\<T\> | [对象池](https://newlifex.com/core/pool) | 基于 CAS 的高性能通用对象池 |
 | ObjectPool\<T\> | [对象池](https://newlifex.com/core/object_pool) | 带生命周期管理的对象池 |
-| DictionaryCache\<K,V\> | — | LRU 字典缓存，支持过期和上限 |
 | ConcurrentHashSet\<T\> | — | 线程安全的 HashSet |
-| BloomFilter | — | 布隆过滤器，概率性集合成员测试 |
 | StringBuilderPool | — | StringBuilder 池化（`Pool.StringBuilder` 获取） |
 
 ### 配置系统（NewLife.Configuration）
@@ -111,7 +106,6 @@ NuGet 包：`NewLife.Core`
 | Snowflake | [雪花算法](https://newlifex.com/core/snow_flake) | 分布式唯一 ID 生成器 |
 | GeoHash | [经纬度哈希](https://newlifex.com/core/geo_hash) | 经纬度编码，用于附近位置搜索 |
 | RingBuffer | — | 环形缓冲区 |
-| BinaryTree | — | 二叉树实现 |
 
 ### HTTP 与 WebSocket（NewLife.Http）
 
@@ -133,7 +127,6 @@ NuGet 包：`NewLife.Core`
 | CsvDb\<T\> | [CSV数据库](https://newlifex.com/core/csv_db) | 以 CSV 文件为数据库的增删改查 |
 | ExcelReader | [Excel读取](https://newlifex.com/core/excel_reader) | 无需 Office，轻量级 Excel 读取 |
 | ExcelWriter | — | Excel 文件写入 |
-| OssClient | [OSS存储](https://newlifex.com/core/oss) | 阿里云 OSS 对象存储客户端 |
 | PathHelper | [路径扩展](https://newlifex.com/core/path_helper) | 跨平台路径处理工具 |
 | IOHelper | [数据扩展](https://newlifex.com/core/io_helper) | 高效 IO 操作，流与字节数组转换 |
 
@@ -178,11 +171,13 @@ NuGet 包：`NewLife.Core`
 
 ### RPC 框架（NewLife.Remoting）
 
+> ⚠️ `ApiClient` / `ApiServer` 已提取到独立 NuGet 包 [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting)。
+> 核心库保留 `IApiClient` 接口、`ApiHttpClient` 实现及负载均衡组件。
+
 | 类型 | 文档 | 说明 |
 |------|------|------|
-| ApiClient | [RPC客户端](https://newlifex.com/core/api_client) | 快速创建 RPC 客户端 |
-| ApiServer | [RPC服务端](https://newlifex.com/core/api_server) | 快速构建 RPC 服务端 |
-| ApiHttpClient | [HTTP客户端](https://newlifex.com/core/api_http) | 基于 HttpClient 封装的 API 客户端 |
+| IApiClient | — | API 客户端抽象接口 |
+| ApiHttpClient | [HTTP客户端](https://newlifex.com/core/api_http) | 基于 HttpClient 封装的 API 客户端，实现 IApiClient |
 | ILoadBalancer | [负载均衡](https://newlifex.com/core/load_balancer) | 负载均衡接口 |
 | FailoverLoadBalancer | [负载均衡](https://newlifex.com/core/load_balancer) | 故障转移策略 |
 | WeightedRoundRobinLoadBalancer | [负载均衡](https://newlifex.com/core/load_balancer) | 加权轮询策略 |
@@ -194,12 +189,11 @@ NuGet 包：`NewLife.Core`
 |------|------|------|
 | SecurityHelper | [安全扩展](https://newlifex.com/core/security_helper) | 统一的加解密扩展方法集 |
 | RSAHelper | — | RSA 非对称加密 |
-| ECDsaHelper | — | ECDSA 数字签名 |
+| ECDsaHelper | — | ECDSA 数字签名（在 `NewLife.Security` 程序集） |
 | SM4 | — | 国密 SM4 对称加密 |
 | RC4 | — | RC4 流加密 |
 | Crc16 / Crc32 | — | CRC 校验 |
 | Murmur128 | — | MurmurHash3 哈希 |
-| Certificate | — | X.509 证书操作 |
 | IPasswordProvider | — | 密码策略接口（MD5/盐值等） |
 
 ### 序列化（NewLife.Serialization）
@@ -224,10 +218,9 @@ NuGet 包：`NewLife.Core`
 
 | 类型 | 文档 | 说明 |
 |------|------|------|
-| LTTBSampling | — | LTTB 降采样算法（保留视觉特征） |
+| ISampling | — | 降采样算法接口 |
+| AverageSampling | — | 平均值降采样 |
 | LinearInterpolation | — | 线性插值 |
-| LagrangeInterpolation | — | 拉格朗日多项式插值 |
-| BilinearInterpolation | — | 双线性插值 |
 
 ### 高性能缓冲区（NewLife.Buffers）
 
@@ -260,17 +253,7 @@ NuGet 包：`NewLife.Core`
 |------|------|------|
 | JwtBuilder | [JWT令牌](https://newlifex.com/core/jwt) | JWT 令牌生成、解码、验证 |
 | TokenProvider | [分布式令牌](https://newlifex.com/core/token_provider) | 分布式数字签名令牌 |
-| OAuthClient | — | OAuth 2.0 客户端基类 |
-| OAuthServer | — | OAuth 2.0 服务端 |
 | WebClientX | [网络下载](https://newlifex.com/core/webclient) | 增强型 HTTP 下载，支持多线程、断点续传 |
-
-### 云服务（NewLife.Yun）
-
-| 类型 | 文档 | 说明 |
-|------|------|------|
-| BaiduMap | — | 百度地图 API 封装 |
-| AMap | — | 高德地图 API 封装 |
-| WeMap | — | 腾讯地图 API 封装 |
 
 ---
 
