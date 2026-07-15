@@ -189,7 +189,7 @@ public class SpanReaderWriterTests
         var writer = new SpanWriter(buf);
         writer.WriteValue(null, typeof(Boolean));
         var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
-        Assert.Equal(false, (Boolean)reader.ReadValue(typeof(Boolean))!);
+        Assert.False((Boolean)reader.ReadValue(typeof(Boolean))!);
 
         // null Int32 → 写0
         writer = new SpanWriter(buf);
@@ -510,7 +510,7 @@ public class SpanReaderWriterTests
         writer.WriteValue(true, typeof(Boolean?));
         Assert.Equal(2, writer.WrittenCount);
         reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
-        Assert.Equal(true, (Boolean)reader.ReadValue(typeof(Boolean?))!);
+        Assert.True((Boolean)reader.ReadValue(typeof(Boolean?))!);
 
         // Nullable<Int64> 有值 → 1字节标志 + 8字节Int64 = 9字节
         writer = new SpanWriter(buf);
@@ -620,7 +620,7 @@ public class SpanReaderWriterTests
         using var ms = new MemoryStream(buf, 0, writer.WrittenCount);
         var bn = new Binary(ms) { IsLittleEndian = true };
 
-        Assert.Equal(true, bn.Read<Boolean>());
+        Assert.True(bn.Read<Boolean>());
         Assert.Equal((Byte)0xAB, bn.Read<Byte>());
         // Binary框架不支持SByte负值，读为Byte后比较位模式
         Assert.Equal(unchecked((Byte)(SByte)(-50)), bn.Read<Byte>());
@@ -672,7 +672,7 @@ public class SpanReaderWriterTests
 
         // SpanReader 读取
         var reader = new SpanReader(data) { IsLittleEndian = true };
-        Assert.Equal(true, (Boolean)reader.ReadValue(typeof(Boolean))!);
+        Assert.True((Boolean)reader.ReadValue(typeof(Boolean))!);
         Assert.Equal((Byte)0xAB, (Byte)reader.ReadValue(typeof(Byte))!);
         // Binary写入的是Byte位表示，SpanReader以Byte读取并比较位模式
         Assert.Equal(unchecked((Byte)(SByte)(-50)), (Byte)reader.ReadValue(typeof(Byte))!);
@@ -796,7 +796,7 @@ public class SpanReaderWriterTests
             EncodeInt = true,
             FullTime = true,
         };
-        Assert.Equal(true, (Boolean)reader.ReadValue(typeof(Boolean))!);
+        Assert.True((Boolean)reader.ReadValue(typeof(Boolean))!);
         Assert.Equal((Byte)0x42, (Byte)reader.ReadValue(typeof(Byte))!);
         Assert.Equal((SByte)(-99), (SByte)reader.ReadValue(typeof(SByte))!);
         Assert.Equal((Char)'X', (Char)reader.ReadValue(typeof(Char))!);

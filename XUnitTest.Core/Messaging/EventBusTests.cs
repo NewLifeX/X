@@ -128,12 +128,12 @@ public class EventBusTests
         var bus = new EventBus<TestEvent>();
 
         var receiveTask = bus.ReceiveAsync();
-        Assert.Equal(1, bus.Handlers.Count);
+        Assert.Single(bus.Handlers);
 
         await bus.PublishAsync(new TestEvent { Message = "once" });
         await receiveTask;
 
-        Assert.Equal(0, bus.Handlers.Count);
+        Assert.Empty(bus.Handlers);
     }
 
     private sealed class ThrowingEventHandler : IEventHandler<TestEvent>

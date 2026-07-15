@@ -18,25 +18,23 @@ public class ThreadPoolXTests
     }
 
     [Fact(DisplayName = "QueueUserWorkItem执行回调")]
-    public void QueueUserWorkItemExecutes()
+    public async Task QueueUserWorkItemExecutes()
     {
         var tcs = new TaskCompletionSource<Boolean>();
         ThreadPoolX.QueueUserWorkItem(() => tcs.SetResult(true));
 
-        var result = tcs.Task.Wait(5000);
+        var result = await tcs.Task;
         Assert.True(result);
-        Assert.True(tcs.Task.Result);
     }
 
     [Fact(DisplayName = "QueueUserWorkItem泛型执行回调")]
-    public void QueueUserWorkItemGenericExecutes()
+    public async Task QueueUserWorkItemGenericExecutes()
     {
         var tcs = new TaskCompletionSource<Int32>();
         ThreadPoolX.QueueUserWorkItem<Int32>(val => tcs.SetResult(val), 42);
 
-        var result = tcs.Task.Wait(5000);
-        Assert.True(result);
-        Assert.Equal(42, tcs.Task.Result);
+        var result = await tcs.Task;
+        Assert.Equal(42, result);
     }
 
     [Fact(DisplayName = "null回调安全忽略")]
@@ -48,7 +46,7 @@ public class ThreadPoolXTests
     }
 
     [Fact(DisplayName = "回调异常不抛出")]
-    public void CallbackExceptionDoesNotThrow()
+    public async Task CallbackExceptionDoesNotThrow()
     {
         var done = new ManualResetEventSlim(false);
         ThreadPoolX.QueueUserWorkItem(() =>

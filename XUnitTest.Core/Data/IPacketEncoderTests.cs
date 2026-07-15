@@ -152,14 +152,14 @@ public class IPacketEncoderTests
         Assert.Equal(value, decoded);
     }
 
-    [Fact(DisplayName = "默认编码器-Packet类型转换")]
-    public void DefaultEncoder_PacketTypeConversion()
+    [Fact(DisplayName = "默认编码器-IPacket类型转换")]
+    public void DefaultEncoder_IPacketTypeConversion()
     {
         var encoder = new DefaultPacketEncoder();
         var arrayPacket = new ArrayPacket("test".GetBytes());
         
-        // 解码为Packet类型
-        var packet = encoder.Decode<Packet>(arrayPacket);
+        // 解码为IPacket类型
+        var packet = encoder.Decode<IPacket>(arrayPacket);
         Assert.NotNull(packet);
         Assert.Equal("test", packet.ToStr());
     }

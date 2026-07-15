@@ -151,8 +151,6 @@ public class NetEdgeCaseTests
     [Fact]
     public void EmptyDataHandling()
     {
-        var receivedEmpty = false;
-
         using var server = new NetServer
         {
             Port = 0,
@@ -163,7 +161,7 @@ public class NetEdgeCaseTests
         server.Received += (s, e) =>
         {
             if (e.Packet == null || e.Packet.Total == 0)
-                receivedEmpty = true;
+                XTrace.WriteLine("收到空数据");
         };
 
         server.Start();

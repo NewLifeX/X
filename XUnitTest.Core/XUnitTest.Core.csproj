@@ -36,9 +36,6 @@
     <None Remove="Yun\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Model\HostTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="certs\newlifex.com.pem" />
     <None Remove="certs\newlifex.com.pfx" />
     <None Remove="certs\newlifex.com.privatekey.pem" />

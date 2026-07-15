@@ -456,7 +456,7 @@ public class ConfigServiceResolverTests : IDisposable
             set => _data[key!] = value;
         }
 
-        public event EventHandler? Changed;
+        public event EventHandler? Changed { add { } remove { } }
 
         public GetConfigCallback GetConfig => key => this[key];
         public IConfigSection? GetSection(String key) => null;

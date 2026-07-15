@@ -145,7 +145,7 @@ public class JsonWriterTests
     public void CamelCase_Setting(Boolean camelCase)
     {
         var writer = new JsonWriter();
-        writer.Options.CamelCase = camelCase;
+        writer.Options.PropertyNaming = camelCase ? PropertyNaming.CamelCase : PropertyNaming.None;
 
         writer.Write(new { UserName = "Stone" });
 
