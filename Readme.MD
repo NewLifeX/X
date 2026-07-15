@@ -101,8 +101,9 @@ dotnet run
 |                  | [雪花算法Snowflake](https://newlifex.com/core/snow_flake)                    | 分布式唯一ID生成算法，保证高并发下ID唯一性。     |
 | **安全与令牌**   | [分布式数字签名令牌TokenProvider](https://newlifex.com/core/token_provider)  | 用于生成和验证分布式令牌，保障多节点间安全。     |
 |                  | [Web通用令牌JwtBuilder](https://newlifex.com/core/jwt)                       | 提供JWT令牌的生成、解码和验证，简化Web验证。     |
+|                  | [令牌HTTP过滤器TokenHttpFilter](https://newlifex.com/core/token_http_filter) | HTTP请求自动注入令牌，拦截401/403自动续期。     |
 | **云服务**       | [经纬度哈希GeoHash](https://newlifex.com/core/geo_hash)                      | 将经纬度编码为字符串，用于附近位置搜索。         |
-|                  | ⚠️ 百度地图/高德地图/阿里云OSS 已提取到独立 NuGet 包。                       |                                                  |
+|                  | ⚠️ 百度地图/高德地图 已提取到独立 NuGet 包。                                 |                                                  |
 | **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP服务端，封装了会话和数据处理。      |
 |                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP网络客户端，简化连接与收发。        |
 |                  | [消息IMessage](/core/message)                                                | 请求-响应消息接口，支持池化内存和释放链。        |
@@ -117,6 +118,7 @@ dotnet run
 |                  | [网络下载WebClientX](https://newlifex.com/core/webclient)                    | 增强版WebClient，支持多线程、断点续传下载。      |
 |                  | [WebSocket服务器（物联网下行通知神器）](https://newlifex.com/core/websocket) | 高性能WebSocket服务端，适用于物联网消息推送。    |
 |                  | [WebSocket双向通信](/core/websocket_guide)                                   | 介绍握手、帧处理、心跳与连接关闭实践。           |
+|                  | [文件存储客户端EasyClient](/core/easy_io)                                    | HTTP文件存储客户端，对接EasyIO或OSS。            |
 
 
 
