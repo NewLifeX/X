@@ -23,4 +23,5 @@ bld/
 *.nupkg
 [Cc]onfig/
 [Ll]og/
+!XUnitTest.Core/Log/
 BenchmarkDotNet.Artifacts/

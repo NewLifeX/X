@@ -144,6 +144,8 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
                     cipherBlock[cipherBlockLength - i] &= (Byte)~posMask;
                     cipherBlock[cipherBlockLength - i] |= (Byte)(paddingValue & posMask);
                 }
+                // 最后字节必须为填充长度（ANSIX923/ISO10126 标准要求）
+                cipherBlock[cipherBlockLength - 1] = (Byte)paddingLength;
 
                 if (cipherBlockLength <= InputBlockSize || CanTransformMultipleBlocks)
                     return _transform.TransformFinalBlock(cipherBlock, 0, cipherBlockLength);
@@ -195,7 +197,9 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
                 var paddingError = 0;
                 if (_mode != PaddingMode.ISO10126)
                 {
-                    for (var i = OutputBlockSize; i >= 1; i--)
+                    // ANSIX923：最后字节为长度值，前面补零；PKCS7：所有填充字节均为长度值
+                    var end = _mode == PaddingMode.ANSIX923 ? 2 : 1;
+                    for (var i = OutputBlockSize; i >= end; i--)
                     {
                         // if i > paddingLength ignore;
                         // if paddingLength != work[workLen - i] error;
