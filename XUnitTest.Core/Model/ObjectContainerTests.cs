@@ -71,7 +71,8 @@ public class ObjectContainerTests
     [Fact]
     public void ResolveOrder()
     {
-        var services = ObjectContainer.Current;
+        // 使用独立容器，避免被其他测试（如 HostTests）的静态注册干扰
+        var services = new ObjectContainer();
         services.AddSingleton<ICache, MemoryCache>();
         services.AddSingleton<ICache, MyCache>();
 

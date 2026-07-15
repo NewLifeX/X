@@ -106,8 +106,9 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         var ns = client.GetStream();
         ns.ReadTimeout = 5_000;
 
-        // 等待服务端完成会话建立
-        await Task.Delay(50);
+        // 等待服务端完成会话建立（轮询避免偶发时序问题）
+        for (var i = 0; i < 20 && fixture.Server.SessionCount < sessionsBefore + 1; i++)
+            await Task.Delay(50);
 
         // 连接后：SessionCount 精确 +1；MaxSessionCount 同步更新（只增不减）
         Assert.Equal(sessionsBefore + 1, fixture.Server.SessionCount);
@@ -170,8 +171,9 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         // 1. 发送数据，触发服务端建立 UDP 会话并推送欢迎消息
         await udp.SendAsync(msgBytes, msgBytes.Length, endpoint);
 
-        // 等待服务端完成 UDP 会话建立
-        await Task.Delay(50);
+        // 等待服务端完成 UDP 会话建立（轮询避免偶发时序问题）
+        for (var i = 0; i < 20 && fixture.Server.SessionCount < sessionsBefore + 1; i++)
+            await Task.Delay(50);
 
         // 首包触发 UDP 会话建立：SessionCount 精确 +1；MaxSessionCount 同步更新
         Assert.Equal(sessionsBefore + 1, fixture.Server.SessionCount);
