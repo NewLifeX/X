@@ -14,37 +14,87 @@ namespace NewLife;
 public static class ProcessHelper
 {
     #region 进程查找
-    /// <summary>获取二级进程名。默认返回一层，如果是 dotnet/java 宿主，则返回其真正目标程序集/入口Jar 名称（不含扩展名）</summary>
+    /// <summary>获取二级进程名。默认返回一层，如果是 dotnet/java/node 等宿主进程，则返回其真正目标程序集/入口脚本名称（不含扩展名）</summary>
+    /// <remarks>
+    /// 支持的宿主进程：
+    ///   dotnet — 解析 dotnet xxx.dll
+    ///   java   — 解析 java -jar app.jar
+    ///   mono   — 解析 mono app.exe
+    ///   node   — 解析 node app.js（跳过 -e 等内联标志）
+    ///   python / python3 — 解析 python app.py（跳过 -c/-m 等标志）
+    ///   php    — 解析 php app.php（跳过 -a 等标志）
+    ///   perl   — 解析 perl app.pl（跳过 -e 等标志）
+    ///   ruby   — 解析 ruby app.rb（跳过 -e 等标志）
+    ///   lua    — 解析 lua app.lua
+    ///   deno   — 解析 deno run app.ts 或 deno app.ts
+    ///   bun    — 解析 bun run app.ts 或 bun app.ts
+    /// </remarks>
     /// <param name="process">进程实例</param>
     /// <returns>进程逻辑名称</returns>
     public static String GetProcessName(this Process process)
     {
-        // 原始进程名（宿主名）
         var pname = process.ProcessName;
 
-        // dotnet / java 宿主进程需进一步解析真实入口
-        // 常见场景：dotnet xxx.dll  或  java -jar app.jar
-        var isManagedHost = pname == "dotnet" || "*/dotnet".IsMatch(pname) || pname == "java" || "*/java".IsMatch(pname);
-        if (!isManagedHost) return pname;
+        // 快速路径：非已知宿主，直接返回进程名
+        if (!IsKnownHost(pname)) return pname;
 
-        // 读取命令行参数。避免重复读取，统一处理
+        // 读取命令行参数
         var args = GetCommandLineArgs(process.Id);
+        return ResolveHostName(pname, args);
+    }
+
+    /// <summary>已知宿主进程名称集合</summary>
+    private static readonly String[] _knownHosts = ["dotnet", "java", "mono", "node", "python", "python3", "php", "perl", "ruby", "lua", "deno", "bun"];
+
+    /// <summary>判断进程名是否为已知宿主</summary>
+    private static Boolean IsKnownHost(String pname) => Array.IndexOf(_knownHosts, pname) >= 0;
+
+    /// <summary>根据进程名和命令行参数解析真实应用名（内部测试可见）</summary>
+    /// <param name="pname">进程原始名称</param>
+    /// <param name="args">命令行参数数组，可为 null</param>
+    /// <returns>解析后的应用名称；非宿主或无法解析时返回原始进程名</returns>
+    internal static String ResolveHostName(String pname, String[]? args)
+    {
         if (args == null || args.Length == 0) return pname;
 
-        // 针对 dotnet：形如  [dotnet] [path/app.dll] [...]
-        if ((pname == "dotnet" || "*/dotnet".IsMatch(pname)) && args.Length >= 2 && args[0].Contains("dotnet"))
+        // ----- dotnet / mono：形如 [dotnet/mono] [path/app.dll] [...] -----
+        if ((pname == "dotnet" || pname == "mono") &&
+            args.Length >= 2 && !args[0].StartsWith("-"))
         {
-            // args[1] 可能是绝对或相对路径，截取文件名（不含扩展）
             return Path.GetFileNameWithoutExtension(args[1]);
         }
-        // 针对 java：形如 [java] [-jar] [path/app.jar] [...]
-        if ((pname == "java" || "*/java".IsMatch(pname)) && args.Length >= 3 && args[0].Contains("java"))
+
+        // ----- java：形如 [java] [-jar] [path/app.jar] [...] -----
+        if (pname == "java" && args.Length >= 3)
         {
-            // 寻找 -jar 参数的下一个
             for (var i = 1; i < args.Length - 1; i++)
             {
                 if (args[i] == "-jar") return Path.GetFileNameWithoutExtension(args[i + 1]);
             }
+        }
+
+        // ----- node / python / php / perl / ruby / lua：形如 [interp] [script] [...] -----
+        // 跳过以 - 开头的参数（如 -e、-c、-m），它们不是脚本路径
+        if ((pname == "node" || pname == "python" || pname == "python3" ||
+             pname == "php" || pname == "perl" || pname == "ruby" || pname == "lua") &&
+            args.Length >= 2 && !args[1].StartsWith("-"))
+        {
+            return Path.GetFileNameWithoutExtension(args[1]);
+        }
+
+        // ----- deno / bun：形如 [host] [run/serve] [script] [...] 或 [host] [script] [...] -----
+        if ((pname == "deno" || pname == "bun") && args.Length >= 2)
+        {
+            // 子命令模式：deno run script.ts / bun run script.ts
+            if ((args[1] == "run" || args[1] == "serve") && args.Length >= 3)
+                return Path.GetFileNameWithoutExtension(args[2]);
+
+            // eval 是内联代码执行，不指向脚本文件
+            if (args[1] == "eval") return pname;
+
+            // 直接脚本模式：deno script.ts / bun script.ts（跳过以 - 开头的标志）
+            if (!args[1].StartsWith("-"))
+                return Path.GetFileNameWithoutExtension(args[1]);
         }
 
         return pname;

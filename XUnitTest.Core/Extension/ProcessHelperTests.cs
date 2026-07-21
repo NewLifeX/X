@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using NewLife;
 using NewLife.Log;
@@ -67,7 +68,7 @@ public class ProcessHelperTests
         {
             if (p.Id == currentId) continue;
             var pn = p.ProcessName;
-            if (pn.Equals("dotnet", StringComparison.OrdinalIgnoreCase) || pn.EndsWith("/dotnet", StringComparison.OrdinalIgnoreCase))
+            if (pn == "dotnet")
             {
                 target = p;
                 break;
@@ -92,6 +93,203 @@ public class ProcessHelperTests
 
         Assert.Equal(expected, actual);
     }
+
+    #region ResolveHostName 单元测试（不依赖真实进程）
+
+    [Fact]
+    [DisplayName("ResolveHostName_dotnet_解析成功")]
+    public void ResolveHostName_Dotnet()
+    {
+        var name = ProcessHelper.ResolveHostName("dotnet", ["dotnet", "/path/MyApp.dll", "--arg1", "val1"]);
+        Assert.Equal("MyApp", name);
+
+        // 仅宿主无参数，返回原始名
+        name = ProcessHelper.ResolveHostName("dotnet", ["dotnet"]);
+        Assert.Equal("dotnet", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_java_解析成功")]
+    public void ResolveHostName_Java()
+    {
+        var name = ProcessHelper.ResolveHostName("java", ["java", "-jar", "/path/app.jar", "--port", "8080"]);
+        Assert.Equal("app", name);
+
+        // 非 -jar 场景，返回原始名
+        name = ProcessHelper.ResolveHostName("java", ["java", "-version"]);
+        Assert.Equal("java", name);
+
+        // -jar 出现在靠后位置
+        name = ProcessHelper.ResolveHostName("java", ["java", "-Xmx2g", "-jar", "server.jar"]);
+        Assert.Equal("server", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_mono_解析成功")]
+    public void ResolveHostName_Mono()
+    {
+        var name = ProcessHelper.ResolveHostName("mono", ["mono", "/path/App.exe"]);
+        Assert.Equal("App", name);
+
+        name = ProcessHelper.ResolveHostName("mono", ["/usr/bin/mono", "App.exe"]);
+        Assert.Equal("App", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_node_解析成功")]
+    public void ResolveHostName_Node()
+    {
+        // 正常脚本
+        var name = ProcessHelper.ResolveHostName("node", ["node", "/path/app.js", "--port", "3000"]);
+        Assert.Equal("app", name);
+
+        // 内联代码（-e），不应解析，返回原始名
+        name = ProcessHelper.ResolveHostName("node", ["node", "-e", "console.log('hi')"]);
+        Assert.Equal("node", name);
+
+        // 仅宿主无参数
+        name = ProcessHelper.ResolveHostName("node", ["node"]);
+        Assert.Equal("node", name);
+
+        // TypeScript 直接运行
+        name = ProcessHelper.ResolveHostName("node", ["node", "server.mjs"]);
+        Assert.Equal("server", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_python_解析成功")]
+    public void ResolveHostName_Python()
+    {
+        // 正常脚本
+        var name = ProcessHelper.ResolveHostName("python", ["python", "/path/app.py"]);
+        Assert.Equal("app", name);
+
+        // python3
+        name = ProcessHelper.ResolveHostName("python3", ["python3", "script.py"]);
+        Assert.Equal("script", name);
+
+        // 内联代码（-c），不应解析
+        name = ProcessHelper.ResolveHostName("python", ["python", "-c", "print('hi')"]);
+        Assert.Equal("python", name);
+
+        // 模块执行（-m），不应解析
+        name = ProcessHelper.ResolveHostName("python", ["python", "-m", "http.server", "8080"]);
+        Assert.Equal("python", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_php_解析成功")]
+    public void ResolveHostName_Php()
+    {
+        var name = ProcessHelper.ResolveHostName("php", ["php", "/path/app.php"]);
+        Assert.Equal("app", name);
+
+        // 交互模式（-a），不应解析
+        name = ProcessHelper.ResolveHostName("php", ["php", "-a"]);
+        Assert.Equal("php", name);
+
+        // 无参数
+        name = ProcessHelper.ResolveHostName("php", ["php"]);
+        Assert.Equal("php", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_perl_解析成功")]
+    public void ResolveHostName_Perl()
+    {
+        var name = ProcessHelper.ResolveHostName("perl", ["perl", "script.pl"]);
+        Assert.Equal("script", name);
+
+        // 内联代码（-e），不应解析
+        name = ProcessHelper.ResolveHostName("perl", ["perl", "-e", "print 'hi'"]);
+        Assert.Equal("perl", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_ruby_解析成功")]
+    public void ResolveHostName_Ruby()
+    {
+        var name = ProcessHelper.ResolveHostName("ruby", ["ruby", "app.rb"]);
+        Assert.Equal("app", name);
+
+        // 内联代码（-e），不应解析
+        name = ProcessHelper.ResolveHostName("ruby", ["ruby", "-e", "puts 'hi'"]);
+        Assert.Equal("ruby", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_lua_解析成功")]
+    public void ResolveHostName_Lua()
+    {
+        var name = ProcessHelper.ResolveHostName("lua", ["lua", "script.lua"]);
+        Assert.Equal("script", name);
+
+        // 交互模式（-i），不应解析
+        name = ProcessHelper.ResolveHostName("lua", ["lua", "-i"]);
+        Assert.Equal("lua", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_deno_解析成功")]
+    public void ResolveHostName_Deno()
+    {
+        // run 子命令
+        var name = ProcessHelper.ResolveHostName("deno", ["deno", "run", "/path/app.ts", "--allow-net"]);
+        Assert.Equal("app", name);
+
+        // 直接执行（无子命令）
+        name = ProcessHelper.ResolveHostName("deno", ["deno", "app.ts"]);
+        Assert.Equal("app", name);
+
+        // serve 子命令
+        name = ProcessHelper.ResolveHostName("deno", ["deno", "serve", "server.ts"]);
+        Assert.Equal("server", name);
+
+        // 内联代码（eval），不应解析
+        name = ProcessHelper.ResolveHostName("deno", ["deno", "eval", "console.log('hi')"]);
+        Assert.Equal("deno", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_bun_解析成功")]
+    public void ResolveHostName_Bun()
+    {
+        // run 子命令
+        var name = ProcessHelper.ResolveHostName("bun", ["bun", "run", "app.ts"]);
+        Assert.Equal("app", name);
+
+        // 直接执行
+        name = ProcessHelper.ResolveHostName("bun", ["bun", "server.js"]);
+        Assert.Equal("server", name);
+
+        // 内联代码
+        name = ProcessHelper.ResolveHostName("bun", ["bun", "-e", "console.log('hi')"]);
+        Assert.Equal("bun", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_非宿主_返回原始名")]
+    public void ResolveHostName_NotHost()
+    {
+        var name = ProcessHelper.ResolveHostName("notepad", ["notepad", "file.txt"]);
+        Assert.Equal("notepad", name);
+
+        name = ProcessHelper.ResolveHostName("chrome", ["chrome", "--headless"]);
+        Assert.Equal("chrome", name);
+    }
+
+    [Fact]
+    [DisplayName("ResolveHostName_空参数_返回原始名")]
+    public void ResolveHostName_NullArgs()
+    {
+        var name = ProcessHelper.ResolveHostName("dotnet", null);
+        Assert.Equal("dotnet", name);
+
+        name = ProcessHelper.ResolveHostName("node", []);
+        Assert.Equal("node", name);
+    }
+
+    #endregion
 
     /// <summary>GetHasExited 已退出进程返回 true</summary>
     [Fact]
