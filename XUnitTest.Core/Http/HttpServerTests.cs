@@ -172,7 +172,7 @@ public class HttpServerTests : IDisposable
         XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
 
         Assert.Equal(WebSocketCloseStatus.NormalClosure, client.CloseStatus);
-        Assert.Equal("Finished", client.CloseStatusDescription);
+        Assert.Equal("通信完成", client.CloseStatusDescription);
     }
 
     [Fact]

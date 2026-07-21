@@ -22,6 +22,16 @@ public class WebSocketClient : TcpSession
 
     /// <summary>请求头。ws握手时可以传递Token</summary>
     public IDictionary<String, String?>? RequestHeaders { get; set; }
+
+    /// <summary>客户端掩码密钥。RFC 6455 要求客户端发送的所有帧必须带掩码，服务端发送的帧不能带掩码</summary>
+    /// <remarks>在握手成功后自动生成 4 字节随机掩码。所有出站消息自动设置此掩码，无需手动干预。</remarks>
+    public Byte[]? MaskKey { get; set; }
+
+    /// <summary>最近收到 Pong 响应的时间。用于心跳超时检测</summary>
+    public DateTime LastPongTime { get; private set; }
+
+    /// <summary>Pong 超时时间。超过此时间未收到 Pong 响应将触发 <see cref="OnPongTimeout"/>。默认 0 表示不检测</summary>
+    public TimeSpan PongTimeout { get; set; }
     #endregion
 
     #region 构造
@@ -69,6 +79,12 @@ public class WebSocketClient : TcpSession
         //var rs = Handshake(this, Uri);
 
         //Active = false;
+
+        // 生成随机掩码密钥（RFC 6455 §5.1：客户端帧必须掩码）
+        MaskKey = Rand.NextBytes(4);
+
+        // 订阅 Received 事件以跟踪 Pong 响应（仅 MaxAsync=1 后台接收模式有效）
+        Received += OnReceivedPong;
 
         var p = (Int32)KeepAlive.TotalMilliseconds;
         if (p > 0)
@@ -137,6 +153,10 @@ public class WebSocketClient : TcpSession
     {
         //var pk = message.ToPacket();
         //Send(pk);
+
+        // RFC 6455 §5.1：客户端帧必须带掩码
+        message.MaskKey ??= MaskKey;
+
         SendMessage(message);
 
         return TaskEx.CompletedTask;
@@ -213,18 +233,49 @@ public class WebSocketClient : TcpSession
 
     #region 心跳
     private TimerX? _timer;
+    private DateTime _lastPingTime;
+
     private void DoPing(Object? state)
     {
+        var now = DateTime.UtcNow;
+        // Pong 超时检测（仅在 MaxAsync=1 后台接收模式下有效）
+        if (PongTimeout > TimeSpan.Zero && _lastPingTime != DateTime.MinValue)
+        {
+            if (LastPongTime < _lastPingTime && now - _lastPingTime > PongTimeout)
+            {
+                OnPongTimeout();
+            }
+        }
+
         var msg = new WebSocketMessage
         {
             Type = WebSocketMessageType.Ping,
-            Payload = (ArrayPacket)$"Ping {DateTime.UtcNow.ToFullString()}",
+            Payload = (ArrayPacket)$"Ping {now.ToFullString()}",
         };
+
+        // RFC 6455 §5.1：客户端帧必须带掩码
+        msg.MaskKey ??= MaskKey;
 
         SendMessage(msg);
 
+        _lastPingTime = now;
+
         var p = (Int32)KeepAlive.TotalMilliseconds;
         _timer?.Period = p;
+    }
+
+    /// <summary>Pong 超时时触发。默认输出警告日志，可重写实现自动重连等策略</summary>
+    protected virtual void OnPongTimeout()
+    {
+        WriteLog("WebSocket心跳超时，{0:HH:mm:ss} 发送 Ping 后未收到 Pong", _lastPingTime);
+    }
+
+    private void OnReceivedPong(Object? sender, ReceivedEventArgs e)
+    {
+        if (e.Message is WebSocketMessage msg && msg.Type == WebSocketMessageType.Pong)
+        {
+            LastPongTime = DateTime.UtcNow;
+        }
     }
     #endregion
 

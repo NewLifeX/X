@@ -108,9 +108,11 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         // 二进制收发
         var payload = new Byte[64];
         Random.Shared.NextBytes(payload);
+        // ToPacket 会原地 XOR 修改数组，先保存副本
+        var originalPayload = payload.ToArray();
         await ws.SendBinaryAsync((ArrayPacket)payload);
         var binaryReply = await binaryWait.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        Assert.Equal(payload, binaryReply);
+        Assert.Equal(originalPayload, binaryReply);
 
         // 发送 WS Close 帧，接收循环检测服务端关闭后 Active 变 false
         await ws.CloseAsync(1000, "done");
@@ -150,11 +152,13 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         // 二进制收发
         var payload = new Byte[64];
         Random.Shared.NextBytes(payload);
+        // ToPacket 会原地 XOR 修改数组，先保存副本
+        var originalPayload = payload.ToArray();
         await ws.SendBinaryAsync((ArrayPacket)payload);
         var binaryMsg = await ws.ReceiveMessageAsync().WaitAsync(TimeSpan.FromSeconds(10));
         Assert.NotNull(binaryMsg);
         Assert.Equal(WebSocketMessageType.Binary, binaryMsg.Type);
-        Assert.Equal(payload, binaryMsg.Payload?.ToArray());
+        Assert.Equal(originalPayload, binaryMsg.Payload?.ToArray());
 
         // MaxAsync=0 时无接收循环检测关闭帧，直接关闭 TCP，Active 同步变 false
         await ws.CloseAsync("done");
@@ -194,6 +198,8 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         frame[2] = (Byte)userPayload.Length;
         frame[3] = 0x00;
         userPayload.CopyTo(frame, 4);
+        // ToPacket 会原地 XOR 修改数组，先保存副本
+        var originalFrame = frame.ToArray();
 
         var ws2 = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { Log = XTrace.Log, MaxAsync = 0 };
         Assert.True(await ws2.OpenAsync());
@@ -204,7 +210,7 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
 
         Assert.NotNull(replyDM);
         Assert.Equal(WebSocketMessageType.Binary, replyDM.Type);
-        Assert.Equal(frame, replyDM.Payload?.ToArray());
+        Assert.Equal(originalFrame, replyDM.Payload?.ToArray());
     }
 
     /// <summary>

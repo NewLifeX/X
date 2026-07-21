@@ -308,6 +308,18 @@ public class WebSocketMessage : IDisposable
             writer.Write((Int16)CloseStatus);
             if (!StatusDescription.IsNullOrEmpty()) writer.Write(StatusDescription, -1);
 
+            // 有掩码时 Close 状态码+描述也需要 XOR 编码，因为读取端会对整个 Payload 做 XOR 解码
+            if (masks != null)
+            {
+                var span = rs.GetSpan();
+                // 定位到 Close 负载起始位置（HeaderSize 就是 writer.Position 写入 Close 数据前的位置）
+                var offset = writer.Position - len;
+                for (var i = 0; i < len; i++)
+                {
+                    span[offset + i] = (Byte)(span[offset + i] ^ masks[i % 4]);
+                }
+            }
+
             rs.Next = null;
         }
 

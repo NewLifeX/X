@@ -336,6 +336,8 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
 
         var data = new Byte[256];
         Random.Shared.NextBytes(data);
+        // ToPacket 会原地 XOR 修改数组，先保存副本
+        var originalData = data.ToArray();
 
         var wait = new TaskCompletionSource<Byte[]>();
         ws.Received += (s, e) =>
@@ -348,7 +350,7 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
         var reply = await wait.Task.WaitAsync(TimeSpan.FromSeconds(10));
         await ws.CloseAsync(1000, "done");
 
-        Assert.Equal(data, reply);
+        Assert.Equal(originalData, reply);
     }
 
     [Fact(DisplayName = "15-GET /status?code=404 返回 404 Not Found")]

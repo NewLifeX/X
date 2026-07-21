@@ -101,7 +101,11 @@ public class WebSocket
     {
         ActiveTime = DateTime.Now;
 
+        // 先调用 Handler，让业务层拿到净载荷（业务层可自行复制或同步消费）
         Handler?.Invoke(this, message);
+
+        // 如果 Ping 有负载，保留引用以便后续回显 Pong
+        var pingPayload = message.Type == WebSocketMessageType.Ping ? message.Payload : null;
 
         // 释放内存
         message.Payload?.TryDispose();
@@ -114,7 +118,9 @@ public class WebSocket
         {
             case WebSocketMessageType.Close:
                 {
-                    Close(1000, "Finished");
+                    // RFC 6455 §5.5.1：关闭帧应回显收到的状态码，若无状态码则用 1005（无状态码）
+                    var status = message.CloseStatus > 0 ? message.CloseStatus : 1005;
+                    Close(status, message.StatusDescription ?? "Finished");
                     session?.Dispose();
                     socket?.Dispose();
                     Connected = false;
@@ -122,10 +128,11 @@ public class WebSocket
                 break;
             case WebSocketMessageType.Ping:
                 {
+                    // RFC 6455 §5.5.3：Pong 必须回传 Ping 的 Application Data
                     var msg = new WebSocketMessage
                     {
                         Type = WebSocketMessageType.Pong,
-                        Payload = (ArrayPacket)$"Pong {DateTime.UtcNow.ToFullString()}",
+                        Payload = pingPayload,
                     };
                     Send(msg);
                 }
