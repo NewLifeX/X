@@ -30,8 +30,31 @@ namespace XUnitTest.Log
             log.Error("error");
             log.Fatal("fatal");
 
-            // 等待日志落盘
-            Thread.Sleep(2000);
+            // 日志通过线程池异步写入，通常毫秒级完成；轮询等待（兜底 5s 定时器刷盘路径）
+            var files = new[]
+            {
+                p + $"debug\\{DateTime.Today:yyyy_MM_dd}.log",
+                p + $"info\\{DateTime.Today:yyyy_MM_dd}.log",
+                p + $"warn\\{DateTime.Today:yyyy_MM_dd}.log",
+                p + $"error\\{DateTime.Today:yyyy_MM_dd}.log",
+                p + $"fatal\\{DateTime.Today:yyyy_MM_dd}.log",
+            };
+            var deadline = DateTime.Now.AddSeconds(6);
+            while (DateTime.Now < deadline)
+            {
+                var ok = true;
+                for (var i = 0; i < files.Length; i++)
+                {
+                    if (!File.Exists(files[i].GetFullPath()))
+                    {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) break;
+
+                Thread.Sleep(50);
+            }
 
             var f = p + $"debug\\{DateTime.Today:yyyy_MM_dd}.log";
             Assert.True(File.Exists(f.GetFullPath()));

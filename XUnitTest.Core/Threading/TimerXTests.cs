@@ -41,8 +41,6 @@ public class TimerXTests
         Assert.False(timer.Async);
         Assert.False(timer.Absolutely);
 
-        Thread.Sleep(3050);
-
         //Assert.Equal(10, count);
         //Assert.Equal(10, timer.Timers);
     }
@@ -57,7 +55,8 @@ public class TimerXTests
         ms = ms + 100 - timer.NextTick;
         Assert.InRange(ms, 0, 5);
 
-        Thread.Sleep(1000);
+        // 留一点时间让定时器至少触发一次
+        Thread.Sleep(300);
     }
 
     private static void DoSyncTest(Object state)
@@ -80,7 +79,8 @@ public class TimerXTests
         ms = ms + 100 - timer.NextTick;
         Assert.InRange(ms, 0, 5);
 
-        Thread.Sleep(1000);
+        // 留一点时间让定时器至少触发一次
+        Thread.Sleep(300);
     }
 
     private static async Task DoAsyncTest(Object state)
@@ -102,7 +102,8 @@ public class TimerXTests
         var ms = timer.NextTick - Runtime.TickCount64;
         Assert.InRange(ms, 0, 99);
 
-        Thread.Sleep(1000);
+        // 留一点时间让定时器至少触发一次
+        Thread.Sleep(300);
     }
 
     private static async Task DoAbsolutelyTest(Object state)
@@ -126,10 +127,6 @@ public class TimerXTests
 
         var ms = timer.NextTick - Runtime.TickCount64;
         Assert.InRange(ms, 0, 3999 + 1000);
-
-#if DEBUG
-        Thread.Sleep(5500);
-#endif
     }
 
     private static async Task DoCronTest(Object state)

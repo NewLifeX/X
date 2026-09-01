@@ -68,9 +68,6 @@ public class ActorTests
         Assert.Equal(1000, actor.Total);
 
         XTrace.WriteLine("TestCount End");
-
-        Thread.Sleep(5000);
-        XTrace.WriteLine("End");
     }
 
     private class TestActor : Actor

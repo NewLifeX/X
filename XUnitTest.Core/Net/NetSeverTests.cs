@@ -34,19 +34,29 @@ namespace XUnitTest.Net
 
             server.Start();
 
+            try
             {
                 var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-                var client = new TcpClient();
-                client.Connect(uri.EndPoint);
+                using (var client = new TcpClient())
+                {
+                    // 设置接收超时，避免阻塞导致测试挂起
+                    client.ReceiveTimeout = 3000;
 
-                var ns = client.GetStream();
-                ns.Write("Stone@NewLife.com".GetBytes());
+                    client.Connect(uri.EndPoint);
 
-                var buf = new Byte[1024];
-                var rs = ns.Read(buf, 0, buf.Length);
+                    using var ns = client.GetStream();
+                    ns.Write("Stone@NewLife.com".GetBytes());
+
+                    var buf = new Byte[1024];
+                    var rs = ns.Read(buf, 0, buf.Length);
+                }
             }
-
-            Thread.Sleep(3_000);
+            finally
+            {
+                // 确保停止并释放服务器，避免长期占用端口和后台资源
+                server.Stop("UnitTest");
+                server.TryDispose();
+            }
         }
     }
 }
