@@ -43,6 +43,8 @@ public interface IEventHandler<TEvent>
 /// 再推送到外部消息通道（Redis Stream / 星尘 StarDust 等）。各集群节点后台消费任务收到外部消息后，
 /// 调用本地 <see cref="EventHub{TEvent}.GetEventBus"/> 发布，即可唤醒任意节点上通过 ReceiveAsync 等待的调用方。</description></item>
 /// </list>
+/// <para>工厂实现可能在没有任何可用通道时返回 <see langword="null"/>（例如星尘降级工厂在Redis与星尘通道都不可用时），
+/// 调用方应自行处理空值；<see cref="EventHub{TEvent}.GetEventBus"/> 内部已回退到进程内总线。</para>
 /// </remarks>
 public interface IEventBusFactory
 {
@@ -50,8 +52,8 @@ public interface IEventBusFactory
     /// <typeparam name="TEvent">事件类型</typeparam>
     /// <param name="topic">事件主题</param>
     /// <param name="clientId">客户标识/消息分组</param>
-    /// <returns>事件总线实例</returns>
-    IEventBus<TEvent> CreateEventBus<TEvent>(String topic, String clientId = "");
+    /// <returns>事件总线实例；没有任何可用通道时返回 <see langword="null"/></returns>
+    IEventBus<TEvent>? CreateEventBus<TEvent>(String topic, String clientId = "");
 }
 
 /// <summary>事件总线。强类型的事件发布/订阅，统一异步 API</summary>
