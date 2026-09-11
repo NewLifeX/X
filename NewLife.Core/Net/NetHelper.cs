@@ -177,6 +177,124 @@ public static class NetHelper
     /// <returns></returns>
     public static Boolean IsLocal(this IPAddress address) => IPAddress.IsLoopback(address) || GetIPsWithCache().Any(ip => ip.Equals(address));
 
+    /// <summary>是否私有网段IPv4地址。覆盖 10/8、172.16/12、192.168/16、127/8、169.254/16，常用于内网来源判定与可信代理自动学习</summary>
+    /// <param name="ip">IPv4地址</param>
+    /// <returns>是否私有网段</returns>
+    public static Boolean IsPrivateIp(this String? ip)
+    {
+        var n = ParseIpv4(ip);
+        if (n < 0) return false;
+
+        return (n & 0xFF000000L) == 0x0A000000L          // 10.0.0.0/8
+            || (n & 0xFFF00000L) == 0xAC100000L          // 172.16.0.0/12
+            || (n & 0xFFFF0000L) == 0xC0A80000L          // 192.168.0.0/16
+            || (n & 0xFF000000L) == 0x7F000000L          // 127.0.0.0/8
+            || (n & 0xFFFF0000L) == 0xA9FE0000L;         // 169.254.0.0/16
+    }
+
+    /// <summary>IPv4 CIDR网段匹配</summary>
+    /// <param name="ip">IPv4地址</param>
+    /// <param name="cidr">网段，如 10.0.0.0/8</param>
+    /// <returns>是否属于该网段</returns>
+    public static Boolean IsMatchCidr(this String? ip, String? cidr)
+    {
+        if (ip.IsNullOrEmpty() || cidr.IsNullOrEmpty()) return false;
+
+        var ss = cidr.Split('/');
+        if (ss.Length != 2) return false;
+
+        var mask = ss[1].ToInt();
+        if (mask is < 0 or > 32) return false;
+
+        var ip1 = ParseIpv4(ip);
+        var ip2 = ParseIpv4(ss[0]);
+        if (ip1 < 0 || ip2 < 0) return false;
+
+        if (mask == 0) return true;
+
+        var bits = (~((1L << (32 - mask)) - 1)) & 0xFFFFFFFFL;
+        return (ip1 & bits) == (ip2 & bits);
+    }
+
+    /// <summary>是否匹配可信代理列表。列表项支持精确地址、*通配和IPv4 CIDR网段</summary>
+    /// <param name="ip">待判断地址</param>
+    /// <param name="trusted">可信代理列表</param>
+    /// <returns>是否可信</returns>
+    public static Boolean IsTrustedProxy(this String? ip, String?[]? trusted)
+    {
+        if (ip.IsNullOrEmpty() || trusted == null || trusted.Length == 0) return false;
+
+        foreach (var item in trusted)
+        {
+            var t = item?.Trim();
+            if (t.IsNullOrEmpty()) continue;
+
+            if (t == "*") return true;
+
+            if (t.Contains('/'))
+            {
+                if (ip!.IsMatchCidr(t)) return true;
+            }
+            else if (t.IsMatch(ip))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>解析转发链中的客户端地址。未配置可信代理时兼容旧行为信任全部转发头并取链首；配置可信代理后，仅当直连来源可信才采信转发链，从链尾向左跳过可信代理取第一个不可信地址</summary>
+    /// <param name="remoteIp">直连来源地址。TCP层地址，不可伪造</param>
+    /// <param name="forwarded">转发头链值，逗号分隔，如 "1.2.3.4, 10.0.0.5"</param>
+    /// <param name="trusted">可信代理列表，支持精确、通配与CIDR；为空时信任全部转发头</param>
+    /// <returns>客户端地址</returns>
+    public static String? ResolveClientIp(this String? remoteIp, String? forwarded, String?[]? trusted)
+    {
+        if (forwarded.IsNullOrEmpty()) return remoteIp;
+
+        // 未配置可信代理，兼容旧行为信任全部转发头；多层反代时取链首地址，并折叠为单一IP
+        if (trusted == null || trusted.Length == 0)
+        {
+            var first = forwarded.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()).FirstOrDefault(e => e.Length > 0);
+            return first.IsNullOrEmpty() ? remoteIp : first;
+        }
+
+        // 直连来源不可信时，转发头可被伪造，直接使用直连地址
+        if (remoteIp.IsNullOrEmpty() || !remoteIp!.IsTrustedProxy(trusted)) return remoteIp;
+
+        // 从链尾向左跳过可信代理，取第一个不可信地址作为客户端地址
+        var ips = forwarded.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()).Where(e => e.Length > 0).ToList();
+        for (var i = ips.Count - 1; i >= 0; i--)
+        {
+            if (!ips[i].IsTrustedProxy(trusted)) return ips[i];
+        }
+
+        return ips.Count > 0 ? ips[0] : remoteIp;
+    }
+
+    /// <summary>解析IPv4地址为整数，非法返回-1</summary>
+    /// <param name="ip">IPv4地址</param>
+    /// <returns>整型地址</returns>
+    private static Int64 ParseIpv4(String? ip)
+    {
+        if (ip.IsNullOrEmpty()) return -1;
+
+        var ss = ip.Split('.');
+        if (ss.Length != 4) return -1;
+
+        var n = 0L;
+        foreach (var item in ss)
+        {
+            var b = item.ToInt();
+            if (b is < 0 or > 255) return -1;
+
+            n = (n << 8) | (UInt32)b;
+        }
+
+        return n;
+    }
+
     /// <summary>获取相对于指定远程地址的本地地址</summary>
     /// <param name="address"></param>
     /// <param name="remote"></param>
