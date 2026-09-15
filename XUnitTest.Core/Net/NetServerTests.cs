@@ -532,6 +532,58 @@ public class NetServerTests
         Assert.True(received.Length >= splitData.Length);
         Assert.Equal(splitData, received[^splitData.Length..]);
     }
+
+    /// <summary>SplitDataCodec 行帧交付：同步消费直接可用；跨轮带出经 Slice 后帧释放仍可读</summary>
+    [Fact]
+    public void SplitDataCodec_FrameDeliveredSyncSliceOutlives()
+    {
+        var all = new ManualResetEventSlim(false);
+        var lines = new List<String>();
+        IPacket? escaped = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add<SplitDataCodec>();
+        server.Received += (s, e) =>
+        {
+            if (e.Message is not IPacket pk) return;
+
+            // 同步消费：帧在本轮同步链路内直接可用（分隔符包含在帧内）
+            var text = pk.ToStr();
+            // 跨轮带出：切出共享切片（引用计数），帧同步归还后切片仍保活
+            if (text.StartsWith("keep")) escaped = pk.Slice(0, -1);
+
+            lock (lines)
+            {
+                lines.Add(text.TrimEnd('\r', '\n'));
+                if (lines.Count >= 2) all.Set();
+            }
+        };
+        server.Start();
+
+        // 裸 TCP 客户端发送两行（避免 SplitDataCodec.Write 追加分隔符影响输入侧）
+        using var client = new TcpClient();
+        client.Connect(IPAddress.Loopback, server.Port);
+        var stream = client.GetStream();
+        var data = "hello\r\nkeep\r\n"u8.ToArray();
+        stream.Write(data, 0, data.Length);
+
+        Assert.True(all.Wait(3000));
+
+        lock (lines)
+        {
+            Assert.Equal(new[] { "hello", "keep" }, lines);
+        }
+
+        // 帧已由 Read 在同步消费后归还池引用；跨轮切片独立保活数据
+        Assert.NotNull(escaped);
+        Assert.Equal("keep\r\n", escaped!.ToStr());
+        escaped.TryDispose();
+    }
     #endregion
 
     #region 泛型会话测试

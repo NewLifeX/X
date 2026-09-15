@@ -22,9 +22,17 @@ public class NetIntegrationTests
         // StandardCodec UserPacket=true 时返回 Payload 克隆（IPacket）
         // StandardCodec UserPacket=false 时返回 DefaultMessage（IMessage）
         // LengthFieldCodec 返回 IPacket
-        if (resp is IMessage msg) return msg.Payload?.ToArray() ?? [];
+        if (resp is IMessage msg) return msg.Payload.ToArray();
         if (resp is IPacket pk) return pk.ToArray();
         return [];
+    }
+
+    /// <summary>把收到的请求负载回显给发送方（优先 e.Message 负载，负载缺失时回退整轮 e.Packet）</summary>
+    private static void EchoPayload(INetSession session, ReceivedEventArgs e)
+    {
+        var pk = e.Message as IPacket;
+        if (pk == null || pk.Total == 0) pk = e.Packet;
+        if (pk != null && pk.Total > 0) session.SendReply(pk, e);
     }
     #endregion
 
@@ -471,6 +479,87 @@ public class NetIntegrationTests
         Assert.Equal(payload, serverReceived);
     }
 
+    /// <summary>LengthFieldCodec Size=0（变长编码）+ 大载荷跨轮：头部前缀读取不物化整帧，链式拆分正确</summary>
+    [Fact]
+    public void LengthFieldCodec_VarLength_BigPayload_Chained()
+    {
+        var decodedPayload = new ManualResetEventSlim();
+        Byte[]? serverReceived = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add(new LengthFieldCodec { Size = 0, Offset = 0 });
+        server.Received += (s, e) =>
+        {
+            if (e.Message is IPacket pk)
+            {
+                serverReceived = pk.ToArray();
+                decodedPayload.Set();
+            }
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = 0, Offset = 0 });
+        client.Open();
+
+        // 60KB 负载跨多个接收轮，服务端粘包编码器组链后按变长头部前缀拆分
+        var payload = new Byte[60_000];
+        Random.Shared.NextBytes(payload);
+        client.SendMessage(new ArrayPacket(payload));
+
+        Assert.True(decodedPayload.Wait(10_000));
+        Assert.NotNull(serverReceived);
+        Assert.Equal(payload, serverReceived);
+    }
+
+    /// <summary>LengthFieldCodec Size=0（变长编码）+ Offset=2：偏移与多字节变长字段组合正确拆分</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(127)]
+    [InlineData(128)]
+    [InlineData(1024)]
+    [InlineData(65536)]
+    public void LengthFieldCodec_VarLength_Size0_Offset2(Int32 size)
+    {
+        var decodedPayload = new ManualResetEventSlim();
+        Byte[]? serverReceived = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add(new LengthFieldCodec { Size = 0, Offset = 2 });
+        server.Received += (s, e) =>
+        {
+            if (e.Message is IPacket pk)
+            {
+                serverReceived = pk.ToArray();
+                decodedPayload.Set();
+            }
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = 0, Offset = 2 });
+        client.Open();
+
+        // 覆盖 1/2/3 字节变长编码：1B→1字节、128B→2字节、65536B→3字节且跨多个接收轮
+        var payload = new Byte[size];
+        Random.Shared.NextBytes(payload);
+        client.SendMessage(new ArrayPacket(payload));
+
+        Assert.True(decodedPayload.Wait(10_000));
+        Assert.NotNull(serverReceived);
+        Assert.Equal(payload, serverReceived);
+    }
+
     /// <summary>LengthFieldCodec 不同负载大小边界测试：1B、255B、256B、65535B、65536B</summary>
     [Theory]
     [InlineData(1)]
@@ -567,8 +656,7 @@ public class NetIntegrationTests
         server.Add<StandardCodec>();
         server.Received += (s, e) =>
         {
-            if (s is INetSession session && e.Packet != null)
-                session.SendReply(e.Packet, e);
+            if (s is INetSession session) EchoPayload(session, e);
         };
         server.Start();
 
@@ -656,8 +744,7 @@ public class NetIntegrationTests
         server.Add<StandardCodec>();
         server.Received += (s, e) =>
         {
-            if (s is INetSession session && e.Packet != null)
-                session.SendReply(e.Packet, e);
+            if (s is INetSession session) EchoPayload(session, e);
         };
         server.Start();
 
@@ -735,8 +822,7 @@ public class NetIntegrationTests
         server.Add<StandardCodec>();
         server.Received += (s, e) =>
         {
-            if (s is INetSession session && e.Packet != null)
-                session.SendReply(e.Packet, e);
+            if (s is INetSession session) EchoPayload(session, e);
         };
         server.Start();
 
@@ -993,8 +1079,7 @@ public class NetIntegrationTests
         server.Add<StandardCodec>();
         server.Received += (s, e) =>
         {
-            if (s is INetSession session && e.Packet != null)
-                session.SendReply(e.Packet, e);
+            if (s is INetSession session) EchoPayload(session, e);
         };
         server.Start();
 
@@ -1040,8 +1125,9 @@ public class NetIntegrationTests
         protected override void OnReceive(ReceivedEventArgs e)
         {
             base.OnReceive(e);
-            if (e.Packet != null && e.Packet.Total > 0)
-                SendReply(e.Packet, e);
+            var pk = e.Message as IPacket;
+            if (pk == null || pk.Total == 0) pk = e.Packet;
+            if (pk != null && pk.Total > 0) SendReply(pk, e);
         }
     }
     #endregion
@@ -1144,6 +1230,7 @@ public class NetIntegrationTests
     public void StandardCodec_ReceivedEvent_MessageIsDecoded()
     {
         Object? receivedMessage = null;
+        Byte[]? receivedData = null;
         var wait = new ManualResetEventSlim();
 
         using var server = new NetServer
@@ -1156,6 +1243,10 @@ public class NetIntegrationTests
         server.Received += (s, e) =>
         {
             receivedMessage = e.Message;
+
+            // UserPacket=true 时 e.Message 为纯负载 IPacket（拥有切片），事件内有效；
+            // 需要跨轮持有时用 Slice 取独立引用，此处仅快照内容
+            if (e.Message is IPacket pk) receivedData = pk.ToArray();
             wait.Set();
         };
         server.Start();
@@ -1172,8 +1263,179 @@ public class NetIntegrationTests
         Assert.True(receivedMessage is IPacket);
 
         // UserPacket=true 时，e.Message 是纯负载 IPacket，不含 StandardCodec 协议头
-        if (receivedMessage is IPacket pk)
-            Assert.Equal(payload, pk.ToArray());
+        Assert.Equal(payload, receivedData);
+    }
+    #endregion
+
+    #region 事件内切片持有（路线2）
+    /// <summary>Received 事件内切片持有负载后延迟校验：拥有切片不随接收缓冲复用被污染（引用计数保活）</summary>
+    [Fact]
+    public void ReceivedEvent_SliceFrame_NoReusePollution()
+    {
+        var failures = new List<String>();
+        var takenCount = 0;
+        var allTaken = new ManualResetEventSlim();
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add<StandardCodec>();
+        server.Received += (s, e) =>
+        {
+            if (e.Message is not IPacket pk || pk.Total == 0) return;
+
+            // 先快照期望内容，再在事件内切片持有当前负载（拥有切片，独立于消息容器与接收缓冲）
+            var expected = pk.ToArray();
+            var owner = pk.Slice(0, -1);
+
+            if (Interlocked.Increment(ref takenCount) >= 4) allTaken.Set();
+
+            // 延迟校验：若接收层错误复用被切片持有的缓冲（引用计数未达标→未换新缓冲），
+            // 后续接收会覆盖该数组，此处将检测到内容被污染
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(200);
+                // 读取独立切片（原负载句柄会随消息容器回池作废；切片持有引用，缓冲由引用计数保活）
+                var now = owner.ToArray();
+                if (now.Length != expected.Length || !now.AsSpan().SequenceEqual(expected))
+                {
+                    lock (failures)
+                        failures.Add($"切片缓冲被污染：期望长度 {expected.Length}，实际长度 {now.Length}，内容不一致");
+                }
+                owner.TryDispose();
+            });
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add<StandardCodec>();
+        client.Open();
+
+        for (var i = 0; i < 8; i++)
+        {
+            var payload = Encoding.UTF8.GetBytes($"Slice-NoReuse-{i:D2}-{Guid.NewGuid()}");
+            client.SendMessage(new ArrayPacket(payload));
+            Thread.Sleep(60);
+        }
+
+        Assert.True(allTaken.Wait(5_000), $"事件内切片命中不足 4 次，实际 {takenCount} 次");
+
+        // 等待所有延迟校验完成
+        Thread.Sleep(400);
+
+        Assert.Empty(failures);
+    }
+
+    /// <summary>事件内切片持有响应后，响应仍正常匹配等待方：拥有切片生命周期互不影响</summary>
+    [Fact]
+    public async Task ReceivedEvent_SliceResponse_AwaitStillMatched()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add<StandardCodec>();
+        server.Received += (s, e) =>
+        {
+            if (s is INetSession session) EchoPayload(session, e);
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add<StandardCodec>();
+        client.Timeout = 3_000;
+        client.Open();
+
+        var sliceEnabled = false;
+        var taken = new ManualResetEventSlim();
+        IPacket? escaped = null;
+        client.Received += (s, e) =>
+        {
+            // 事件内切片持有响应负载（拥有切片，独立于消息容器与接收缓冲）
+            if (sliceEnabled && e.Message is IPacket pk && pk.Total > 0)
+            {
+                escaped = pk.Slice(0, -1);
+                taken.Set();
+            }
+        };
+
+        // 对照组：事件只读，响应正常匹配返回（证明挂载事件不影响请求-响应匹配）
+        var ctrl = await client.SendMessageAsync(new ArrayPacket(Encoding.UTF8.GetBytes("ctrl")));
+        Assert.NotNull(ctrl);
+        Assert.True(ExtractPayload(ctrl).Length > 0);
+        (ctrl as IDisposable)?.Dispose();
+
+        // 实验组：事件切片持有响应负载 → 响应仍交付等待方（引用计数保证数据独立）
+        sliceEnabled = true;
+        var payload = Encoding.UTF8.GetBytes($"SliceKeep-{Guid.NewGuid()}");
+        var rs = await client.SendMessageAsync(new ArrayPacket(payload));
+        Assert.NotNull(rs);
+        Assert.True(ExtractPayload(rs).Length > 0);
+        (rs as IDisposable)?.Dispose();
+
+        Assert.True(taken.Wait(5_000), "事件内切片持有响应未命中");
+
+        // 延迟校验：切片内容不被后续接收复用污染
+        var expected = escaped!.ToArray();
+        await Task.Delay(100);
+        Assert.Equal(expected, escaped.ToArray());
+
+        escaped.TryDispose();
+    }
+
+    /// <summary>事件内直接消费（释放）响应负载后，等待方仍拿到完整数据：交付句柄在事件前已独立切出</summary>
+    [Fact]
+    public async Task ReceivedEvent_ConsumedResponse_AwaitStillMatched()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add<StandardCodec>();
+        server.Received += (s, e) =>
+        {
+            if (s is INetSession session) EchoPayload(session, e);
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add<StandardCodec>();
+        client.Timeout = 3_000;
+        client.Open();
+
+        var consumeEnabled = false;
+        var consumed = new ManualResetEventSlim();
+        client.Received += (s, e) =>
+        {
+            // 事件内直接消费（处置）响应负载：交付句柄已在事件前独立切出，等待方不应受影响
+            if (consumeEnabled && e.Message is IPacket pk && pk.Total > 0)
+            {
+                pk.TryDispose();
+                consumed.Set();
+            }
+        };
+
+        // 对照组：事件只读，响应正常匹配返回
+        var ctrl = await client.SendMessageAsync(new ArrayPacket(Encoding.UTF8.GetBytes("ctrl-consumed")));
+        Assert.NotNull(ctrl);
+        Assert.True(ExtractPayload(ctrl).Length > 0);
+        (ctrl as IDisposable)?.Dispose();
+
+        // 实验组：事件释放响应负载 → await 仍拿到完整数据（独立交付句柄保活缓冲）
+        consumeEnabled = true;
+        var payload = Encoding.UTF8.GetBytes($"Consume-{Guid.NewGuid()}");
+        var rs = await client.SendMessageAsync(new ArrayPacket(payload));
+        Assert.True(consumed.Wait(5_000), "事件内消费响应未命中");
+        Assert.NotNull(rs);
+        Assert.Equal(payload, ExtractPayload(rs));
+        (rs as IDisposable)?.Dispose();
     }
     #endregion
 }

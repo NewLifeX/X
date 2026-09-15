@@ -68,7 +68,7 @@ public class TcpCodecSession : NetSession<TcpCodecNetServer>
 
     private static Byte[] ExtractSessionPayload(Object msg)
     {
-        if (msg is IMessage imsg) return imsg.Payload?.ToArray() ?? [];
+        if (msg is IMessage imsg) return imsg.Payload.ToArray();
         if (msg is IPacket pk) return pk.ToArray();
         if (msg is Byte[] buf) return buf;
         return [];
@@ -136,7 +136,7 @@ public class UdpCodecSession : NetSession<UdpCodecNetServer>
 
     private static Byte[] ExtractSessionPayload(Object msg)
     {
-        if (msg is IMessage imsg) return imsg.Payload?.ToArray() ?? [];
+        if (msg is IMessage imsg) return imsg.Payload.ToArray();
         if (msg is IPacket pk) return pk.ToArray();
         if (msg is Byte[] buf) return buf;
         return [];
@@ -171,7 +171,7 @@ public class CodecIntegrationTests(TcpCodecServerFixture tcpFixture, UdpCodecSer
 
     private static Byte[] ExtractPayload(Object? message, Byte[] fallback)
     {
-        if (message is IMessage imsg) return imsg.Payload?.ToArray() ?? [];
+        if (message is IMessage imsg) return imsg.Payload.ToArray();
         if (message is IPacket pk) return pk.ToArray();
         if (message is Byte[] buf) return buf;
         return fallback;
