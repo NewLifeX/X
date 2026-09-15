@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using System.Text;
+using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Reflection;
@@ -60,12 +61,17 @@ public class JsonCodec : Handler
     /// <returns></returns>
     public override Object? Read(IHandlerContext context, Object message)
     {
+        // 消息形态归一：IPacket 走链感知 ToStr（跨段帧不漏读）；Memory/Byte[]（如上游分流处理器输出）直接 UTF8 解码
+        String? str = null;
         if (message is IPacket pk)
-        {
-            var str = pk.ToStr();
-            if (!str.IsNullOrEmpty())
-                message = JsonParser.Decode(str)!;
-        }
+            str = pk.ToStr();
+        else if (message is Memory<Byte> mem)
+            str = Encoding.UTF8.GetString(mem.Span);
+        else if (message is Byte[] buf)
+            str = Encoding.UTF8.GetString(buf);
+
+        if (!str.IsNullOrEmpty())
+            message = JsonParser.Decode(str)!;
 
         return base.Read(context, message);
     }

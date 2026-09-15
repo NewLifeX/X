@@ -68,8 +68,8 @@ public class LengthFieldCodec : MessageCodec<IPacket>
         switch (Size)
         {
             case 0:
-                if (encodedLen == null) encodedLen = IOHelper.GetEncodedInt(dlen);
-                writer.Write(encodedLen);
+                // 变长字段在上面已按负载长度编码完成
+                writer.Write(encodedLen!);
                 break;
             case 1:
             case -1:
@@ -96,7 +96,7 @@ public class LengthFieldCodec : MessageCodec<IPacket>
 
     /// <summary>解码：根据长度字段拆分完整的包，返回去掉头部和长度字段的纯负载。</summary>
     /// <param name="context">处理器上下文</param>
-    /// <param name="pk">接收到的原始数据</param>
+    /// <param name="pk">本轮接收数据（接收链路为轮拥有句柄，直接调用可为借阅视图）</param>
     /// <returns>拆分后的完整包（已去掉头部和长度字段）</returns>
     protected override IEnumerable<IPacket>? Decode(IHandlerContext context, IPacket pk)
     {
@@ -105,48 +105,55 @@ public class LengthFieldCodec : MessageCodec<IPacket>
         // 初始化或获取粘包处理器
         if (ss["Codec"] is not PacketCodec pc)
         {
-#pragma warning disable CS0618 // 类型或成员已过时
             ss["Codec"] = pc = new PacketCodec
             {
                 Expire = Expire,
                 GetLength = p => GetLength(p, Offset, Size),
-                GetLength2 = p => GetLength(p, Offset, Size),
-                //Offset = Offset,
                 MaxCache = MaxCache,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };
-#pragma warning restore CS0618 // 类型或成员已过时
         }
 
-        // 粘包拆分，返回完整的包
-        var pks = pc.Parse(pk);
+        // 粘包拆分，返回完整帧（拥有切片/链或借阅视图）；纯残片轮进入段缓存跨轮累积
+        var frames = pc.Parse(pk);
 
         // 跳过头部(Offset)和长度字段(Size)，返回纯负载
-        for (var i = 0; i < pks.Count; i++)
+        for (var i = 0; i < frames.Count; i++)
         {
+            var frame = frames[i];
             var headerLen = Offset + Math.Abs(Size);
             if (Size == 0)
             {
-                var span = pks[i].GetSpan();
-                var reader = new SpanReader(span) { IsLittleEndian = true };
+                // 变长字段最多5字节，仅读取帧头前缀；跨段拼入缓冲，避免物化整个链式大帧，也无需切片对象
+                var need = Offset + 5;
+                var head = need <= 256 ? stackalloc Byte[need] : new Byte[need];
+                var n = frame.ReadBytes(head);
+                var reader = new SpanReader(head[..n]) { IsLittleEndian = true };
                 reader.Advance(Offset);
                 var p = reader.Position;
                 _ = reader.ReadEncodedInt();
                 headerLen = Offset + reader.Position - p;
             }
 
-            yield return pks[i].Slice(headerLen, -1, true);
+            // 负载共享切片（沿链零拷贝，引用计数）；帧句柄由本层释放，负载独立持有
+            var payload = frame.Slice(headerLen);
+            frame.TryDispose();
+            yield return payload;
         }
     }
 
-    /// <summary>连接关闭时清空粘包编码器的缓存，防止内存泄漏</summary>
+    /// <summary>连接关闭时归还本会话的粘包编码器，防止缓冲泄漏</summary>
     /// <param name="context">处理器上下文</param>
     /// <param name="reason">连接关闭原因</param>
     /// <returns>继续传播关闭事件</returns>
     public override Boolean Close(IHandlerContext context, String reason)
     {
-        // 清理缓存的 PacketCodec，释放 MemoryStream
-        if (context.Owner is IExtend ss) ss["Codec"] = null;
+        // 归还本会话粘包编码器（可能持有跨轮残片缓冲）
+        if (context.Owner is IExtend ss)
+        {
+            ss["Codec"].TryDispose();
+            ss["Codec"] = null;
+        }
 
         return base.Close(context, reason);
     }
