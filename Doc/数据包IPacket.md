@@ -56,6 +56,10 @@
 - `IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner)`
   - 兼容重载（已标记过时）：忽略 `transferOwner`，直接转发到两参重载（引用计数共享）。
 
+- `OwnerPacket.Slice(Int32 offset, Int32 count = -1)`（公开方法，返回具体类型 `OwnerPacket`）
+  - 返回拥有句柄，可以自然 `using` 释放；`IPacket.Slice` 与 `IOwnerPacket.Slice` 是其显式接口实现，经接口访问分别返回 `IPacket`/`IOwnerPacket`。
+  - **v12 破坏性变更**：对 v12 之前编译、以具体类型接收者调用两参 `Slice` 的二进制会抛 `MissingMethodException`（CLR MemberRef 绑定含返回类型），需重新编译；影响面仅为具体类型调用方（如 NewLife.MySql，单元测试程序集不计），三参兼容重载与 `IPacket.Slice` 签名保持不变。
+
 - `Boolean TryGetArray(out ArraySegment<Byte> segment)`
   - 尝试将“当前段”以 `ArraySegment<Byte>` 形式暴露。
   - **不包含 `Next`**。
@@ -70,6 +74,7 @@
 
 - `IOwnerPacket : IPacket, IDisposable`
   - 用完后需要 `Dispose()`（或 `using`），以归还 `ArrayPool<T>` 缓冲区。
+  - 切片返回拥有句柄：具体类型上返回 `OwnerPacket`，经该接口返回 `IOwnerPacket`（均为同一实现）；新句柄与原句柄各自释放，可以直接 `using` 释放。
 
 文档层面建议遵循源码备注中的规则：
 
@@ -343,6 +348,13 @@ var msg = body.ExpandHeader(4);
 `OwnerPacket.Slice(offset, count)` 返回共享切片：原实例不受影响，双方（或多方）各自 `Dispose`，最后一个释放时归还内存池。
 
 若你只是做协议解析切片（多次切片），按需使用、用毕 `Dispose` 即可；漏释放的句柄会阻止缓冲回池（开发期由析构兜底告警）。
+
+拥有句柄经 `IOwnerPacket` 接口访问切片时返回 `IOwnerPacket`，可以直接 `using` 释放：
+
+```csharp
+IOwnerPacket pk = client.Receive();     // 拥有句柄
+using var view = pk.Slice(0, 4);        // 视图持有独立引用，可 using 释放；pk 照常使用与释放
+```
 
 ### 7.3 `MemoryPacket` 的 `Next` 限制
 

@@ -311,7 +311,7 @@ public class OwnerPacketTests
         packet.GetSpan().Fill(0x42);
         var buffer = packet.Buffer;
 
-        using var sliced = packet.Slice(20, 30) as OwnerPacket;
+        using var sliced = packet.Slice(20, 30);
 
         Assert.NotNull(sliced);
         Assert.Same(buffer, sliced.Buffer);
@@ -332,8 +332,8 @@ public class OwnerPacketTests
         var packet = new OwnerPacket(100);
         Assert.Equal(1, packet.RefCount);
 
-        var first = packet.Slice(0, 50) as OwnerPacket;
-        var second = packet.Slice(50, 50) as OwnerPacket;
+        var first = packet.Slice(0, 50);
+        var second = packet.Slice(50, 50);
 
         Assert.NotNull(first);
         Assert.NotNull(second);
@@ -355,12 +355,55 @@ public class OwnerPacketTests
     {
         using var packet = new OwnerPacket(100);
 
-        using var sliced = packet.Slice(30, -1) as OwnerPacket;
+        using var sliced = packet.Slice(30, -1);
 
         Assert.NotNull(sliced);
         Assert.Equal(30, sliced.Offset);
         Assert.Equal(70, sliced.Length);
         Assert.Equal(2, packet.RefCount);
+    }
+
+    [Fact(DisplayName = "Slice：IOwnerPacket 接口返回拥有句柄，可 using 释放")]
+    public void Slice_IOwnerPacketInterface_ShouldReturnOwnedHandle()
+    {
+        var packet = new OwnerPacket(100);
+        packet.GetSpan().Fill(0x42);
+
+        IOwnerPacket owner = packet;
+        using (var view = owner.Slice(20, 30))
+        {
+            Assert.IsType<OwnerPacket>(view);
+            Assert.Equal(30, view.Length);
+            Assert.Equal(0x42, view.GetSpan()[0]);
+            Assert.Equal(0x42, view[19]);
+
+            // 视图与源各自持有引用，双方同时可用
+            Assert.Equal(2, packet.RefCount);
+        }
+
+        // 视图释放后源仍可使用
+        Assert.Equal(1, packet.RefCount);
+        Assert.Equal(0x42, packet[0]);
+
+        packet.Dispose();
+    }
+
+    [Fact(DisplayName = "Slice：经 IPacket 接口访问保持原有契约")]
+    public void Slice_IPacketInterface_ShouldKeepContract()
+    {
+        var packet = new OwnerPacket(100);
+
+        // 接口访问仍返回 IPacket，切片结果实际是拥有句柄
+        IPacket view = ((IPacket)packet).Slice(10, 20);
+
+        Assert.IsAssignableFrom<IOwnerPacket>(view);
+        Assert.Equal(20, view.Length);
+        Assert.Equal(2, packet.RefCount);
+
+        view.TryDispose();
+        Assert.Equal(1, packet.RefCount);
+
+        packet.Dispose();
     }
 
     /// <summary>链式共享切片只递增窗口覆盖段的引用计数，窗口外的段保持不变</summary>
@@ -378,7 +421,7 @@ public class OwnerPacketTests
         var firstOwner = first.GetValue("_owner");
         var secondOwner = second.GetValue("_owner");
 
-        var slice = first.Slice(4, -1) as OwnerPacket;
+        var slice = first.Slice(4, -1);
 
         Assert.NotNull(slice);
         Assert.Equal(6, slice!.Total);
@@ -410,7 +453,7 @@ public class OwnerPacketTests
         var firstOwner = first.GetValue("_owner");
         var secondOwner = second.GetValue("_owner");
 
-        var slice = first.Slice(0, 2) as OwnerPacket;
+        var slice = first.Slice(0, 2);
 
         Assert.NotNull(slice);
         Assert.Equal(2, slice!.Total);
@@ -428,7 +471,7 @@ public class OwnerPacketTests
     public void Slice_ShouldNotVoidSource()
     {
         var single = new OwnerPacket(100);
-        var slice = single.Slice(10, 20) as OwnerPacket;
+        var slice = single.Slice(10, 20);
 
         Assert.NotNull(slice);
         Assert.Equal(100, single.Length);

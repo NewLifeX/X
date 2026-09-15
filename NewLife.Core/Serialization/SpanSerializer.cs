@@ -132,7 +132,7 @@ public static class SpanSerializer
         var reserve = HeaderReserve;
 
         // 池化缓冲区和流，两个都从池里借
-        var pk = new OwnerPacket(bufferSize);
+        using var pk = new OwnerPacket(bufferSize);
         var ms = Pool.MemoryStream.Get();
         ms.Position = reserve;
         var writer = new SpanWriter(pk.GetSpan()[reserve..], ms);
@@ -145,15 +145,12 @@ public static class SpanSerializer
             var count = writer.WrittenCount;
             Pool.MemoryStream.Return(ms);
 
-            // 共享切片：返回窗口获得独立引用，序列化缓冲句柄随即释放（各自释放，最后一个归还）
-            var rs = (pk.Slice(reserve, count) as IOwnerPacket)!;
-            pk.Dispose();
-            return rs;
+            // 共享切片：返回窗口获得独立引用（拥有句柄），序列化缓冲的引用在方法退出时释放
+            return pk.Slice(reserve, count);
         }
 
         // 大数据：Flush 剩余到流后包装
         writer.Flush();
-        pk.Dispose();
 
         ms.Position = reserve;
         return new OwnerPacket(ms);
@@ -173,7 +170,7 @@ public static class SpanSerializer
         if (value == null) throw new ArgumentNullException(nameof(value));
 
         // 池化缓冲区和流，两个都从池里借
-        var pk = new OwnerPacket(bufferSize);
+        using var pk = new OwnerPacket(bufferSize);
         var ms = Pool.MemoryStream.Get();
         ms.Position = reserve;
         var writer = new SpanWriter(pk.GetSpan()[reserve..], ms);
@@ -186,15 +183,12 @@ public static class SpanSerializer
             var count = writer.WrittenCount;
             Pool.MemoryStream.Return(ms);
 
-            // 共享切片：返回窗口获得独立引用，序列化缓冲句柄随即释放（各自释放，最后一个归还）
-            var rs = (pk.Slice(reserve, count) as IOwnerPacket)!;
-            pk.Dispose();
-            return rs;
+            // 共享切片：返回窗口获得独立引用（拥有句柄），序列化缓冲的引用在方法退出时释放
+            return pk.Slice(reserve, count);
         }
 
         // 大数据：Flush 剩余到流后包装
         writer.Flush();
-        pk.Dispose();
 
         ms.Position = reserve;
         return new OwnerPacket(ms);

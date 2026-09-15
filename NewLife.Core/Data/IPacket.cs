@@ -39,6 +39,7 @@ public interface IPacket
     /// <summary>切片得到新数据包，共享底层缓冲区以减少分配</summary>
     /// <remarks>
     /// <para><see cref="OwnerPacket"/> 实现为引用计数共享：返回独立句柄，与原包同时可用；各自 <c>Dispose</c>，最后一个释放时归还内存池。</para>
+    /// <para>拥有句柄切片后仍是拥有句柄，具体类型调用返回 <see cref="OwnerPacket"/>、经 <see cref="IOwnerPacket"/> 访问返回其自身，可自然使用 <c>using</c> 释放。</para>
     /// <para>取出子窗口后不再使用原句柄时应随即释放（如拆帧后丢弃帧容器），避免句柄引用残留导致缓冲无法归池。</para>
     /// <para>结构体实现（<see cref="ArrayPacket"/> 等）返回无所有权的视图：无需释放，仅可在原数据生命周期内短暂使用。</para>
     /// </remarks>
@@ -62,4 +63,21 @@ public interface IPacket
 }
 
 /// <summary>拥有管理权的数据包。使用完以后需要释放</summary>
-public interface IOwnerPacket : IPacket, IDisposable;
+/// <remarks>
+/// <para>切片返回同为拥有句柄的 <see cref="IOwnerPacket"/>：新句柄与原句柄各自 <c>Dispose</c>，最后一个释放时归还内存池。</para>
+/// <para>返回类型为可释放的拥有句柄，因此可以自然使用 <c>using</c> 释放：<c>using var view = owner.Slice(offset, count);</c></para>
+/// </remarks>
+public interface IOwnerPacket : IPacket, IDisposable
+{
+    /// <summary>切片得到新数据包，共享底层缓冲区（引用计数）。返回拥有句柄，可直接 <c>using</c> 释放</summary>
+    /// <remarks>
+    /// <para>与 <see cref="IPacket.Slice(Int32, Int32)"/> 是同一操作的协变返回版本：经本接口访问返回 <see cref="IOwnerPacket"/>，
+    /// 具体类型上的公开方法返回更具体的 <see cref="OwnerPacket"/>，经 <see cref="IPacket"/> 访问返回 <see cref="IPacket"/>；三者是同一实现，切片结果的实际类型相同。</para>
+    /// <para><c>new</c> 仅用于隐藏基接口的同名成员（同名同参、返回类型更具体，与 BCL 的 <c>IEnumerator&lt;T&gt;.Current</c> 属同一模式）。
+    /// 接口调用按最具体声明解析：<see cref="IOwnerPacket"/> 变量得到 <see cref="IOwnerPacket"/>，<see cref="IPacket"/> 变量得到 <see cref="IPacket"/>，不存在歧义。</para>
+    /// <para>新句柄与原句柄同时可用，各自释放，最后一个释放时归还内存池；取出子窗口后不再使用原句柄时应随即释放。</para>
+    /// </remarks>
+    /// <param name="offset">相对当前包起始偏移</param>
+    /// <param name="count">个数。默认 -1 表示到末尾</param>
+    new IOwnerPacket Slice(Int32 offset, Int32 count = -1);
+}

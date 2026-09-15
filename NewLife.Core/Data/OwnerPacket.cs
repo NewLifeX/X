@@ -57,7 +57,7 @@ internal sealed class ArrayOwner(Byte[] buffer, Boolean returnToPool)
 /// </list>
 /// <para><b>所有权语义</b>：</para>
 /// <list type="number">
-/// <item>共享切片：<see cref="Slice(Int32, Int32)"/> 按段递增引用计数，返回独立句柄；双方（或多方）均可继续使用，各自 <see cref="Dispose"/>，最后一个释放时才归还内存池</item>
+/// <item>共享切片：<see cref="Slice(Int32, Int32)"/> 按段递增引用计数，返回独立句柄（具体类型 <see cref="OwnerPacket"/>，可直接 <c>using</c> 释放）；双方（或多方）均可继续使用，各自 <see cref="Dispose"/>，最后一个释放时才归还内存池</item>
 /// <item>独占换窗：<see cref="OwnerPacket(OwnerPacket, Int32)"/> 头部扩展构造，接管源实例的引用与链，源实例整体作废（仅此一处保留接管语义，调用方需自行确保无其它共享句柄）</item>
 /// <item>接收层轮末裁决：会话私有句柄在轮末按 <see cref="RefCount"/> 判定——无人持有（为 1）时 <see cref="Detach"/> 脱手保留缓冲复用；存在共享切片时 <see cref="Dispose"/> 本引用，缓冲由最后释放的切片归还</item>
 /// </list>
@@ -436,18 +436,19 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     #endregion
 
     #region 切片操作
-    /// <summary>切片生成新数据包，共享底层缓冲区（引用计数）</summary>
+    /// <summary>切片生成新数据包，共享底层缓冲区（引用计数）。返回具体类型句柄，可直接 <c>using</c> 释放</summary>
     /// <param name="offset">相对当前包的起始偏移</param>
     /// <param name="count">切片长度，-1 表示到末尾</param>
-    /// <returns>新的独立句柄，与原包同时可用；各自 Dispose，最后一个释放时缓冲区归还内存池</returns>
+    /// <returns>新的独立句柄（具体类型 <see cref="OwnerPacket"/>），与原包同时可用；各自 Dispose，最后一个释放时归还内存池</returns>
     /// <exception cref="ArgumentOutOfRangeException">偏移量或长度超出有效范围</exception>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
     /// <remarks>
     /// <para>切片共享底层缓冲区，不拷贝数据。支持跨段切片，自动处理边界；窗口覆盖的段各递增一次引用计数。</para>
     /// <para>本方法不改变原实例，双方（或多方）均可继续读取；每个句柄各自负责 <see cref="Dispose"/>。
     /// 线性交接场景直接传递句柄本身即可，无需切片。</para>
+    /// <para><see cref="IPacket.Slice(Int32, Int32)"/> 与 <see cref="IOwnerPacket.Slice(Int32, Int32)"/> 是本方法的显式接口实现，经接口访问时分别返回各自声明类型。</para>
     /// </remarks>
-    public IPacket Slice(Int32 offset, Int32 count = -1)
+    public OwnerPacket Slice(Int32 offset, Int32 count = -1)
     {
         if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
 
@@ -496,6 +497,19 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
 
         return head ?? new OwnerPacket(_empty, 0, 0, null);
     }
+
+    /// <summary>切片得到新数据包（<see cref="IPacket"/> 接口实现），共享底层缓冲区</summary>
+    /// <param name="offset">相对当前包的起始偏移</param>
+    /// <param name="count">切片长度，-1 表示到末尾</param>
+    /// <returns>新的独立句柄</returns>
+    IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
+
+    /// <summary>切片得到新数据包（拥有句柄接口实现），共享底层缓冲区。返回拥有句柄，可 <c>using</c> 释放</summary>
+    /// <param name="offset">相对当前包的起始偏移</param>
+    /// <param name="count">切片长度，-1 表示到末尾</param>
+    /// <returns>新的独立拥有句柄</returns>
+    /// <remarks>与公开方法同一实现，切片结果始终为 <see cref="OwnerPacket"/> 句柄。</remarks>
+    IOwnerPacket IOwnerPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
 
     /// <summary>切片生成新数据包（兼容重载），共享底层缓冲区（引用计数）</summary>
     /// <param name="offset">相对当前包的起始偏移</param>

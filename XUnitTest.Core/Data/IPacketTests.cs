@@ -34,7 +34,7 @@ public class IPacketTests
         var gcmemory = GC.GetAllocatedBytesForCurrentThread();
         pk.Resize(127);
 
-        var pk2 = pk.Slice(7, 70) as OwnerPacket;
+        var pk2 = pk.Slice(7, 70);
         Assert.Equal(gcmemory + 48, GC.GetAllocatedBytesForCurrentThread());
         Assert.NotNull(pk2);
         Assert.Equal(70, pk2.Length);
