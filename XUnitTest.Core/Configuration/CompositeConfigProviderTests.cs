@@ -9,14 +9,27 @@ namespace XUnitTest.Configuration;
 
 public class CompositeConfigProviderTests
 {
+    /// <summary>模拟远程配置中心，使用固定数据源，避免依赖外部服务器</summary>
+    private sealed class FakeHttpConfigProvider : HttpConfigProvider
+    {
+        public IDictionary<String, Object?> Data { get; set; } = new Dictionary<String, Object?>();
+
+        protected override IDictionary<String, Object?>? GetAll() => Data;
+    }
+
     [Fact]
     public void Test1()
     {
-        var cp1 = new HttpConfigProvider
+        var cp1 = new FakeHttpConfigProvider
         {
             Server = "http://star.newlifex.com:6600",
             //Server = "http://localhost:6600",
-            AppId = "Test"
+            AppId = "Test",
+            Data = new Dictionary<String, Object?>
+            {
+                ["Title"] = "NewLife开发团队",
+                ["url"] = "https://newlifex.com/",
+            },
         };
         cp1.LoadAll();
         var cp2 = JsonConfigProvider.LoadAppSettings();
@@ -43,11 +56,16 @@ public class CompositeConfigProviderTests
     [Fact]
     public void Test2()
     {
-        var cp1 = new HttpConfigProvider
+        var cp1 = new FakeHttpConfigProvider
         {
             Server = "http://star.newlifex.com:6600",
             //Server = "http://localhost:6600",
-            AppId = "Test"
+            AppId = "Test",
+            Data = new Dictionary<String, Object?>
+            {
+                ["Title"] = "NewLife开发团队",
+                ["url"] = "https://newlifex.com/",
+            },
         };
         //cp1.LoadAll();
         var cp2 = JsonConfigProvider.LoadAppSettings();
@@ -68,11 +86,16 @@ public class CompositeConfigProviderTests
     [Fact]
     public void Load()
     {
-        var cp1 = new HttpConfigProvider
+        var cp1 = new FakeHttpConfigProvider
         {
             Server = "http://star.newlifex.com:6600",
             //Server = "http://localhost:6600",
-            AppId = "Test"
+            AppId = "Test",
+            Data = new Dictionary<String, Object?>
+            {
+                ["Title"] = "NewLife开发团队",
+                ["url"] = "https://newlifex.com/",
+            },
         };
         var cp2 = JsonConfigProvider.LoadAppSettings();
 

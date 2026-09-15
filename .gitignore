@@ -25,3 +25,4 @@ bld/
 [Ll]og/
 !XUnitTest.Core/Log/
 BenchmarkDotNet.Artifacts/
+/XUnitTest.Core/TestResults
