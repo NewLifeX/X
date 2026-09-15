@@ -86,7 +86,8 @@ public class WebSocket : IDisposable
     /// <param name="pk">已到达的原始数据包，可能包含零个或多个完整 WebSocket 帧</param>
     public void Process(IPacket pk)
     {
-        _packetCodec ??= new PacketCodec { GetLength = WebSocketMessage.GetFrameTotalLength };
+        // 帧首头部保证：WebSocket 头部与掩码最多 14 字节（2 基础头 + 8 扩展长度 + 4 掩码）
+        _packetCodec ??= new PacketCodec { GetLength = WebSocketMessage.GetFrameTotalLength, HeadSize = 14 };
         var frames = _packetCodec.Parse(pk);
         foreach (var frame in frames)
         {

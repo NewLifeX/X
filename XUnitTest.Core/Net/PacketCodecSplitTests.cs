@@ -15,7 +15,8 @@ namespace XUnitTest.Net;
 /// S2 整包多完整帧 → 逐帧共享切片；
 /// S3 完整帧+残片 → 帧切片 + 残片切片入缓存（引用计数持有）；
 /// S4 残片续轮仍不足 → 残片切片入缓存；
-/// S5 凑成一帧 → 跨段组链返回；定界由 GetLength 委托链感知完成（分隔符链内扫描，不合并段流）。
+/// S5 凑成一帧 → 跨段组链返回；定界由 GetLength 委托链感知完成（分隔符链内扫描，不合并段流）；
+/// S6 数据到来时链头不足 HeadSize → 并入后续残片补齐后定界（头部恒连续，≤HeadSize 小拷贝）。
 /// </remarks>
 public class PacketCodecSplitTests
 {
@@ -468,5 +469,123 @@ public class PacketCodecSplitTests
         frames[0].TryDispose();
         round.TryDispose();
         codec.Dispose();
+    }
+
+    /// <summary>S6：头部逐字节到达 —— 并段补齐到 HeadSize 后正常定界，未到齐的轮次不出帧</summary>
+    [Fact]
+    [DisplayName("S6 头部保证：逐字节到达并段补齐后定界")]
+    public void HeadAssembly_OneBytePerRound()
+    {
+        var frame = MakeFrame(100, 1);
+        var codec = CreateLengthCodec();
+
+        IList<IPacket>? got = null;
+        for (var i = 0; i < frame.Length; i++)
+        {
+            var round = CreateRound(frame, i, 1);
+            var frames = codec.Parse(round);
+            round.TryDispose();
+
+            if (frames.Count > 0) got = frames;
+        }
+
+        Assert.NotNull(got);
+        Assert.Single(got!);
+        Assert.Equal(frame.Length, got![0].Total);
+        Assert.Equal(frame, got![0].ToArray());
+        Assert.Equal(32, got![0].Length);            // 头部补齐到 HeadSize（单一头部节点）
+        Assert.NotNull(got![0].Next);                // 后续字节零拷贝挂链
+
+        got![0].TryDispose();
+    }
+
+    /// <summary>S6：头部残片 + 大段到达 —— 仅补足 HeadSize，余量零拷贝挂链</summary>
+    [Fact]
+    [DisplayName("S6 头部保证：大段仅补足头部，余量零拷贝挂链")]
+    public void HeadAssembly_BigRound_MergeCap()
+    {
+        var frame = MakeFrame(5000, 7);
+        var codec = CreateLengthCodec();
+
+        // 第1轮仅 3 字节（定界所需 4 字节不足），第2轮给足余下
+        var r1 = CreateRound(frame, 0, 3);
+        Assert.Empty(codec.Parse(r1));
+        r1.TryDispose();
+
+        var r2 = CreateRound(frame, 3, frame.Length - 3);
+        var frames = codec.Parse(r2);
+
+        Assert.Single(frames);
+        Assert.Equal(frame.Length, frames[0].Total);
+        Assert.Equal(frame, frames[0].ToArray());
+        Assert.Equal(32, frames[0].Length);          // 并段只补足到 HeadSize，未整段拷贝
+        Assert.NotNull(frames[0].Next);              // 余量零拷贝挂链
+        Assert.Equal(2, r2.RefCount);                // 本轮 + 帧链余段切片
+        r2.TryDispose();
+
+        frames[0].TryDispose();
+    }
+
+    /// <summary>S6：Append 时并段补齐后，span 委托对多帧连续切帧（含跨节点小窗口）</summary>
+    [Fact]
+    [DisplayName("S6 头部保证：并段后 span 委托连续切帧")]
+    public void HeadAssembly_ConsecutiveCuts()
+    {
+        // 构造 5 个 20 字节小帧（4 头 + 16 负载）
+        var f1 = MakeFrame(16, 1);
+        var f2 = MakeFrame(16, 2);
+        var f3 = MakeFrame(16, 3);
+        var f4 = MakeFrame(16, 4);
+        var f5 = MakeFrame(16, 5);
+        var seq = new Byte[5 * f1.Length];
+        f1.CopyTo(seq, 0);
+        f2.CopyTo(seq, f1.Length);
+        f3.CopyTo(seq, 2 * f1.Length);
+        f4.CopyTo(seq, 3 * f1.Length);
+        f5.CopyTo(seq, 4 * f1.Length);
+
+#pragma warning disable CS0618 // 兼容旧版二进制的 span 委托
+        var codec = new PacketCodec
+        {
+            GetLength2 = span => MessageCodec<DefaultMessage>.GetLength(span, 2, 2)
+        };
+#pragma warning restore CS0618 // 兼容旧版二进制的 span 委托
+
+        // 第1轮：前两帧完整 + 第三帧半截
+        var r1 = CreateRound(seq, 0, 50);
+        var frames1 = codec.Parse(r1);
+        Assert.Equal(2, frames1.Count);
+        Assert.Equal(f1, frames1[0].ToArray());
+        Assert.Equal(f2, frames1[1].ToArray());
+        foreach (var f in frames1) f.TryDispose();
+        r1.TryDispose();
+
+        // 第2轮：第三帧尾部 + 第四、五帧；Append 时并段补齐（残留 10 字节 < HeadSize），随后连续切出三帧
+        var r2 = CreateRound(seq, 50, seq.Length - 50);
+        var frames2 = codec.Parse(r2);
+        Assert.Equal(3, frames2.Count);
+        Assert.Equal(f3, frames2[0].ToArray());
+        Assert.Equal(f4, frames2[1].ToArray());
+        Assert.Equal(f5, frames2[2].ToArray());
+        foreach (var f in frames2) f.TryDispose();
+        r2.TryDispose();
+
+        codec.Dispose();
+    }
+
+    /// <summary>链式兼容：GetLength 在帧首不足头部时拼入栈缓冲跨段定界</summary>
+    [Fact]
+    [DisplayName("链式兼容：GetLength 跨段拼读定界")]
+    public void ChainedFrame_CompatibleGetLength()
+    {
+        var f1 = MakeFrame(100, 1);
+        var chain = new ArrayPacket(f1, 0, 50) { Next = new ArrayPacket(f1, 50, f1.Length - 50) };
+
+        // 头部（2 字节偏移起 2 字节长度）完整落在首段，直读即可
+        Assert.Equal(f1.Length, MessageCodec<DefaultMessage>.GetLength(chain, 2, 2));
+
+        // 首段仅 3 字节（不足头部）——拼入栈缓冲跨段拼读
+        var shortHead = new ArrayPacket(f1, 0, 3) { Next = new ArrayPacket(f1, 3, f1.Length - 3) };
+        Assert.Equal(f1.Length, MessageCodec<DefaultMessage>.GetLength(shortHead, 2, 2));
     }
 }

@@ -31,7 +31,7 @@ public enum WebSocketMessageType
 /// <remarks>
 /// <para><b>零拷贝策略</b>：<see cref="Read(IPacket)"/> 解析时，为了减少内存分配，会直接对输入 <see cref="IPacket"/> 进行 Slice / 头部跳过，<see cref="Payload"/> 共享底层缓冲区（零拷贝）而不复制数据。</para>
 /// <para><b>生命周期</b>：Payload 的所有权随输入而定——拥有句柄输入（接收链路）时为共享切片（引用计数），独立持有、可跨轮/跨线程使用，用毕 <see cref="Dispose"/>；借阅视图输入（直接调用）时无所有权，仅限当前接收缓冲有效期内同步使用——缓冲归还或复用后继续访问将产生未定义行为（数据错乱、脏读）；需要对内容做破坏性修改或长期保存时，请先深拷贝 <see cref="Payload"/>。</para>
-/// <para><b>掩码处理</b>：客户端->服务端方向带掩码的帧会在解析阶段<span>原地</span>异或解码（跨链式分段逐字节 XOR），属于破坏性操作；不要在同一底层缓冲上尝试重复解析或回放。</para>
+/// <para><b>掩码处理</b>：客户端->服务端方向带掩码的帧会在解析阶段<span>原地</span>异或解码（链式负载逐段 XOR，掩码跨段连续），属于破坏性操作；不要在同一底层缓冲上尝试重复解析或回放。</para>
 /// </remarks>
 public class WebSocketMessage : IDisposable
 {
@@ -66,13 +66,14 @@ public class WebSocketMessage : IDisposable
 
     #region 方法
     /// <summary>读取消息</summary>
-    /// <param name="pk">包含（或至少包含头部的）数据包</param>
+    /// <param name="pk">包含（或至少包含头部的）数据包（帧首节点需含完整协议头；PacketCodec 输出的帧首已保证，直调链式帧首段不足时自动拼读兼容）</param>
     /// <returns>true 解析完成；false 数据不完整或为分片帧（Fin=0）</returns>
     /// <remarks>
-    /// <para><b>零拷贝</b>：解析后 <see cref="Payload"/> 直接引用参数 <paramref name="pk"/> 底层缓冲区（可能是其切片或链式后续），不做深复制，性能更高。</para>
+    /// <para><b>零拷贝</b>：解析后 <see cref="Payload"/> 直接引用参数 <paramref name="pk"/> 底层缓冲区（其切片），不做深复制，性能更高。</para>
+    /// <para><b>帧首头部</b>：头部与掩码合计最多 14 字节，要求完整落在帧首节点内（PacketCodec 输出帧首已保证）；直调链式帧且首段不足时自动拼入栈缓冲兼容，负载可继续为链式节点。</para>
     /// <para><b>入参所有权</b>：本方法不释放 <paramref name="pk"/>，由调用方负责释放；负载为共享切片（引用计数）独立持有，帧句柄释放后负载仍可继续使用。</para>
     /// <para><b>作用域警告</b>：负载为借阅视图（<see cref="ArrayPacket"/>）时无所有权，请勿在原始接收缓冲被复用 / 归还之后继续访问；拥有帧负载持有独立引用，不受此限。</para>
-    /// <para><b>掩码</b>：客户端帧含掩码时，在原缓冲区原地 XOR 解码；链式负载按段遍历解码，掩码跨段连续（大帧零拷贝，不物化整帧）。</para>
+    /// <para><b>掩码</b>：客户端帧含掩码时，在原缓冲区原地 XOR 解码，链式负载逐段处理、掩码跨段连续（属破坏性操作）。</para>
     /// <para><b>Close 帧</b>：当为 Close 且负载 >=2 字节，解析 2 字节状态码 + UTF8 原因短语（跨段链式负载同样零拷贝读取）。</para>
     /// <para><b>安全限制</b>：若声明长度超过 <see cref="Int32.MaxValue"/>（当前实现处理索引为 Int32）则直接判定不支持并返回 false，避免超大内存导致异常。</para>
     /// <para>返回 false 场景：数据尚不完整、为分片后续帧（Fin=0）、长度字段尚未全部到齐。</para>
@@ -82,16 +83,22 @@ public class WebSocketMessage : IDisposable
         // 需要至少2字节基本头
         if (pk == null || pk.Total < 2) return false;
 
-        // ------- 基础头 (2字节 + 可变扩展) -------
+        // ------- 基础头 (2字节 + 可变扩展) + 掩码（合计最多14字节） -------
+        var total = pk.Total;
+
+        // 头部与掩码最多 14 字节：帧首节点足够时直接引用；不足且为链式时拼入栈缓冲（兼容直调链式帧；PacketCodec 输出帧首已保证）
+        Span<Byte> buf = stackalloc Byte[14];
+        var span = pk.Length >= 14 || pk.Next == null ? pk.GetSpan() : buf[..pk.ReadBytes(buf)];
+
         // 第1字节： FIN(1) RSV1-3(3) OPCODE(4)
-        var b = pk[0];
+        var b = span[0];
         Fin = (b & 0x80) != 0;
         Type = (WebSocketMessageType)(b & 0x0F); // 只取低4位OPCODE
 
         // 当前实现只处理单帧完整消息，忽略分片后续帧
         if (!Fin) return false;
 
-        var b2 = pk[1];
+        var b2 = span[1];
         var mask = (b2 & 0x80) != 0;
 
         /*
@@ -105,36 +112,34 @@ public class WebSocketMessage : IDisposable
         var len = (Int64)(b2 & 0x7F);
         if (len == 126)
         {
-            if (pk.Total - headerLen < 2) return false; // 数据不完整
-            len = ((Int64)pk[2] << 8) | pk[3];
+            if (total - headerLen < 2) return false; // 数据不完整
+            len = ((Int64)span[2] << 8) | span[3];
             headerLen += 2;
         }
         else if (len == 127)
         {
-            if (pk.Total - headerLen < 8) return false;
+            if (total - headerLen < 8) return false;
             len = 0;
-            for (var i = 0; i < 8; i++) len = (len << 8) | pk[headerLen + i];
+            for (var i = 0; i < 8; i++) len = (len << 8) | span[headerLen + i];
             headerLen += 8;
         }
 
         if (len < 0) return false; // 非法长度
         if (len > Int32.MaxValue) return false; // 当前实现不支持>2GB负载（避免索引/内存问题）
 
-        // 读取掩码与负载前完整性检查：掩码4字节 + 负载。
-        // 以“整帧总量 - 已消费头长”判定（链式帧同样成立；不能使用单段可用量，
-        // 否则 >8KB 跨段帧会被误判丢弃）
+        // 读取掩码与负载前完整性检查：掩码4字节 + 负载，以整帧总量判定
         var need = (mask ? 4 : 0) + len;
-        if (pk.Total - headerLen < need) return false; // 数据尚未到齐
+        if (total - headerLen < need) return false; // 数据尚未到齐
 
-        // 掩码先于负载切片读出：掩码位于负载窗口之外，先读出快照供逐段 XOR 使用
+        // 掩码先于负载切片读出，供 XOR 解码使用
         var masks = mask ? new Byte[4] : null;
         if (masks != null)
         {
-            for (var i = 0; i < masks.Length; i++) masks[i] = pk[headerLen + i];
+            for (var i = 0; i < masks.Length; i++) masks[i] = span[headerLen + i];
             MaskKey = masks;
         }
 
-        // 负载：沿链零拷贝共享切片（引用计数）独立持有；入参帧句柄由调用方释放
+        // 负载：共享切片（引用计数）独立持有，链式帧切出链式负载；入参帧句柄由调用方释放
         Payload = pk.Slice(headerLen + (mask ? 4 : 0), (Int32)len);
 
         // 掩码原地 XOR 解码（链式负载逐段遍历，掩码跨段连续；属破坏性操作）
@@ -143,10 +148,10 @@ public class WebSocketMessage : IDisposable
             var idx = 0;
             for (var node = Payload; node != null; node = node.Next)
             {
-                var span = node.GetSpan();
-                for (var i = 0; i < span.Length; i++)
+                var data = node.GetSpan();
+                for (var i = 0; i < data.Length; i++)
                 {
-                    span[i] ^= masks[idx++ & 3];
+                    data[i] ^= masks[idx++ & 3];
                 }
             }
         }
@@ -171,8 +176,8 @@ public class WebSocketMessage : IDisposable
         return 2 + extLen + maskLen + payload;
     }
 
-    /// <summary>从帧头读取完整帧长度（含头部），供 PacketCodec 用作 GetLength 委托；帧头可能跨节点</summary>
-    /// <param name="pk">缓存链头（帧首节点链）</param>
+    /// <summary>从帧头读取完整帧长度（含头部），供 PacketCodec 用作 GetLength 委托；帧首节点含完整头部时直读，不足且链式时拼接</summary>
+    /// <param name="pk">数据包（PacketCodec 缓存的帧首；直调可为链式）</param>
     /// <returns>完整帧总字节数（头部+负载）；数据不足以确定长度时返回 0</returns>
     internal static Int32 GetFrameTotalLength(IPacket pk)
     {

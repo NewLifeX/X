@@ -215,10 +215,72 @@ public class MessageDisposeTests
         raw.TryDispose();
     }
 
+    [Fact(DisplayName = "GetRaw：帧头跨轮组链后完整可读")]
+    public void GetRaw_FrameAcrossRounds_ShouldReadFullFrame()
+    {
+        // 帧头跨轮：第1轮仅 2 字节（不足 4 字节帧头），第2轮补齐；总长不足 HeadSize，不并段、直接组链成帧
+        using var full = BuildFrame(10);
+        // BuildFrame 缓冲为 8+payload，这里截取真实帧窗口（4 头 + 10 负载）
+        var raw = full.ToArray()[..14];
+
+        var codec = new PacketCodec { GetLength = DefaultMessage.GetLength };
+        Assert.Empty(codec.Parse(new ArrayPacket(raw, 0, 2)));
+
+        var frames = codec.Parse(new ArrayPacket(raw, 2, raw.Length - 2));
+        Assert.Single(frames);
+        var frame = frames[0];
+        Assert.Equal(14, frame.Total);    // 总长(14) 不足 HeadSize，保持组链
+        Assert.NotNull(frame.Next);
+
+        var msg = new DefaultMessage();
+        Assert.True(msg.Read(frame));
+        Assert.Equal(10, msg.Payload!.Length);
+
+        var view = msg.GetRaw();
+        Assert.NotNull(view);
+        Assert.Equal(4 + 10, view!.Total);
+        Assert.Equal(0x01, view[0]);
+        Assert.Equal(0x05, view[1]);
+        Assert.Equal(10, view[2]);
+        for (var i = 0; i < 10; i++)
+            Assert.Equal((Byte)(i & 0xFF), view[4 + i]);
+
+        msg.Dispose();
+        frame.TryDispose();
+    }
+
+    [Fact(DisplayName = "Read：链式帧首段不足头部时拼读兼容（兼容旧直调路径）")]
+    public void Read_WithChainedFrame_ShouldParse()
+    {
+        // 头部前 2 字节在首段，长度与负载在次段——首段不足 8 字节头部，拼入栈缓冲后正常解析
+        var part1 = new OwnerPacket(2);
+        var part2 = new OwnerPacket(12);
+        part1.Next = part2;
+
+        var payloadLen = 10;
+        part1.GetSpan()[0] = 0x01;
+        part1.GetSpan()[1] = 0x05;
+        var span2 = part2.GetSpan();
+        span2[0] = (Byte)(payloadLen & 0xFF);
+        span2[1] = (Byte)(payloadLen >> 8);
+        for (var i = 0; i < payloadLen; i++) span2[2 + i] = (Byte)(i & 0xFF);
+
+        var msg = new DefaultMessage();
+        Assert.True(msg.Read(part1));
+        Assert.Equal(0x01, msg.Flag);
+        Assert.Equal(5, msg.Sequence);
+        Assert.Equal(payloadLen, msg.Payload!.Total);
+        for (var i = 0; i < payloadLen; i++)
+            Assert.Equal((Byte)(i & 0xFF), msg.Payload[i]);
+
+        msg.Dispose();
+        part1.TryDispose();
+    }
+
     [Fact(DisplayName = "GetRaw：链式拥有帧（首段短于帧头）切片后完整可读")]
     public void GetRaw_ChainedOwnedFrame_ShouldReadFullFrame()
     {
-        // 首段仅 2 字节（不足 4 字节帧头），帧头跨段——旧实现切走负载时立即作废首段，事件读到已死缓冲
+        // 首段仅 2 字节（不足 4 字节帧头），帧头跨段
         var part1 = new OwnerPacket(2);
         var part2 = new OwnerPacket(12);
         part1.Next = part2;

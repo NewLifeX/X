@@ -101,13 +101,13 @@ public class DefaultMessage : Message
         return base.CreateInstance();
     }
 
-    /// <summary>从数据包中读取消息（主入口，支持单段/跨段链式帧）</summary>
-    /// <param name="pk">完整帧数据（头部+负载；借阅视图或拥有帧/链）</param>
+    /// <summary>从数据包中读取消息（主入口）</summary>
+    /// <param name="pk">完整帧数据（帧首节点需含完整协议头；PacketCodec 输出的帧首已保证，直调可为链式）</param>
     /// <returns>是否成功解析</returns>
     /// <remarks>
-    /// 头部解析：仅取头 8 字节（单段直接引用；链式帧跨段拼接到栈缓冲，零堆分配、不物化整帧）。
-    /// 负载：沿帧切片（<see cref="IPacket.Slice(Int32, Int32)"/>），共享切片使 Payload 获得独立引用
-    /// （消息 Dispose/Reset 时唯一归还）；本方法不释放入参，帧句柄由调用方释放；借阅视图只取视图。
+    /// 头部最多 8 字节：帧首节点足够时直接引用（<see cref="IPacket.GetSpan"/>）；不足且为链式时拼入栈缓冲兼容（不物化整帧）。
+    /// 负载沿帧切片（<see cref="IPacket.Slice(Int32, Int32)"/>），共享切片使 Payload 获得独立引用（消息 Dispose/Reset 时唯一归还）；单段与链式帧均支持。
+    /// 本方法不释放入参，帧句柄由调用方释放；借阅视图只取视图。
     /// 事件期间展示的完整帧（<see cref="GetRaw"/>）改用“帧头副本 + 负载”展示链，帧头为实例内复用缓冲，不持有缓冲引用。
     /// </remarks>
     public override Boolean Read(IPacket pk)
@@ -116,17 +116,12 @@ public class DefaultMessage : Message
             throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 4 bytes");
 
         var total = pk.Total;
-        // 头 8 字节：跨段拼接到栈缓冲（帧头可能跨段；只读头部，无需物化整帧）
-        Span<Byte> head = stackalloc Byte[8];
-        var n = 0;
-        for (var node = pk; node != null && n < head.Length; node = node.Next)
-        {
-            var span = node.GetSpan();
-            var count = Math.Min(span.Length, head.Length - n);
-            span[..count].CopyTo(head[n..]);
-            n += count;
-        }
-        var size = ParseHeader(head[..n], out var len);
+
+        // 头部最多 8 字节：帧首节点足够时直接引用；不足且为链式时拼入栈缓冲（兼容直调链式帧；PacketCodec 输出帧首已保证）
+        Span<Byte> buf = stackalloc Byte[8];
+        var span = pk.Length >= 8 || pk.Next == null ? pk.GetSpan() : buf[..pk.ReadBytes(buf)];
+
+        var size = ParseHeader(span, out var len);
         if (size + len > total)
             throw new ArgumentOutOfRangeException(nameof(pk), $"The frame length {total} is less than {size + len} bytes");
 
@@ -136,7 +131,7 @@ public class DefaultMessage : Message
             Payload = pk.Slice(size, len);
 
             // 帧头副本 + 负载组成展示链，供事件期间读取原始报文；头副本为实例内复用缓冲，不持有帧引用
-            head[..size].CopyTo(_head);
+            span[..size].CopyTo(_head);
             _raw = new ArrayPacket(_head, 0, size) { Next = Payload };
         }
         else
@@ -264,8 +259,8 @@ public class DefaultMessage : Message
     #endregion
 
     #region 辅助
-    /// <summary>获取数据包长度（链感知：首段不足时跨节点拼接帧头）</summary>
-    /// <param name="pk">数据包（可为链，帧头可能跨节点）</param>
+    /// <summary>获取数据包长度（帧首节点含完整头部时直读；不足且链式时拼入栈缓冲）</summary>
+    /// <param name="pk">数据包（PacketCodec 缓存的帧首；直调可为链式）</param>
     /// <returns>完整消息长度（可能大于现有数据）；返回0表示头部不足无法定界</returns>
     public static Int32 GetLength(IPacket pk)
     {

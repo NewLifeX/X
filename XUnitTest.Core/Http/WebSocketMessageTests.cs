@@ -377,6 +377,52 @@ public class WebSocketMessageTests
         Assert.Equal(masks, msg.MaskKey);
     }
 
+    [Theory(DisplayName = "Read：跨接收轮大帧（>8KB）经 PacketCodec 组链后掩码/非掩码均可解码")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Read_FrameAcrossRounds_ViaPacketCodec(Boolean masked)
+    {
+        var payload = new Byte[20_000];
+        Random.Shared.NextBytes(payload);
+
+        var msg = new WebSocketMessage
+        {
+            Type = WebSocketMessageType.Binary,
+            Payload = new ArrayPacket(payload.ToArray()),
+            MaskKey = masked ? new Byte[] { 0x11, 0x22, 0x33, 0x44 } : null,
+        };
+        var frame = msg.ToPacket().ToArray();
+
+        // 按 8KB 分轮投喂（模拟大帧跨接收轮），由 PacketCodec 零拷贝组链出帧
+        var codec = new PacketCodec { GetLength = WebSocketMessage.GetFrameTotalLength };
+
+        IList<IPacket>? frames = null;
+        var pos = 0;
+        while (pos < frame.Length)
+        {
+            var count = Math.Min(8192, frame.Length - pos);
+            frames = codec.Parse(new ArrayPacket(frame, pos, count));
+            pos += count;
+        }
+
+        Assert.NotNull(frames);
+        Assert.Single(frames!);
+        var got = frames![0];
+        Assert.True(got.Length >= 14, $"帧首节点长度={got.Length}");   // 帧首头部保证：首节点含完整协议头
+
+        try
+        {
+            var msg2 = new WebSocketMessage();
+            Assert.True(msg2.Read(got));
+            Assert.Equal(msg.Type, msg2.Type);
+            Assert.Equal(payload, msg2.Payload!.ToArray());
+        }
+        finally
+        {
+            got.TryDispose();
+        }
+    }
+
     [Theory(DisplayName = "Read：链式大帧（>8KB 跨段）掩码/非掩码均可解码")]
     [InlineData(true)]
     [InlineData(false)]
@@ -393,7 +439,7 @@ public class WebSocketMessageTests
         };
         var frame = msg.ToPacket().ToArray();
 
-        // 按 8KB 分段构造链式帧（模拟大帧跨接收轮零拷贝组链）
+        // 按 8KB 分段构造链式帧（直调兼容路径：帧首头部直读，掩码负载逐段 XOR）
         IPacket? head = null;
         OwnerPacket? tail = null;
         var pos = 0;
@@ -418,6 +464,28 @@ public class WebSocketMessageTests
         {
             head!.TryDispose();
         }
+    }
+
+    [Fact(DisplayName = "Read：链式帧首段不足头部时拼读兼容")]
+    public void Read_ShortHeadChain_Compatible()
+    {
+        var masks = new Byte[] { 0x11, 0x22, 0x33, 0x44 };
+        var msg = new WebSocketMessage
+        {
+            Type = WebSocketMessageType.Text,
+            Payload = (ArrayPacket)"Hello",
+            MaskKey = masks,
+        };
+        var data = msg.ToPacket().ToArray();
+
+        // 拆成 [3B | 8B] 链：首段不足 14 字节头部，拼入栈缓冲后正常解析并按段 XOR
+        IPacket chain = new ArrayPacket(data, 0, 3) { Next = new ArrayPacket(data, 3, data.Length - 3) };
+
+        var msg2 = new WebSocketMessage();
+        Assert.True(msg2.Read(chain));
+        Assert.Equal(WebSocketMessageType.Text, msg2.Type);
+        Assert.Equal("Hello", msg2.Payload!.ToStr());
+        Assert.Equal(masks, msg2.MaskKey);
     }
 
     [Theory(DisplayName = "ToPacket：链式负载（>8KB 跨段）掩码/非掩码发送后原样可读")]

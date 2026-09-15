@@ -109,6 +109,8 @@ public class LengthFieldCodec : MessageCodec<IPacket>
             {
                 Expire = Expire,
                 GetLength = p => GetLength(p, Offset, Size),
+                // 帧首头部保证：Offset 前缀 + 长度字段（变长编码最多 5 字节）
+                HeadSize = Offset + (Size == 0 ? 5 : Math.Abs(Size)),
                 MaxCache = MaxCache,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };

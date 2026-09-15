@@ -65,7 +65,8 @@ public class WebSocketCodec : Handler
 
         if (ss[CodecKey] is not PacketCodec codec)
         {
-            ss[CodecKey] = codec = new PacketCodec { GetLength = WebSocketMessage.GetFrameTotalLength };
+            // 帧首头部保证：WebSocket 头部与掩码最多 14 字节（2 基础头 + 8 扩展长度 + 4 掩码）
+            ss[CodecKey] = codec = new PacketCodec { GetLength = WebSocketMessage.GetFrameTotalLength, HeadSize = 14 };
         }
         var frames = codec.Parse(pk);
         foreach (var frame in frames)

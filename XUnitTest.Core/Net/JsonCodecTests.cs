@@ -5,9 +5,38 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
-/// <summary>JsonCodec 链式帧负载解析测试</summary>
+/// <summary>JsonCodec 帧负载解析测试（单段快路径 + 链式兼容）</summary>
 public class JsonCodecTests
 {
+    [Fact(DisplayName = "Read：单段帧负载解码（PacketCodec 组包后恒为单段）")]
+    public void Read_SingleSegmentPayload_Decoded()
+    {
+        var text = new String('x', 10_000);
+        var json = "{\"name\":\"NewLife\",\"data\":\"" + text + "\"}";
+        var bytes = json.GetBytes();
+
+        // 模拟接收链路整块投递的单段帧：大负载一次投喂
+        var seg = new OwnerPacket(bytes.Length);
+        bytes.CopyTo(seg.GetSpan());
+
+        Object? result = null;
+        try
+        {
+            var codec = new JsonCodec();
+            result = codec.Read(null!, seg);
+        }
+        finally
+        {
+            seg.TryDispose();
+        }
+
+        Assert.NotNull(result);
+        var dic = result as System.Collections.IDictionary;
+        Assert.NotNull(dic);
+        Assert.Equal("NewLife", dic!["name"]?.ToString());
+        Assert.Equal(10_000, dic["data"]?.ToString()?.Length);
+    }
+
     [Fact(DisplayName = "Read：链式帧负载跨段解析（只取首段会截断）")]
     public void Read_ChainedPayload_Decoded()
     {
