@@ -6,6 +6,7 @@ using NewLife.Model;
 namespace NewLife.Net;
 
 /// <summary>收到数据时的事件参数</summary>
+/// <remarks><see cref="Packet"/> 为本轮数据的拥有句柄（接收层每轮包装，窗口为本轮数据）：可直接交给应答/发送链路消费（其消费/释放只影响本包装句柄）；需跨线程/跨 await 持有时用 <see cref="IPacket.Slice(Int32, Int32)"/> 切出共享句柄（用后 Dispose）。</remarks>
 public class ReceivedEventArgs : EventArgs, IData
 {
     #region 池
@@ -39,11 +40,12 @@ public class ReceivedEventArgs : EventArgs, IData
     /// <summary>远程地址</summary>
     public IPEndPoint? Remote { get; set; }
 
-    /// <summary>原始数据包</summary>
+    /// <summary>当前消息的原始数据（本轮拥有句柄）</summary>
     /// <remarks>
-    /// <para>Packet内部直接引用网络缓冲区，以实现零拷贝，并非全部数据都属于当前消息。</para>
-    /// <para>需要注意所有权，当前数据事件结束时回收，不应被外部引用。</para>
-    /// <para>Received事件处理器必须同步完成数据读取。若需异步处理，请先通过 <see cref="GetBytes"/> 或 Packet.ToArray() 拷贝数据。</para>
+    /// <para>接收链路中为本轮数据的拥有句柄（接收层每轮包装，窗口为本轮数据）：进入链路时指向整轮数据，管道拆帧期间指向当前消息帧。</para>
+    /// <para><b>带出本轮</b>：需跨线程/跨 await 持有时，在事件内调用 <see cref="IPacket.Slice(Int32, Int32)"/> 切出共享句柄，用后 Dispose；
+    /// 可直接交给应答/发送链路消费（其消费/释放只影响本包装句柄）；轮末由接收层按引用计数统一裁决。</para>
+    /// <para>视图输入（非接收链路）时为借阅视图，仅在本轮同步链路内有效，跨链需 <see cref="GetBytes"/> 拷贝。</para>
     /// </remarks>
     public IPacket? Packet { get; set; }
 

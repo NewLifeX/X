@@ -9,6 +9,7 @@ using NewLife.Serialization;
 namespace NewLife.Net;
 
 /// <summary>网络处理器上下文</summary>
+/// <remarks>上下文按轮租借，承载处理器调用链的临时数据</remarks>
 public class NetHandlerContext : HandlerContext
 {
     #region 池
@@ -62,50 +63,7 @@ public class NetHandlerContext : HandlerContext
     public override void FireRead(Object message)
     {
         // 经历编码器管道，万水千山来到这里！
-        // 对于消息协议来说，意味着协议解包已经完成，IOCP层可以着手去接收下一消息，而无需等待当前消息是否已处理完成
 
-        //if (!Session.ProcessAsync)
-        //{
-        //    var ori = Data as ReceivedEventArgs;
-        //    // 如果消息使用了原来SEAE的数据包，需要拷贝，避免多线程冲突
-        //    // 也可能在粘包处理时，已经拷贝了一次
-        //    var flag = false;
-        //    if (ori.Packet != null)
-        //    {
-        //        if (message is IMessage msg)
-        //        {
-        //            if (msg.Payload != null && ori.Packet.Data == msg.Payload.Data)
-        //            {
-        //                msg.Payload = msg.Payload.Clone();
-        //                flag = true;
-        //            }
-        //        }
-        //        else if (message is Packet pk)
-        //        {
-        //            if (pk != null && ori.Packet.Data == pk.Data)
-        //            {
-        //                message = pk.Clone();
-        //                flag = true;
-        //            }
-        //        }
-        //    }
-
-        //    // 只有完成了数据包拷贝的消息，才走异步处理，避免用户消息中引用了IOCP层数据包
-        //    if (flag)
-        //    {
-        //        var e = new ReceivedEventArgs
-        //        {
-        //            Remote = ori.Remote,
-        //            Message = message,
-        //            UserState = ori.UserState,
-        //        };
-
-        //        ThreadPoolX.QueueUserWorkItem(Session.Process, e);
-        //        return;
-        //    }
-        //}
-
-        //{
         var data = Data ?? new ReceivedEventArgs();
         data.Message = message;
 
@@ -117,15 +75,26 @@ public class NetHandlerContext : HandlerContext
         // 这里修改Remote以后，NetSession层将会使用新的Remote地址
         if (Remote != null) data.Remote = Remote;
 
-        // 解析协议指令后，事件变量里面的数据是之前的原始报文，有可能多帧指令粘包在一起，需要拆分填充当前指令的数据报文，避免上层重复使用原始大报文
+        var old = data.Packet;
+        // 解析协议指令后，事件变量里面的数据是之前的原始报文，有可能多帧指令粘包在一起，需要拆分填充当前指令的数据报文，避免上层重复使用原始大报文。
+        // Packet 只承载“当前展示数据”：事件期间临时指向当前帧，事件返回后恢复整轮视图；
+        // 需要带出本轮的数据在事件内经 Slice 切出共享句柄（引用计数持有），与 Packet 恢复互不影响
         if (message is DefaultMessage dm)
         {
             var raw = dm.GetRaw();
             if (raw != null) data.Packet = raw;
         }
 
-        Session?.Process(data);
-        //}
+        try
+        {
+            Session?.Process(data);
+        }
+        finally
+        {
+            // 事件期间 Packet 临时指向当前帧，事件返回后恢复原值（整轮数据）；
+            // 订阅者若要把数据带出本轮，经 Slice 获得共享句柄（引用计数），与 Packet 恢复互不影响
+            data.Packet = old;
+        }
     }
 
     /// <summary>写入管道过滤后最终处理消息</summary>

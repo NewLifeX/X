@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -486,10 +486,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 return false;
             }
 
+            // 池化接收缓冲：从 ArrayPool 借出，归本会话持有。每轮把整块缓冲包装为本轮拥有句柄上抛，
+            // 轮末按引用计数裁决：无人持有则脱手（Detach）保留缓冲继续接收（零 Rent/Return），
+            // 被下游消费或带出时才解绑换新。归还见 ReleaseRecv 与 OwnerPacket.Detach 协议。
             // 加大接收缓冲区，规避SocketError.MessageSize问题
-            var buf = new Byte[BufferSize];
+            var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
             var se = new SocketAsyncEventArgs();
-            se.SetBuffer(buf, 0, buf.Length);
+            se.SetBuffer(buf, 0, BufferSize);
             se.Completed += (s, e) => ProcessEvent(e, -1, _IntoThreadCount);
             se.UserToken = count;
 
@@ -513,7 +516,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (_RecvCount > 0) Interlocked.Decrement(ref _RecvCount);
         try
         {
+            // 归还池化接收缓冲。缓冲要么无人带出（轮末已 Detach 脱手，仍在 se.Buffer 上），
+            // 要么本轮被消费/带出时已解绑并换了新缓冲；因此这里归还的一定是本会话独有、
+            // 无外部持有者的缓冲，恰好一次；被带出的缓冲由最后释放的共享句柄归还。
+            var buffer = se.Buffer;
             se.SetBuffer(null, 0, 0);
+            if (buffer != null) ArrayPool<Byte>.Shared.Return(buffer);
         }
         catch { }
         se.Dispose();
@@ -560,6 +568,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             var reason = CheckClosed() ?? "EmptyData";
             Close(reason);
+            // 本事件参数不再用于接收，立即归还缓冲
+            ReleaseRecv(se, reason);
             Dispose();
 
             return false;
@@ -632,11 +642,33 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 if (bytes < 0) bytes = se.BytesTransferred;
                 if (se.Buffer != null)
                 {
-                    var pk = new ArrayPacket(se.Buffer, se.Offset, bytes);
+                    // 同步执行，直接使用数据，不需要拷贝：整块缓冲包装为本轮拥有句柄，交由管道与事件消费
+                    var pk = new OwnerPacket(se.Buffer, se.Offset, bytes, true);
+                    try
+                    {
+                        ProcessReceive(se, ep, pk);
+                    }
+                    finally
+                    {
+                        // 轮末裁决缓冲归属，正常与异常路径一致：
+                        // 计数为 1（无他人持有）→ 脱手：放弃本句柄引用但不归还，缓冲留在会话继续接收，零 Rent/Return；
+                        // 其余情况（已被下游消费归零，或存在共享切片大于 1）→ 释放本句柄（已释放则空操作），解绑换新；
+                        // 不在此归还：计数大于 1 时旧缓冲仍被外部使用，归还它会把正在使用的缓冲交还给池。
+                        if (pk.RefCount == 1)
+                        {
+                            pk.Detach();
+                        }
+                        else
+                        {
+                            pk.TryDispose();
 
-                    // 同步执行，直接使用数据，不需要拷贝
-                    // 直接在IO线程调用业务逻辑
-                    ProcessReceive(pk, se, ep);
+                            // 先解绑再借新：若 Rent 抛出（如 OOM），se.Buffer 保持 null，ReleaseRecv 不会归还，
+                            // 避免把已归还池或仍被外部持有的旧缓冲二次归还
+                            se.SetBuffer(null, 0, 0);
+                            var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
+                            se.SetBuffer(buf, 0, BufferSize);
+                        }
+                    }
                 }
             }
 
@@ -664,10 +696,15 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>接收预处理，粘包拆包</summary>
-    /// <param name="pk">数据包</param>
+    /// <remarks>
+    /// 本轮数据以拥有句柄（每轮包装）上抛，零拷贝；下游可读、可交给应答/发送链路消费（其消费/释放只影响本包装句柄），
+    /// 跨线程/跨 await 带出请在事件内经 <see cref="IPacket.Slice(Int32, Int32)"/> 切出共享句柄（用后 Dispose）。
+    /// 缓冲归属由 <see cref="ProcessEvent"/> 在轮末按引用计数统一裁决。
+    /// </remarks>
     /// <param name="se">socket异步事件</param>
     /// <param name="remote">远程地址</param>
-    private void ProcessReceive(IPacket pk, SocketAsyncEventArgs se, IPEndPoint remote)
+    /// <param name="pk">本轮数据包装句柄</param>
+    private void ProcessReceive(SocketAsyncEventArgs se, IPEndPoint remote, OwnerPacket pk)
     {
         // 打断上下文调用链，这里必须是起点
         DefaultSpan.Current = null;
@@ -690,6 +727,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (Local.IsTcp) remote = Remote.EndPoint;
 
             e = ReceivedEventArgs.Rent();
+            // 本轮拥有句柄：可直接交给应答/发送链路消费（其消费/释放只影响本包装句柄）；跨轮带出请 Slice 切出共享句柄
             e.Packet = pk;
             e.Local = local;
             e.Remote = remote;
@@ -704,7 +742,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 ctx.Data = e;
                 ctx.EventArgs = se;
 
-                // 进入管道处理，如果有一个或多个结果通过Finish来处理
+                // 进入管道处理（整轮数据包入口），如果有一个或多个结果通过Finish来处理
                 pp.Read(ctx, pk);
             }
         }
@@ -715,7 +753,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
         finally
         {
-            // 无论正常或异常，都归还池化对象，避免泄漏
+            // 无论正常或异常，都归还池化对象，避免泄漏（缓冲归属由 ProcessEvent 轮末裁决）
             if (ctx != null) ReturnContext(ctx);
             if (e != null) ReceivedEventArgs.Return(e);
         }

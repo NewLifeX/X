@@ -278,8 +278,8 @@ public class ISocketRemoteTests
                     break;
                 case DataKinds.Packet:
                 default:
-                    // 持续接受数据写入文件
-                    if (_target != null)
+                    // 持续接受数据写入文件（负载为数据包，流式写出）
+                    if (_target != null && dm.Payload != null)
                     {
                         dm.Payload.CopyTo(_target);
                         //XTrace.WriteLine("写入数据：{0} 字节", dm.Payload.Total);
