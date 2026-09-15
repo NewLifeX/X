@@ -1,5 +1,4 @@
 ﻿using NewLife.Buffers;
-using NewLife.Collections;
 using NewLife.Data;
 
 namespace NewLife.Messaging;
@@ -46,26 +45,23 @@ public class DefaultMessage : Message
 
     /// <summary>解析数据时的原始报文</summary>
     private IPacket? _raw;
+
+    /// <summary>帧头副本缓冲。拥有帧被切片作废后，与负载组成展示链供事件读取（实例内复用，不持有缓冲引用）</summary>
+    private readonly Byte[] _head = new Byte[8];
     #endregion
 
     #region 构造
-    private static readonly Pool<DefaultMessage> _pool = new();
+    /// <summary>从池中借出消息实例（兼容旧版）。消息已不再池化，直接新建</summary>
+    /// <returns>消息实例</returns>
+    /// <remarks>仅供基于旧版编译的库使用；新代码请直接 <c>new DefaultMessage()</c>。</remarks>
+    [Obsolete("消息已不再池化，请直接 new DefaultMessage()。")]
+    public static DefaultMessage Rent() => new();
 
-    /// <summary>从池中借出消息实例</summary>
-    public static DefaultMessage Rent()
-    {
-        var msg = _pool.Get();
-        return msg;
-    }
-
-    /// <summary>归还消息实例到池</summary>
+    /// <summary>归还消息实例（兼容旧版）。消息已不再池化，直接释放</summary>
     /// <param name="msg">消息实例</param>
-    public static void Return(DefaultMessage? msg)
-    {
-        if (msg == null) return;
-        msg.Reset();
-        _pool.Return(msg);
-    }
+    /// <remarks>仅供基于旧版编译的库使用；新代码请直接 <c>Dispose()</c>。</remarks>
+    [Obsolete("消息已不再池化，请直接 Dispose()。")]
+    public static void Return(DefaultMessage? msg) => msg?.Dispose();
 
     /// <summary>释放资源</summary>
     /// <param name="disposing">是否释放托管资源</param>
@@ -73,7 +69,10 @@ public class DefaultMessage : Message
     {
         base.Dispose(disposing);
 
-        if (disposing) _raw = null;
+        if (disposing)
+        {
+            _raw = null;
+        }
     }
     #endregion
 
@@ -97,65 +96,93 @@ public class DefaultMessage : Message
     protected override Message CreateInstance()
     {
         var type = GetType();
-        if (type == typeof(DefaultMessage)) return Rent();
+        if (type == typeof(DefaultMessage)) return new DefaultMessage();
 
         return base.CreateInstance();
     }
 
-    /// <summary>从数据包中读取消息</summary>
-    /// <param name="pk">原始数据包</param>
+    /// <summary>从数据包中读取消息（主入口，支持单段/跨段链式帧）</summary>
+    /// <param name="pk">完整帧数据（头部+负载；借阅视图或拥有帧/链）</param>
     /// <returns>是否成功解析</returns>
+    /// <remarks>
+    /// 头部解析：仅取头 8 字节（单段直接引用；链式帧跨段拼接到栈缓冲，零堆分配、不物化整帧）。
+    /// 负载：沿帧切片（<see cref="IPacket.Slice(Int32, Int32)"/>），共享切片使 Payload 获得独立引用
+    /// （消息 Dispose/Reset 时唯一归还）；本方法不释放入参，帧句柄由调用方释放；借阅视图只取视图。
+    /// 事件期间展示的完整帧（<see cref="GetRaw"/>）改用“帧头副本 + 负载”展示链，帧头为实例内复用缓冲，不持有缓冲引用。
+    /// </remarks>
     public override Boolean Read(IPacket pk)
     {
-        _raw = pk;
+        if (pk == null || pk.Total < 4)
+            throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 4 bytes");
 
-        var count = pk.Total;
-        if (count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 4 bytes");
-
-        // 取头部4个字节
-        var size = 4;
-        var header = pk.GetSpan()[..size];
-
-        // 清理状态位
-        Reply = false;
-        Error = false;
-        OneWay = false;
-
-        // 前2位作为标识位
-        Flag = (Byte)(header[0] & 0b0011_1111);
-        var mode = header[0] >> 6;
-        switch (mode)
+        var total = pk.Total;
+        // 头 8 字节：跨段拼接到栈缓冲（帧头可能跨段；只读头部，无需物化整帧）
+        Span<Byte> head = stackalloc Byte[8];
+        var n = 0;
+        for (var node = pk; node != null && n < head.Length; node = node.Next)
         {
-            case 0: Reply = false; break;
-            case 1: OneWay = true; break;
-            case 2: Reply = true; break;
-            case 3: Reply = true; Error = true; break;
-            default:
-                break;
+            var span = node.GetSpan();
+            var count = Math.Min(span.Length, head.Length - n);
+            span[..count].CopyTo(head[n..]);
+            n += count;
         }
+        var size = ParseHeader(head[..n], out var len);
+        if (size + len > total)
+            throw new ArgumentOutOfRangeException(nameof(pk), $"The frame length {total} is less than {size + len} bytes");
 
-        // 1个字节的序列号
-        Sequence = header[1];
-
-        // 负载长度。2字节小端
-        var len = (header[3] << 8) | header[2];
-        if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
-
-        // 支持超过64k的超大包
-        if (len == 0xFFFF)
+        if (pk is OwnerPacket)
         {
-            size += 4;
-            if (count < size) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 8 bytes");
+            // 负载：共享切片获得独立引用（零拷贝），消息统一持有；入参帧句柄由调用方释放
+            Payload = pk.Slice(size, len);
 
-            // 4字节小端
-            len = pk.GetSpan().Slice(size - 4, 4).ToArray().ToInt();
-            if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
+            // 帧头副本 + 负载组成展示链，供事件期间读取原始报文；头副本为实例内复用缓冲，不持有帧引用
+            head[..size].CopyTo(_head);
+            _raw = new ArrayPacket(_head, 0, size) { Next = Payload };
         }
-
-        // 负载数据。OwnerPacket 默认在 Slice 时把该段缓冲区所有权转给 Payload，原始 pk 后续 Dispose 不会重复归还。
-        Payload = pk.Slice(size, len, true);
+        else
+        {
+            // 借阅视图：不持有引用，仅在本轮同步链路内有效
+            Payload = pk.Slice(size, len);
+            _raw = pk;
+        }
 
         return true;
+    }
+
+    /// <summary>解析头部，返回头部总长度与负载长度，并填充状态位/序列号/类型</summary>
+    /// <param name="header">头部字节（普通4字节/超大包8字节）</param>
+    /// <param name="len">负载长度</param>
+    /// <returns>头部总长度（4 或 8）</returns>
+    private Int32 ParseHeader(ReadOnlySpan<Byte> header, out Int32 len)
+    {
+        // 状态位：高2位 00请求 / 01单向 / 10响应 / 11响应+错误
+        var mode = header[0] >> 6;
+        Reply = mode >= 2;
+        Error = mode == 3;
+        OneWay = mode == 1;
+
+        // 低6位数据类型 + 1字节序列号
+        Flag = (Byte)(header[0] & 0b0011_1111);
+        Sequence = header[1];
+
+        // 负载长度（2字节小端；0xFFFF 扩展需 8 字节头）
+        var need = header[2] == 0xFF && header[3] == 0xFF ? 8 : 4;
+        if (header.Length < need) throw new ArgumentOutOfRangeException(nameof(header), "The length of the packet header is less than 8 bytes");
+
+        return ReadLength(header, out len);
+    }
+
+    /// <summary>读取负载长度（2字节小端；Length=0xFFFF 时后续4字节为正式长度）。返回头部大小 4/8</summary>
+    /// <param name="header">头部字节（须满足所需长度）</param>
+    /// <param name="len">负载长度</param>
+    /// <returns>头部总长度（4 或 8）</returns>
+    private static Int32 ReadLength(ReadOnlySpan<Byte> header, out Int32 len)
+    {
+        len = header[2] | (header[3] << 8);
+        if (len != 0xFFFF) return 4;
+
+        len = (header[7] << 24) | (header[6] << 16) | (header[5] << 8) | header[4];
+        return 8;
     }
 
     /// <summary>尝试从数据包中读取消息（安全版本）</summary>
@@ -180,7 +207,8 @@ public class DefaultMessage : Message
     }
 
     /// <summary>把消息转为封包</summary>
-    /// <returns>序列化后的数据包</returns>
+    /// <returns>序列化后的数据包，调用方负责 Dispose</returns>
+    /// <remarks>拥有负载且前置空间足够时原地扩展头部（零拷贝）；否则新建头部包，负载作为后继链节点。</remarks>
     public override IPacket ToPacket()
     {
         var body = Payload;
@@ -224,7 +252,7 @@ public class DefaultMessage : Message
         return pk;
     }
 
-    /// <summary>重置消息状态，用于对象池复用</summary>
+    /// <summary>重置消息状态</summary>
     public override void Reset()
     {
         base.Reset();
@@ -236,14 +264,24 @@ public class DefaultMessage : Message
     #endregion
 
     #region 辅助
-    /// <summary>获取数据包长度</summary>
-    /// <param name="pk">数据包</param>
-    /// <returns>完整消息长度（包含头部），返回0表示数据不足</returns>
-    public static Int32 GetLength(IPacket pk) => GetLength(pk.GetSpan());
+    /// <summary>获取数据包长度（链感知：首段不足时跨节点拼接帧头）</summary>
+    /// <param name="pk">数据包（可为链，帧头可能跨节点）</param>
+    /// <returns>完整消息长度（可能大于现有数据）；返回0表示头部不足无法定界</returns>
+    public static Int32 GetLength(IPacket pk)
+    {
+        var span = pk.GetSpan();
+        if (span.Length >= 8 || pk.Next == null) return GetLength(span);
+
+        // 帧头可能跨节点：拼接前 8 字节（大包路径需要 8 字节）
+        Span<Byte> buf = stackalloc Byte[8];
+        var n = pk.ReadBytes(buf);
+
+        return GetLength(buf[..n]);
+    }
 
     /// <summary>获取数据包长度</summary>
     /// <param name="span">数据片段</param>
-    /// <returns>完整消息长度（包含头部），返回0表示数据不足</returns>
+    /// <returns>完整消息长度（可能大于现有数据）；返回0表示头部不足无法定界</returns>
     public static Int32 GetLength(ReadOnlySpan<Byte> span)
     {
         if (span.Length < 4) return 0;
@@ -261,8 +299,8 @@ public class DefaultMessage : Message
         return 8 + reader.ReadInt32();
     }
 
-    /// <summary>获取解析数据时的原始报文</summary>
-    /// <returns>原始数据包</returns>
+    /// <summary>获取解析数据时的原始报文视图（事件期间展示当前帧）</summary>
+    /// <returns>原始数据包视图；拥有帧为“帧头副本+负载”展示链，仅在本轮同步链路内有效</returns>
     public IPacket? GetRaw() => _raw;
 
     /// <summary>消息摘要</summary>

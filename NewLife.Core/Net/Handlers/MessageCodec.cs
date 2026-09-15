@@ -11,7 +11,7 @@ namespace NewLife.Net.Handlers;
 /// 
 /// 消息封包编码器实现网络处理器，具体用法是添加网络客户端或服务端主机。主机收发消息时，会自动调用编码器对消息进行编码解码。
 /// 发送消息SendMessage时调用编码器Write/Encode方法；
-/// 接收消息时调用编码器Read/Decode方法，消息存放在ReceivedEventArgs.Message。
+/// 接收消息时调用编码器Read/Decode方法，消息存放在接收事件参数的 Message 属性。
 /// 
 /// 网络编码器支持多层添加，每个编码器处理后交给下一个编码器处理，直到最后一个编码器，然后发送出去。
 /// </remarks>
@@ -156,51 +156,119 @@ public class MessageCodec<T> : Handler
                 // 保存原始消息到上下文，供上层 Write 构造响应时使用
                 if (context is IExtend ext) ext["_raw_message"] = imsg;
 
-                // 提取负载或保留整个消息
+                // UserPacket 模式：负载以 IPacket 上抛（拥有切片或借阅视图），维持级联编码器契约；
+                // 事件内可直接消费或交给应答/发送链路；需跨轮持有时在事件内 Slice 切出共享句柄（用后 Dispose）
                 rs = userPacket ? imsg.Payload! : msg;
-
-                // 响应消息匹配请求队列（客户端收到服务端回复）
-                if (queue != null && imsg.Reply)
-                    MatchResponse(queue, context.Owner, imsg, userPacket);
             }
             else
             {
                 rs = msg;
-
-                // 非协议消息直接匹配
-                queue?.Match(context.Owner, msg, rs, IsMatch);
             }
 
-            // 向上层传递分包消息，注意这里可能处于网络IO线程
-            base.Read(context, rs);
+            // 响应交付句柄：事件之前先切出独立共享句柄（引用计数加一）。
+            // 订阅者可在事件内随意处置原负载（读取/切片/Slice 带出/交给发送链消费），等待方拿到的仍是有效数据；
+            // 命中后所有权归等待方，未命中随匹配归还。负载不是拥有句柄时走匹配内兜底克隆。
+            IPacket? claim = null;
+            if (userPacket && queue != null && msg is IMessage m0 && m0.Reply && m0.Payload is IOwnerPacket)
+                claim = m0.Payload.Slice(0, -1);
 
-            // 归还池化的 DefaultMessage
-            // userPacket==true: msg 仅作解码容器，上层拿到的是独立的 Payload，msg 可安全归还到池
-            // userPacket==false: msg 本身就是上层消费的数据，可能被异步使用（如Remoting），不能归还
-            if (msg is DefaultMessage dm && userPacket) DefaultMessage.Return(dm);
+            try
+            {
+                // 先向上层触发 Received 事件（全量监视，同步消费），再做请求-响应匹配。
+                // 等待方 continuation 异步执行，与同步事件链无竞态；交付句柄已独立，订阅者处置不影响匹配。
+                base.Read(context, rs);
+            }
+            catch
+            {
+                // 事件链异常：放弃交付并归还预切句柄，避免引用泄漏
+                claim?.TryDispose();
+                throw;
+            }
+
+            if (msg is IMessage imsg2)
+            {
+                // 响应匹配（后）：命中时把独立交付句柄的所有权转移给 await 等待方
+                if (queue != null && imsg2.Reply)
+                    MatchResponse(queue, context.Owner, imsg2, userPacket, claim);
+                else
+                    claim?.TryDispose();
+            }
+            else
+            {
+                // 非协议消息直接匹配；同步链消费完毕，未命中（或无匹配队列）时归还交付句柄，
+                // 避免拥有切片无人释放（视图无操作）；需要跨轮携带请在事件内经 Slice 切出共享句柄
+                var matched = queue != null && queue.Match(context.Owner, msg, rs, IsMatch);
+                if (!matched && msg is IPacket mp) mp.TryDispose();
+            }
+
+            // 释放消息容器（归还负载引用）
+            // userPacket==true: msg 仅作解码容器，负载所有权已转移给上层或随容器释放，msg 可安全释放
+            // userPacket==false: msg 本身就是上层消费的数据，可能被异步使用（如Remoting），不能释放
+            if (msg is DefaultMessage dm && userPacket) dm.Dispose();
         }
 
         return null;
     }
 
-    /// <summary>匹配响应消息到请求队列，克隆共享缓冲区数据后传给等待线程</summary>
-    private void MatchResponse(IMatchQueue queue, Object? owner, IMessage msg, Boolean userPacket)
+    /// <summary>匹配响应消息到请求队列，把负载所有权安全交付给 await 等待方</summary>
+    /// <remarks>
+    /// 按负载归属分类处理：
+    /// <list type="bullet">
+    /// <item><b>拥有负载</b>（<see cref="IOwnerPacket"/>，接收链路共享切片）：userPacket → 交付事件前预切的独立句柄（<paramref name="claim"/>），容器照常归还原负载引用；!userPacket → 消息整体交付（等待方 Dispose 消息即归还）。</item>
+    /// <item><b>兜底</b>：负载为借阅视图（非拥有输入）或非 Message 实现时，克隆为独立拥有副本（<see cref="PacketHelper.Clone"/>）后交付。</item>
+    /// <item><b>未命中</b>：无人等待（无挂起请求 / 无匹配）时立即归还拥有缓冲（消息容器释放、交付句柄归还），避免缓冲无人释放。</item>
+    /// </list>
+    /// </remarks>
+    /// <param name="queue">匹配队列</param>
+    /// <param name="owner">拥有者</param>
+    /// <param name="msg">响应消息</param>
+    /// <param name="userPacket">是否负载模式</param>
+    /// <param name="claim">事件前预切的独立交付句柄。可为空</param>
+    /// <returns>是否已匹配到挂起请求</returns>
+    private Boolean MatchResponse(IMatchQueue queue, Object? owner, IMessage msg, Boolean userPacket, IPacket? claim)
     {
-        // 网络缓冲区数据必须克隆后才能安全传给等待线程
-        // userPacket: 克隆 Payload 作为结果，msg 仍可归还到池
-        // 非 userPacket: 克隆 Payload 使 msg 脱离共享缓冲区，msg 整体作为结果传给等待线程
-        Object result;
-        if (userPacket)
+        var payload = msg.Payload;
+
+        // 交付：命中等待方则所有权转移给等待方；未命中立即归还，避免池化缓冲无人释放。
+        // received 供 IsMatch 与挂起请求配对；result 为交付给等待方的值
+        Boolean Deliver(Object received, Object result, Object? orphan)
         {
-            result = msg.Payload!.Clone();
-        }
-        else
-        {
-            if (msg.Payload != null) msg.Payload = msg.Payload.Clone();
-            result = msg;
+            var ok = queue.Match(owner, received, result, IsMatch);
+            if (!ok) orphan.TryDispose();
+
+            return ok;
         }
 
-        queue.Match(owner, msg, result, IsMatch);
+        // 拥有负载：交付独立句柄或负载本身，无需二次拷贝
+        if (payload is IOwnerPacket)
+        {
+            if (userPacket)
+            {
+                // 独立句柄交付：订阅者事件内处置原负载不影响等待方；原负载引用仍由容器归还
+                if (claim != null) return Deliver(msg, claim, claim);
+
+                // 兜底：无预切句柄时直接交付负载；容器回池前摘除，避免二次归还
+                msg.Payload = null;
+
+                return Deliver(msg, payload, payload);
+            }
+
+            // 消息整体交付：消息持有拥有负载，等待方 Dispose 消息即归还
+            return Deliver(msg, msg, msg);
+        }
+
+        // 兜底：借阅视图（非拥有输入）无法跨链路交付，克隆为独立拥有副本
+        var copy = payload?.Clone();
+
+        if (!userPacket && msg is Message m2)
+        {
+            m2.Payload = copy;
+
+            return Deliver(msg, msg, msg);
+        }
+        msg.Payload = null;
+
+        return Deliver(msg, copy ?? new ArrayPacket([]), copy);
     }
 
     /// <summary>从上下文中获取原始请求</summary>
@@ -215,7 +283,7 @@ public class MessageCodec<T> : Handler
 
     /// <summary>解码</summary>
     /// <param name="context">处理器上下文</param>
-    /// <param name="pk">数据包</param>
+    /// <param name="pk">本轮接收数据（接收链路为轮拥有句柄，直接调用可为借阅视图）</param>
     /// <returns>解码后的消息列表</returns>
     protected virtual IEnumerable<T>? Decode(IHandlerContext context, IPacket pk) => null;
 
@@ -226,24 +294,47 @@ public class MessageCodec<T> : Handler
     protected virtual Boolean IsMatch(Object? request, Object? response) => true;
 
     #region 粘包处理
-    /// <summary>从数据流中获取整帧数据长度</summary>
-    /// <param name="pk">数据包</param>
-    /// <param name="offset">长度的偏移量</param>
+    /// <summary>从数据流中获取整帧数据长度（链感知：帧头不足时跨节点拼接）</summary>
+    /// <param name="pk">数据包（可为链，帧头可能跨节点）</param>
+    /// <param name="offset">长度的偏移量。负数表示无长度字段，整包即一帧</param>
     /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
-    /// <returns>数据帧长度（包含头部长度位）</returns>
-    public static Int32 GetLength(IPacket pk, Int32 offset, Int32 size) => GetLength(pk.GetSpan(), offset, size);
+    /// <returns>完整帧长度（可能大于现有数据）；返回0表示头部不足无法定界</returns>
+    public static Int32 GetLength(IPacket pk, Int32 offset, Int32 size)
+    {
+        if (offset < 0) return pk.Total;
+
+        var need = offset + (size == 0 ? 5 : Math.Abs(size));
+        var span = pk.GetSpan();
+        if (span.Length >= need || pk.Next == null) return GetLength(span, offset, size);
+
+        // 帧头可能跨节点：拼接所需前缀；超大头部退回数组拷贝
+        if (need > 256)
+        {
+            var data = pk.ReadBytes(0, need);
+            return GetLength(data, offset, size);
+        }
+
+        Span<Byte> buf = stackalloc Byte[need];
+        var n = pk.ReadBytes(buf);
+
+        return GetLength(buf[..n], offset, size);
+    }
 
     /// <summary>从数据流中获取整帧数据长度</summary>
     /// <param name="span">数据包</param>
     /// <param name="offset">长度的偏移量</param>
     /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
-    /// <returns>数据帧长度（包含头部长度位）</returns>
+    /// <returns>完整帧长度（可能大于现有数据，调用方需自行判断数据是否足够）；返回0表示头部不足无法定界</returns>
     public static Int32 GetLength(ReadOnlySpan<Byte> span, Int32 offset, Int32 size)
     {
         if (offset < 0) return span.Length;
 
         // 数据不够，连长度都读取不了
         if (offset >= span.Length) return 0;
+
+        // 长度字段本身不完整，视为数据不足（避免 SpanReader 越界抛出）
+        var lenBytes = size == 0 ? 1 : Math.Abs(size);
+        if (span.Length - offset < lenBytes) return 0;
 
         var reader = new SpanReader(span) { IsLittleEndian = true };
         reader.Advance(offset);
@@ -279,10 +370,8 @@ public class MessageCodec<T> : Handler
                 throw new NotSupportedException();
         }
 
-        // 判断后续数据是否足够
-        if (len > span.Length) return 0;
-
-        // 数据长度加上头部长度
+        // 数据长度加上头部长度，得到完整帧长。可能大于现有数据（段保留依赖此声明长度跨轮累积），
+        // 调用方需自行判断数据是否足够（ParseFrames/DrainPending 均有边界检查）
         len += Math.Abs(size);
 
         return offset + len;

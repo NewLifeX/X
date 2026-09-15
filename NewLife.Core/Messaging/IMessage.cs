@@ -26,6 +26,11 @@ public interface IMessage : IDisposable
     Boolean OneWay { get; set; }
 
     /// <summary>负载数据。消息的实际内容</summary>
+    /// <remarks>
+    /// 负载为数据包（借阅视图或拥有帧/链）。拥有帧的所有权随消息持有：消息 <see cref="IDisposable.Dispose"/>
+    /// 或池化 <c>Reset</c> 时唯一归还（<see cref="IPacket"/> 实现 Dispose 归还池化缓冲）；
+    /// 借阅视图（ArrayPacket 等）无所有权，仅在本轮同步链路内有效。
+    /// </remarks>
     IPacket? Payload { get; set; }
 
     /// <summary>根据请求创建配对的响应消息</summary>
@@ -37,13 +42,14 @@ public interface IMessage : IDisposable
     /// <exception cref="InvalidOperationException">当在响应消息上调用时抛出</exception>
     IMessage CreateReply();
 
-    /// <summary>从数据包中读取消息</summary>
-    /// <param name="pk">原始数据包</param>
+    /// <summary>从数据包读取消息</summary>
+    /// <remarks>本方法不释放入参 <paramref name="pk"/>，由调用方负责释放；负载为共享切片（引用计数）独立持有，拥有帧的所有权随消息（Dispose/Reset 时唯一归还）。</remarks>
+    /// <param name="pk">完整帧数据（含协议头；借阅视图或拥有帧）</param>
     /// <returns>是否成功解析</returns>
     Boolean Read(IPacket pk);
 
-    /// <summary>把消息转为封包</summary>
-    /// <returns>序列化后的数据包</returns>
+    /// <summary>把消息转为封包（发送边界，转为拥有所有权的数据包）</summary>
+    /// <returns>序列化后的数据包，调用方负责 Dispose</returns>
     IPacket? ToPacket();
 }
 
@@ -70,6 +76,10 @@ public class Message : IMessage
     public Boolean OneWay { get; set; }
 
     /// <summary>负载数据。消息的实际内容</summary>
+    /// <remarks>
+    /// 拥有帧（<see cref="OwnerPacket"/> 或其链）的所有权随消息持有，Dispose/Reset 时唯一归还；
+    /// 借阅视图（ArrayPacket）无所有权，仅本轮同步链路内有效。
+    /// </remarks>
     public IPacket? Payload { get; set; }
     #endregion
 
@@ -87,6 +97,7 @@ public class Message : IMessage
     {
         if (disposing)
         {
+            // 负载拥有帧时归还池化缓冲；借阅视图（ArrayPacket）Dispose 无操作
             Payload.TryDispose();
             Payload = null;
         }
@@ -119,12 +130,14 @@ public class Message : IMessage
         throw new InvalidOperationException($"Cannot create an instance of type [{type.FullName}]");
     }
 
-    /// <summary>从数据包中读取消息</summary>
+    /// <summary>从数据包中读取消息（负载 = 整帧数据包；不释放入参）</summary>
+    /// <remarks>拥有帧（<see cref="IOwnerPacket"/>）经共享切片取得独立引用（引用计数），消息 Dispose/Reset 时唯一归还；借阅视图直接引用。调用方负责释放 <paramref name="pk"/>。</remarks>
     /// <param name="pk">原始数据包</param>
     /// <returns>是否成功解析</returns>
     public virtual Boolean Read(IPacket pk)
     {
-        Payload = pk;
+        // 拥有帧：共享切片持有独立引用（各自释放，最后一个归零归还内存池）；借阅视图无所有权，直接引用
+        Payload = pk is IOwnerPacket ? pk.Slice(0, -1) : pk;
 
         return true;
     }
@@ -140,6 +153,8 @@ public class Message : IMessage
         Reply = false;
         Error = false;
         OneWay = false;
+        // 归还拥有负载（安全网）；借阅视图无操作。调用方须先转移已交付的所有权（Payload 置 null）
+        Payload.TryDispose();
         Payload = null;
     }
     #endregion

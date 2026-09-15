@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Text;
 using NewLife;
 using NewLife.Data;
 using NewLife.Messaging;
@@ -14,14 +15,16 @@ public class DefaultMessageTests
         var msg = new DefaultMessage
         {
             Sequence = 1,
-            Payload = (ArrayPacket)"Open".GetBytes(),
+            Payload = "Open".GetBytes().AsPacket(),
         };
         var pk = msg.ToPacket();
         Assert.Equal(1, pk[0]);
         Assert.Equal(1, pk[1]);
         Assert.Equal(4, pk[2]);
         Assert.Equal(0, pk[3]);
-        Assert.Equal("Open", pk.Slice(4).ToStr());
+        var tail1 = pk.Slice(4, -1);
+        Assert.Equal("Open", tail1.ToStr());                    // 只读查看：共享切片需自行释放
+        tail1.TryDispose();
 
         var msgd = new DefaultMessage();
         var rs = msgd.Read(pk);
@@ -30,18 +33,23 @@ public class DefaultMessageTests
         Assert.Equal(msg.Sequence, msgd.Sequence);
         Assert.Equal(msg.Payload.ToStr(), msgd.Payload.ToStr());
 
+        msgd.Dispose();
+        pk.TryDispose();
+
         var msg2 = new DefaultMessage
         {
             Reply = true,
             Sequence = 1,
-            Payload = (ArrayPacket)"执行成功".GetBytes(),
+            Payload = "执行成功".GetBytes().AsPacket(),
         };
         var pk2 = msg2.ToPacket();
         Assert.Equal(0x81, pk2[0]);
         Assert.Equal(1, pk2[1]);
         Assert.Equal(12, pk2[2]);
         Assert.Equal(0, pk2[3]);
-        Assert.Equal("执行成功", pk2.Slice(4).ToStr());
+        var tail2 = pk2.Slice(4, -1);
+        Assert.Equal("执行成功", tail2.ToStr());                 // 只读查看：共享切片需自行释放
+        tail2.TryDispose();
 
         var msgd2 = new DefaultMessage();
         var rs2 = msgd2.Read(pk2);
@@ -49,6 +57,9 @@ public class DefaultMessageTests
         Assert.Equal(msg2.Flag, msgd2.Flag);
         Assert.Equal(msg2.Sequence, msgd2.Sequence);
         Assert.Equal(msg2.Payload.ToStr(), msgd2.Payload.ToStr());
+
+        msgd2.Dispose();
+        pk2.TryDispose();
     }
 
     //[Fact]
