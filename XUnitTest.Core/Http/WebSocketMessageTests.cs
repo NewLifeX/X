@@ -27,6 +27,9 @@ public class WebSocketMessageTests
 
         Assert.Equal(msg.Type, msg2.Type);
         Assert.Equal(msg.Payload.ToHex(), msg2.Payload.ToHex());
+
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -47,6 +50,9 @@ public class WebSocketMessageTests
 
         Assert.Equal(msg.Type, msg2.Type);
         Assert.Equal(msg.Payload.ToHex(), msg2.Payload.ToHex());
+
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -69,6 +75,9 @@ public class WebSocketMessageTests
         Assert.Equal(msg.Type, msg2.Type);
         Assert.Equal(msg.CloseStatus, msg2.CloseStatus);
         Assert.Equal(msg.StatusDescription, msg2.StatusDescription);
+
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -90,12 +99,15 @@ public class WebSocketMessageTests
         var pk = msg.ToPacket();
         Assert.Equal("821101AB0D0048656C6C6F204E65774C696665", pk.ToHex());
 
+        // 发送帧与消息负载共享底层节点：ToPacket 的 ExpandHeader 就地接管会作废源链，先快照发送负载
+        var sent = msg.Payload.ToHex();
+
         var msg2 = new WebSocketMessage();
         var rs = msg2.Read(pk);
         Assert.True(rs);
 
         Assert.Equal(msg.Type, msg2.Type);
-        Assert.Equal(msg.Payload.ToHex(), msg2.Payload.ToHex());
+        Assert.Equal(sent, msg2.Payload.ToHex());
 
         var dm2 = new DefaultMessage();
         rs = dm2.Read(msg2.Payload);
@@ -104,6 +116,10 @@ public class WebSocketMessageTests
         Assert.Equal(dm.Flag, dm2.Flag);
         Assert.Equal(dm.Sequence, dm2.Sequence);
         Assert.Equal(dm.Payload.ToHex(), dm2.Payload.ToHex());
+
+        dm2.Dispose();
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -149,6 +165,10 @@ public class WebSocketMessageTests
         Assert.Equal(dm.Sequence, dm2.Sequence);
         Assert.Equal(dm.Payload.ToHex(), dm2.Payload.ToHex());
         Assert.Equal(str, dm2.Payload.ToStr());
+
+        dm2.Dispose();
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -183,6 +203,9 @@ public class WebSocketMessageTests
         Assert.Equal(originalHex, msg2.Payload.ToHex());
         Assert.NotNull(msg2.MaskKey);
         Assert.Equal(masks, msg2.MaskKey);
+
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -217,6 +240,9 @@ public class WebSocketMessageTests
         Assert.Equal(msg.Type, msg2.Type);
         Assert.Equal(originalPayload, msg2.Payload?.ToArray());
         Assert.Equal(masks, msg2.MaskKey);
+
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -247,6 +273,9 @@ public class WebSocketMessageTests
 
         Assert.Equal(msg.Type, msg2.Type);
         Assert.Equal(originalHex, msg2.Payload.ToHex());
+
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -280,6 +309,9 @@ public class WebSocketMessageTests
         Assert.Equal(msg.Type, msg2.Type);
         Assert.Equal(originalStatus, msg2.CloseStatus);
         Assert.Equal(originalDesc, msg2.StatusDescription);
+
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -312,6 +344,9 @@ public class WebSocketMessageTests
 
         Assert.Equal(msg.Type, msg2.Type);
         Assert.Equal(originalPayload, msg2.Payload?.ToArray());
+
+        msg2.Dispose();
+        pk.TryDispose();
     }
 
     [Fact]
@@ -340,5 +375,204 @@ public class WebSocketMessageTests
         Assert.True(msg.Fin);
         Assert.Equal("Hello", msg.Payload?.ToStr());
         Assert.Equal(masks, msg.MaskKey);
+    }
+
+    [Theory(DisplayName = "Read：链式大帧（>8KB 跨段）掩码/非掩码均可解码")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Read_ChainedLargeFrame(Boolean masked)
+    {
+        var payload = new Byte[20_000];
+        Random.Shared.NextBytes(payload);
+
+        var msg = new WebSocketMessage
+        {
+            Type = WebSocketMessageType.Binary,
+            Payload = new ArrayPacket(payload.ToArray()),
+            MaskKey = masked ? new Byte[] { 0x11, 0x22, 0x33, 0x44 } : null,
+        };
+        var frame = msg.ToPacket().ToArray();
+
+        // 按 8KB 分段构造链式帧（模拟大帧跨接收轮零拷贝组链）
+        IPacket? head = null;
+        OwnerPacket? tail = null;
+        var pos = 0;
+        while (pos < frame.Length)
+        {
+            var count = Math.Min(8192, frame.Length - pos);
+            var seg = new OwnerPacket(count);
+            frame.AsSpan(pos, count).CopyTo(seg.GetSpan());
+            if (head == null) head = seg; else tail!.Next = seg;
+            tail = seg;
+            pos += count;
+        }
+
+        try
+        {
+            var msg2 = new WebSocketMessage();
+            Assert.True(msg2.Read(head!));
+            Assert.Equal(msg.Type, msg2.Type);
+            Assert.Equal(payload, msg2.Payload!.ToArray());
+        }
+        finally
+        {
+            head!.TryDispose();
+        }
+    }
+
+    [Theory(DisplayName = "ToPacket：链式负载（>8KB 跨段）掩码/非掩码发送后原样可读")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ToPacket_ChainedPayload(Boolean masked)
+    {
+        var payload = new Byte[20_000];
+        Random.Shared.NextBytes(payload);
+
+        // 按 8KB 分段构造链式负载（模拟跨段数据直接发送；发送端 XOR 会原地修改各段缓冲）
+        IPacket? head = null;
+        OwnerPacket? tail = null;
+        var pos = 0;
+        while (pos < payload.Length)
+        {
+            var count = Math.Min(8192, payload.Length - pos);
+            var seg = new OwnerPacket(count);
+            payload.AsSpan(pos, count).CopyTo(seg.GetSpan());
+            if (head == null) head = seg; else tail!.Next = seg;
+            tail = seg;
+            pos += count;
+        }
+
+        try
+        {
+            var msg = new WebSocketMessage
+            {
+                Type = WebSocketMessageType.Binary,
+                Payload = head,
+                MaskKey = masked ? new Byte[] { 0x11, 0x22, 0x33, 0x44 } : null,
+            };
+            var frame = msg.ToPacket();
+
+            var msg2 = new WebSocketMessage();
+            Assert.True(msg2.Read(frame));
+            Assert.Equal(msg.Type, msg2.Type);
+            Assert.Equal(payload, msg2.Payload!.ToArray());
+
+            msg2.Dispose();
+            frame.TryDispose();
+        }
+        finally
+        {
+            head!.TryDispose();
+        }
+    }
+
+    [Theory(DisplayName = "ToPacket：65535 字节负载（16位扩展长度上限）帧长自洽且往返一致")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ToPacket_Payload65535(Boolean masked)
+    {
+        var payload = new Byte[65535];
+        Random.Shared.NextBytes(payload);
+
+        var msg = new WebSocketMessage
+        {
+            Type = WebSocketMessageType.Binary,
+            Payload = new ArrayPacket(payload.ToArray()),
+            MaskKey = masked ? new Byte[] { 0x11, 0x22, 0x33, 0x44 } : null,
+        };
+        var frame = msg.ToPacket();
+
+        // 头部 4 字节（FIN+opcode、126、2 字节长度）+ 负载 65535 字节；掩码再加 4 字节
+        Assert.Equal(masked ? 65543 : 65539, frame.Total);
+
+        var msg2 = new WebSocketMessage();
+        Assert.True(msg2.Read(frame));
+        Assert.Equal(msg.Type, msg2.Type);
+        Assert.Equal(payload, msg2.Payload!.ToArray());
+        Assert.Equal(frame.Total, msg2.GetFrameSize());
+
+        msg2.Dispose();
+        frame.TryDispose();
+    }
+
+    [Theory(DisplayName = "ToPacket：Close 帧忽略 Payload，正文只由状态码和描述构造")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ToPacket_CloseIgnoresPayload(Boolean masked)
+    {
+        var msg = new WebSocketMessage
+        {
+            Type = WebSocketMessageType.Close,
+            CloseStatus = 1000,
+            StatusDescription = "Finish",
+            Payload = (ArrayPacket)"Should Be Ignored",
+            MaskKey = masked ? new Byte[] { 0xAA, 0xBB, 0xCC, 0xDD } : null,
+        };
+
+        var frame = msg.ToPacket();
+
+        // 帧长 = 2 字节基础头 +（掩码 4）+ 2 字节状态码 + 6 字节描述；Payload 被忽略
+        Assert.Equal(masked ? 14 : 10, frame.Total);
+        if (!masked) Assert.Equal("880803E846696E697368", frame.ToHex());
+
+        var msg2 = new WebSocketMessage();
+        Assert.True(msg2.Read(frame));
+        Assert.Equal(WebSocketMessageType.Close, msg2.Type);
+        Assert.Equal(1000, msg2.CloseStatus);
+        Assert.Equal("Finish", msg2.StatusDescription);
+
+        msg2.Dispose();
+        frame.TryDispose();
+    }
+
+    [Theory(DisplayName = "ToPacket：空首段链式负载（Length=0，Total>0）不丢数据")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ToPacket_EmptyHeadChain(Boolean masked)
+    {
+        var data = "Hello NewLife".GetBytes();
+        var original = data.ToArray();
+        IPacket body = new ArrayPacket([]) { Next = new ArrayPacket(data) };
+        Assert.Equal(0, body.Length);
+        Assert.Equal(data.Length, body.Total);
+
+        var msg = new WebSocketMessage
+        {
+            Type = WebSocketMessageType.Binary,
+            Payload = body,
+            MaskKey = masked ? new Byte[] { 0x01, 0x02, 0x03, 0x04 } : null,
+        };
+        var frame = msg.ToPacket();
+
+        var msg2 = new WebSocketMessage();
+        Assert.True(msg2.Read(frame));
+        Assert.Equal(original, msg2.Payload!.ToArray());
+
+        msg2.Dispose();
+        frame.TryDispose();
+    }
+
+    [Theory(DisplayName = "ToPacket：0 长度负载往返")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ToPacket_ZeroLengthPayload(Boolean masked)
+    {
+        var msg = new WebSocketMessage
+        {
+            Type = WebSocketMessageType.Text,
+            Payload = (ArrayPacket)String.Empty,
+            MaskKey = masked ? new Byte[] { 0x01, 0x02, 0x03, 0x04 } : null,
+        };
+
+        var frame = msg.ToPacket();
+        Assert.Equal(masked ? 6 : 2, frame.Total);
+
+        var msg2 = new WebSocketMessage();
+        Assert.True(msg2.Read(frame));
+        Assert.Equal(WebSocketMessageType.Text, msg2.Type);
+        Assert.Equal(0, msg2.Payload!.Total);
+
+        msg2.Dispose();
+        frame.TryDispose();
     }
 }

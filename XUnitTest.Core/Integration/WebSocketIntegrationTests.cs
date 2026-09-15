@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using NewLife;
 using NewLife.Data;
@@ -39,8 +40,13 @@ public class WebSocketServerFixture : IDisposable
 /// <summary>WebSocket 回显处理器：文本 echo，二进制原样 echo</summary>
 class WsEchoHandler : WebSocketHandler
 {
+    /// <summary>服务端收到的客户端帧（类型与掩码键），供测试观察协议细节</summary>
+    public static ConcurrentQueue<(WebSocketMessageType Type, Byte[]? MaskKey)> ReceivedFrames { get; } = new();
+
     public override void ProcessMessage(WebSocket socket, WebSocketMessage message)
     {
+        ReceivedFrames.Enqueue((message.Type, message.MaskKey?.ToArray()));
+
         if (message.Type == WebSocketMessageType.Text)
         {
             var text = message.Payload?.ToStr() ?? String.Empty;
@@ -340,5 +346,138 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
 
         Assert.Equal(total, completed);
         Assert.True(tps >= 50_000, $"TPS={tps:N0}，低于50000，耗时={sw.ElapsedMilliseconds}ms");
+    }
+
+    /// <summary>
+    /// 半帧断开健壮性：客户端发送不完整的大帧头部后立即断开（连接重置），
+    /// 服务端 HttpSession/WebSocket 销毁时归还粘包编码器段链缓冲（该路径曾无人释放）；
+    /// 随后新连接仍可正常回显，验证服务端未被半帧污染。
+    /// </summary>
+    [Fact(DisplayName = "07-半帧断开：连接重置后编码器缓冲归还且服务可用")]
+    public async Task Test07_PartialFrame_AbruptClose()
+    {
+        // 构造“声明 10000 字节负载”的 WS 帧头 + 少量负载（客户端方向带掩码）：82 FE 2710 <4字节掩码> + 10字节
+        var partial = new Byte[18];
+        partial[0] = 0x82;          // FIN + Binary
+        partial[1] = 0x80 | 126;    // 带掩码 + 16位扩展长度
+        partial[2] = 0x27;          // 10000 高字节
+        partial[3] = 0x10;          // 10000 低字节
+        // partial[4..8] 掩码（全零即可），partial[8..18] 少量负载
+
+        {
+            var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { MaxAsync = 0 };
+            Assert.True(await ws.OpenAsync());
+
+            ws.Send(new ArrayPacket(partial));
+
+            // 不发送剩余字节，直接断开连接（服务端缓存了半帧）
+            ws.Dispose();
+        }
+
+        // 等待服务端检测连接重置并清理
+        await Task.Delay(500);
+        Assert.True(fixture.Server.Active, "半帧断开后服务器应保持可用");
+
+        // 新连接回显正常
+        var ws2 = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { MaxAsync = 0 };
+        Assert.True(await ws2.OpenAsync());
+
+        var text = $"after-partial-{Guid.NewGuid():N}";
+        await ws2.SendTextAsync(text);
+        var msg = await ws2.ReceiveMessageAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal($"ws-echo:{text}", msg?.Payload?.ToStr());
+        await ws2.CloseAsync("done");
+    }
+
+    /// <summary>
+    /// 60KB 二进制（客户端掩码 + 跨接收轮链式）SHA256 完整性校验：
+    /// 客户端帧按 RFC 6455 自动掩码，服务端在跨段链式帧上逐段 XOR 解码；
+    /// 大帧超过单次接收缓冲，走 Received 事件路径（管道内跨轮组链零拷贝）。
+    /// </summary>
+    [Fact(DisplayName = "08-60KB二进制（掩码+跨段链式）SHA256完整性")]
+    public async Task Test08_LargeBinary_MaskedChained()
+    {
+        var payload = new Byte[60_000];
+        Random.Shared.NextBytes(payload);
+        // ToPacket 会原地 XOR 修改数组（客户端掩码），先保存副本
+        var original = payload.ToArray();
+        var sentHash = SHA256.HashData(original);
+
+        var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws");
+        Assert.True(await ws.OpenAsync());
+
+        var wait = new TaskCompletionSource<Byte[]>();
+        WebSocketMessage? receivedMsg = null;
+        ws.Received += (s, e) =>
+        {
+            if (e.Message is WebSocketMessage m && m.Type == WebSocketMessageType.Binary)
+            {
+                receivedMsg = m;
+                wait.TrySetResult(m.Payload?.ToArray() ?? []);
+            }
+        };
+
+        await ws.SendBinaryAsync(new ArrayPacket(payload));
+
+        var data = await wait.Task.WaitAsync(TimeSpan.FromSeconds(30));
+
+        // 消息容器由接收方持有并负责归还（释放负载切片引用），数据已快照
+        receivedMsg?.Dispose();
+        await ws.CloseAsync("done");
+
+        Assert.Equal(original.Length, data.Length);
+        Assert.Equal(sentHash, SHA256.HashData(data));
+    }
+
+    /// <summary>
+    /// 客户端出站帧每帧使用新的随机掩码键（RFC 6455 §5.3 要求每帧 fresh key），
+    /// 显式设置客户端掩码时优先使用且不被覆盖。
+    /// </summary>
+    [Fact(DisplayName = "09-客户端逐帧随机掩码键+显式掩码优先")]
+    public async Task Test09_PerFrameMaskKey()
+    {
+        var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws")
+        {
+            Log = XTrace.Log,
+        };
+        Assert.True(await ws.OpenAsync());
+
+        var echoCount = 0;
+        var done = new TaskCompletionSource<Boolean>();
+        ws.Received += (s, e) =>
+        {
+            if (e.Message is WebSocketMessage m && m.Type == WebSocketMessageType.Text)
+                if (Interlocked.Increment(ref echoCount) >= 3) done.TrySetResult(true);
+        };
+
+        var start = WsEchoHandler.ReceivedFrames.Count;
+
+        await ws.SendTextAsync("mask-1");
+        await ws.SendTextAsync("mask-2");
+
+        // 显式设置客户端级掩码：后续帧使用该掩码（不被每帧随机策略覆盖）
+        var custom = new Byte[] { 0x12, 0x34, 0x56, 0x78 };
+        ws.MaskKey = custom;
+
+        await ws.SendTextAsync("mask-3");
+        await done.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        var keys = WsEchoHandler.ReceivedFrames.ToArray()
+            .Skip(start)
+            .Where(e => e.Type == WebSocketMessageType.Text)
+            .Take(3)
+            .Select(e => e.MaskKey)
+            .ToArray();
+        Assert.Equal(3, keys.Length);
+        Assert.All(keys, k => Assert.NotNull(k));
+        Assert.All(keys, k => Assert.Equal(4, k!.Length));
+
+        // 前两帧每帧新的随机键（同一 4 字节随机值重复概率约 2^-32）
+        Assert.NotEqual(keys[0], keys[1]);
+
+        // 第三帧使用显式设置的掩码
+        Assert.Equal(custom, keys[2]);
+
+        await ws.CloseAsync(1000, "done");
     }
 }

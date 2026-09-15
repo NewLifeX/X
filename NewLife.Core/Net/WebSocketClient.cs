@@ -24,7 +24,7 @@ public class WebSocketClient : TcpSession
     public IDictionary<String, String?>? RequestHeaders { get; set; }
 
     /// <summary>客户端掩码密钥。RFC 6455 要求客户端发送的所有帧必须带掩码，服务端发送的帧不能带掩码</summary>
-    /// <remarks>在握手成功后自动生成 4 字节随机掩码。所有出站消息自动设置此掩码，无需手动干预。</remarks>
+    /// <remarks>一般无需设置：出站帧默认由 WebSocketCodec 为每帧生成新的随机掩码（RFC 6455 §5.3 要求每帧使用不可预测的新 key）。显式设置后优先使用该值。</remarks>
     public Byte[]? MaskKey { get; set; }
 
     /// <summary>最近收到 Pong 响应的时间。用于心跳超时检测</summary>
@@ -79,9 +79,6 @@ public class WebSocketClient : TcpSession
         //var rs = Handshake(this, Uri);
 
         //Active = false;
-
-        // 生成随机掩码密钥（RFC 6455 §5.1：客户端帧必须掩码）
-        MaskKey = Rand.NextBytes(4);
 
         // 订阅 Received 事件以跟踪 Pong 响应（仅 MaxAsync=1 后台接收模式有效）
         Received += OnReceivedPong;
@@ -154,7 +151,7 @@ public class WebSocketClient : TcpSession
         //var pk = message.ToPacket();
         //Send(pk);
 
-        // RFC 6455 §5.1：客户端帧必须带掩码
+        // RFC 6455 §5.1：客户端帧必须带掩码；显式设置客户端掩码时优先，未设置时由 WebSocketCodec 每帧随机生成
         message.MaskKey ??= MaskKey;
 
         SendMessage(message);
@@ -253,7 +250,7 @@ public class WebSocketClient : TcpSession
             Payload = (ArrayPacket)$"Ping {now.ToFullString()}",
         };
 
-        // RFC 6455 §5.1：客户端帧必须带掩码
+        // RFC 6455 §5.1：客户端帧必须带掩码；显式设置客户端掩码时优先，未设置时由 WebSocketCodec 每帧随机生成
         msg.MaskKey ??= MaskKey;
 
         SendMessage(msg);
