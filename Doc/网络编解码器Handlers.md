@@ -150,8 +150,8 @@ public class MessageCodec<T> : Handler
 ```csharp
 public class SplitDataCodec : Handler
 {
-    /// <summary>分隔符，默认 "\r\n"</summary>
-    public Byte[]? Separator { get; set; }
+    /// <summary>粘包分割字节数据，默认 0x0D 0x0A（\r\n）</summary>
+    public Byte[] SplitData { get; set; }
 }
 ```
 
@@ -203,10 +203,10 @@ pipeline.Add(new SplitDataCodec());
 // 发送
 session.Send("HELLO\r\n");
 
-// 接收（e.Packet 为去掉分隔符的单行数据）
+// 接收（e.Message 为单行数据（含分隔符本身），同步链路内有效；跨轮带出请 Slice；e.Packet 为整轮原始数据）
 server.Received += (sender, e) =>
 {
-    var line = e.Packet?.ToStr()?.Trim();
+    var line = (e.Message as IPacket)?.ToStr()?.Trim();
     // 处理命令行
 };
 ```

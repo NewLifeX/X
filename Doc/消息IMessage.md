@@ -133,7 +133,7 @@ protected virtual void Dispose(Boolean disposing)
   → new OwnerPacket(bufferSize)        // 从 ArrayPool 租用
   → socket.ReceiveAsync(...)           // 填充数据
   → DefaultMessage.Read(ownerPacket)   // 解析协议
-    → Slice(4, len, transferOwner:true) // 切片转移所有权给 Payload
+    → Slice(4, len)                     // 切出共享切片给 Payload（引用计数）
   → 返回 IMessage 给上层
   → 上层使用完毕
   → msg.Dispose()                      // 自动归还池化内存
@@ -157,7 +157,7 @@ IMessage.Dispose()
    - `OwnerPacket`（引用类型，`IDisposable`）：调用 `Dispose()`，归还 `ArrayPool` 缓冲区。
    - `null`：安全跳过。
 
-2. **所有权转移**：`OwnerPacket.Slice(offset, count, transferOwner: true)` 在 `DefaultMessage.Read` 中将缓冲区释放责任从原始包转移给切片出的 `Payload`。原始包失去 `_hasOwner`，不会重复归还。
+2. **引用计数共享**：`DefaultMessage.Read` 用 `Slice(offset, count)` 把负载切为共享切片交给 `Payload`（每段递增计数）。所有句柄各自释放、最后一个归还；原始包不被修改，可继续使用并同样需要释放。
 
 3. **链式递归释放**：`OwnerPacket.Dispose` 会自动释放 `Next` 链节点。即使协议解析产生了多段链式负载（如跨包拼接），一次 `Dispose` 即可全部归还。
 
@@ -166,7 +166,7 @@ IMessage.Dispose()
    - `IOwnerPacket : IPacket, IDisposable`——仅池化实现需要释放。
    - `IMessage : IDisposable`——上层统一释放入口。
 
-5. **与对象池复用配合**：`Message.Reset()` 可将消息状态清零以便复用（但不释放 `Payload`），适用于消息对象池场景。释放与复用职责分离。
+5. **与对象池复用配合**：`Message.Reset()` 可将消息状态清零并归还 `Payload` 引用（交付前须先摘除已转移的负载，如 `Payload=null`），适用于消息对象池场景。
 
 ### 5.4 使用示例
 
@@ -178,7 +178,7 @@ raw.Resize(count);
 
 using var msg = new DefaultMessage();
 msg.Read(raw);
-// raw 的所有权已转移给 msg.Payload
+// Payload 持有共享切片（引用计数），raw 可继续使用、同样需要释放
 
 var response = ProcessRequest(msg);
 // using 块退出后自动归还池化内存
@@ -228,7 +228,7 @@ public IMessage Receive()
 | 接收消息 | 使用 `using var msg = ...` 确保自动释放 |
 | 返回消息给上层 | 文档说明调用方需要 `Dispose` |
 | 消息对象池 | 使用 `Reset()` 重置状态，`Dispose()` 释放 Payload |
-| 多次切片 | 仅最终返回的切片使用 `transferOwner: true` |
+| 多次切片 | 各切片共享引用计数，用毕各自 `Dispose`（最后一个归还池） |
 | 长期持有负载 | 先 `Clone()` 复制数据，避免持有池化内存 |
 
 ---
