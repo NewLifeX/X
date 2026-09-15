@@ -1,6 +1,6 @@
 ﻿# IPacket 数据包帮助手册
 
-本文档基于源码 `NewLife.Core/Data/IPacket.cs`，用于说明 `IPacket` 接口及其实现类型（`ArrayPacket` / `OwnerPacket` / `MemoryPacket` / `ReadOnlyPacket`）的设计、用法与注意事项。
+本文档基于源码 `NewLife.Core/Data/IPacket.cs` 及实现类型文件，用于说明 `IPacket` 接口及其实现类型（`ArrayPacket` / `OwnerPacket` / `MemoryPacket` / `ReadOnlyPacket`）的设计、用法与注意事项。
 
 > 关键词：零/少拷贝切片、链式包（`Next`）、引用计数所有权（Owner）、Span/Memory 短生命周期。
 
@@ -89,7 +89,7 @@
 
 ## 4. 实现类型详解
 
-本节覆盖 `IPacket.cs` 中出现的全部实现。
+本节覆盖数据包全部实现类型。
 
 ### 4.1 `ArrayPacket`（`record struct`）
 
@@ -402,7 +402,7 @@ await pk.CopyToAsync(stream, cancellationToken);
 ## 9. 兼容性说明
 
 - 本组件多目标框架（从 `net45` 到更高版本）。
-- 文档中的 API 以 `IPacket.cs` 当前实现为准；对特定目标框架的差异由条件编译控制（如 `MemoryStream.TryGetBuffer` 在 `NET45` 下不可用）。
+- 文档中的 API 以 `IPacket.cs` 及实现类型文件的当前实现为准；对特定目标框架的差异由条件编译控制（如 `MemoryStream.TryGetBuffer` 在 `NET45` 下不可用）。
 
 ---
 
