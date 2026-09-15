@@ -144,7 +144,11 @@ public static class SpanSerializer
         {
             var count = writer.WrittenCount;
             Pool.MemoryStream.Return(ms);
-            return (pk.Slice(reserve, count) as IOwnerPacket)!;
+
+            // 共享切片：返回窗口获得独立引用，序列化缓冲句柄随即释放（各自释放，最后一个归还）
+            var rs = (pk.Slice(reserve, count) as IOwnerPacket)!;
+            pk.Dispose();
+            return rs;
         }
 
         // 大数据：Flush 剩余到流后包装
@@ -181,7 +185,11 @@ public static class SpanSerializer
         {
             var count = writer.WrittenCount;
             Pool.MemoryStream.Return(ms);
-            return (pk.Slice(reserve, count) as IOwnerPacket)!;
+
+            // 共享切片：返回窗口获得独立引用，序列化缓冲句柄随即释放（各自释放，最后一个归还）
+            var rs = (pk.Slice(reserve, count) as IOwnerPacket)!;
+            pk.Dispose();
+            return rs;
         }
 
         // 大数据：Flush 剩余到流后包装

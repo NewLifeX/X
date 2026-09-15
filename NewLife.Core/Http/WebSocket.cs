@@ -12,7 +12,7 @@ namespace NewLife.Http;
 public delegate void WebSocketDelegate(WebSocket socket, WebSocketMessage message);
 
 /// <summary>WebSocket会话管理</summary>
-public class WebSocket
+public class WebSocket : IDisposable
 {
     #region 属性
     /// <summary>是否还在连接</summary>
@@ -86,7 +86,7 @@ public class WebSocket
     /// <param name="pk">已到达的原始数据包，可能包含零个或多个完整 WebSocket 帧</param>
     public void Process(IPacket pk)
     {
-        _packetCodec ??= new PacketCodec { GetLength2 = WebSocketMessage.GetFrameTotalLength };
+        _packetCodec ??= new PacketCodec { GetLength = WebSocketMessage.GetFrameTotalLength };
         var frames = _packetCodec.Parse(pk);
         foreach (var frame in frames)
         {
@@ -191,7 +191,9 @@ public class WebSocket
         var msg = new WebSocketMessage { Type = type, Payload = data };
         var data2 = msg.ToPacket();
         session.Host.SendAllAsync(data2, predicate).ConfigureAwait(false).GetAwaiter().GetResult();
-        data.TryDispose();
+
+        // 发送完成后归还封包（SendAllAsync 同步完成；封包持有负载引用，释放封包即归还整链）
+        data2.TryDispose();
     }
 
     /// <summary>想所有连接发送文本消息</summary>
@@ -211,6 +213,15 @@ public class WebSocket
             StatusDescription = statusDescription
         };
         Send(msg);
+    }
+    #endregion
+
+    #region 销毁
+    /// <summary>销毁。归还粘包编码器的段链缓冲（连接结束时调用）</summary>
+    public void Dispose()
+    {
+        _packetCodec?.Dispose();
+        _packetCodec = null;
     }
     #endregion
 }

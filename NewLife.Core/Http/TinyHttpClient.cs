@@ -165,11 +165,12 @@ public class TinyHttpClient : DisposeBase
         while (retry-- > 0)
         {
             // 发出请求
-            var rs2 = await SendDataAsync(uri, req).ConfigureAwait(false);
+            using var rs2 = await SendDataAsync(uri, req).ConfigureAwait(false);
             if (rs2 == null || rs2.Length == 0) return null;
 
-            // 解析响应
-            if (!res.Parse(rs2)) return res;
+            // 解析响应。入参句柄由本层释放（主体等切片已取得独立引用）
+            var parsed = res.Parse(rs2);
+            if (!parsed) return res;
             rs = res.Body;
 
             // 跳转
@@ -187,6 +188,12 @@ public class TinyHttpClient : DisposeBase
 
                     req?.Dispose();
                     req = request.Build();
+
+                    // 跳转重试：上一响应作废，释放其主体句柄（共享切片独立持有引用，不释放会吊住接收缓冲）
+                    // 同时清空 Body，避免下一轮解析失败时把已释放句柄返回给调用方
+                    rs.TryDispose();
+                    rs = null;
+                    res.Body = null;
 
                     continue;
                 }
@@ -211,11 +218,14 @@ public class TinyHttpClient : DisposeBase
             while (total < res.ContentLength)
             {
                 var pk = await SendDataAsync(null, null).ConfigureAwait(false);
-                if (pk == null || pk.Length == 0) break;
+                if (pk == null) break;
 
                 pk.CopyTo(ms);
+                var len = pk.Length;
+                pk.TryDispose();
 
-                total += pk.Length;
+                total += len;
+                if (len == 0) break;
             }
 
             // 从内存流获取缓冲区，打包为数据包返回，避免再次内存分配
@@ -234,6 +244,7 @@ public class TinyHttpClient : DisposeBase
             }
 
             res.Body = await ReadChunkAsync(rs).ConfigureAwait(false);
+            rs.TryDispose();    // 入参句柄由调用方释放（分片方法只借阅，不释放入参）
         }
 
         // 断开连接
@@ -243,14 +254,16 @@ public class TinyHttpClient : DisposeBase
     }
 
     /// <summary>读取分片，返回链式Packet</summary>
-    /// <param name="body"></param>
+    /// <remarks>只借阅入参，不释放 <paramref name="body"/>；入参句柄由调用方负责释放。</remarks>
+    /// <param name="body">待解析的数据包（调用方负责释放）</param>
     /// <returns></returns>
     protected virtual async Task<IPacket> ReadChunkAsync(IPacket body)
     {
         // 使用内存流拼接需要多次接收的数据包，降低逻辑复杂度
         var ms = new MemoryStream(BufferSize);
 
-        var pk = body;
+        // 本方法自有的工作窗口：后续释放的始终是自有句柄，不触碰调用方入参
+        var pk = body.Slice(0, -1);
         while (true)
         {
             // 分析一个片段，如果该片段数据不足，则需要多次读取
@@ -271,7 +284,12 @@ public class TinyHttpClient : DisposeBase
                 // 更新pk，可能还有粘包数据。每一帧数据后面有\r\n
                 var next = offset + len + 2;
                 if (next < pk.Length)
-                    pk = pk.Slice(next, -1, true);
+                {
+                    // 共享切出新窗口后释放旧句柄自身的引用（各自释放，最后一个归还）
+                    var np = pk.Slice(next, -1);
+                    pk.TryDispose();
+                    pk = np;
+                }
                 else
                 {
                     pk.TryDispose();
@@ -301,7 +319,11 @@ public class TinyHttpClient : DisposeBase
 
                         // 如果还有剩余，作为下一个chunk
                         if (remain + 2 < memory.Length)
-                            pk = pk2.Slice(remain + 2, -1, true);
+                        {
+                            var np = pk2.Slice(remain + 2, -1);
+                            pk2.TryDispose();
+                            pk = np;
+                        }
                         else
                             pk2?.Dispose();
 
@@ -324,6 +346,9 @@ public class TinyHttpClient : DisposeBase
             pk = await SendDataAsync(null, null).ConfigureAwait(false);
             if (pk == null || pk.Length == 0) break;
         }
+
+        // 归还工作窗口自身引用（可能为剩余粘包窗口或刚读取的空包）
+        pk?.TryDispose();
 
         ms.Position = 0;
         return new ArrayPacket(ms);

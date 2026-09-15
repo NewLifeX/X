@@ -15,7 +15,7 @@ namespace NewLife.Http;
 /// 2. WebSocket 握手和消息处理；
 /// 3. 链路追踪和日志记录。
 /// </remarks>
-public class HttpSession : INetHandler
+public class HttpSession : INetHandler, IDisposable
 {
     #region 属性
     /// <summary>当前请求</summary>
@@ -375,6 +375,18 @@ public class HttpSession : INetHandler
             var js = body.ToStr().DecodeJson();
             if (js != null) ps.Merge(js);
         }
+    }
+    #endregion
+
+    #region 销毁
+    /// <summary>销毁。释放请求体缓存与 WebSocket 粘包编码器（归还段链池缓冲）</summary>
+    public void Dispose()
+    {
+        _cache?.Dispose();
+        _cache = null;
+
+        _websocket?.Dispose();
+        _websocket = null;
     }
     #endregion
 }

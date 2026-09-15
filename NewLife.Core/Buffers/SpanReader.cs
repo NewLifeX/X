@@ -402,9 +402,10 @@ public ref struct SpanReader
 
     /// <summary>读取数据包。有底层 <see cref="IPacket"/> 时直接切片（零拷贝）；否则申请 <see cref="OwnerPacket"/> 并拷贝数据。</summary>
     /// <remarks>
-    /// 当 SpanReader 由 <see cref="IPacket"/> 或 <see cref="Stream"/> 构造时，直接在底层数据包上切片，不复制；
-    /// 若底层实现为 <see cref="OwnerPacket"/>，这里调用的是默认 <c>Slice(offset, count)</c>，会把该切片的释放责任转移给返回值，原始包后续 Dispose 仅为无所有权释放；
-    /// 当由 <see cref="ReadOnlySpan{T}"/>/<see cref="Span{T}"/>/字节数组构造时，降级为申请新内存并拷贝。
+    /// <para>底层为 <see cref="OwnerPacket"/> 时，返回共享切片（对窗口内各段递增引用计数），可独立使用与释放；
+    /// 连续多次读取互不影响，流式补齐替换内部缓冲时旧缓冲由共享引用保活。</para>
+    /// <para>底层为其它数据包（如 <see cref="ArrayPacket"/>）时，返回不持有引用的借阅视图，生命周期与底层数据包一致。</para>
+    /// <para>由 <see cref="ReadOnlySpan{T}"/>/<see cref="Span{T}"/>/字节数组构造时，降级为申请新内存并拷贝，返回可独立释放的拥有包。</para>
     /// </remarks>
     /// <param name="length">要读取的字节数</param>
     /// <returns>数据包切片</returns>
@@ -418,7 +419,7 @@ public ref struct SpanReader
 
         if (_data != null)
         {
-            // 默认调用 Slice(offset, count)。若底层是 OwnerPacket，则切片接管该段缓冲区所有权。
+            // 拥有包 → 共享切片（引用计数），可独立释放且连续读取互不影响；其它实现 → 借阅视图
             var result = _data.Slice(_index, length);
             _index += length;
             return result;

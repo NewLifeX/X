@@ -55,8 +55,9 @@ public class HttpRequest : HttpBase
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>快速分析请求头，只分析第一行</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
+    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。</remarks>
+    /// <param name="pk">数据包</param>
+    /// <returns>是否解析成功</returns>
     public Boolean FastParse(IPacket pk)
     {
         var data = pk.GetSpan();
@@ -67,7 +68,8 @@ public class HttpRequest : HttpBase
 
         var line = data.Slice(0, p).ToStr();
 
-        Body = pk.Slice(p + 2, -1, true);
+        // 主体：共享切片独立持有引用；入参句柄由调用方释放
+        Body = pk.Slice(p + 2, -1);
 
         // 分析第一行
         if (!OnParse(line)) return false;
@@ -184,7 +186,8 @@ public class HttpRequest : HttpBase
                     file.ContentType = str;
 
                 var fileData = part[(pHeader + NewLine2.Length)..];
-                file.Data = body.Slice(idx + s + pHeader + NewLine2.Length, fileData.Length, false);
+                // 文件数据为源包的共享切片（引用计数）：随表单对象存活，应由使用方显式释放；开发期（DEBUG）未释放时由析构兜底归还池化缓冲
+                file.Data = body.Slice(idx + s + pHeader + NewLine2.Length, fileData.Length);
 
                 if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? fileData.ToStr() : file;
             }

@@ -55,9 +55,10 @@ public abstract class HttpBase : IDisposable
 
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
-    /// <summary>分析请求头。截取Body时获取缓冲区所有权</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
+    /// <summary>分析请求头。主体以共享切片截取，不释放入参</summary>
+    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。</remarks>
+    /// <param name="pk">数据包</param>
+    /// <returns>是否解析成功</returns>
     public Boolean Parse(IPacket pk)
     {
         var data = pk.GetSpan();
@@ -94,8 +95,8 @@ public abstract class HttpBase : IDisposable
             header = header[(p2 + 2)..];
         }
 
-        // 截取主体，获取所有权（跳过 CRLFCRLF 共4字节）
-        Body = pk.Slice(p + 4, -1, true);
+        // 截取主体（跳过 CRLFCRLF 共4字节）：共享切片独立持有引用；入参句柄由调用方释放
+        Body = pk.Slice(p + 4, -1);
 
         ContentLength = Headers["Content-Length"].ToInt(-1);
         ContentType = Headers["Content-Type"];
