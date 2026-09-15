@@ -1,4 +1,6 @@
-﻿using NewLife.Data;
+﻿using System.Runtime.CompilerServices;
+using NewLife;
+using NewLife.Data;
 using NewLife.Reflection;
 using Xunit;
 
@@ -20,7 +22,7 @@ public class OwnerPacketTests
         Assert.Equal(100, packet.Length);
         Assert.Equal(100, packet.Total);
         Assert.Null(packet.Next);
-        Assert.True((Boolean)packet.GetValue("_hasOwner"));
+        Assert.NotNull(packet.GetValue("_owner"));
     }
 
     [Fact(DisplayName = "构造函数：零长度包")]
@@ -45,11 +47,11 @@ public class OwnerPacketTests
             Assert.Equal(10, packet.Offset);
             Assert.Equal(50, packet.Length);
             Assert.Equal(50, packet.Total);
-            Assert.False((Boolean)packet.GetValue("_hasOwner"));
+            Assert.Null(packet.GetValue("_owner"));
         }
         finally
         {
-            packet.Free(); // 不会尝试返回到 ArrayPool
+            packet.Dispose(); // 借用视图 Dispose 无操作，不会尝试返回到 ArrayPool
         }
     }
 
@@ -68,22 +70,23 @@ public class OwnerPacketTests
 
             try
             {
-                Assert.Same(originalPacket.Buffer, expandedPacket.Buffer);
-                Assert.Equal(originalPacket.Offset - expandSize, expandedPacket.Offset);
-                Assert.Equal(originalPacket.Length + expandSize, expandedPacket.Length);
+                Assert.Same(buffer, expandedPacket.Buffer);
+                Assert.Equal(30 - expandSize, expandedPacket.Offset);
+                Assert.Equal(50 + expandSize, expandedPacket.Length);
 
-                // 验证所有权转移
-                Assert.False((Boolean)originalPacket.GetValue("_hasOwner"));
-                Assert.False((Boolean)expandedPacket.GetValue("_hasOwner"));
+                // 验证所有权移动：源实例整体作废
+                Assert.Null(originalPacket.GetValue("_owner"));
+                Assert.Null(originalPacket.GetValue("_buffer"));
+                Assert.Null(expandedPacket.GetValue("_owner"));
             }
             finally
             {
-                expandedPacket.Free();
+                expandedPacket.Dispose();
             }
         }
         finally
         {
-            originalPacket.Free();
+            originalPacket.Dispose();
         }
     }
 
@@ -304,43 +307,273 @@ public class OwnerPacketTests
     [Fact(DisplayName = "Slice：基本切片操作")]
     public void Slice_BasicOperation_ShouldCreateNewPacket()
     {
-        var packet = new OwnerPacket(100);
+        using var packet = new OwnerPacket(100);
         packet.GetSpan().Fill(0x42);
+        var buffer = packet.Buffer;
 
         using var sliced = packet.Slice(20, 30) as OwnerPacket;
 
         Assert.NotNull(sliced);
-        Assert.Same(packet.Buffer, sliced.Buffer);
+        Assert.Same(buffer, sliced.Buffer);
         Assert.Equal(20, sliced.Offset);
         Assert.Equal(30, sliced.Length);
 
-        // 验证所有权转移
-        Assert.False((Boolean)packet.GetValue("_hasOwner"));
-        Assert.True((Boolean)sliced!.GetValue("_hasOwner"));
+        // 共享语义：源实例保持可用，双方共享同一引用计数对象
+        Assert.NotNull(packet.GetValue("_owner"));
+        Assert.NotNull(packet.GetValue("_buffer"));
+        Assert.Same(packet.GetValue("_owner"), sliced!.GetValue("_owner"));
+        Assert.Equal(2, packet.RefCount);
+        Assert.Equal(0x42, sliced[0]);
     }
 
-    [Fact(DisplayName = "Slice：不转移所有权")]
-    public void Slice_WithoutOwnershipTransfer_ShouldRetainOwnership()
+    [Fact(DisplayName = "RefCount：追踪共享句柄数量")]
+    public void RefCount_ShouldTrackSharedHandles()
     {
-        using var packet = new OwnerPacket(100);
+        var packet = new OwnerPacket(100);
+        Assert.Equal(1, packet.RefCount);
 
-        var sliced = packet.Slice(20, 30, transferOwner: false) as OwnerPacket;
+        var first = packet.Slice(0, 50) as OwnerPacket;
+        var second = packet.Slice(50, 50) as OwnerPacket;
 
-        Assert.NotNull(sliced);
-        Assert.True((Boolean)packet.GetValue("_hasOwner"));
-        Assert.False((Boolean)sliced!.GetValue("_hasOwner"));
+        Assert.NotNull(first);
+        Assert.NotNull(second);
+        Assert.Equal(3, packet.RefCount);
+        Assert.Equal(3, first!.RefCount);
+
+        first.Dispose();
+        Assert.Equal(2, packet.RefCount);
+
+        second!.Dispose();
+        Assert.Equal(1, packet.RefCount);
+
+        packet.Dispose();
+        Assert.Equal(0, packet.RefCount);
     }
 
     [Fact(DisplayName = "Slice：切片到末尾")]
     public void Slice_ToEnd_ShouldSliceToEndOfPacket()
     {
-        var packet = new OwnerPacket(100);
+        using var packet = new OwnerPacket(100);
 
         using var sliced = packet.Slice(30, -1) as OwnerPacket;
 
         Assert.NotNull(sliced);
         Assert.Equal(30, sliced.Offset);
         Assert.Equal(70, sliced.Length);
+        Assert.Equal(2, packet.RefCount);
+    }
+
+    /// <summary>链式共享切片只递增窗口覆盖段的引用计数，窗口外的段保持不变</summary>
+    /// <remarks>
+    /// 场景：first(2字节) + second(8字节) 组成链，从偏移 4 开始切片——起点落在 second 段内。
+    /// 期望：second 引用计数 +1（共享），first 保持不变；各句柄各自释放，最后一个归零归还池。
+    /// </remarks>
+    [Fact(DisplayName = "Slice：链式共享切片只递增窗口覆盖段的引用计数")]
+    public void Slice_ChainShare_ShouldOnlyAddRefCoveredSegments()
+    {
+        var first = new OwnerPacket(2);
+        var second = new OwnerPacket(8);
+        first.Next = second;
+
+        var firstOwner = first.GetValue("_owner");
+        var secondOwner = second.GetValue("_owner");
+
+        var slice = first.Slice(4, -1) as OwnerPacket;
+
+        Assert.NotNull(slice);
+        Assert.Equal(6, slice!.Total);
+
+        // 窗口外的 first：引用计数不变；second 在窗口内：引用计数 +1
+        Assert.Equal(1, (Int32)firstOwner!.GetValue("_refCount")!);
+        Assert.Equal(2, (Int32)secondOwner!.GetValue("_refCount")!);
+        Assert.Same(secondOwner, slice.GetValue("_owner"));
+
+        // 切片独立释放：second 回到 1
+        slice.Dispose();
+        Assert.Equal(1, (Int32)secondOwner.GetValue("_refCount")!);
+
+        // 源链释放：链式递归归零
+        first.Dispose();
+        Assert.Equal(0, (Int32)firstOwner.GetValue("_refCount")!);
+        Assert.Equal(0, (Int32)secondOwner.GetValue("_refCount")!);
+    }
+
+    /// <summary>链式共享切片：窗口未覆盖的尾部段引用计数不变，由源链继续持有</summary>
+    /// <remarks>窗口只覆盖 first 段时，second 整段在窗口之外，不参与引用计数变化。</remarks>
+    [Fact(DisplayName = "Slice：链式共享切片不触碰窗口外的尾部段")]
+    public void Slice_ChainShare_ShouldNotTouchTailSegment()
+    {
+        var first = new OwnerPacket(2);
+        var second = new OwnerPacket(8);
+        first.Next = second;
+
+        var firstOwner = first.GetValue("_owner");
+        var secondOwner = second.GetValue("_owner");
+
+        var slice = first.Slice(0, 2) as OwnerPacket;
+
+        Assert.NotNull(slice);
+        Assert.Equal(2, slice!.Total);
+        Assert.Equal(2, (Int32)firstOwner!.GetValue("_refCount")!);
+        Assert.Equal(1, (Int32)secondOwner!.GetValue("_refCount")!);
+
+        slice.Dispose();
+        first.Dispose();
+        Assert.Equal(0, (Int32)firstOwner.GetValue("_refCount")!);
+        Assert.Equal(0, (Int32)secondOwner.GetValue("_refCount")!);
+    }
+
+    /// <summary>共享切片不改变源实例：长度、链、数据访问全部保持可用</summary>
+    [Fact(DisplayName = "Slice：共享切片不改变源实例")]
+    public void Slice_ShouldNotVoidSource()
+    {
+        var single = new OwnerPacket(100);
+        var slice = single.Slice(10, 20) as OwnerPacket;
+
+        Assert.NotNull(slice);
+        Assert.Equal(100, single.Length);
+        Assert.Equal(100, single.Total);
+        Assert.NotNull(single.GetValue("_buffer"));
+        Assert.NotNull(single.GetValue("_owner"));
+        Assert.Equal(20, slice!.Length);
+
+        slice.Dispose();
+        single.Dispose();
+    }
+
+    /// <summary>共享句柄与原实例同时持有引用，各自释放，最后一个释放才归还</summary>
+    [Fact(DisplayName = "Slice：共享句柄双方独立使用与释放")]
+    public void Slice_TwoHandles_ShouldBeIndependent()
+    {
+        var packet = new OwnerPacket(100);
+        packet.GetSpan().Fill(0x42);
+
+        var shared = packet.Slice(0);
+        var owner = packet.GetValue("_owner");
+
+        // 双方引用计数为 2，均可读取
+        Assert.Equal(2, (Int32)owner!.GetValue("_refCount")!);
+        Assert.Equal(0x42, shared[10]);
+        Assert.Equal(0x42, packet[10]);
+
+        // 先释放共享句柄：源仍可使用
+        shared.TryDispose();
+        Assert.Equal(1, (Int32)owner.GetValue("_refCount")!);
+        Assert.Equal(0x42, packet[10]);
+
+        // 再释放源：归零归还
+        packet.Dispose();
+        Assert.Equal(0, (Int32)owner.GetValue("_refCount")!);
+    }
+
+    /// <summary>共享窗口可跨链段，按段递增引用计数</summary>
+    [Fact(DisplayName = "Slice：窗口共享跨链段递增引用计数")]
+    public void Slice_Window_ShouldCoverChainedNodes()
+    {
+        var first = new OwnerPacket(4);
+        var second = new OwnerPacket(8);
+        first.Next = second;
+        first.GetSpan().Fill(0x11);
+        second.GetSpan().Fill(0x22);
+
+        var shared = first.Slice(2, 8);
+
+        Assert.Equal(8, shared.Total);
+        Assert.Equal(0x11, shared[0]);
+        Assert.Equal(0x22, shared[2]);
+        Assert.Equal(0x22, shared[7]);
+
+        var firstOwner = first.GetValue("_owner");
+        var secondOwner = second.GetValue("_owner");
+        Assert.Equal(2, (Int32)firstOwner!.GetValue("_refCount")!);
+        Assert.Equal(2, (Int32)secondOwner!.GetValue("_refCount")!);
+
+        // 共享句柄独立释放：源链引用保持不变
+        shared.TryDispose();
+        Assert.Equal(1, (Int32)firstOwner.GetValue("_refCount")!);
+        Assert.Equal(1, (Int32)secondOwner.GetValue("_refCount")!);
+
+        // 源链释放：链式递归归零
+        first.Dispose();
+        Assert.Equal(0, (Int32)firstOwner.GetValue("_refCount")!);
+        Assert.Equal(0, (Int32)secondOwner.GetValue("_refCount")!);
+    }
+
+    /// <summary>原地前移窗口：不分配、不调整引用计数</summary>
+    [Fact(DisplayName = "Skip：原地前移窗口")]
+    public void Skip_ShouldAdvanceWindowInPlace()
+    {
+        var packet = new OwnerPacket(100);
+        packet.GetSpan().Fill(0x42);
+        var offset = packet.Offset;
+
+        var rs = packet.Skip(10);
+
+        Assert.Same(packet, rs);
+        Assert.Equal(offset + 10, packet.Offset);
+        Assert.Equal(90, packet.Length);
+        Assert.Equal(90, packet.Total);
+        Assert.Equal(0x42, packet[0]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => packet.Skip(91));
+    }
+
+    /// <summary>兼容三参切片：直接转发到两参重载，true 与 false 行为一致（引用计数共享）</summary>
+    [Fact(DisplayName = "Slice：三参兼容转发到两参")]
+    public void SliceCompat_TransferOwner_ShouldForwardToShare()
+    {
+#pragma warning disable CS0618 // 三参重载为兼容旧版二进制保留，此处验证其转发行为
+        var packet = new OwnerPacket(100);
+        packet.GetSpan().Fill(0x42);
+
+        // 捕获引用计数对象用于观测
+        var owner = packet.GetValue("_owner");
+
+        // 经接口调用三参重载（旧版编译的库走的就是接口调用），行为与两参一致
+        var shared = ((IPacket)packet).Slice(8, 16, true);
+
+        Assert.Equal(16, shared.Length);
+        Assert.Equal(0x42, shared[0]);
+        Assert.Equal(0x42, shared[15]);
+        Assert.Equal(0x42, packet[10]);
+
+        // 共享模型：双方各自持有引用
+        Assert.Equal(2, (Int32)owner!.GetValue("_refCount")!);
+
+        // 双方独立释放，最后一个释放时归零归还
+        shared.TryDispose();
+        Assert.Equal(1, (Int32)owner.GetValue("_refCount")!);
+        Assert.Equal(0x42, packet[10]);
+        packet.TryDispose();
+        Assert.Equal(0, (Int32)owner.GetValue("_refCount")!);
+#pragma warning restore CS0618
+    }
+
+    /// <summary>兼容三参切片：转发到两参（共享），调用方遗漏释放也不悬空</summary>
+    [Fact(DisplayName = "Slice：三参兼容借用按共享处理")]
+    public void SliceCompat_Share_ShouldKeepBothHandles()
+    {
+#pragma warning disable CS0618 // 三参重载为兼容旧版二进制保留
+        var packet = new OwnerPacket(100);
+        packet.GetSpan().Fill(0x42);
+
+        // 旧版“借用视图”用法：调用方（如 HttpMessage）不会释放返回的切片
+        var header = ((IPacket)packet).Slice(0, 10, false);
+        var payload = ((IPacket)packet).Slice(10, -1, false);
+
+        var owner = packet.GetValue("_owner");
+        Assert.Equal(3, (Int32)owner!.GetValue("_refCount")!);
+        Assert.Equal(0x42, header[0]);
+        Assert.Equal(0x42, payload[0]);
+
+        // 即使调用方遗漏释放，原句柄释放后数据仍由切片引用撐住
+        packet.TryDispose();
+        Assert.Equal(2, (Int32)owner.GetValue("_refCount")!);
+        Assert.Equal(0x42, payload[5]);
+
+        header.TryDispose();
+        payload.TryDispose();
+        Assert.Equal(0, (Int32)owner.GetValue("_refCount")!);
+#pragma warning restore CS0618
     }
 
     #endregion
@@ -392,12 +625,15 @@ public class OwnerPacketTests
         using var packet = new OwnerPacket(1000);
         packet.GetSpan().Fill(0x42);
 
-        var slice1 = packet.Slice(100, 200, transferOwner: false);
-        var slice2 = slice1.Slice(50, 100, transferOwner: false);
+        var slice1 = packet.Slice(100, 200);
+        var slice2 = slice1.Slice(50, 100);
 
         // 验证数据一致性（间接验证零拷贝）
         Assert.Equal(0x42, slice2[0]);
         Assert.Equal(0x42, slice2[99]);
+
+        slice2.TryDispose();
+        slice1.TryDispose();
     }
 
     #endregion
@@ -434,26 +670,15 @@ public class OwnerPacketTests
 
     #region 内存管理测试
 
-    [Fact(DisplayName = "Free：应放弃所有权")]
-    public void Free_ShouldAbandonOwnership()
-    {
-        var packet = new OwnerPacket(100);
-
-        packet.Free();
-
-        Assert.False((Boolean)packet.GetValue("_hasOwner"));
-        Assert.Null(packet.Next);
-    }
-
     [Fact(DisplayName = "Dispose：应归还缓冲区")]
     public void Dispose_ShouldReturnBufferToPool()
     {
         var packet = new OwnerPacket(100);
-        Assert.True((Boolean)packet.GetValue("_hasOwner"));
+        Assert.NotNull(packet.GetValue("_owner"));
 
         packet.Dispose();
 
-        Assert.False((Boolean)packet.GetValue("_hasOwner"));
+        Assert.Null(packet.GetValue("_owner"));
         Assert.Null(packet.GetValue("_buffer"));
         Assert.Null(packet.Next);
     }
@@ -468,7 +693,7 @@ public class OwnerPacketTests
         packet.Dispose();
         packet.Dispose();
 
-        Assert.False((Boolean)packet.GetValue("_hasOwner"));
+        Assert.Null(packet.GetValue("_owner"));
     }
 
     [Fact(DisplayName = "Dispose：无所有权时不归还缓冲区")]
@@ -480,7 +705,7 @@ public class OwnerPacketTests
         // 无所有权的 Dispose 不应报错
         packet.Dispose();
 
-        Assert.False((Boolean)packet.GetValue("_hasOwner"));
+        Assert.Null(packet.GetValue("_owner"));
     }
 
     [Fact(DisplayName = "Dispose：应释放链式后续节点")]
@@ -493,7 +718,27 @@ public class OwnerPacketTests
         packet1.Dispose();
 
         Assert.Null(packet1.Next);
-        Assert.False((Boolean)packet2.GetValue("_hasOwner"));
+        Assert.Null(packet2.GetValue("_owner"));
+    }
+
+    [Fact(DisplayName = "Dispose：借用视图头节点释放链上拥有尾链")]
+    public void Dispose_BorrowHeadReleasesOwnedTail()
+    {
+        var buffer = new Byte[] { 1, 2, 3, 4 };
+        var owned = new OwnerPacket(8);
+        var head = new OwnerPacket(buffer, 0, buffer.Length, false) { Next = owned };
+
+        // 从借用头（不持引用）切出共享切片：头节点为借用、尾节点递增引用计数
+        var slice = head.Slice(0, -1);
+        Assert.Equal(2, owned.RefCount);
+
+        // 借用视图头 Dispose 也必须释放链上拥有节点，否则引用计数永不归零
+        slice.TryDispose();
+        Assert.Equal(1, owned.RefCount);
+
+        owned.Dispose();
+        Assert.Equal(0, owned.RefCount);
+        head.TryDispose();
     }
 
     [Fact(DisplayName = "释放后访问：GetSpan 应抛异常")]
@@ -535,10 +780,10 @@ public class OwnerPacketTests
             packets.Add(packet);
         }
 
-        // 释放前几个（使用 using 语句会自动释放）
+        // 释放前几个，归还内存池
         foreach (var p in packets.Take(5))
         {
-            p.Free(); // 使用 Free 而不是 Dispose
+            p.Dispose();
         }
 
         // 创建新的包，应该能复用缓冲区
@@ -547,11 +792,127 @@ public class OwnerPacketTests
         Assert.NotNull(newPacket.Buffer);
         Assert.True(newPacket.Buffer.Length >= 1024);
 
-        // 清理剩余的包（使用 using 语句会自动释放）
+        // 清理剩余的包
         foreach (var p in packets.Skip(5))
         {
-            p.Free(); // 使用 Free 而不是 Dispose
+            p.Dispose();
         }
+    }
+
+#if DEBUG || OWNERPACKET_FINALIZER
+    // 注：本测试依赖 NewLife.Core 以相同条件编译析构兜底（默认 Debug 构建成立）
+    [Fact(DisplayName = "析构兜底：漏释放的句柄在 GC 时释放引用")]
+    public void Finalizer_ShouldReleaseReference()
+    {
+        var owner = LeakOne();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // 析构已释放漏释放句柄的引用
+        Assert.Equal(0, (Int32)owner.GetValue("_refCount")!);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static Object LeakOne()
+    {
+        var packet = new OwnerPacket(100);
+        return packet.GetValue("_owner")!;
+    }
+#endif
+
+    [Fact(DisplayName = "Detach：脱手后缓冲不归还，句柄作废")]
+    public void Detach_ShouldAbandonHandleWithoutReturn()
+    {
+        var packet = new OwnerPacket(100);
+        var owner = packet.GetValue("_owner");
+
+        packet.Detach();
+
+        Assert.Null(packet.GetValue("_owner"));
+        Assert.Null(packet.GetValue("_buffer"));
+        Assert.Null(packet.Next);
+        Assert.Equal(0, packet.Length);
+        Assert.Throws<ObjectDisposedException>(() => packet.GetSpan());
+
+        // 引用计数保持 1：缓冲仍处于借出状态，归还责任已转移给调用方
+        Assert.Equal(1, (Int32)owner!.GetValue("_refCount")!);
+    }
+
+    [Fact(DisplayName = "Detach：GC 兜底不归还借用中的缓冲")]
+    public void Detach_ShouldSuppressFinalizer()
+    {
+        var owner = DetachAndForget();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // 析构被抑制：缓冲仍处于借出状态，未被归还
+        Assert.Equal(1, (Int32)owner.GetValue("_refCount")!);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static Object DetachAndForget()
+    {
+        var packet = new OwnerPacket(100);
+        var owner = packet.GetValue("_owner")!;
+        packet.Detach();
+        return owner;
+    }
+
+    [Fact(DisplayName = "Detach：存在其它句柄时抛出异常且不改变状态")]
+    public void Detach_WithOtherHandles_ShouldThrow()
+    {
+        var packet = new OwnerPacket(100);
+        var slice = packet.Slice(0, 50);
+
+        Assert.Throws<InvalidOperationException>(() => packet.Detach());
+
+        // 句柄保持可用：异常不改变任何状态
+        Assert.NotNull(packet.GetValue("_owner"));
+        Assert.Equal(2, packet.RefCount);
+
+        slice.TryDispose();
+        packet.Dispose();
+    }
+
+    [Fact(DisplayName = "Detach：重复调用幂等，借用视图无操作")]
+    public void Detach_MultipleCalls_ShouldBeIdempotent()
+    {
+        var packet = new OwnerPacket(100);
+        packet.Detach();
+        packet.Detach();
+
+        Assert.Null(packet.GetValue("_owner"));
+
+        // 借用视图不持引用，脱手无操作
+        var view = new OwnerPacket(new Byte[10], 0, 10, false);
+        view.Detach();
+        Assert.NotNull(view.GetValue("_buffer"));
+        view.TryDispose();
+    }
+
+    /// <summary>兼容 Free：转发到 Detach（放弃引用不归还，实例作废）</summary>
+    [Fact(DisplayName = "Free：兼容转发到 Detach")]
+    public void FreeCompat_ShouldForwardToDetach()
+    {
+#pragma warning disable CS0618 // 兼容旧版的 Free
+        var packet = new OwnerPacket(100);
+        packet.GetSpan().Fill(0x42);
+        var owner = packet.GetValue("_owner");
+
+        packet.Free();
+
+        // 脱手：本句柄不再持有引用（引用计数保持 1，缓冲保持已借出状态不归还）
+        Assert.Null(packet.GetValue("_owner"));
+        Assert.Equal(1, (Int32)owner!.GetValue("_refCount")!);
+
+        // 实例已作废：再次 Dispose 无操作
+        packet.TryDispose();
+        Assert.Equal(1, (Int32)owner.GetValue("_refCount")!);
+#pragma warning restore CS0618 // 兼容旧版的 Free
     }
 
     #endregion

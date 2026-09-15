@@ -213,7 +213,7 @@ public class ArrayPacketTests
         var pk2 = pk.Slice(5, 5);
         Assert.Equal("World", pk2.ToStr());
 
-        // Slice(int,int) 默认 transferOwner=true，对 ArrayPacket 无影响
+        // 切片为共享/视图语义；结构体实现返回视图，不涉及所有权转移
         var pk3 = pk.Slice(0, 5);
         Assert.Equal("Hello", pk3.ToStr());
     }

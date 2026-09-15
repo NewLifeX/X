@@ -4,7 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using NewLife.Collections;
+
+#if DEBUG
+using NewLife.Log;
+#endif
 
 namespace NewLife.Data;
 
@@ -17,7 +22,7 @@ namespace NewLife.Data;
 /// <item>非阻塞 Socket：接收方申请与释放；解析逻辑只消费不负责释放</item>
 /// <item>阻塞 Socket：接收函数申请，外部使用方释放，管理权可进一步传递</item>
 /// </list>
-/// <para>切片 <see cref="Slice(Int32, Int32)"/> 默认共享底层缓冲区，必要时可指定是否转移所有权。</para>
+/// <para>切片 <see cref="Slice(Int32, Int32)"/> 共享底层缓冲区；<see cref="OwnerPacket"/> 统一为引用计数共享语义——切片返回独立句柄，各自释放，最后一个归还内存池。</para>
 /// <para><b>重要</b>：所有临时获得的 <see cref="Span{T}"/>/<see cref="Memory{T}"/> 仅在当前所有权生命周期内短暂使用，禁止缓存到异步/长期结构中。</para>
 /// </remarks>
 public interface IPacket
@@ -42,16 +47,25 @@ public interface IPacket
     /// <summary>获取内存块（仅当前数据包，不包括 <see cref="Next"/> 链）。在管理权生命周期内短暂使用，禁止长期保存</summary>
     Memory<Byte> GetMemory();
 
-    /// <summary>切片得到新数据包，共享底层内存以减少分配</summary>
+    /// <summary>切片得到新数据包，共享底层缓冲区以减少分配</summary>
+    /// <remarks>
+    /// <para><see cref="OwnerPacket"/> 实现为引用计数共享：返回独立句柄，与原包同时可用；各自 <c>Dispose</c>，最后一个释放时归还内存池。</para>
+    /// <para>取出子窗口后不再使用原句柄时应随即释放（如拆帧后丢弃帧容器），避免句柄引用残留导致缓冲无法归池。</para>
+    /// <para>结构体实现（<see cref="ArrayPacket"/> 等）返回无所有权的视图：无需释放，仅可在原数据生命周期内短暂使用。</para>
+    /// </remarks>
     /// <param name="offset">相对当前包起始偏移</param>
     /// <param name="count">个数。默认 -1 表示到末尾</param>
     IPacket Slice(Int32 offset, Int32 count = -1);
 
-    /// <summary>切片得到新数据包，可选择转移内存管理权</summary>
-    /// <remarks>若 <paramref name="transferOwner"/> 为 true，表示新包负责归还缓冲区（仅支持一次转移）；多次切分同一来源时不要转移。</remarks>
+    /// <summary>切片得到新数据包（兼容重载），共享底层缓冲区以减少分配</summary>
+    /// <remarks>
+    /// <para>为兼容基于三参签名编译的旧版库（历史版本的 Remoting/WebSocket 等）而保留，行为直接转发到两参重载。</para>
+    /// <para>引用计数共享模型下不再区分“转移”与“借用”，新代码请使用 <see cref="Slice(Int32, Int32)"/>。</para>
+    /// </remarks>
     /// <param name="offset">相对当前包起始偏移</param>
     /// <param name="count">个数。默认 -1 表示到末尾</param>
-    /// <param name="transferOwner">是否转移所有权（实现可能不支持）</param>
+    /// <param name="transferOwner">是否转移内存管理权。兼容参数，忽略</param>
+    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
     IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner);
 
     /// <summary>尝试获取当前片段的 <see cref="ArraySegment{T}"/>（不含链式后续）</summary>
@@ -291,7 +305,7 @@ public static class PacketHelper
 
         encoding ??= Encoding.UTF8;
 
-        #if NETCOREAPP || NETSTANDARD2_1
+#if NETCOREAPP || NETSTANDARD2_1
         // 栈缓冲区在循环外分配一次，避免每次迭代累积栈空间
         const Int32 MaxStackAllocChars = 1024;
         Span<Char> stackChars = stackalloc Char[MaxStackAllocChars];
@@ -522,6 +536,42 @@ public static class PacketHelper
         return buf;
     }
 
+    /// <summary>读取字节数据写入目标缓冲区，跨链节点自动续接</summary>
+    /// <param name="pk">源数据包</param>
+    /// <param name="buffer">目标缓冲区</param>
+    /// <returns>实际读取的字节数（不超过缓冲区长度与数据总长度）</returns>
+    /// <remarks>从数据包链起点开始读取；单节点时直接拷贝，链式时逐段续接</remarks>
+    public static Int32 ReadBytes(this IPacket pk, Span<Byte> buffer)
+    {
+        if (buffer.Length == 0) return 0;
+
+        var total = pk.Total;
+        var count = buffer.Length < total ? buffer.Length : total;
+        if (count <= 0) return 0;
+
+        // 单节点直接拷贝
+        if (pk.Next == null)
+        {
+            pk.GetSpan()[..count].CopyTo(buffer);
+            return count;
+        }
+
+        // 多节点链：跨段续接拷贝
+        var pos = 0;
+        for (var node = pk; node != null && pos < count; node = node.Next)
+        {
+            var span = node.GetSpan();
+            var c = Math.Min(span.Length, count - pos);
+            if (c > 0)
+            {
+                span[..c].CopyTo(buffer[pos..]);
+                pos += c;
+            }
+        }
+
+        return pos;
+    }
+
     /// <summary>深度克隆数据包，完全复制数据内容</summary>
     /// <param name="pk">源数据包</param>
     /// <returns>独立的数据包副本，内存来自池，实际类型为 <see cref="IOwnerPacket"/>，调用方负责 Dispose</returns>
@@ -612,16 +662,60 @@ public static class PacketHelper
     #endregion
 }
 
-/// <summary>所有权内存包。基于 ArrayPool 的高性能内存管理，支持链式结构与所有权转移</summary>
+/// <summary>池化缓冲引用计数。多个数据包共享同一缓冲区时统一记录引用数量，最后一个引用释放时归还内存池</summary>
+/// <remarks>
+/// <para>切片共享通过 <see cref="AddRef"/> 递增引用计数；每个句柄各自 <see cref="Release"/>，归零时归还内存池。</para>
+/// <para>引用计数归零时才归还缓冲区，因此多个句柄可以独立使用、各自释放，互不影响。</para>
+/// <para><b>必须为 class</b>：计数器被多个句柄共享，引用同一性是引用计数成立的前提；结构体会因值拷贝导致各句柄各持一份计数，引用计数完全失效。</para>
+/// </remarks>
+/// <remarks>实例化，引用计数初始为 1</remarks>
+/// <param name="buffer">缓冲数组</param>
+/// <param name="returnToPool">引用归零时是否归还内存池</param>
+internal sealed class ArrayOwner(Byte[] buffer, Boolean returnToPool)
+{
+    #region 属性
+    /// <summary>缓冲数组</summary>
+    public Byte[] Buffer { get; } = buffer;
+
+    /// <summary>引用归零时是否归还内存池</summary>
+    public Boolean ReturnToPool { get; } = returnToPool;
+
+    private Int32 _refCount = 1;
+
+    /// <summary>当前引用数量。供观测与决策（如接收层判断缓冲是否可复用）</summary>
+    public Int32 RefCount => Volatile.Read(ref _refCount);
+    #endregion
+
+    #region 方法
+    /// <summary>新增一个引用</summary>
+    public void AddRef() => Interlocked.Increment(ref _refCount);
+
+    /// <summary>释放一个引用，归零时归还内存池</summary>
+    public void Release()
+    {
+        if (Interlocked.Decrement(ref _refCount) == 0 && ReturnToPool)
+            ArrayPool<Byte>.Shared.Return(Buffer);
+    }
+    #endregion
+}
+
+/// <summary>所有权内存包。基于 ArrayPool 的引用计数内存管理，支持链式结构、零拷贝切片与共享使用</summary>
 /// <remarks>
 /// <para><b>核心特性</b>：</para>
 /// <list type="bullet">
-/// <item>内存池复用：使用 <see cref="ArrayPool{T}.Shared"/> 减少 GC 压力</item>
-/// <item>所有权转移：切片操作可选择转移内存管理责任（仅一次）</item>
-/// <item>链式结构：支持多段数据包连接，透明处理跨段访问</item>
+/// <item>内存池复用：使用 <see cref="ArrayPool{T}.Shared"/> 减少 GC 压力，引用计数归零时统一归还</item>
+/// <item>引用计数共享：<see cref="Slice(Int32, Int32)"/> 返回独立句柄，多个句柄同时引用同一缓冲区，各自独立读取与释放</item>
 /// <item>零拷贝切片：共享底层缓冲区，避免不必要的内存分配</item>
+/// <item>链式结构：支持多段数据包连接，透明处理跨段访问</item>
 /// </list>
-/// <para><b>生命周期管理</b>：必须调用 <see cref="Dispose"/> 归还池化内存，或通过所有权转移由新实例负责释放。</para>
+/// <para><b>所有权语义</b>：</para>
+/// <list type="number">
+/// <item>共享切片：<see cref="Slice(Int32, Int32)"/> 按段递增引用计数，返回独立句柄；双方（或多方）均可继续使用，各自 <see cref="Dispose"/>，最后一个释放时才归还内存池</item>
+/// <item>独占换窗：<see cref="OwnerPacket(OwnerPacket, Int32)"/> 头部扩展构造，接管源实例的引用与链，源实例整体作废（仅此一处保留接管语义，调用方需自行确保无其它共享句柄）</item>
+/// <item>接收层轮末裁决：会话私有句柄在轮末按 <see cref="RefCount"/> 判定——无人持有（为 1）时 <see cref="Detach"/> 脱手保留缓冲复用；存在共享切片时 <see cref="Dispose"/> 本引用，缓冲由最后释放的切片归还</item>
+/// </list>
+/// <para><b>生命周期管理</b>：每个持有引用的句柄都必须调用 <see cref="Dispose"/>；引用计数归零时缓冲区归还内存池。未释放的句柄会让缓冲区无法回池，这是使用本类型唯一的纪律要求。
+/// 开发期（DEBUG）由析构函数兜底释放漏释放的句柄并输出 XTrace 告警；发布版默认不编译析构，不产生终结队列登记与终结器调度开销，如需生产兜底可定义编译符号 OWNERPACKET_FINALIZER 开启。</para>
 /// <para><b>设计决策</b>：</para>
 /// <list type="bullet">
 /// <item><b>必须为 class</b>：所有权语义依赖引用同一性。struct 赋值产生值拷贝会导致 double-free（Slice 转移所有权时修改的是副本而非原始实例），
@@ -634,43 +728,33 @@ public static class PacketHelper
 public sealed class OwnerPacket : IPacket, IOwnerPacket
 {
     #region 字段与属性
+    private static readonly Byte[] _empty = [];
+
     private Byte[]? _buffer;
     private Int32 _offset;
     private Int32 _length;
-    private Boolean _hasOwner;
+    private ArrayOwner? _owner;
 
     /// <summary>缓冲区数组</summary>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
-    public Byte[] Buffer
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _buffer ?? throw new ObjectDisposedException(nameof(OwnerPacket));
-    }
+    public Byte[] Buffer { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => _buffer ?? throw new ObjectDisposedException(nameof(OwnerPacket)); }
 
     /// <summary>数据在缓冲区中的起始偏移量</summary>
-    public Int32 Offset
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _offset;
-    }
+    public Int32 Offset { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => _offset; }
 
     /// <summary>当前数据包的有效数据长度</summary>
-    public Int32 Length
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _length;
-    }
+    public Int32 Length { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => _length; }
 
     /// <summary>下一个链式数据包节点</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public IPacket? Next { get; set; }
 
     /// <summary>包含链式结构的总数据长度</summary>
-    public Int32 Total
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _length + (Next?.Total ?? 0);
-    }
+    public Int32 Total { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => _length + (Next?.Total ?? 0); }
+
+    /// <summary>当前缓冲区的引用句柄数（包含本句柄）。视图节点（不持引用）返回 0</summary>
+    /// <remarks>仅供观测与决策（如接收层判断缓冲能否复用），不要用于同步控制。</remarks>
+    public Int32 RefCount => _owner?.RefCount ?? 0;
 
     /// <summary>获取或设置指定位置的字节值，支持跨链式包访问</summary>
     /// <param name="index">从当前包起始的相对索引位置</param>
@@ -680,21 +764,25 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     public Byte this[Int32 index]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => index switch
-        {
-            < 0 => throw new IndexOutOfRangeException($"Index cannot be negative: {index}"),
-            var i when i < _length => Buffer[_offset + i],
-            var i when Next != null => Next[i - _length],
-            _ => throw new IndexOutOfRangeException($"Index {index} exceeds total length {Total}")
-        };
+        get => _buffer == null
+            ? throw new ObjectDisposedException(nameof(OwnerPacket))
+            : index switch
+            {
+                < 0 => throw new IndexOutOfRangeException($"Index cannot be negative: {index}"),
+                var i when i < _length => _buffer[_offset + i],
+                var i when Next != null => Next[i - _length],
+                _ => throw new IndexOutOfRangeException($"Index {index} exceeds total length {Total}")
+            };
         set
         {
+            if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
+
             switch (index)
             {
                 case < 0:
                     throw new IndexOutOfRangeException($"Index cannot be negative: {index}");
                 case var i when i < _length:
-                    Buffer[_offset + i] = value;
+                    _buffer[_offset + i] = value;
                     break;
                 case var i when Next != null:
                     Next[i - _length] = value;
@@ -715,10 +803,11 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
 
-        _buffer = ArrayPool<Byte>.Shared.Rent(length);
+        var buffer = ArrayPool<Byte>.Shared.Rent(length);
+        _buffer = buffer;
         _offset = 0;
         _length = length;
-        _hasOwner = true;
+        _owner = new ArrayOwner(buffer, true);
     }
 
     /// <summary>创建内存包，使用现有缓冲区</summary>
@@ -740,10 +829,19 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         _buffer = buffer;
         _offset = offset;
         _length = length;
-        _hasOwner = hasOwner;
+        _owner = hasOwner ? new ArrayOwner(buffer, true) : null;
     }
 
-    /// <summary>基于现有实例创建扩展头部的新内存包，转移所有权</summary>
+    /// <summary>内部构造：节点直接持有缓冲区与引用计数对象（引用计数已完成处理）</summary>
+    private OwnerPacket(Byte[] buffer, Int32 offset, Int32 length, ArrayOwner? owner)
+    {
+        _buffer = buffer;
+        _offset = offset;
+        _length = length;
+        _owner = owner;
+    }
+
+    /// <summary>基于现有实例创建扩展头部的新内存包，接管所有权</summary>
     /// <param name="owner">源内存包实例</param>
     /// <param name="expandSize">向前扩展的字节数</param>
     /// <exception cref="ArgumentNullException">源实例为 null</exception>
@@ -758,6 +856,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         if (expandSize < 0)
             throw new ArgumentOutOfRangeException(nameof(expandSize), "Expand size must be non-negative.");
 
+        if (owner._buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket), "Source packet has been disposed.");
         if (owner._offset < expandSize)
             throw new ArgumentOutOfRangeException(nameof(expandSize),
                 $"Expand size {expandSize} exceeds available front space {owner._offset}");
@@ -767,9 +866,9 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         _length = owner._length + expandSize;
         Next = owner.Next;
 
-        // 转移所有权：新实例接管，原实例失权
-        _hasOwner = owner._hasOwner;
-        owner._hasOwner = false;
+        // 引用与链整体移交；源实例作废（引用由新实例接管，不释放）
+        _owner = owner._owner;
+        DetachNode(owner, release: false);
     }
 
     /// <summary>从数据流创建内存包，优先窃取MemoryStream内部缓冲区，否则从池借用并拷贝数据</summary>
@@ -796,7 +895,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
                 _buffer = seg.Array;
                 _offset = seg.Offset + (Int32)ms.Position;
                 _length = seg.Count - (Int32)ms.Position;
-                _hasOwner = false;
+                _owner = null;
                 return;
             }
 #endif
@@ -804,11 +903,12 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
 
         // 从池里借字节数组，存放数据流拷贝出来的数据
         var size = (Int32)(stream.Length - stream.Position);
-        _buffer = ArrayPool<Byte>.Shared.Rent(reserve + size);
-        var count = stream.Read(_buffer, reserve, size);
+        var buffer = ArrayPool<Byte>.Shared.Rent(reserve + size);
+        _buffer = buffer;
+        var count = stream.Read(buffer, reserve, size);
         _offset = 0;
         _length = count;
-        _hasOwner = true;
+        _owner = new ArrayOwner(buffer, true);
 
         // 确保数据流位置不变
         if (count > 0) stream.Seek(-count, SeekOrigin.Current);
@@ -816,34 +916,96 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     #endregion
 
     #region 内存管理
-    /// <summary>释放资源，归还池化缓冲区并清理链式结构</summary>
+    /// <summary>释放本句柄持有的缓冲区引用。引用计数归零时归还池化缓冲区</summary>
+    /// <remarks>
+    /// <para>Dispose 幂等；借用视图（不持有引用）自身无操作，但同样释放链式后续节点。</para>
+    /// <para>若缓冲区存在其它共享句柄，本调用不会归还缓冲区，其它句柄仍可继续使用。</para>
+    /// </remarks>
     public void Dispose()
     {
-        if (!_hasOwner) return;
+        // 已显式释放，抑制析构兜底
+        GC.SuppressFinalize(this);
 
-        _hasOwner = false;
-        var buffer = _buffer;
-        _buffer = null; // 防止重复使用已释放的缓冲区
+        // 先摘除链式后续节点：借用视图头（_owner 为空）同样可能挂着拥有引用的尾链
+        var next = Next;
+        Next = null;
 
-        if (buffer != null)
-            ArrayPool<Byte>.Shared.Return(buffer);
+        var owner = _owner;
+        if (owner != null)
+        {
+            _owner = null;
+            _buffer = null;     // 释放后禁止再读，防止误用已归还的缓冲区
+            _length = 0;
+            owner.Release();
+        }
 
         // 安全释放链式后续节点
-        Next.TryDispose();
+        next.TryDispose();
+    }
+
+#if DEBUG || OWNERPACKET_FINALIZER
+    /// <summary>析构。兜底释放未 Dispose 的句柄引用，避免池化缓冲区永远无法归还</summary>
+    /// <remarks>
+    /// <para>默认仅在 DEBUG 构建（开发期）编译本方法；发布版不含析构，不产生终结队列登记与终结器调度开销。如需生产兜底，可定义编译符号 OWNERPACKET_FINALIZER 开启。</para>
+    /// <para>显式 Dispose 会抑制析构；只有漏释放的句柄才会在 GC 时走此路径，仅释放本节点自身引用。</para>
+    /// <para>链式后续节点各自由自身的析构释放引用，不在此处递归触碰，避免终结器线程访问其它托管对象。</para>
+    /// </remarks>
+    ~OwnerPacket()
+    {
+        var owner = _owner;
+        if (owner != null)
+        {
+            _owner = null;
+            owner.Release();
+
+#if DEBUG
+            // 走到这里说明存在漏释放：开发期直接告警，便于定位与修复；终结器线程内日志异常不得外抛
+            try
+            {
+                XTrace.WriteLine("[OwnerPacket] 漏释放句柄（Offset={0}，Length={1}），已由析构兜底归还缓冲区引用；请检查调用方是否遗漏 Dispose。", _offset, _length);
+            }
+            catch { }
+#endif
+        }
+    }
+#endif
+
+    /// <summary>脱手：放弃本句柄的引用，但<strong>不归还</strong>池化缓冲区，缓冲保持“已借出”状态交给调用方继续使用</summary>
+    /// <remarks>
+    /// <para>用于接收层复用缓冲：每轮把整块缓冲包装为句柄上抛，轮末确认没有其它持有者（<see cref="RefCount"/> 为 1）时脱手，
+    /// 缓冲留在会话继续接收，做到零 Rent/Return；归还责任随脱手转交调用方，由其在会话关闭时归还。</para>
+    /// <para>与 <see cref="Dispose"/> 的区别：Dispose 释放引用并可能归还池；脱手只废弃句柄，保留缓冲的借用状态。</para>
+    /// <para>仍有其它持有者（<see cref="RefCount"/> 大于 1）时抛出异常：它们还在读这块缓冲，脱手会让调用方误以为缓冲可以独占复用。</para>
+    /// <para>调用后实例作废，重复调用无操作；借用视图（不持有引用）调用无操作。仅用于无链式后续节点的独占句柄。</para>
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">仍有其它句柄持有缓冲区</exception>
+    public void Detach()
+    {
+        var owner = _owner;
+        if (owner == null) return;
+
+        // 还有别的句柄在用这块缓冲时不能脱手：它们释放后缓冲会归还池，而调用方还在用同一块缓冲
+        if (owner.RefCount > 1)
+            throw new InvalidOperationException($"Cannot detach while {owner.RefCount - 1} other handle(s) still hold the buffer.");
+
+        // 抑制析构兜底，防止 GC 时误把仍在借用中的缓冲归还池
+        GC.SuppressFinalize(this);
+
+        _owner = null;
+        _buffer = null;
+        _length = 0;
         Next = null;
     }
 
-    /// <summary>立即放弃所有权，不归还缓冲区</summary>
+    /// <summary>立即放弃所有权，不归还缓冲区（兼容旧版）</summary>
     /// <remarks>
-    /// <para>用于特殊场景下的所有权转移，调用后实例变为无效状态。</para>
-    /// <para>警告：缓冲区不会被归还到池中，可能导致内存泄漏。</para>
+    /// <para>为兼容旧版编译的库而保留，内部转发到 <see cref="Detach"/>：无其它句柄持有时允许，缓冲保持已借出状态交给调用方继续使用。</para>
+    /// <para>与旧版区别：仍有其它句柄持有缓冲区时抛出异常（引用计数保护）。新代码请直接使用 <see cref="Detach"/>。</para>
     /// </remarks>
-    public void Free()
-    {
-        _buffer = null;
-        Next = null;
-        _hasOwner = false;
-    }
+    /// <exception cref="InvalidOperationException">仍有其它句柄持有缓冲区</exception>
+    [Obsolete("请改用 Detach()，语义一致且带引用计数保护。")]
+    public void Free() => Detach();
+
     #endregion
 
     #region 内存访问
@@ -904,80 +1066,131 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
 
         return this;
     }
+
+    /// <summary>原地前移数据窗口，丢弃开头 len 字节</summary>
+    /// <param name="len">前移字节数，不能超过当前段长度</param>
+    /// <returns>当前实例，支持链式调用</returns>
+    /// <exception cref="ArgumentOutOfRangeException">前移长度超出当前段长度</exception>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    /// <remarks>
+    /// <para>用于拆帧残片前移等场景，不拷贝、不分配，只有窗口指针调整的微小开销。</para>
+    /// <para>只影响本句柄的窗口视图，共享同一底层缓冲区的其它句柄视图不受影响；仅对独占句柄使用。</para>
+    /// </remarks>
+    public OwnerPacket Skip(Int32 len)
+    {
+        if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
+        if (len < 0 || len > _length) throw new ArgumentOutOfRangeException(nameof(len), $"Skip {len} exceeds current length {_length}");
+
+        _offset += len;
+        _length -= len;
+
+        return this;
+    }
     #endregion
 
     #region 切片操作
-    /// <summary>切片生成新数据包，默认转移所有权</summary>
+    /// <summary>切片生成新数据包，共享底层缓冲区（引用计数）</summary>
     /// <param name="offset">相对当前包的起始偏移</param>
     /// <param name="count">切片长度，-1 表示到末尾</param>
-    /// <returns>新的数据包实例</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IPacket Slice(Int32 offset, Int32 count = -1) => Slice(offset, count, transferOwner: true);
-
-    /// <summary>切片生成新数据包，可选择是否转移所有权</summary>
-    /// <param name="offset">相对当前包的起始偏移</param>
-    /// <param name="count">切片长度，-1 表示到末尾</param>
-    /// <param name="transferOwner">是否转移内存管理权</param>
-    /// <returns>新的数据包实例</returns>
+    /// <returns>新的独立句柄，与原包同时可用；各自 Dispose，最后一个释放时缓冲区归还内存池</returns>
     /// <exception cref="ArgumentOutOfRangeException">偏移量或长度超出有效范围</exception>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
     /// <remarks>
-    /// <para>切片操作共享底层缓冲区以避免内存拷贝。</para>
-    /// <para>当 transferOwner 为 true 时，新实例负责缓冲区释放，原实例失去管理权。</para>
-    /// <para>支持跨链式包切片，自动处理边界情况。</para>
+    /// <para>切片共享底层缓冲区，不拷贝数据。支持跨段切片，自动处理边界；窗口覆盖的段各递增一次引用计数。</para>
+    /// <para>本方法不改变原实例，双方（或多方）均可继续读取；每个句柄各自负责 <see cref="Dispose"/>。
+    /// 线性交接场景直接传递句柄本身即可，无需切片。</para>
     /// </remarks>
-    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner)
+    public IPacket Slice(Int32 offset, Int32 count = -1)
     {
         if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
 
         if (offset < 0)
             throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be negative.");
 
-        if (count > Total - offset)
+        var total = Total;
+        if (count > total - offset)
             throw new ArgumentOutOfRangeException(nameof(count),
-                $"Count {count} with offset {offset} exceeds total length {Total}");
+                $"Count {count} with offset {offset} exceeds total length {total}");
 
-        var startPosition = _offset + offset;
-        var remainInCurrent = _length - offset;
-        var hasOwnership = _hasOwner && transferOwner;
-
-        // 单段数据包处理
-        if (Next == null)
-        {
-            // 转移管理权
-            if (transferOwner) _hasOwner = false;
-
-            var actualCount = count < 0 || count > remainInCurrent ? remainInCurrent : count;
-            return new OwnerPacket(_buffer, startPosition, actualCount, hasOwnership);
-        }
-
-        // 多段链式包处理
-        if (remainInCurrent <= 0)
-        {
-            // 完全跳过当前段，递归处理后续段
-            return Next.Slice(offset - _length, count, transferOwner);
-        }
-
-        // 转移管理权
-        if (transferOwner) _hasOwner = false;
-
+        if (count < 0) count = total - offset;
         if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(offset), $"Offset {offset} exceeds total length {total}");
+
+        OwnerPacket? head = null;
+        OwnerPacket? tail = null;
+
+        var skip = offset;
+        var take = count;
+        IPacket? node = this;
+        while (node != null && skip >= node.Length)
         {
-            // 当前段部分 + 所有后续段
-            return new OwnerPacket(_buffer, startPosition, remainInCurrent, hasOwnership) { Next = Next };
+            skip -= node.Length;
+            node = node.Next;
         }
 
-        if (count <= remainInCurrent)
+        while (node != null && take > 0)
         {
-            // 仅在当前段内
-            return new OwnerPacket(_buffer, startPosition, count, hasOwnership);
+            var next = node.Next;
+            var startInNode = skip;
+            var takeInNode = Math.Min(node.Length - startInNode, take);
+            skip = 0;
+
+            var item = BuildShareNode(node, startInNode, takeInNode);
+
+            if (head == null)
+                head = item;
+            else
+                tail!.Next = item;
+
+            tail = item;
+            take -= takeInNode;
+            node = next;
         }
 
-        // 跨段处理：当前段 + 后续段切片
-        return new OwnerPacket(_buffer, startPosition, remainInCurrent, hasOwnership)
+        return head ?? new OwnerPacket(_empty, 0, 0, null);
+    }
+
+    /// <summary>切片生成新数据包（兼容重载），共享底层缓冲区（引用计数）</summary>
+    /// <param name="offset">相对当前包的起始偏移</param>
+    /// <param name="count">切片长度，-1 表示到末尾</param>
+    /// <param name="transferOwner">是否转移内存管理权。兼容参数，忽略；引用计数共享模型下双方各自 Dispose，最后一个释放时归还内存池</param>
+    /// <returns>新的独立句柄，与原包同时可用</returns>
+    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
+    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
+    #endregion
+
+    #region 切片辅助
+    /// <summary>为共享窗口构建新节点，对源节点持有引用的段递增引用计数</summary>
+    private static OwnerPacket BuildShareNode(IPacket source, Int32 offset, Int32 count)
+    {
+        if (source is OwnerPacket op)
         {
-            Next = Next.Slice(0, count - remainInCurrent, transferOwner)
-        };
+            if (op._buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
+
+            var owner = op._owner;
+            owner?.AddRef();
+
+            return new OwnerPacket(op._buffer, op._offset + offset, count, owner);
+        }
+
+        if (source.TryGetArray(out var segment))
+            return new OwnerPacket(segment.Array!, segment.Offset + offset, count, null);
+
+        throw new NotSupportedException($"Cannot share chain node of type {source.GetType().Name}");
+    }
+
+    /// <summary>释放节点引用并作废节点（链式遍历用）。release 为 false 表示引用已移交给接管方</summary>
+    private static void DetachNode(IPacket node, Boolean release)
+    {
+        if (node is not OwnerPacket op) return;
+
+        var owner = op._owner;
+        op._owner = null;
+        if (release && owner != null) owner.Release();
+
+        op._buffer = null;
+        op._length = 0;
+        op.Next = null;
     }
     #endregion
 
@@ -1091,17 +1304,17 @@ public struct MemoryPacket : IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
 
-    /// <summary>切片得到新数据包，共用内存块</summary>
+    /// <summary>切片得到新数据包（兼容重载），共用内存块。无所有权，忽略转移参数</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。不支持</param>
+    /// <param name="transferOwner">转移所有权。无所有权结构体忽略该参数</param>
+    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
     IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>切片得到新数据包，共用内存块，无内存分配</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。不支持</param>
-    public MemoryPacket Slice(Int32 offset, Int32 count = -1, Boolean transferOwner = false)
+    public MemoryPacket Slice(Int32 offset, Int32 count = -1)
     {
         // 带有Next时，不支持Slice
         if (Next != null) throw new NotSupportedException("Slice with Next");
@@ -1114,6 +1327,14 @@ public struct MemoryPacket : IPacket
             ? new MemoryPacket(_memory, count)
             : new MemoryPacket(_memory[offset..], count);
     }
+
+    /// <summary>切片得到新数据包（兼容重载），共用内存块。无所有权，忽略转移参数</summary>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">个数。默认-1表示到末尾</param>
+    /// <param name="transferOwner">转移所有权。无所有权结构体忽略该参数</param>
+    /// <returns>新的数据包实例</returns>
+    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
+    public MemoryPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>尝试获取缓冲区（仅本段，不含 Next）</summary>
     /// <param name="segment"></param>
@@ -1266,31 +1487,22 @@ public record struct ArrayPacket : IPacket
 
         var remain = _length - offset;
         var next = Next;
-        if (next != null && remain <= 0) return next.Slice(offset - _length, count, true);
+        if (next != null && remain <= 0) return next.Slice(offset - _length, count);
 
-        return Slice(offset, count, true);
+        return Slice(offset, count);
     }
 
-    /// <summary>切片得到新数据包，共用缓冲区</summary>
+    /// <summary>切片得到新数据包（兼容重载），共用缓冲区。无所有权，忽略转移参数</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。仅对Next有效</param>
-    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner)
-    {
-        if (count == 0) return Empty;
-
-        var remain = _length - offset;
-        var next = Next;
-        if (next != null && remain <= 0) return next.Slice(offset - _length, count, transferOwner);
-
-        return Slice(offset, count, transferOwner);
-    }
+    /// <param name="transferOwner">转移所有权。无所有权结构体忽略该参数</param>
+    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
+    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>切片得到新数据包，共用缓冲区，无内存分配</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。仅对Next有效</param>
-    public ArrayPacket Slice(Int32 offset, Int32 count = -1, Boolean transferOwner = false)
+    public ArrayPacket Slice(Int32 offset, Int32 count = -1)
     {
         if (count == 0) return Empty;
 
@@ -1307,7 +1519,7 @@ public record struct ArrayPacket : IPacket
 
         // 如果当前段用完，则取下一段。强转ArrayPacket，如果不是则抛出异常
         if (remain <= 0)
-            return (ArrayPacket)next.Slice(offset - _length, count, transferOwner);
+            return (ArrayPacket)next.Slice(offset - _length, count);
 
         // 当前包用一截，剩下的全部
         if (count < 0)
@@ -1318,8 +1530,16 @@ public record struct ArrayPacket : IPacket
             return new ArrayPacket(_buffer, start, count);
 
         // 当前包用一截，剩下的再截取
-        return new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain, transferOwner) };
+        return new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain) };
     }
+
+    /// <summary>切片得到新数据包（兼容重载），共用缓冲区，无内存分配。无所有权，忽略转移参数</summary>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">个数。默认-1表示到末尾</param>
+    /// <param name="transferOwner">转移所有权。无所有权结构体忽略该参数</param>
+    /// <returns>新的数据包实例</returns>
+    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
+    public ArrayPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>尝试获取缓冲区（仅本段，不含 Next）</summary>
     /// <param name="segment"></param>
@@ -1447,11 +1667,12 @@ public readonly record struct ReadOnlyPacket : IPacket
     /// <returns>新的只读数据包</returns>
     IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
 
-    /// <summary>切片得到新的只读数据包</summary>
+    /// <summary>切片得到新的只读数据包（兼容重载）。无所有权，忽略转移参数</summary>
     /// <param name="offset">相对偏移</param>
-    /// <param name="count">数据长度</param>
-    /// <param name="transferOwner">是否转移所有权（只读包忽略此参数）</param>
+    /// <param name="count">数据长度，-1 表示到末尾</param>
+    /// <param name="transferOwner">转移所有权。只读包忽略该参数</param>
     /// <returns>新的只读数据包</returns>
+    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
     IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>切片得到新的只读数据包，无内存分配</summary>
