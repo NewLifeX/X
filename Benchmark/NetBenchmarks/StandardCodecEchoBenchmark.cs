@@ -110,7 +110,10 @@ public class StandardCodecEchoBenchmark : IDisposable
                 for (var n = 0; n < perClient; n++)
                 {
                     var payload = CreatePayload();
-                    await client.SendMessageAsync(payload).ConfigureAwait(false);
+                    var rs = await client.SendMessageAsync(payload).ConfigureAwait(false);
+
+                    // 响应负载为共享切片，等待方持有并负责释放；不释放会吊住接收缓冲，导致池失血与每消息重新分配 64KB
+                    rs.TryDispose();
                 }
             });
         }
@@ -149,7 +152,9 @@ public class StandardCodecEchoBenchmark : IDisposable
                 var slot = 0;
                 while (sent < perClient)
                 {
-                    await window[slot].ConfigureAwait(false);
+                    var rs = await window[slot].ConfigureAwait(false);
+                    rs.TryDispose();    // 响应负载为共享切片，等待方负责释放
+
                     window[slot] = client.SendMessageAsync(CreatePayload(), default);
                     sent++;
                     slot = (slot + 1) % fill;
@@ -157,7 +162,10 @@ public class StandardCodecEchoBenchmark : IDisposable
 
                 // 排空剩余窗口
                 for (var i = 0; i < fill; i++)
-                    await window[(slot + i) % fill].ConfigureAwait(false);
+                {
+                    var rs = await window[(slot + i) % fill].ConfigureAwait(false);
+                    rs.TryDispose();
+                }
             });
         }
 
