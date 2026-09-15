@@ -572,6 +572,91 @@ public static class PacketHelper
         return pos;
     }
 
+    /// <summary>在数据包链中查找目标字节序列，返回相对链头的全局偏移</summary>
+    /// <param name="pk">源数据包，支持链式</param>
+    /// <param name="data">目标字节序列</param>
+    /// <returns>匹配起点相对链头的偏移；未找到返回 -1</returns>
+    /// <remarks>
+    /// 逐段扫描零拷贝：段内用 span 快速查找；目标可能被切在段与段之间，因此保留“已扫描过的最后 k-1 个字节”，
+    /// 与本段头部拼起来再查一次，目标跨多个短段（含空段）同样能查到。
+    /// </remarks>
+    public static Int32 IndexOf(this IPacket pk, ReadOnlySpan<Byte> data)
+    {
+        if (pk == null) return -1;
+
+        var k = data.Length;
+        if (k == 0 || pk.Total < k) return -1;
+
+        // 单段直接查找（最常见路径）
+        if (pk.Next == null) return pk.GetSpan().IndexOf(data);
+
+        // 单字节目标：逐段查找，不可能跨段
+        if (k == 1)
+        {
+            var p1 = 0;
+            for (var node = pk; node != null; node = node.Next)
+            {
+                var idx1 = node.GetSpan().IndexOf(data[0]);
+                if (idx1 >= 0) return p1 + idx1;
+                p1 += node.Length;
+            }
+            return -1;
+        }
+
+        var k1 = k - 1;
+        // 已扫描数据的最后 k-1 字节；目标被切段时，它提供匹配起点所在的前缀
+        var tail = k1 <= 256 ? stackalloc Byte[k1] : new Byte[k1];
+        var tailLen = 0;
+        // 拼接窗口：尾部缓冲 + 本段头部，各不超过 k-1 字节
+        var winSize = k1 * 2;
+        var win = winSize <= 256 ? stackalloc Byte[winSize] : new Byte[winSize];
+
+        var pos = 0;
+        for (var node = pk; node != null; node = node.Next)
+        {
+            var span = node.GetSpan();
+
+            // 段内查找
+            var idx = span.IndexOf(data);
+            if (idx >= 0) return pos + idx;
+
+            // 跨段查找：目标被切在段间，起点在“最后 k-1 字节”内、终点在本段头部
+            if (tailLen > 0 && span.Length > 0)
+            {
+                var headLen = Math.Min(k1, span.Length);
+                var w = win[..(tailLen + headLen)];
+                tail[..tailLen].CopyTo(w);
+                span[..headLen].CopyTo(w[tailLen..]);
+
+                var j = w.IndexOf(data);
+                if (j >= 0) return pos - tailLen + j;
+            }
+
+            // 滚动更新尾部缓冲：保留“已扫描数据”的最后 k-1 字节
+            if (span.Length >= k1)
+            {
+                span[^k1..].CopyTo(tail);
+                tailLen = k1;
+            }
+            else if (span.Length > 0)
+            {
+                // 本段太短，先丢掉尾部缓冲里过期的头部，再追加本段
+                var move = tailLen + span.Length - k1;
+                if (move > 0)
+                {
+                    tail[move..tailLen].CopyTo(tail);
+                    tailLen -= move;
+                }
+                span.CopyTo(tail[tailLen..]);
+                tailLen += span.Length;
+            }
+
+            pos += span.Length;
+        }
+
+        return -1;
+    }
+
     /// <summary>深度克隆数据包，完全复制数据内容</summary>
     /// <param name="pk">源数据包</param>
     /// <returns>独立的数据包副本，内存来自池，实际类型为 <see cref="IOwnerPacket"/>，调用方负责 Dispose</returns>

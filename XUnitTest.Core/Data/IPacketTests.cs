@@ -214,4 +214,41 @@ public class IPacketTests
         Assert.Equal(expected, c1.ToArray());
 #pragma warning restore CS0618
     }
+
+    [Fact(DisplayName = "IndexOf：单段、跨段、跨多段与空段查找均返回全局偏移")]
+    public void IndexOfTest()
+    {
+        // 单段
+        var pk = new ArrayPacket("hello\r\nworld"u8.ToArray());
+        Assert.Equal(5, pk.IndexOf("\r\n"u8));
+        Assert.Equal(-1, pk.IndexOf("xyz"u8));
+
+        // 链式：目标跨两段（结构体链自后向前组装）
+        IPacket f2 = new ArrayPacket("hello\r"u8.ToArray()) { Next = new ArrayPacket("\nworld"u8.ToArray()) };
+        Assert.Equal(5, f2.IndexOf("\r\n"u8));
+
+        // 链式：目标跨三段（连续短段）
+        IPacket f3 = new ArrayPacket("xa"u8.ToArray())
+        {
+            Next = new ArrayPacket("b"u8.ToArray())
+            {
+                Next = new ArrayPacket("c"u8.ToArray())
+            }
+        };
+        Assert.Equal(1, f3.IndexOf("abc"u8));
+
+        // 链式：中间夹空段
+        IPacket f4 = new ArrayPacket("x"u8.ToArray())
+        {
+            Next = new ArrayPacket([])
+            {
+                Next = new ArrayPacket("yz"u8.ToArray())
+            }
+        };
+        Assert.Equal(0, f4.IndexOf("xyz"u8));
+
+        // 未命中、超过总长、空目标
+        Assert.Equal(-1, f4.IndexOf("xyz!"u8));
+        Assert.Equal(-1, f4.IndexOf(ReadOnlySpan<Byte>.Empty));
+    }
 }
