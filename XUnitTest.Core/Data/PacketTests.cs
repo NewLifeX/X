@@ -181,6 +181,32 @@ public class PacketTests
     }
 
     [Fact]
+    public void ChainedGetSpanTest()
+    {
+        var pk = new Packet("Stone".GetBytes());
+        pk.Append("NewLife".GetBytes());
+
+        // 接口契约：GetSpan/GetMemory 仅返回当前节点数据，不含 Next 链
+        var ipk = (IPacket)pk;
+        var span = ipk.GetSpan();
+        Assert.Equal(5, span.Length);
+        Assert.Equal("Stone", span.ToStr());
+
+        var memory = ipk.GetMemory();
+        Assert.Equal(5, memory.Length);
+        Assert.Equal("Stone", memory.Span.ToStr());
+
+        // 后续节点各自独立
+        Assert.Equal(7, ((IPacket)pk.Next!).GetSpan().Length);
+        Assert.Equal("NewLife", ((IPacket)pk.Next!).GetSpan().ToStr());
+
+        // 整链数据由 AsSpan/AsMemory 聚合
+        Assert.Equal(12, pk.AsSpan().Length);
+        Assert.Equal("StoneNewLife", pk.AsSpan().ToStr());
+        Assert.Equal(12, pk.AsMemory().Length);
+    }
+
+    [Fact]
     public async Task NextTest()
     {
         var buf = "Stone".GetBytes();

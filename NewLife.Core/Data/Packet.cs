@@ -379,7 +379,7 @@ public class Packet : IPacket
         return list;
     }
 
-    /// <summary>转为Span</summary>
+    /// <summary>转为Span。链式时聚合整链为一段连续内存</summary>
     /// <returns></returns>
     public Span<Byte> AsSpan()
     {
@@ -388,7 +388,7 @@ public class Packet : IPacket
         return new Span<Byte>(ToArray());
     }
 
-    /// <summary>转为Memory</summary>
+    /// <summary>转为Memory。链式时聚合整链为一段连续内存</summary>
     /// <returns></returns>
     public Memory<Byte> AsMemory()
     {
@@ -397,8 +397,9 @@ public class Packet : IPacket
         return new Memory<Byte>(ToArray());
     }
 
-    Span<Byte> IPacket.GetSpan() => AsSpan();
-    Memory<Byte> IPacket.GetMemory() => AsMemory();
+    // 接口契约：GetSpan/GetMemory 仅返回当前节点数据，不含 Next 链（链遍历由调用方负责）；整链数据请使用 AsSpan/AsMemory
+    Span<Byte> IPacket.GetSpan() => new Span<Byte>(Data, Offset, Count);
+    Memory<Byte> IPacket.GetMemory() => new Memory<Byte>(Data, Offset, Count);
 
     /// <summary>获取封包的数据流形式</summary>
     /// <returns></returns>

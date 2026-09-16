@@ -668,6 +668,22 @@ public class SpanWriterTests
     }
 
     [Fact]
+    public void WriteIPacket_LegacyChained()
+    {
+        // 链式逐段写入：各节点 GetSpan 只返回本节点数据（旧版 Packet 曾聚合全链，已修正为接口契约语义）
+#pragma warning disable CS0618
+        var pk = new Packet(new Byte[] { 1, 2 });
+        pk.Next = new Packet(new Byte[] { 3, 4, 5 });
+#pragma warning restore CS0618
+
+        var buffer = new Byte[10];
+        var writer = new SpanWriter(buffer);
+        var n = writer.Write(pk);
+        Assert.Equal(5, n);
+        Assert.Equal(new Byte[] { 1, 2, 3, 4, 5 }, buffer[..5]);
+    }
+
+    [Fact]
     public void WriteNullIPacketThrows()
     {
         var buffer = new Byte[10];
