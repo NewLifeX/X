@@ -106,9 +106,6 @@ public class SplitDataCodec : Handler
             {
                 MaxCache = MaxCacheDataLength,
                 GetLength = GetLineLength,
-
-                // 分隔符链内扫描定界，不需要连续头部；设为 0 禁用并段拷贝，保持全链路零拷贝
-                HeadSize = 0,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };
         }

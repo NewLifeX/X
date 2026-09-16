@@ -218,7 +218,7 @@ public class MessageDisposeTests
     [Fact(DisplayName = "GetRaw：帧头跨轮组链后完整可读")]
     public void GetRaw_FrameAcrossRounds_ShouldReadFullFrame()
     {
-        // 帧头跨轮：第1轮仅 2 字节（不足 4 字节帧头），第2轮补齐；总长不足 HeadSize，不并段、直接组链成帧
+        // 帧头跨轮：第1轮仅 2 字节（不足 4 字节帧头），第2轮补齐后直接组链成帧（不并段）
         using var full = BuildFrame(10);
         // BuildFrame 缓冲为 8+payload，这里截取真实帧窗口（4 头 + 10 负载）
         var raw = full.ToArray()[..14];
@@ -229,7 +229,7 @@ public class MessageDisposeTests
         var frames = codec.Parse(new ArrayPacket(raw, 2, raw.Length - 2));
         Assert.Single(frames);
         var frame = frames[0];
-        Assert.Equal(14, frame.Total);    // 总长(14) 不足 HeadSize，保持组链
+        Assert.Equal(14, frame.Total);    // 帧头跨轮组链成帧
         Assert.NotNull(frame.Next);
 
         var msg = new DefaultMessage();

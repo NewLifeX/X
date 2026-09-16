@@ -189,6 +189,27 @@ public class PacketSequenceTests
         Assert.Equal(0, DefaultMessage.GetLength(Chain(ext[..3])));
         Assert.Equal(0, WebSocketMessage.GetFrameTotalLength(Chain(longBuf[..9])));
     }
+
+    [Fact]
+    [DisplayName("头部拼读_DefaultMessage哨兵边界_65534/65535/65536")]
+    public void DefaultMessage_GetLength_SentinelBoundary()
+    {
+        // 0xFFFF 哨兵边界：< 0xFFFF 用 4 字节头；= 0xFFFF 与 > 0xFFFF 用 8 字节头（扩展长度小端）
+        // 65534：长度字段为普通值，4 + 65534
+        var h16 = B(0x01, 0x02, 0xFE, 0xFF);
+        Assert.Equal(4 + 65534, DefaultMessage.GetLength(h16));
+        Assert.Equal(4 + 65534, DefaultMessage.GetLength(new ArrayPacket(h16).AsReadOnlySequence()));
+
+        // 65535：哨兵 + 扩展长度 0x0000FFFF → 8 + 65535
+        var h32Mid = B(0x01, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00);
+        Assert.Equal(8 + 65535, DefaultMessage.GetLength(h32Mid));
+        Assert.Equal(8 + 65535, DefaultMessage.GetLength(Chain(h32Mid[..3], h32Mid[3..])));
+
+        // 65536：哨兵 + 扩展长度 0x00010000 → 8 + 65536
+        var h32Big = B(0x01, 0x02, 0xFF, 0xFF, 0x00, 0x00, 0x01, 0x00);
+        Assert.Equal(8 + 65536, DefaultMessage.GetLength(h32Big));
+        Assert.Equal(8 + 65536, DefaultMessage.GetLength(Chain(h32Big[..5], h32Big[5..])));
+    }
     #endregion
 
     #region 序列定界

@@ -409,7 +409,7 @@ public class WebSocketMessageTests
         Assert.NotNull(frames);
         Assert.Single(frames!);
         var got = frames![0];
-        Assert.True(got.Length >= 14, $"帧首节点长度={got.Length}");   // 帧首头部保证：首节点含完整协议头
+        Assert.True(got.Length >= 14, $"帧首节点长度={got.Length}");   // 首轮 8KB 残片即帧首节点，覆盖 WS 头部
 
         try
         {

@@ -16,7 +16,7 @@ namespace XUnitTest.Net;
 /// S3 完整帧+残片 → 帧切片 + 残片切片入缓存（引用计数持有）；
 /// S4 残片续轮仍不足 → 残片切片入缓存；
 /// S5 凑成一帧 → 跨段组链返回；定界由 GetLength 委托链感知完成（分隔符链内扫描，不合并段流）；
-/// S6 数据到来时链头不足 HeadSize → 并入后续残片补齐后定界（头部恒连续，≤HeadSize 小拷贝）。
+/// S6 帧头跨节点 → 链感知 GetLength 跨段拼读定界（零拷贝）；不再并段补齐，旧版 span 委托仅能读链头节点片段。
 /// </remarks>
 public class PacketCodecSplitTests
 {
@@ -424,7 +424,7 @@ public class PacketCodecSplitTests
         foreach (var item in frames) item.TryDispose();
         round.TryDispose();
 
-        // 首轮仅半截帧：残片入缓存；次轮跨段拼成完整帧（span 委托路径拼接连续片段）
+        // 首轮仅半截帧：残片入缓存；次轮链头节点片段（≥ 帧头）由 span 委托直接定界成完整帧
         var half = f1.Length / 2;
         var r1 = CreateRound(seq, 0, half);
         Assert.Empty(codec.Parse(r1));
@@ -471,10 +471,10 @@ public class PacketCodecSplitTests
         codec.Dispose();
     }
 
-    /// <summary>S6：头部逐字节到达 —— 并段补齐到 HeadSize 后正常定界，未到齐的轮次不出帧</summary>
+    /// <summary>帧头跨节点：逐字节到达 —— 链感知委托跨段拼读定界，未到齐的轮次不出帧（不再并段，帧为纯切片链）</summary>
     [Fact]
-    [DisplayName("S6 头部保证：逐字节到达并段补齐后定界")]
-    public void HeadAssembly_OneBytePerRound()
+    [DisplayName("帧头跨节点：逐字节到达零拷贝组链定界（不并段）")]
+    public void Header_OneBytePerRound_ChainAware()
     {
         var frame = MakeFrame(100, 1);
         var codec = CreateLengthCodec();
@@ -493,16 +493,16 @@ public class PacketCodecSplitTests
         Assert.Single(got!);
         Assert.Equal(frame.Length, got![0].Total);
         Assert.Equal(frame, got![0].ToArray());
-        Assert.Equal(32, got![0].Length);            // 头部补齐到 HeadSize（单一头部节点）
+        Assert.Equal(1, got![0].Length);             // 首节点保持 1 字节切片，零拷贝不并段
         Assert.NotNull(got![0].Next);                // 后续字节零拷贝挂链
 
         got![0].TryDispose();
     }
 
-    /// <summary>S6：头部残片 + 大段到达 —— 仅补足 HeadSize，余量零拷贝挂链</summary>
+    /// <summary>帧头跨节点：首段 3 字节残片 + 大段到达 —— 不做并段拷贝，帧为 3B 切片 + 大段切片的链</summary>
     [Fact]
-    [DisplayName("S6 头部保证：大段仅补足头部，余量零拷贝挂链")]
-    public void HeadAssembly_BigRound_MergeCap()
+    [DisplayName("帧头跨节点：首段残片 + 大段到达零拷贝组链定界")]
+    public void Header_BigRound_NoMerge()
     {
         var frame = MakeFrame(5000, 7);
         var codec = CreateLengthCodec();
@@ -518,7 +518,7 @@ public class PacketCodecSplitTests
         Assert.Single(frames);
         Assert.Equal(frame.Length, frames[0].Total);
         Assert.Equal(frame, frames[0].ToArray());
-        Assert.Equal(32, frames[0].Length);          // 并段只补足到 HeadSize，未整段拷贝
+        Assert.Equal(3, frames[0].Length);           // 首节点保持 3 字节残片切片，不并段
         Assert.NotNull(frames[0].Next);              // 余量零拷贝挂链
         Assert.Equal(2, r2.RefCount);                // 本轮 + 帧链余段切片
         r2.TryDispose();
@@ -526,10 +526,10 @@ public class PacketCodecSplitTests
         frames[0].TryDispose();
     }
 
-    /// <summary>S6：Append 时并段补齐后，span 委托对多帧连续切帧（含跨节点小窗口）</summary>
+    /// <summary>旧版 span 委托：链式缓存下按链头节点片段定界（10 字节残片即可读出 4 字节帧头），连续切出多帧</summary>
     [Fact]
-    [DisplayName("S6 头部保证：并段后 span 委托连续切帧")]
-    public void HeadAssembly_ConsecutiveCuts()
+    [DisplayName("GetLength2 兼容：链式缓存 span 委托按链头片段连续切帧")]
+    public void SpanDelegate_ChainedCuts()
     {
         // 构造 5 个 20 字节小帧（4 头 + 16 负载）
         var f1 = MakeFrame(16, 1);
@@ -560,7 +560,7 @@ public class PacketCodecSplitTests
         foreach (var f in frames1) f.TryDispose();
         r1.TryDispose();
 
-        // 第2轮：第三帧尾部 + 第四、五帧；Append 时并段补齐（残留 10 字节 < HeadSize），随后连续切出三帧
+        // 第2轮：第三帧尾部 + 第四、五帧；链头为 10 字节残片（≥ 4 字节帧头），span 委托直接定界并连续切出三帧
         var r2 = CreateRound(seq, 50, seq.Length - 50);
         var frames2 = codec.Parse(r2);
         Assert.Equal(3, frames2.Count);

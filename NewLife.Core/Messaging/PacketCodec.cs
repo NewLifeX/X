@@ -12,7 +12,7 @@ public delegate Int32 GetLengthDelegate(ReadOnlySpan<Byte> span);
 /// <remarks>
 /// 文档 https://newlifex.com/core/packet_codec
 /// 
-/// <para><b>模型</b>：单一缓存链 + 帧首头部保证 + 共享切片切帧。缓存是一条由跨轮残段组成的单链；每次 Parse 先把本轮数据追加进缓存（此时若链头不足 <see cref="HeadSize"/> 且缓存总量已够，拷贝前 HeadSize 字节作为新链头，余链零拷贝保留），再从链头连续切出完整帧，协议头必然可直接解析。</para>
+/// <para><b>模型</b>：单一缓存链 + 共享切片切帧。缓存是一条由跨轮残段组成的单链；每次 Parse 先把本轮数据追加进缓存链尾，再从链头连续切出完整帧。帧头可能跨节点——不再并段补齐，链感知 <see cref="GetLength"/> 委托自行跨段拼读（Core 内可用 <see cref="PacketHelper.GetPrefix"/> 直取跨段前缀，外部可用 <see cref="PacketHelper.ReadBytes(IPacket, Span{Byte})"/> 拼入栈缓冲）。</para>
 /// <para><b>所有权规则</b>：</para>
 /// <list type="bullet">
 /// <item><description>入参句柄归调用方，Parse 不释放；需要跨轮保留的部分以共享切片（拥有句柄输入）或视图（视图输入）追加进缓存，缓存持有自己的引用</description></item>
@@ -35,16 +35,14 @@ public delegate Int32 GetLengthDelegate(ReadOnlySpan<Byte> span);
 public class PacketCodec : IDisposable
 {
     #region 属性
-    /// <summary>获取帧长度的委托。入参为缓存链头（帧首），实现方通常只需读帧首</summary>
+    /// <summary>获取帧长度的委托。入参为缓存链头（帧首），实现方需能跨节点读取协议头</summary>
     /// <remarks>
-    /// 入参是缓存链（帧首节点及其后续节点）；帧首头部由缓存保证连续——链头不足 <see cref="HeadSize"/> 时已并入后续残片补齐，
-    /// 通常可直接用 <see cref="IPacket.GetSpan"/> 读取协议头；确需更多字节时也可跨节点读取（如通过 <see cref="PacketHelper.ReadBytes(IPacket, Span{Byte})"/> 拼入栈缓冲）。
+    /// 入参是缓存链（帧首节点及其后续节点）；帧头可能跨节点——不再并段补齐，请跨段拼读协议头：
+    /// Core 内可用 <see cref="PacketHelper.GetPrefix"/> 一行拿到前缀（节点足够时零拷贝直引，跨节点时拼入栈缓冲），
+    /// 外部可用 <see cref="PacketHelper.ReadBytes(IPacket, Span{Byte})"/> 拼入栈缓冲。
     /// 注意 pk.Total 是缓存总量而非帧长。返回完整帧长度（可能大于现有数据）；返回0或负数表示无法定界，等下一轮。
     /// </remarks>
     public Func<IPacket, Int32>? GetLength { get; set; }
-
-    /// <summary>帧首头部连续保证长度。链头不足该长度且仍有后续数据时，自动并入后续残片补齐，保证协议头可直接读取。默认32；0或负数表示不启用</summary>
-    public Int32 HeadSize { get; set; } = 32;
 
     /// <summary>最后一次解包时间。每次加入数据时刷新，用于缓存过期判定</summary>
     public DateTime Last { get; set; } = DateTime.Now;
@@ -60,8 +58,8 @@ public class PacketCodec : IDisposable
 
     /// <summary>获取帧长度的委托（兼容旧版，span 版本）</summary>
     /// <remarks>
-    /// <para>为兼容基于 span 委托编译的旧版库（历史版本的 MQTT/RocketMQ/JT1078 等）而保留。</para>
-    /// <para>传入帧首连续片段——缓存保证帧首头部连续（不足 <see cref="HeadSize"/> 时已并入后续残片，数据足够时至少 HeadSize 字节）；因不再整链拼装，仅适用于只需读取帧头定界的长短字段协议，需扫描整链的协议（分隔符类）请使用链感知的 <see cref="GetLength"/>。</para>
+    /// <para>为兼容基于 span 委托编译的旧版库（历史版本的 MQTT/RocketMQ/JT1078 等）而保留；新实现请使用链感知的 <see cref="GetLength"/>。</para>
+    /// <para>传入链头节点的连续片段——单段缓存传完整数据；链式缓存只传链头节点本身（不再并段补齐），帧头跨节点时无法定界（返回0等待下一轮）。仅适用于帧头恰好落在链头节点内、且只需读取帧头定界的长短字段协议；需扫描整链的协议（分隔符类）请使用链感知的 <see cref="GetLength"/>。</para>
     /// </remarks>
     [Obsolete("请使用 GetLength，支持链式缓存；本属性仅兼容旧版二进制。")]
     public GetLengthDelegate? GetLength2 { get; set; }
@@ -69,7 +67,7 @@ public class PacketCodec : IDisposable
 
     #region 待处理缓存
     /// <summary>缓存链头。跨轮保留的残段，每个节点持有自己的引用（拥有切片或借阅视图）</summary>
-    /// <remarks>帧首头部由 <see cref="EnsureHead"/> 保证连续：链头不足 <see cref="HeadSize"/> 且缓存总量已够时拷贝补齐，恒为单一头部节点</remarks>
+    /// <remarks>帧头可能跨节点（不再并段补齐）；头部由链感知帧长委托跨段拼读</remarks>
     private IPacket? _head;
     #endregion
 
@@ -119,15 +117,13 @@ public class PacketCodec : IDisposable
 
             // 本轮数据追加到缓存链尾（单段共享切片零拷贝；多段链拉直为自有单节点）
             var node = pk.Next == null ? pk.Slice(0, pk.Total) : pk.Clone();
+            var borrowed = IsBorrowed(node);
             _head = _head == null ? node : _head.Append(node);
-
-            // 帧首头部保证：数据到来时若链头不足 HeadSize 则并段补齐，切帧过程保持简单
-            EnsureHead();
 
             Cut(getLength, getLength2, list);
 
-            // 借阅视图的残片不能跨轮保留，转为自有拷贝（拥有句柄输入的残片本身就是自有的）
-            EnsureOwned();
+            // 借阅视图的残片不能跨轮保留，转为自有拷贝；自有输入的残片本身即自有
+            if (borrowed) EnsureOwned();
         }
 
         return list;
@@ -152,7 +148,7 @@ public class PacketCodec : IDisposable
         }
     }
 
-    /// <summary>计算链头帧长度。单段优先 span 委托（与旧版行为一致）；链式优先链感知委托；仅 span 委托时读已保证连续的帧首头部</summary>
+    /// <summary>计算链头帧长度。单段优先 span 委托（与旧版行为一致）；链式优先链感知委托；仅 span 委托时只能读链头节点片段</summary>
     /// <param name="getLength">链感知帧长委托</param>
     /// <param name="getLength2">span 版帧长委托</param>
     /// <param name="head">缓存链头</param>
@@ -166,42 +162,8 @@ public class PacketCodec : IDisposable
         // 链式：优先链感知委托（零拷贝，可跨节点读帧头）
         if (getLength != null) return getLength(head);
 
-        // 仅 span 委托（旧版二进制）：链头已由 EnsureHead 保证帧首连续（数据足够时至少 HeadSize 字节），直接读头部定界
+        // 仅 span 委托（旧版二进制）：只能读到链头节点片段；帧头跨节点时无法定界，建议迁移到链感知 GetLength
         return getLength2!(head.GetSpan());
-    }
-
-    /// <summary>保证帧首头部连续：链头不足 HeadSize 但缓存总量已够时，拷贝前 HeadSize 字节为新链头（追加数据时调用）</summary>
-    /// <remarks>
-    /// <para>链头已够长、或缓存总量不足 HeadSize（继续等下一轮数据）时直接返回；只在追加数据时调用。</para>
-    /// <para>新链头为主拷贝的 HeadSize 字节；余链用 <see cref="OwnerPacket.Slice(Int32, Int32)"/> 切成共享切片挂在其后，旧链整体归还——
-    /// 被余链覆盖的段由引用计数保活，完全落在窗口前的段随旧链一起释放。</para>
-    /// </remarks>
-    private void EnsureHead()
-    {
-        var head = _head;
-        if (head == null || head.Next == null) return;
-
-        // 头部已够长，或数据还不够 HeadSize，都无需处理
-        var headLen = head.Length;
-        if (headLen >= HeadSize) return;
-        if (head.Total < HeadSize) return;
-
-        // 新链头：拷贝前 HeadSize 字节
-        var acc = new OwnerPacket(HeadSize);
-        var pos = head.ReadBytes(acc.Buffer.AsSpan(0, HeadSize));
-        acc.Resize(pos);
-
-        // 余链：从 HeadSize 处切片（共享切片）挂到新链头之后
-        var rest = head.Slice(HeadSize);
-        if (rest.Total > 0)
-            acc.Next = rest;
-        else
-            rest.TryDispose();
-
-        _head = acc;
-
-        // 旧链整体归还：被余链覆盖的段由引用计数保活，窗口前的段随旧链释放（无需逐个脱链）
-        head.TryDispose();
     }
 
     /// <summary>切出一帧，缓存窗口前移</summary>
@@ -227,11 +189,11 @@ public class PacketCodec : IDisposable
         return frame;
     }
 
-    /// <summary>确保缓存跨轮安全：借阅视图的残片转为自有拷贝</summary>
+    /// <summary>确保缓存跨轮安全：借阅视图的残片转为自有拷贝（仅在借阅输入时调用）</summary>
     /// <remarks>
     /// <para>Slice 不改变所有权分类：拥有句柄切片后仍是自有（引用计数共享），视图切片后仍是借用；只有 Clone 无条件自有。</para>
-    /// <para>拥有句柄输入（接收链路）时残片本身即自有，走一次找尾检查后直接返回、无拷贝；视图输入（直接调用）时仅未被切走的残片需要拷贝（完整帧保持零拷贝视图）。</para>
-    /// <para>借阅节点只可能是链尾（本轮追加），链上其余节点均为自有；只需处理链尾</para>
+    /// <para>自有输入（接收链路主流）的残片本身即自有，调用方按借阅标记跳过本方法、零开销；仅视图输入（直接调用）且存在未切走残片时才需要拷贝（完整帧保持零拷贝视图）。</para>
+    /// <para>借阅节点只可能是链尾（本轮追加），链上其余节点均为自有；走一次找尾检查后只处理链尾</para>
     /// </remarks>
     private void EnsureOwned()
     {

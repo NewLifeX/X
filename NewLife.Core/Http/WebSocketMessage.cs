@@ -67,11 +67,11 @@ public class WebSocketMessage : IDisposable
 
     #region 方法
     /// <summary>读取消息</summary>
-    /// <param name="pk">包含（或至少包含头部的）数据包（帧首节点需含完整协议头；PacketCodec 输出的帧首已保证，直调链式帧首段不足时自动拼读兼容）</param>
+    /// <param name="pk">包含（或至少包含头部的）数据包（头部与掩码最多 14 字节，可跨节点；首段不足时自动拼入栈缓冲，直调与 PacketCodec 输出一致）</param>
     /// <returns>true 解析完成；false 数据不完整或为分片帧（Fin=0）</returns>
     /// <remarks>
     /// <para><b>零拷贝</b>：解析后 <see cref="Payload"/> 直接引用参数 <paramref name="pk"/> 底层缓冲区（其切片），不做深复制，性能更高。</para>
-    /// <para><b>帧首头部</b>：头部与掩码合计最多 14 字节，要求完整落在帧首节点内（PacketCodec 输出帧首已保证）；直调链式帧且首段不足时自动拼入栈缓冲兼容，负载可继续为链式节点。</para>
+    /// <para><b>帧首头部</b>：头部与掩码合计最多 14 字节，可跨节点；首段不足时自动拼入栈缓冲拼读，负载可继续为链式节点。</para>
     /// <para><b>入参所有权</b>：本方法不释放 <paramref name="pk"/>，由调用方负责释放；负载为共享切片（引用计数）独立持有，帧句柄释放后负载仍可继续使用。</para>
     /// <para><b>作用域警告</b>：负载为借阅视图（<see cref="ArrayPacket"/>）时无所有权，请勿在原始接收缓冲被复用 / 归还之后继续访问；拥有帧负载持有独立引用，不受此限。</para>
     /// <para><b>掩码</b>：客户端帧含掩码时，在原缓冲区原地 XOR 解码，链式负载逐段处理、掩码跨段连续（属破坏性操作）。</para>
@@ -87,7 +87,7 @@ public class WebSocketMessage : IDisposable
         // ------- 基础头 (2字节 + 可变扩展) + 掩码（合计最多14字节） -------
         var total = pk.Total;
 
-        // 头部与掩码最多 14 字节：帧首节点足够时直接引用；不足且为链式时拼入栈缓冲（兼容直调链式帧；PacketCodec 输出帧首已保证）
+        // 头部与掩码最多 14 字节：帧首节点足够时直接引用；不足且为链式时拼入栈缓冲（头部跨节点兼容）
         Span<Byte> buf = stackalloc Byte[14];
         var span = pk.GetPrefix(buf, 14);
 

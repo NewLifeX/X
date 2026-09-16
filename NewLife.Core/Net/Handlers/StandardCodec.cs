@@ -102,8 +102,6 @@ public class StandardCodec : MessageCodec<IMessage>
             ss["Codec"] = pc = new PacketCodec
             {
                 GetLength = DefaultMessage.GetLength,
-                // 帧首头部保证：DefaultMessage 头部最多 8 字节（4 固定 + 4 扩展长度）
-                HeadSize = 8,
                 MaxCache = MaxCache,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };

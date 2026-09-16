@@ -103,7 +103,7 @@ public class DefaultMessage : Message
     }
 
     /// <summary>从数据包中读取消息（主入口）</summary>
-    /// <param name="pk">完整帧数据（帧首节点需含完整协议头；PacketCodec 输出的帧首已保证，直调可为链式）</param>
+    /// <param name="pk">完整帧数据（头部最多 8 字节，可跨节点；首段不足时自动拼入栈缓冲，直调与 PacketCodec 输出一致）</param>
     /// <returns>是否成功解析</returns>
     /// <remarks>
     /// 头部最多 8 字节：帧首节点足够时直接引用（<see cref="IPacket.GetSpan"/>）；不足且为链式时拼入栈缓冲兼容（不物化整帧）。
@@ -118,7 +118,7 @@ public class DefaultMessage : Message
 
         var total = pk.Total;
 
-        // 头部最多 8 字节：帧首节点足够时直接引用；不足且为链式时拼入栈缓冲（兼容直调链式帧；PacketCodec 输出帧首已保证）
+        // 头部最多 8 字节：帧首节点足够时直接引用；不足且为链式时拼入栈缓冲（头部跨节点兼容）
         Span<Byte> buf = stackalloc Byte[8];
         var span = pk.GetPrefix(buf, 8);
 
