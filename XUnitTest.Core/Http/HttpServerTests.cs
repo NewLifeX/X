@@ -254,6 +254,46 @@ Content-Type: image/jpeg
         Assert.Equal(png, (av.Data as Packet)?.Data);
     }
 
+    [Fact(DisplayName = "ParseFormData 链式跨段体：现代链式包聚合扫描")]
+    public void ParseFormData_ChainedBody()
+    {
+        var head = @"------WebKitFormBoundary3ZXeqQWNjAzojVR7
+Content-Disposition: form-data; name=""name""
+
+大石头
+------WebKitFormBoundary3ZXeqQWNjAzojVR7
+Content-Disposition: form-data; name=""avatar""; filename=""logo.bin""
+Content-Type: application/octet-stream
+
+";
+        var fileData = new Byte[512];
+        for (var i = 0; i < fileData.Length; i++) fileData[i] = (Byte)i;
+        var tail = "\r\n------WebKitFormBoundary3ZXeqQWNjAzojVR7--\r\n";
+
+        // 头部、文件数据、尾部各成一段；首段从边界标记中切开，文件数据再切两段（现代链式包的首段 GetSpan 只覆盖首个节点）
+        var raw = head.GetBytes();
+        IPacket pk = new ArrayPacket(raw[..30]);
+        pk.Append(new ArrayPacket(raw[30..]));
+        pk.Append(new ArrayPacket(fileData[..200]));
+        pk.Append(new ArrayPacket(fileData[200..]));
+        pk.Append(new ArrayPacket(tail.GetBytes()));
+
+        var req = new HttpRequest
+        {
+            ContentType = "multipart/form-data;boundary=----WebKitFormBoundary3ZXeqQWNjAzojVR7",
+            Body = pk
+        };
+
+        var dic = req.ParseFormData();
+        Assert.Equal("大石头", dic["name"]);
+
+        var av = dic["avatar"] as FormFile;
+        Assert.NotNull(av);
+        Assert.Equal("logo.bin", av.FileName);
+        Assert.Equal(512L, av.Length);
+        Assert.Equal(fileData, av.OpenReadStream()!.ReadBytes(-1));
+    }
+
     #region 新增覆盖测试
     [Fact]
     public async Task RouteOverridePriority()

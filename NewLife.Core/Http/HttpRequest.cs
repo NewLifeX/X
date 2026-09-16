@@ -130,6 +130,7 @@ public class HttpRequest : HttpBase
     }
 
     /// <summary>分析表单数据</summary>
+    /// <remarks>主体可跨节点（链式帧）：跨段时聚合全量后扫描，文件段仍按全局偏移从原链零拷贝切片。</remarks>
     public virtual IDictionary<String, Object> ParseFormData()
     {
         var dic = new Dictionary<String, Object>();
@@ -139,8 +140,12 @@ public class HttpRequest : HttpBase
         if (boundary.IsNullOrEmpty()) return dic;
 
         var body = Body;
-        if (body == null || body.Length == 0) return dic;
+        if (body == null || body.Total == 0) return dic;
+
+        // 链式体：现代链式包首段 GetSpan 只覆盖首个节点（旧版 Packet 会聚合全链），不足时聚合全量后扫描
         var data = body.GetSpan();
+        if (data.Length < body.Total) data = body.ReadBytes(0, body.Total);
+
         var idx = 0;
 
         /*

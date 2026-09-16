@@ -137,6 +137,37 @@ public class HttpRequestTests
         Assert.EndsWith("\r\n{\"name\":\"Stone\"}", text);
     }
 
+    [Fact(DisplayName = "Build 链式跨段体：全链逐段写入且长度一致")]
+    public void Build_Request_ChainedBody()
+    {
+        var part1 = "{\"name\":\"Stone\"".GetBytes();
+        var part2 = ",\"age\":18".GetBytes();
+        var part3 = "}".GetBytes();
+
+        IPacket chain = new ArrayPacket(part1);
+        chain.Append(new ArrayPacket(part2));
+        chain.Append(new ArrayPacket(part3));
+
+        var total = part1.Length + part2.Length + part3.Length;
+        var req = new HttpRequest
+        {
+            RequestUri = new Uri("http://example.com/api/info"),
+            ContentType = "application/json",
+            Body = chain
+        };
+
+        var pk = req.Build();
+        var text = pk.ToStr();
+        Assert.Contains($"Content-Length: {total}\r\n", text);
+        Assert.EndsWith("{\"name\":\"Stone\",\"age\":18}", text);
+
+        // 回读验证：主体与声明长度一致
+        var req2 = new HttpRequest();
+        Assert.True(req2.Parse(pk));
+        Assert.Equal(total, req2.ContentLength);
+        Assert.Equal("{\"name\":\"Stone\",\"age\":18}", req2.Body!.ToStr());
+    }
+
     [Fact]
     public void Parse_InvalidHeader_ReturnsFalse()
     {

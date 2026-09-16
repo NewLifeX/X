@@ -122,7 +122,7 @@ public abstract class HttpBase : IDisposable
 
     #region 读写
     /// <summary>创建请求响应包</summary>
-    /// <remarks>数据来自缓冲池，使用者用完返回数据包后应该释放，以便把缓冲区放回池里</remarks>
+    /// <remarks>数据来自缓冲池，使用者用完返回数据包后应该释放，以便把缓冲区放回池里。链式主体逐段写入，实际内容与声明长度一致。</remarks>
     /// <returns></returns>
     public virtual IOwnerPacket Build()
     {
@@ -139,7 +139,8 @@ public abstract class HttpBase : IDisposable
 
         writer.Write(header, -1);
 
-        if (body != null) writer.Write(body.GetSpan());
+        // 链式主体由 Write(IPacket) 逐段写入，无需聚合拷贝
+        if (body != null) writer.Write(body);
 
         return pk.Resize(writer.Position);
     }

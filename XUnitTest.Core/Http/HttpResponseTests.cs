@@ -59,6 +59,19 @@ public class HttpResponseTests
         Assert.Contains("Content-Length: 0\r\n", text);
     }
 
+    [Fact(DisplayName = "Build 链式跨段体：响应体全链写入")]
+    public void Build_Response_ChainedBody()
+    {
+        IPacket chain = new ArrayPacket("hello ".GetBytes());
+        chain.Append(new ArrayPacket("world".GetBytes()));
+
+        var resp = new HttpResponse { Body = chain };
+        var pk = resp.Build();
+        var text = pk.ToStr();
+        Assert.Contains("Content-Length: 11\r\n", text);
+        Assert.EndsWith("hello world", text);
+    }
+
     [Fact]
     public void SetResult_VariousTypes()
     {
