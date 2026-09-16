@@ -384,17 +384,71 @@ public class MessageCodec<T> : Handler
     /// <param name="offset">长度的偏移量</param>
     /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
     /// <returns>完整帧长度（可能大于现有数据，调用方需自行判断数据是否足够）；返回0表示头部不足无法定界</returns>
-    /// <remarks>与链式版本同模式：按需把头部前缀拼入栈缓冲后复用跨度解析，不要求头部连续。</remarks>
+    /// <remarks>与链式版本同模式：在只读序列上顺序读取长度字段，不要求头部连续。</remarks>
     public static Int32 GetLength(ReadOnlySequence<Byte> buffer, Int32 offset, Int32 size)
     {
         if (offset < 0) return (Int32)buffer.Length;
 
-        // 头部前缀至多 offset + 长度字段（变长编码最多5字节）
-        var need = offset + (size == 0 ? 5 : Math.Abs(size));
-        var buf = need <= 256 ? stackalloc Byte[need] : new Byte[need];
-        var n = PacketHelper.CopyPrefix(buffer, buf);
+        // 数据不够，连长度都读取不了
+        if (offset >= buffer.Length) return 0;
 
-        return GetLength(buf[..n], offset, size);
+        // 长度字段本身不完整，视为数据不足
+        var lenBytes = size == 0 ? 1 : Math.Abs(size);
+        if (buffer.Length - offset < lenBytes) return 0;
+
+        var reader = new SequenceReader<Byte>(buffer);
+        reader.Advance(offset);
+
+        // 读取大小
+        var len = 0;
+        switch (size)
+        {
+            case 0:
+                // 计算变长的头部长度：7 位压缩编码读取值并累计消耗字节数
+                var start = reader.Consumed;
+                var value = 0;
+                var shift = 0;
+                while (true)
+                {
+                    if (!reader.TryRead(out var b)) throw new InvalidOperationException("Not enough data to read the variable length length-field.");
+                    value |= (b & 0x7F) << shift;
+                    if ((b & 0x80) == 0) break;
+
+                    shift += 7;
+                    if (shift >= 32) throw new FormatException("The number value is too large to read in compressed format!");
+                }
+                len = value + (Int32)(reader.Consumed - start);
+                break;
+            case 1:
+            case -1:
+                if (!reader.TryRead(out Byte b8)) return 0;
+                len = b8;
+                break;
+            case 2:
+                if (!reader.TryReadLittleEndian(out UInt16 v16)) return 0;
+                len = v16;
+                break;
+            case -2:
+                if (!reader.TryReadBigEndian(out UInt16 v16b)) return 0;
+                len = v16b;
+                break;
+            case 4:
+                if (!reader.TryReadLittleEndian(out Int32 v32)) return 0;
+                len = v32;
+                break;
+            case -4:
+                if (!reader.TryReadBigEndian(out Int32 v32b)) return 0;
+                len = v32b;
+                break;
+            default:
+                throw new NotSupportedException();
+        }
+
+        // 数据长度加上头部长度，得到完整帧长。可能大于现有数据（段保留依赖此声明长度跨轮累积），
+        // 调用方需自行判断数据是否足够（ParseFrames/DrainPending 均有边界检查）
+        len += Math.Abs(size);
+
+        return offset + len;
     }
     #endregion
 }

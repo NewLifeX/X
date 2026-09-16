@@ -186,6 +186,60 @@ public class WebSocketMessage : IDisposable
         return true;
     }
 
+    /// <summary>从只读序列读取帧长度（纯函数，不修改实例状态；跨段直读）</summary>
+    /// <param name="reader">序列读取器（从帧首开始）；失败时其读取进度无效</param>
+    /// <param name="b0">帧首字节（FIN/RSV/OPCODE）</param>
+    /// <param name="masked">是否带掩码</param>
+    /// <param name="payloadLength">负载长度</param>
+    /// <param name="headerLen">头部长度（2基础头+扩展长度+掩码）</param>
+    /// <returns>是否解析成功；false 表示头部不足或长度非法（负数 / 超过 Int32 上限）</returns>
+    /// <remarks>RFC 6455 §5.2 长度语法：&lt;126 单字节 / 126→2字节大端 / 127→8字节大端。流式头部解析与帧长定界共用。</remarks>
+    private static Boolean TryReadFrameLength(ref SequenceReader<Byte> reader, out Byte b0, out Boolean masked, out Int64 payloadLength, out Int32 headerLen)
+    {
+        b0 = 0;
+        masked = false;
+        payloadLength = 0;
+        headerLen = 0;
+
+        if (!reader.TryRead(out b0)) return false;
+        if (!reader.TryRead(out var b1)) return false;
+
+        masked = (b1 & 0x80) != 0;
+        var len7 = b1 & 0x7F;
+
+        /*
+         * 数据长度
+         * len < 126    单字节表示长度
+         * len = 126    后续2字节表示长度，大端
+         * len = 127    后续8字节表示长度
+         */
+        Int64 len;
+        headerLen = 2;
+        if (len7 == 126)
+        {
+            if (!reader.TryReadBigEndian(out UInt16 v16)) return false;
+            len = v16;
+            headerLen = 4;
+        }
+        else if (len7 == 127)
+        {
+            if (!reader.TryReadBigEndian(out Int64 v64)) return false;
+            if (v64 < 0 || v64 > Int32.MaxValue) return false;
+            len = v64;
+            headerLen = 10;
+        }
+        else
+        {
+            len = len7;
+        }
+
+        // 掩码 4 字节计入头部长度；字节本身是否到齐由调用方按需校验（帧长定界仅需长度字段，掩码键解析需掩码到齐）
+        if (masked) headerLen += 4;
+
+        payloadLength = len;
+        return true;
+    }
+
     /// <summary>解析帧头，填充 <see cref="Fin"/>/<see cref="Type"/>/<see cref="MaskKey"/>（不消费窗口、不切片负载）</summary>
     /// <param name="span">帧首字节（头部与掩码最多 14 字节）</param>
     /// <param name="payloadLength">负载长度（仅当返回值大于0时有效）</param>
@@ -241,16 +295,18 @@ public class WebSocketMessage : IDisposable
     /// <summary>从帧头读取完整帧长度（只读序列版本，供流式帧层跨段定界）</summary>
     /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
     /// <returns>完整帧总字节数（头部+负载）；数据不足以确定长度时返回 0</returns>
-    /// <remarks>与链式版本同模式：按需把头部前缀拼入栈缓冲后复用跨度解析，不要求头部连续。</remarks>
+    /// <remarks>与链式版本同模式：在只读序列上顺序读取长度字段，不要求头部连续。</remarks>
     internal static Int32 GetFrameTotalLength(ReadOnlySequence<Byte> buffer)
     {
         if (buffer.Length < 2) return 0;
 
-        // 头部与掩码最多 14 字节（2 基础头 + 8 扩展长度 + 4 掩码）：跨段拼入栈缓冲
-        Span<Byte> buf = stackalloc Byte[14];
-        var n = PacketHelper.CopyPrefix(buffer, buf);
+        // 跨段直读长度字段（2 基础头 + 2/8 扩展长度），不拼入栈缓冲
+        var reader = new SequenceReader<Byte>(buffer);
+        if (!TryReadFrameLength(ref reader, out _, out _, out var payloadLen, out var headerLen)) return 0;
 
-        return GetFrameTotalLength(buf[..n]);
+        // 帧总长超 Int32 上限按无法定界处理（当前实现索引为 Int32）
+        var total = headerLen + payloadLen;
+        return total > Int32.MaxValue ? 0 : (Int32)total;
     }
 
     /// <summary>对数据应用掩码（4字节循环异或）</summary>

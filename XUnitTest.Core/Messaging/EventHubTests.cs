@@ -259,6 +259,14 @@ public class EventHubTests
 
         Assert.Equal(1, rs);
         Assert.Equal("chain-hi", handler.HandledMessage);
+
+        // 分隔符 '#' 恰好落在节点边界（头部逐段扫描跨段）
+        var full2 = "event#test#c1#{\"Message\":\"edge-hi\"}".GetBytes();
+        IPacket packet2 = new ArrayPacket(full2[..6]);
+        packet2.Append(new ArrayPacket(full2[6..11]));
+        packet2.Append(new ArrayPacket(full2[11..]));
+        Assert.Equal(1, await hub.OnReceiveAsync(packet2));
+        Assert.Equal("edge-hi", handler.HandledMessage);
     }
 
     [Fact(DisplayName = "OnReceiveAsync_IPacket 跨节点头部无效时应返回 0")]

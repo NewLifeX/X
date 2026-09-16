@@ -656,5 +656,34 @@ public class WebSocketMessageTests
 
         Assert.Equal(0, WebSocketMessage.GetFrameTotalLength(frame.AsSpan()));
     }
+
+    [Fact(DisplayName = "WebSocket帧长_序列版_127扩展负数与超上限_返回0")]
+    public void GetFrameTotalLength_Sequence_InvalidExtensions()
+    {
+        // 负值（Int64 最高位为 1）
+        var neg = new Byte[10];
+        neg[1] = 127;
+        BinaryPrimitives.WriteInt64BigEndian(neg.AsSpan(2), -1);
+        Assert.Equal(0, WebSocketMessage.GetFrameTotalLength(new ArrayPacket(neg).AsReadOnlySequence()));
+
+        // 超 Int32 上限（头部+负载超限）
+        var over = new Byte[10];
+        over[1] = 127;
+        BinaryPrimitives.WriteInt64BigEndian(over.AsSpan(2), Int32.MaxValue);
+        Assert.Equal(0, WebSocketMessage.GetFrameTotalLength(new ArrayPacket(over).AsReadOnlySequence()));
+    }
+
+    [Fact(DisplayName = "WebSocket帧长_序列版_仅长度字段到齐即可定界_掩码字节可缺")]
+    public void GetFrameTotalLength_Sequence_MaskNotRequired()
+    {
+        // 掩码帧 126 扩展长度：仅 4 字节头到齐（掩码键 4 字节未到齐），定界仍应成功
+        var head = new Byte[] { 0x82, 0x80 | 126, 0x01, 0x2C };
+        Assert.Equal(308, WebSocketMessage.GetFrameTotalLength(new ArrayPacket(head).AsReadOnlySequence()));
+
+        // 跨段同语义
+        IPacket chain = new ArrayPacket(head[..2]);
+        chain.Append(new ArrayPacket(head[2..]));
+        Assert.Equal(308, WebSocketMessage.GetFrameTotalLength(chain.AsReadOnlySequence()));
+    }
     #endregion
 }

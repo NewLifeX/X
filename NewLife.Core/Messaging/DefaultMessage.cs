@@ -294,16 +294,24 @@ public class DefaultMessage : Message
     /// <summary>获取数据包长度（只读序列版本，供流式帧层跨段定界）</summary>
     /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
     /// <returns>完整消息长度（可能大于现有数据）；返回0表示头部不足无法定界</returns>
-    /// <remarks>与链式版本同模式：按需把头部前缀拼入栈缓冲后复用跨度解析，不要求头部连续。</remarks>
+    /// <remarks>与链式版本同模式：在只读序列上顺序读取长度字段，不要求头部连续。</remarks>
     public static Int32 GetLength(ReadOnlySequence<Byte> buffer)
     {
         if (buffer.Length < 4) return 0;
 
-        // 头部最多 8 字节（4 固定 + 4 扩展长度）：跨段拼入栈缓冲
-        Span<Byte> buf = stackalloc Byte[8];
-        var n = PacketHelper.CopyPrefix(buffer, buf);
+        // 在只读序列上顺序读取：跳过状态位/序列号，读取 2 字节小端长度；扩展长度跨段直读
+        var reader = new SequenceReader<Byte>(buffer);
+        reader.Advance(2);
 
-        return GetLength(buf[..n]);
+        if (!reader.TryReadLittleEndian(out UInt16 len)) return 0;
+
+        // 小于64k，直接返回
+        if (len < 0xFFFF) return 4 + len;
+
+        // 超过64k的超大数据包，再来4个字节
+        if (reader.Remaining < 4) return 0;
+
+        return reader.TryReadLittleEndian(out Int32 len32) ? 8 + len32 : 0;
     }
 
     /// <summary>获取解析数据时的原始报文视图（事件期间展示当前帧）</summary>

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Text;
 using NewLife.Data;
 using NewLife.Log;
@@ -189,28 +190,18 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         }
     }
 
-    /// <summary>跨节点扫描头部末端。event#topic#clientId# 的分隔符为单字节 '#'，可跨段逐字节扫描</summary>
+    /// <summary>跨段扫描头部末端。event#topic#clientId# 的分隔符为单字节 '#'，用序列读取器跨段扫描</summary>
     /// <param name="data">数据包链</param>
     /// <returns>头部字节数（含末尾 '#'）；分隔符不足 3 个时返回 0</returns>
     private static Int32 FindHeaderLength(IPacket data)
     {
-        var pos = 0;
-        var separators = 0;
-        for (var node = data; node != null; node = node.Next)
+        var reader = new SequenceReader<Byte>(data.AsReadOnlySequence());
+        for (var i = 0; i < 3; i++)
         {
-            var span = node.GetSpan();
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (span[i] == (Byte)'#')
-                {
-                    separators++;
-                    if (separators == 3) return pos + i + 1;
-                }
-            }
-            pos += span.Length;
+            if (!reader.TryAdvanceTo((Byte)'#', true)) return 0;
         }
 
-        return 0;
+        return (Int32)reader.Consumed;
     }
 
     /// <summary>从头部之后的负载解码事件信封</summary>

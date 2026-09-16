@@ -1,4 +1,5 @@
-﻿using NewLife.Buffers;
+﻿using System.Buffers;
+using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
@@ -126,15 +127,20 @@ public class LengthFieldCodec : MessageCodec<IPacket>
             var headerLen = Offset + Math.Abs(Size);
             if (Size == 0)
             {
-                // 变长字段最多5字节，仅读取帧头前缀；跨段拼入缓冲，避免物化整个链式大帧，也无需切片对象
-                var need = Offset + 5;
-                var head = need <= 256 ? stackalloc Byte[need] : new Byte[need];
-                var n = frame.ReadBytes(head);
-                var reader = new SpanReader(head[..n]) { IsLittleEndian = true };
+                // 变长字段最多5字节（7 位压缩编码）：在序列上顺序读取，免前缀拷贝
+                var reader = new SequenceReader<Byte>(frame.AsReadOnlySequence());
                 reader.Advance(Offset);
-                var p = reader.Position;
-                _ = reader.ReadEncodedInt();
-                headerLen = Offset + reader.Position - p;
+
+                var count = 0;
+                while (true)
+                {
+                    if (!reader.TryRead(out var b)) throw new InvalidOperationException("Not enough data to read the variable length length-field.");
+                    count++;
+                    if ((b & 0x80) == 0) break;
+
+                    if (count >= 5) throw new FormatException("The number value is too large to read in compressed format!");
+                }
+                headerLen = Offset + count;
             }
 
             // 负载共享切片（沿链零拷贝，引用计数）；帧句柄由本层释放，负载独立持有
