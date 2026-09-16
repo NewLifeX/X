@@ -73,6 +73,28 @@ public class HttpServerTests : IDisposable
         Assert.Equal("User.edit(1234) success!", rs);
     }
 
+    [Fact(DisplayName = "请求头跨轮分片：凑齐后正常响应")]
+    public async Task SplitRequestHead()
+    {
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 请求头跨两次发送，第一次在 Host 头部中间截断（模拟头部跨接收轮分片）
+        var head = "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".GetBytes();
+        await ns.WriteAsync(head.AsMemory(0, 18));
+        await ns.FlushAsync();
+        await Task.Delay(50);
+        await ns.WriteAsync(head.AsMemory(18));
+        await ns.FlushAsync();
+
+        var buf = new Byte[2048];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+        var resp = buf.AsSpan(0, n).ToStr();
+        Assert.StartsWith("HTTP/1.1", resp);
+    }
+
     [Fact]
     public async Task MapStaticFiles()
     {

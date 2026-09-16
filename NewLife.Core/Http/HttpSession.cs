@@ -37,9 +37,27 @@ public class HttpSession : INetHandler, IDisposable
         "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
     ];
 
+    /// <summary>请求头跨轮分片缓存上限。超出丢弃，防止无效数据持续占用内存</summary>
+    private const Int32 MaxHeadLength = 64 * 1024;
+
+    private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
+
     private INetSession _session = null!;
     private WebSocket? _websocket;
     private MemoryStream? _cache;
+    private MemoryStream? _headCache;
+    #endregion
+
+    #region 辅助
+    /// <summary>判断本轮数据是否像 HTTP 头部开头且尚不完整（无空行）：需要缓存等待后续分片</summary>
+    /// <param name="pk">本轮数据包</param>
+    /// <returns>是否应缓存等待后续分片</returns>
+    private static Boolean IsIncompleteHead(IPacket pk)
+    {
+        // 首行断言跨段前缀拼读；总长与空行查找均链式感知
+        Span<Byte> buf = stackalloc Byte[10];
+        return HttpBase.FastValidHeader(pk.GetPrefix(buf, 10)) && pk.Total <= MaxHeadLength && pk.IndexOf(NewLine2) < 0;
+    }
     #endregion
 
     #region 收发数据
@@ -68,8 +86,18 @@ public class HttpSession : INetHandler, IDisposable
         // 取当前请求上下文引用（可能为 null）
         var req = Request;
         var request = new HttpRequest();
-        if (request.Parse(pk))
+
+        // 请求头可能跨接收轮分片：有缓存时先与缓存片合并再整体解析，其余情况直接用本轮数据
+        var headPk = pk;
+        if (_headCache != null)
         {
+            pk.CopyTo(_headCache);
+            headPk = new ArrayPacket(_headCache.GetBuffer(), 0, (Int32)_headCache.Length);
+        }
+
+        if (request.Parse(headPk))
+        {
+            _headCache = null;
             req = Request = request;
 
             (_session as NetSession)?.WriteLog("{0} {1}", request.Method, request.RequestUri);
@@ -112,21 +140,29 @@ public class HttpSession : INetHandler, IDisposable
                 }
             }
         }
-        else if (req != null)
+        else if (req != null && _cache != null)
         {
             // 已有正在接收的请求，继续拼接主体
-            if (_cache != null)
-            {
-                pk.CopyTo(_cache);
+            pk.CopyTo(_cache);
 
-                // 防御：若收到数据超过声明长度，立即截断并视为完成
-                if (_cache.Length >= req.ContentLength)
-                {
-                    _cache.Position = 0;
-                    req.Body = new ArrayPacket(_cache);
-                    _cache = null;
-                }
+            // 防御：若收到数据超过声明长度，立即截断并视为完成
+            if (_cache.Length >= req.ContentLength)
+            {
+                _cache.Position = 0;
+                req.Body = new ArrayPacket(_cache);
+                _cache = null;
             }
+        }
+        else if (_headCache != null)
+        {
+            // 缓存的头部片加本轮数据仍不能成头：含完整空行仍解析失败（无效请求头）或超限，均丢弃；否则继续等后续分片
+            if (_headCache.Length > MaxHeadLength || headPk.IndexOf(NewLine2) >= 0) _headCache = null;
+        }
+        else if (IsIncompleteHead(pk))
+        {
+            // 无活动请求，本轮数据像 HTTP 开头但头部不含空行（不完整）：缓存等待后续分片（请求头跨轮）
+            _headCache = new MemoryStream();
+            pk.CopyTo(_headCache);
         }
 
         if (req != null)
@@ -292,12 +328,11 @@ public class HttpSession : INetHandler, IDisposable
     private void AppendSpanTag(ISpan span, HttpRequest request)
     {
         var includeBody = false;
-        var bodyLength = request.Body?.Length ?? 0;
+        var bodyLength = request.Body?.Total ?? 0;
         if (request.BodyLength > 0 && request.Body != null && bodyLength > 0 && bodyLength < 8 * 1024 && request.ContentType.EqualIgnoreCase(TagTypes))
         {
-            var body = request.Body.GetSpan();
-            if (body.Length > 1024) body = body[..1024];
-            span.AppendTag("\r\n<=\r\n" + body.ToStr(null));
+            // 主体可能为链式：链感知截断读取（最多 1024 字节）
+            span.AppendTag("\r\n<=\r\n" + request.Body.ToStr(null, 0, 1024));
             includeBody = true;
         }
 
@@ -356,7 +391,8 @@ public class HttpSession : INetHandler, IDisposable
     /// <param name="ps">参数字典</param>
     private void ParsePostBody(HttpRequest req, IDictionary<String, Object?> ps)
     {
-        var body = req.Body!.GetSpan();
+        // 主体可能为链式（跨接收段）：统一用链感知读取
+        var body = req.Body!;
         if (req.ContentType.StartsWithIgnoreCase("application/x-www-form-urlencoded", "application/x-www-urlencoded"))
         {
             var qs = body.ToStr().SplitAsDictionary("=", "&")
@@ -370,7 +406,7 @@ public class HttpSession : INetHandler, IDisposable
             if (fs.Length > 0) req.Files = fs;
             ps.Merge(dic);
         }
-        else if (body.Length >= 2 && body[0] == (Byte)'{' && body[^1] == (Byte)'}')
+        else if (body.Total >= 2 && body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
         {
             var js = body.ToStr().DecodeJson();
             if (js != null) ps.Merge(js);
@@ -379,11 +415,14 @@ public class HttpSession : INetHandler, IDisposable
     #endregion
 
     #region 销毁
-    /// <summary>销毁。释放请求体缓存与 WebSocket 粘包编码器（归还段链池缓冲）</summary>
+    /// <summary>销毁。释放请求头/体缓存与 WebSocket 粘包编码器（归还段链池缓冲）</summary>
     public void Dispose()
     {
         _cache?.Dispose();
         _cache = null;
+
+        _headCache?.Dispose();
+        _headCache = null;
 
         _websocket?.Dispose();
         _websocket = null;

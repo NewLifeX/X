@@ -1,4 +1,5 @@
-﻿using NewLife.Buffers;
+﻿using System.Buffers;
+using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
@@ -304,10 +305,12 @@ public class MessageCodec<T> : Handler
         if (offset < 0) return pk.Total;
 
         var need = offset + (size == 0 ? 5 : Math.Abs(size));
+
+        // 帧首节点足够或无后续链：直接解析
         var span = pk.GetSpan();
         if (span.Length >= need || pk.Next == null) return GetLength(span, offset, size);
 
-        // 帧头可能跨节点：拼接所需前缀；超大头部退回数组拷贝
+        // 帧头跨节点：前缀拼读；超大头部退回数组拷贝
         if (need > 256)
         {
             var data = pk.ReadBytes(0, need);
@@ -315,9 +318,8 @@ public class MessageCodec<T> : Handler
         }
 
         Span<Byte> buf = stackalloc Byte[need];
-        var n = pk.ReadBytes(buf);
 
-        return GetLength(buf[..n], offset, size);
+        return GetLength(pk.GetPrefix(buf, need), offset, size);
     }
 
     /// <summary>从数据流中获取整帧数据长度</summary>
@@ -375,6 +377,24 @@ public class MessageCodec<T> : Handler
         len += Math.Abs(size);
 
         return offset + len;
+    }
+
+    /// <summary>从数据流中获取整帧数据长度（只读序列版本，供流式帧层跨段定界）</summary>
+    /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
+    /// <param name="offset">长度的偏移量</param>
+    /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
+    /// <returns>完整帧长度（可能大于现有数据，调用方需自行判断数据是否足够）；返回0表示头部不足无法定界</returns>
+    /// <remarks>与链式版本同模式：按需把头部前缀拼入栈缓冲后复用跨度解析，不要求头部连续。</remarks>
+    public static Int32 GetLength(ReadOnlySequence<Byte> buffer, Int32 offset, Int32 size)
+    {
+        if (offset < 0) return (Int32)buffer.Length;
+
+        // 头部前缀至多 offset + 长度字段（变长编码最多5字节）
+        var need = offset + (size == 0 ? 5 : Math.Abs(size));
+        var buf = need <= 256 ? stackalloc Byte[need] : new Byte[need];
+        var n = PacketHelper.CopyPrefix(buffer, buf);
+
+        return GetLength(buf[..n], offset, size);
     }
     #endregion
 }

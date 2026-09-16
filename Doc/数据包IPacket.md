@@ -316,6 +316,25 @@ var msg = body.ExpandHeader(4);
 // 此时 msg 的前 4 字节可填充头部，后续链为 body
 ```
 
+### 5.9 序列桥接（ReadOnlySequence）
+
+- `AsReadOnlySequence(this IPacket pk)`
+  - 数据包链 → `ReadOnlySequence<Byte>` 零拷贝视图；单段快速路径零分配，多段构建段链适配。
+  - 序列仅在数据包句柄有效期内可用；跨轮/跨异步持有请先 `Slice` 共享切片。
+
+- `AsReadOnlySequence(this IPacket pk, Int32 offset, Int32 count = -1)`
+  - 指定窗口的序列视图，跨段窗口自动裁剪。
+
+典型用法（与协议解析/数据管道对接）：
+
+```csharp
+var seq = pk.AsReadOnlySequence();      // 只读窗口，顺序解析
+var head = pk.AsReadOnlySequence(0, 8); // 头部窗口（跨段自动裁剪）
+```
+
+> 协议头部前缀解析（首段直读 + 跨段拼读）由 PacketHelper 内部统一提供（`GetPrefix`/`CopyPrefix`），
+> 数据管道的读取窗口同样直接使用 `ReadOnlySequence<Byte>`，详见《数据管道PacketPipe.md》。
+
 ---
 
 ## 6. 链式包的行为约定
@@ -471,3 +490,4 @@ msg.Dispose();
 - 覆盖新增实现：`ReadOnlyPacket`。
 - 强调 `OwnerPacket` 引用计数共享切片等关键语义。
 - 增加与 `IMessage` 联动释放设计的说明（第 10 节）。
+- 增加序列桥接说明（第 5.9 节）：`AsReadOnlySequence` 零拷贝视图与窗口重载。

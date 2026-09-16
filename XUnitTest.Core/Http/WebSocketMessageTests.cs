@@ -1,4 +1,5 @@
-﻿using NewLife;
+﻿using System.Buffers.Binary;
+using NewLife;
 using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.Http;
@@ -643,4 +644,17 @@ public class WebSocketMessageTests
         msg2.Dispose();
         frame.TryDispose();
     }
+
+    #region 帧长解析
+    [Fact(DisplayName = "WebSocket帧长_127扩展长度超Int32上限_返回0")]
+    public void GetFrameTotalLength_OverInt32_ReturnsZero()
+    {
+        // 127 扩展长度声明 Int32.MaxValue：头部 10 字节后帧总长超 Int32 上限，按无法定界处理
+        var frame = new Byte[10];
+        frame[1] = 127;
+        BinaryPrimitives.WriteInt64BigEndian(frame.AsSpan(2), Int32.MaxValue);
+
+        Assert.Equal(0, WebSocketMessage.GetFrameTotalLength(frame.AsSpan()));
+    }
+    #endregion
 }

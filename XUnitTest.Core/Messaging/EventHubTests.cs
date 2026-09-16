@@ -242,6 +242,49 @@ public class EventHubTests
         Assert.Equal("packet-hi", handler.HandledMessage);
     }
 
+    [Fact(DisplayName = "OnReceiveAsync_IPacket 头部跨节点时应拼读解析并路由")]
+    public async Task OnReceiveAsync_Packet_ChainedHeader_RoutesToHandler()
+    {
+        var hub = new EventHub<TestEvent>();
+        var handler = new TestEventHandler();
+        hub.GetEventBus("test").Subscribe(handler);
+
+        // 头部 event#test#c1# 与负载切到 3 个节点上（跨接收轮组链的帧）
+        var full = "event#test#c1#{\"Message\":\"chain-hi\"}".GetBytes();
+        IPacket packet = new ArrayPacket(full[..3]);
+        packet.Append(new ArrayPacket(full[3..9]));
+        packet.Append(new ArrayPacket(full[9..]));
+
+        var rs = await hub.OnReceiveAsync(packet);
+
+        Assert.Equal(1, rs);
+        Assert.Equal("chain-hi", handler.HandledMessage);
+    }
+
+    [Fact(DisplayName = "OnReceiveAsync_IPacket 跨节点头部无效时应返回 0")]
+    public async Task OnReceiveAsync_Packet_ChainedInvalidHeader_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+
+        // 分隔符不足 3 个
+        var short1 = "event#test#c1".GetBytes();
+        IPacket p1 = new ArrayPacket(short1[..3]);
+        p1.Append(new ArrayPacket(short1[3..]));
+        Assert.Equal(0, await hub.OnReceiveAsync(p1));
+
+        // 前缀不匹配
+        var wrong = "not-event#test#c1#body".GetBytes();
+        IPacket p2 = new ArrayPacket(wrong[..5]);
+        p2.Append(new ArrayPacket(wrong[5..]));
+        Assert.Equal(0, await hub.OnReceiveAsync(p2));
+
+        // 空负载
+        var empty = "event#test#c1#".GetBytes();
+        IPacket p3 = new ArrayPacket(empty[..3]);
+        p3.Append(new ArrayPacket(empty[3..]));
+        Assert.Equal(0, await hub.OnReceiveAsync(p3));
+    }
+
     // ----------- PublishAsync / SubscribeAsync / UnsubscribeAsync -----------
 
     [Fact(DisplayName = "SubscribeAsync 后 PublishAsync 应将事件路由到总线")]

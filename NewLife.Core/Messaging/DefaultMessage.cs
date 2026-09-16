@@ -1,4 +1,5 @@
-﻿using NewLife.Buffers;
+﻿using System.Buffers;
+using NewLife.Buffers;
 using NewLife.Data;
 
 namespace NewLife.Messaging;
@@ -119,7 +120,7 @@ public class DefaultMessage : Message
 
         // 头部最多 8 字节：帧首节点足够时直接引用；不足且为链式时拼入栈缓冲（兼容直调链式帧；PacketCodec 输出帧首已保证）
         Span<Byte> buf = stackalloc Byte[8];
-        var span = pk.Length >= 8 || pk.Next == null ? pk.GetSpan() : buf[..pk.ReadBytes(buf)];
+        var span = pk.GetPrefix(buf, 8);
 
         var size = ParseHeader(span, out var len);
         if (size + len > total)
@@ -264,14 +265,10 @@ public class DefaultMessage : Message
     /// <returns>完整消息长度（可能大于现有数据）；返回0表示头部不足无法定界</returns>
     public static Int32 GetLength(IPacket pk)
     {
-        var span = pk.GetSpan();
-        if (span.Length >= 8 || pk.Next == null) return GetLength(span);
-
-        // 帧头可能跨节点：拼接前 8 字节（大包路径需要 8 字节）
+        // 帧头可能跨节点：前缀拼读（大包路径需要 8 字节）
         Span<Byte> buf = stackalloc Byte[8];
-        var n = pk.ReadBytes(buf);
 
-        return GetLength(buf[..n]);
+        return GetLength(pk.GetPrefix(buf, 8));
     }
 
     /// <summary>获取数据包长度</summary>
@@ -292,6 +289,21 @@ public class DefaultMessage : Message
         if (span.Length < 8) return 0;
 
         return 8 + reader.ReadInt32();
+    }
+
+    /// <summary>获取数据包长度（只读序列版本，供流式帧层跨段定界）</summary>
+    /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
+    /// <returns>完整消息长度（可能大于现有数据）；返回0表示头部不足无法定界</returns>
+    /// <remarks>与链式版本同模式：按需把头部前缀拼入栈缓冲后复用跨度解析，不要求头部连续。</remarks>
+    public static Int32 GetLength(ReadOnlySequence<Byte> buffer)
+    {
+        if (buffer.Length < 4) return 0;
+
+        // 头部最多 8 字节（4 固定 + 4 扩展长度）：跨段拼入栈缓冲
+        Span<Byte> buf = stackalloc Byte[8];
+        var n = PacketHelper.CopyPrefix(buffer, buf);
+
+        return GetLength(buf[..n]);
     }
 
     /// <summary>获取解析数据时的原始报文视图（事件期间展示当前帧）</summary>

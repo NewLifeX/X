@@ -81,6 +81,42 @@ public class HttpRequestTests
         Assert.Null(req.Headers["Host"]);
     }
 
+    [Fact(DisplayName = "Parse 链式跨节点头部：头部横跨多个节点仍可解析")]
+    public void Parse_Chained_SplitHeader()
+    {
+        var raw = "POST /api/user HTTP/1.1\r\nHost: example.com\r\nContent-Length: 7\r\nContent-Type: text/plain\r\n\r\npayload".GetBytes();
+
+        // 头部切到 3 个节点上（跨接收段组链）
+        IPacket pk = new ArrayPacket(raw[..5]);
+        pk.Append(new ArrayPacket(raw[5..30]));
+        pk.Append(new ArrayPacket(raw[30..]));
+
+        var req = new HttpRequest();
+        Assert.True(req.Parse(pk));
+        Assert.Equal("POST", req.Method);
+        Assert.Equal("/api/user", req.RequestUri + "");
+        Assert.Equal("example.com", req.Host);
+        Assert.Equal(7, req.ContentLength);
+        Assert.Equal("payload", req.Body?.ToStr());
+    }
+
+    [Fact(DisplayName = "FastParse 链式跨节点头部：首行横跨节点仍可解析")]
+    public void FastParse_Chained_SplitFirstLine()
+    {
+        var raw = "GET /very/long/path HTTP/1.1\r\nHost: a\r\n\r\n".GetBytes();
+
+        // 首行切到 3 个节点上
+        IPacket pk = new ArrayPacket(raw[..7]);
+        pk.Append(new ArrayPacket(raw[7..15]));
+        pk.Append(new ArrayPacket(raw[15..]));
+
+        var req = new HttpRequest();
+        Assert.True(req.FastParse(pk));
+        Assert.Equal("GET", req.Method);
+        Assert.Equal("/very/long/path", req.RequestUri + "");
+        Assert.Equal("1.1", req.Version);
+    }
+
     [Fact]
     public void Build_Request_AutoMethodAndHost()
     {

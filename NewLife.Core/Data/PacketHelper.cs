@@ -78,6 +78,136 @@ public static class PacketHelper
     public static IPacket Append(this IPacket pk, Byte[] data) => Append(pk, new ArrayPacket(data));
     #endregion
 
+    #region 序列视图
+    /// <summary>将数据包链转换为只读字节序列（零拷贝视图）</summary>
+    /// <param name="pk">数据包（单段或链式）</param>
+    /// <returns>只读字节序列；空包返回空序列</returns>
+    /// <exception cref="ArgumentNullException">数据包为 null</exception>
+    /// <remarks>
+    /// <para>零拷贝：序列直接引用数据包底层缓冲区，不复制数据、不增加引用计数。</para>
+    /// <para><b>生命周期</b>：序列仅在数据包句柄有效期内可用——拥有句柄 Dispose 归还池化缓冲、或借阅视图的接收缓冲被复用后，继续读取将产生未定义行为。需要跨轮/跨异步持有时，请先切出共享切片（<see cref="IOwnerPacket.Slice(Int32, Int32)"/>）或克隆。</para>
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// var seq = pk.AsReadOnlySequence();
+    /// foreach (var memory in seq) { /* 逐段零拷贝读取 */ }
+    /// </code>
+    /// </example>
+    public static ReadOnlySequence<Byte> AsReadOnlySequence(this IPacket pk)
+    {
+        if (pk == null) throw new ArgumentNullException(nameof(pk));
+
+        // 单段快速路径：直接以内存创建序列，免段对象分配
+        if (pk.Next == null) return new ReadOnlySequence<Byte>(pk.GetMemory());
+
+        var first = new PacketSequenceSegment(pk.GetMemory());
+        var last = first;
+        for (var node = pk.Next; node != null; node = node.Next)
+        {
+            last = last.Append(node.GetMemory());
+        }
+
+        return new ReadOnlySequence<Byte>(first, 0, last, last.Memory.Length);
+    }
+
+    /// <summary>将数据包链的指定窗口转换为只读字节序列（零拷贝视图，跨段窗口自动裁剪）</summary>
+    /// <param name="pk">数据包（单段或链式）</param>
+    /// <param name="offset">相对链首的起始偏移</param>
+    /// <param name="count">字节数，-1 表示到链尾</param>
+    /// <returns>只读字节序列；窗口为空时返回空序列</returns>
+    /// <exception cref="ArgumentNullException">数据包为 null</exception>
+    /// <exception cref="ArgumentOutOfRangeException">偏移或长度超出数据范围</exception>
+    public static ReadOnlySequence<Byte> AsReadOnlySequence(this IPacket pk, Int32 offset, Int32 count = -1)
+    {
+        if (pk == null) throw new ArgumentNullException(nameof(pk));
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be negative.");
+
+        var total = pk.Total;
+        if (count < 0) count = total - offset;
+        if (offset > total || count > total - offset)
+            throw new ArgumentOutOfRangeException(nameof(count), $"Offset {offset} with count {count} exceeds total length {total}");
+
+        if (count == 0) return ReadOnlySequence<Byte>.Empty;
+
+        // 单段快速路径
+        if (pk.Next == null) return new ReadOnlySequence<Byte>(pk.GetMemory().Slice(offset, count));
+
+        // 跳过 offset 所在的整段（空段跳过时不会停留）
+        var skip = offset;
+        var node = pk;
+        while (node != null && skip >= node.Length)
+        {
+            skip -= node.Length;
+            node = node.Next;
+        }
+        if (node == null) return ReadOnlySequence<Byte>.Empty;
+
+        var remain = count;
+
+        // 起点段：切掉段内偏移后取窗口内部分
+        var memory = node.GetMemory();
+        if (skip > 0) memory = memory.Slice(skip);
+
+        var take = Math.Min(memory.Length, remain);
+        var first = new PacketSequenceSegment(memory.Slice(0, take));
+        var last = first;
+        remain -= take;
+
+        // 后续段：逐段裁剪，直到窗口取满
+        for (node = node.Next; node != null && remain > 0; node = node.Next)
+        {
+            var mem = node.GetMemory();
+            var len = Math.Min(mem.Length, remain);
+
+            last = last.Append(mem.Slice(0, len));
+            remain -= len;
+        }
+
+        return new ReadOnlySequence<Byte>(first, 0, last, last.Memory.Length);
+    }
+
+    /// <summary>把序列前缀复制到目标跨度（最多复制目标长度字节）</summary>
+    /// <param name="source">源序列</param>
+    /// <param name="destination">目标跨度</param>
+    /// <returns>实际复制的字节数</returns>
+    /// <remarks>用于把跨段头部拼入栈缓冲后复用跨度解析；跨段复制复用 BCL 的 <see cref="BuffersExtensions.CopyTo{T}"/></remarks>
+    internal static Int32 CopyPrefix(ReadOnlySequence<Byte> source, Span<Byte> destination)
+    {
+        var count = (Int32)Math.Min(source.Length, destination.Length);
+        if (count <= 0) return 0;
+
+        source.Slice(0, count).CopyTo(destination[..count]);
+
+        return count;
+    }
+
+    /// <summary>数据包序列段。把数据包链的单段内存适配为标准 <see cref="ReadOnlySequenceSegment{T}"/>，支撑零拷贝序列视图</summary>
+    internal sealed class PacketSequenceSegment : ReadOnlySequenceSegment<Byte>
+    {
+        /// <summary>段承载的数据句柄。数据管道用它承担消费归还；序列桥接（无所有权）为 null</summary>
+        public IPacket? Packet { get; set; }
+
+        /// <summary>使用内存片段创建序列段</summary>
+        /// <param name="memory">内存片段</param>
+        public PacketSequenceSegment(ReadOnlyMemory<Byte> memory) => Memory = memory;
+
+        /// <summary>在链尾追加内存片段，返回新的链尾段</summary>
+        /// <param name="memory">内存片段</param>
+        /// <returns>新的链尾段</returns>
+        public PacketSequenceSegment Append(ReadOnlyMemory<Byte> memory)
+        {
+            var segment = new PacketSequenceSegment(memory)
+            {
+                RunningIndex = RunningIndex + Memory.Length,
+            };
+
+            Next = segment;
+
+            return segment;
+        }
+    }
+    #endregion
+
     #region 数据转换
     /// <summary>转换为字符串</summary>
     /// <param name="pk">数据包（允许 null）</param>
@@ -501,6 +631,24 @@ public static class PacketHelper
         }
 
         return pos;
+    }
+
+    /// <summary>获取数据包链的前缀跨度。帧首节点足够时直接引用；不足且为链式时拼入缓冲（不物化整帧）</summary>
+    /// <param name="pk">数据包（单段或链式）</param>
+    /// <param name="buffer">跨段拼读缓冲（调用方分配，长度不小于 count）</param>
+    /// <param name="count">需要的最大前缀字节数</param>
+    /// <returns>前缀跨度；帧首节点足够时零拷贝直引，跨段时拼入 buffer（数据总量不足时可能短于 count）</returns>
+    /// <remarks>协议头部解析的公共入口：统一“首段直读 + 跨段拼读”两条路径，避免各协议各自手写拼读兜底。</remarks>
+    internal static ReadOnlySpan<Byte> GetPrefix(this IPacket pk, Span<Byte> buffer, Int32 count)
+    {
+        // 帧首节点足够或无后续链：直接引用（数据不足由解析方判定）
+        var span = pk.GetSpan();
+        if (span.Length >= count || pk.Next == null) return span;
+
+        // 前缀跨节点：拼入缓冲（最多 count 字节）
+        if (buffer.Length > count) buffer = buffer[..count];
+
+        return buffer[..pk.ReadBytes(buffer)];
     }
 
     /// <summary>在数据包链中查找目标字节序列，返回相对链头的全局偏移</summary>

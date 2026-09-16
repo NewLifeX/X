@@ -55,18 +55,20 @@ public class HttpRequest : HttpBase
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>快速分析请求头，只分析第一行</summary>
-    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。</remarks>
+    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。首行可跨节点（链式帧）：跨段查找换行定位首行末端。</remarks>
     /// <param name="pk">数据包</param>
     /// <returns>是否解析成功</returns>
     public Boolean FastParse(IPacket pk)
     {
-        var data = pk.GetSpan();
-        if (!FastValidHeader(data)) return false;
+        // 快速验证：请求行以谓语开头（最多10字节内出现空格；跨段前缀拼读）
+        Span<Byte> fastBuf = stackalloc Byte[10];
+        if (!FastValidHeader(pk.GetPrefix(fastBuf, 10))) return false;
 
-        var p = data.IndexOf(NewLine);
+        // 首行可能跨节点：跨段查找换行定位首行末端
+        var p = pk.IndexOf(NewLine);
         if (p < 0) return false;
 
-        var line = data.Slice(0, p).ToStr();
+        var line = pk.Slice(0, p).ToStr();
 
         // 主体：共享切片独立持有引用；入参句柄由调用方释放
         Body = pk.Slice(p + 2, -1);

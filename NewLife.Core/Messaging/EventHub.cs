@@ -170,7 +170,59 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     {
         envelope = default;
         if (data == null) return false;
-        if (!TryParseHeader(data.GetSpan(), out var topic, out var clientId, out var headerLen)) return false;
+
+        if (data.Next == null)
+        {
+            if (!TryParseHeader(data.GetSpan(), out var topic, out var clientId, out var headerLen)) return false;
+
+            return DecodePayload(data, topic, clientId, headerLen, out envelope);
+        }
+        else
+        {
+            // 头部 event#topic#clientId# 可能跨节点（跨接收轮组链的帧）：跨段扫描定位头部末端，物化头部字节后复用跨度解析
+            var headLength = FindHeaderLength(data);
+            if (headLength <= 0) return false;
+
+            if (!TryParseHeader(data.ReadBytes(0, headLength), out var topic, out var clientId, out var headerLen)) return false;
+
+            return DecodePayload(data, topic, clientId, headerLen, out envelope);
+        }
+    }
+
+    /// <summary>跨节点扫描头部末端。event#topic#clientId# 的分隔符为单字节 '#'，可跨段逐字节扫描</summary>
+    /// <param name="data">数据包链</param>
+    /// <returns>头部字节数（含末尾 '#'）；分隔符不足 3 个时返回 0</returns>
+    private static Int32 FindHeaderLength(IPacket data)
+    {
+        var pos = 0;
+        var separators = 0;
+        for (var node = data; node != null; node = node.Next)
+        {
+            var span = node.GetSpan();
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (span[i] == (Byte)'#')
+                {
+                    separators++;
+                    if (separators == 3) return pos + i + 1;
+                }
+            }
+            pos += span.Length;
+        }
+
+        return 0;
+    }
+
+    /// <summary>从头部之后的负载解码事件信封</summary>
+    /// <param name="data">网络数据包</param>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">客户端标识</param>
+    /// <param name="headerLen">头部字节数</param>
+    /// <param name="envelope">解码出的事件信封</param>
+    /// <returns>是否解码成功</returns>
+    private Boolean DecodePayload(IPacket data, String topic, String clientId, Int32 headerLen, out EventEnvelope envelope)
+    {
+        envelope = default;
 
         var msg = data.Slice(headerLen);
         if (msg.Length == 0) return false;

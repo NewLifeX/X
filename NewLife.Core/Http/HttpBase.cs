@@ -56,17 +56,25 @@ public abstract class HttpBase : IDisposable
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析请求头。主体以共享切片截取，不释放入参</summary>
-    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。</remarks>
+    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。头部可跨节点（链式帧/跨接收段）：前缀与空行均跨段查找，跨段时物化头部区域后解析。</remarks>
     /// <param name="pk">数据包</param>
     /// <returns>是否解析成功</returns>
     public Boolean Parse(IPacket pk)
     {
-        var data = pk.GetSpan();
-        if (!FastValidHeader(data)) return false;
+        // 快速验证：第一行以请求谓语/响应版本开头（最多10字节内出现空格；跨段前缀拼读）
+        Span<Byte> fastBuf = stackalloc Byte[10];
+        if (!FastValidHeader(pk.GetPrefix(fastBuf, 10))) return false;
 
-        // 查找首个空行（CRLFCRLF）。p 指向空行起始位置
-        var p = data.IndexOf(NewLine2);
+        // 查找首个空行（CRLFCRLF）。p 指向空行起始位置（跨段查找，返回全局偏移）
+        var p = pk.IndexOf(NewLine2);
         if (p < 0) return false;
+
+        // 头部区域：单段零拷贝直读；链式（头部跨节点）物化头部区，头部通常很小
+        ReadOnlySpan<Byte> data;
+        if (pk.Next == null)
+            data = pk.GetSpan();
+        else
+            data = pk.ReadBytes(0, p);
 
         // 只取头部区域（不包含分隔空行），避免之前 (p+2) 的截取导致尾部半行进入解析产生潜在问题
         var header = data[..p];

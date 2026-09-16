@@ -1,4 +1,5 @@
-﻿using System.Buffers.Binary;
+﻿using System.Buffers;
+using System.Buffers.Binary;
 using System.Text;
 using NewLife.Buffers;
 using NewLife.Data;
@@ -88,71 +89,31 @@ public class WebSocketMessage : IDisposable
 
         // 头部与掩码最多 14 字节：帧首节点足够时直接引用；不足且为链式时拼入栈缓冲（兼容直调链式帧；PacketCodec 输出帧首已保证）
         Span<Byte> buf = stackalloc Byte[14];
-        var span = pk.Length >= 14 || pk.Next == null ? pk.GetSpan() : buf[..pk.ReadBytes(buf)];
+        var span = pk.GetPrefix(buf, 14);
 
-        // 第1字节： FIN(1) RSV1-3(3) OPCODE(4)
-        var b = span[0];
-        Fin = (b & 0x80) != 0;
-        Type = (WebSocketMessageType)(b & 0x0F); // 只取低4位OPCODE
+        // 解析头部前缀（长度合法性 / FIN / OPCODE / 掩码键），得到含掩码的头部长度与负载长度
+        var headerLen = ParseFrameHeader(span, out var len);
+        if (headerLen == 0) return false; // 头部不足或长度非法（负数 / 超过 Int32 上限）
 
         // 当前实现只处理单帧完整消息，忽略分片后续帧
         if (!Fin) return false;
 
-        var b2 = span[1];
-        var mask = (b2 & 0x80) != 0;
-
-        /*
-         * 数据长度
-         * len < 126    单字节表示长度
-         * len = 126    后续2字节表示长度，大端
-         * len = 127    后续8字节表示长度
-         */
-        // 扩展长度需要先确认剩余空间，避免越界（返回false表示数据暂不完整）
-        var headerLen = 2;      // 已消费的头部字节数（基础头 + 扩展长度）
-        var len = (Int64)(b2 & 0x7F);
-        if (len == 126)
-        {
-            if (total - headerLen < 2) return false; // 数据不完整
-            len = ((Int64)span[2] << 8) | span[3];
-            headerLen += 2;
-        }
-        else if (len == 127)
-        {
-            if (total - headerLen < 8) return false;
-            len = 0;
-            for (var i = 0; i < 8; i++) len = (len << 8) | span[headerLen + i];
-            headerLen += 8;
-        }
-
-        if (len < 0) return false; // 非法长度
-        if (len > Int32.MaxValue) return false; // 当前实现不支持>2GB负载（避免索引/内存问题）
-
-        // 读取掩码与负载前完整性检查：掩码4字节 + 负载，以整帧总量判定
-        var need = (mask ? 4 : 0) + len;
-        if (total - headerLen < need) return false; // 数据尚未到齐
-
-        // 掩码先于负载切片读出，供 XOR 解码使用
-        var masks = mask ? new Byte[4] : null;
-        if (masks != null)
-        {
-            for (var i = 0; i < masks.Length; i++) masks[i] = span[headerLen + i];
-            MaskKey = masks;
-        }
+        // 完整性检查：负载是否到齐（头部长度已含掩码）
+        if (total - headerLen < len) return false;
 
         // 负载：共享切片（引用计数）独立持有，链式帧切出链式负载；入参帧句柄由调用方释放
-        Payload = pk.Slice(headerLen + (mask ? 4 : 0), (Int32)len);
+        Payload = pk.Slice(headerLen, (Int32)len);
 
         // 掩码原地 XOR 解码（链式负载逐段遍历，掩码跨段连续；属破坏性操作）
+        var masks = MaskKey;
         if (masks != null)
         {
-            var idx = 0;
+            var offset = 0;
             for (var node = Payload; node != null; node = node.Next)
             {
                 var data = node.GetSpan();
-                for (var i = 0; i < data.Length; i++)
-                {
-                    data[i] ^= masks[idx++ & 3];
-                }
+                ApplyMask(data, masks, offset);
+                offset += data.Length;
             }
         }
 
@@ -176,19 +137,92 @@ public class WebSocketMessage : IDisposable
         return 2 + extLen + maskLen + payload;
     }
 
+    /// <summary>读取帧的负载长度与头部长度（纯函数，不修改实例状态）</summary>
+    /// <param name="span">帧首字节（头部与掩码最多 14 字节）</param>
+    /// <param name="payloadLength">负载长度</param>
+    /// <param name="headerLen">头部长度（2基础头+扩展长度+掩码）</param>
+    /// <returns>是否解析成功；false 表示头部不足或长度非法（负数 / 超过 Int32 上限）</returns>
+    /// <remarks>RFC 6455 §5.2 长度语法：&lt;126 单字节 / 126→2字节大端 / 127→8字节大端。整帧解析、流式头部解析与帧长定界共用。</remarks>
+    private static Boolean TryReadFrameLength(ReadOnlySpan<Byte> span, out Int64 payloadLength, out Int32 headerLen)
+    {
+        payloadLength = 0;
+        headerLen = 0;
+        if (span.Length < 2) return false;
+
+        var b2 = span[1];
+        var masked = (b2 & 0x80) != 0;
+        var len7 = b2 & 0x7F;
+
+        /*
+         * 数据长度
+         * len < 126    单字节表示长度
+         * len = 126    后续2字节表示长度，大端
+         * len = 127    后续8字节表示长度
+         */
+        Int64 len;
+        headerLen = 2;
+        if (len7 == 126)
+        {
+            if (span.Length < 4) return false;
+            len = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(2));
+            headerLen = 4;
+        }
+        else if (len7 == 127)
+        {
+            if (span.Length < 10) return false;
+            len = BinaryPrimitives.ReadInt64BigEndian(span.Slice(2));
+            if (len < 0 || len > Int32.MaxValue) return false;
+            headerLen = 10;
+        }
+        else
+        {
+            len = len7;
+        }
+
+        // 掩码 4 字节计入头部长度；字节本身是否到齐由调用方按需校验（帧长定界仅需长度字段，掩码键解析需掩码到齐）
+        if (masked) headerLen += 4;
+
+        payloadLength = len;
+        return true;
+    }
+
+    /// <summary>解析帧头，填充 <see cref="Fin"/>/<see cref="Type"/>/<see cref="MaskKey"/>（不消费窗口、不切片负载）</summary>
+    /// <param name="span">帧首字节（头部与掩码最多 14 字节）</param>
+    /// <param name="payloadLength">负载长度（仅当返回值大于0时有效）</param>
+    /// <returns>头部长度（2基础头+扩展长度+掩码）；0表示头部不足或长度非法</returns>
+    private Int32 ParseFrameHeader(ReadOnlySpan<Byte> span, out Int64 payloadLength)
+    {
+        payloadLength = 0;
+        if (!TryReadFrameLength(span, out var len, out var headerLen)) return 0;
+
+        // 第1字节： FIN(1) RSV1-3(3) OPCODE(4)
+        var b = span[0];
+        Fin = (b & 0x80) != 0;
+        Type = (WebSocketMessageType)(b & 0x0F); // 只取低4位OPCODE
+
+        // 掩码键：位于基础头+扩展长度之后，需 4 字节掩码到齐
+        if ((span[1] & 0x80) != 0)
+        {
+            if (span.Length < headerLen) return 0;
+
+            var masks = new Byte[4];
+            for (var i = 0; i < 4; i++) masks[i] = span[headerLen - 4 + i];
+            MaskKey = masks;
+        }
+
+        payloadLength = len;
+        return headerLen;
+    }
+
     /// <summary>从帧头读取完整帧长度（含头部），供 PacketCodec 用作 GetLength 委托；帧首节点含完整头部时直读，不足且链式时拼接</summary>
     /// <param name="pk">数据包（PacketCodec 缓存的帧首；直调可为链式）</param>
     /// <returns>完整帧总字节数（头部+负载）；数据不足以确定长度时返回 0</returns>
     internal static Int32 GetFrameTotalLength(IPacket pk)
     {
-        var span = pk.GetSpan();
-        if (span.Length >= 14 || pk.Next == null) return GetFrameTotalLength(span);
-
-        // 帧头可能跨节点：拼接前 14 字节（2 字节基础头 + 8 字节扩展长度 + 4 字节掩码）
+        // 帧头可能跨节点：前缀拼读（2 字节基础头 + 8 字节扩展长度 + 4 字节掩码）
         Span<Byte> buf = stackalloc Byte[14];
-        var n = pk.ReadBytes(buf);
 
-        return GetFrameTotalLength(buf[..n]);
+        return GetFrameTotalLength(pk.GetPrefix(buf, 14));
     }
 
     /// <summary>从原始帧头字节读取完整帧长度（含头部）。</summary>
@@ -196,35 +230,39 @@ public class WebSocketMessage : IDisposable
     /// <returns>完整帧总字节数（头部+负载）；数据不足以确定长度时返回 0</returns>
     internal static Int32 GetFrameTotalLength(ReadOnlySpan<Byte> span)
     {
-        if (span.Length < 2) return 0;
+        // 头部与掩码最多 14 字节：与整帧/流式解析共用同一纯函数长度解码
+        if (!TryReadFrameLength(span, out var payloadLen, out var headerLen)) return 0;
 
-        var b2 = span[1];
-        var masked = (b2 & 0x80) != 0;
-        var len7 = b2 & 0x7F;
+        // 帧总长超 Int32 上限按无法定界处理（当前实现索引为 Int32）
+        var total = headerLen + payloadLen;
+        return total > Int32.MaxValue ? 0 : (Int32)total;
+    }
 
-        Int64 payloadLen;
-        var headerLen = 2;
+    /// <summary>从帧头读取完整帧长度（只读序列版本，供流式帧层跨段定界）</summary>
+    /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
+    /// <returns>完整帧总字节数（头部+负载）；数据不足以确定长度时返回 0</returns>
+    /// <remarks>与链式版本同模式：按需把头部前缀拼入栈缓冲后复用跨度解析，不要求头部连续。</remarks>
+    internal static Int32 GetFrameTotalLength(ReadOnlySequence<Byte> buffer)
+    {
+        if (buffer.Length < 2) return 0;
 
-        if (len7 == 126)
+        // 头部与掩码最多 14 字节（2 基础头 + 8 扩展长度 + 4 掩码）：跨段拼入栈缓冲
+        Span<Byte> buf = stackalloc Byte[14];
+        var n = PacketHelper.CopyPrefix(buffer, buf);
+
+        return GetFrameTotalLength(buf[..n]);
+    }
+
+    /// <summary>对数据应用掩码（4字节循环异或）</summary>
+    /// <param name="data">数据</param>
+    /// <param name="masks">掩码</param>
+    /// <param name="offset">数据起点在负载中的偏移，保证掩码跨窗口/跨段连续</param>
+    private static void ApplyMask(Span<Byte> data, Byte[] masks, Int64 offset)
+    {
+        for (var i = 0; i < data.Length; i++)
         {
-            if (span.Length < 4) return 0;
-            payloadLen = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(2));
-            headerLen = 4;
+            data[i] = (Byte)(data[i] ^ masks[(Int32)((offset + i) & 3)]);
         }
-        else if (len7 == 127)
-        {
-            if (span.Length < 10) return 0;
-            payloadLen = BinaryPrimitives.ReadInt64BigEndian(span.Slice(2));
-            if (payloadLen < 0 || payloadLen > Int32.MaxValue) return 0;
-            headerLen = 10;
-        }
-        else
-        {
-            payloadLen = len7;
-        }
-
-        if (masked) headerLen += 4;
-        return (Int32)(headerLen + payloadLen);
     }
 
     /// <summary>把消息转为封包</summary>
@@ -314,14 +352,14 @@ public class WebSocketMessage : IDisposable
             // 拥有帧可能在 ExpandHeader 时被原地接管而作废，因此统一从 rs 链上取数据，跳过头部区域
             if (hasBody)
             {
-                var idx = 0;
+                var offset = 0;
                 for (var node = rs; node != null; node = node.Next)
                 {
                     var data = node.GetSpan();
-                    for (var i = node == rs ? Math.Min(size, data.Length) : 0; i < data.Length; i++)
-                    {
-                        data[i] = (Byte)(data[i] ^ masks[idx++ & 3]);
-                    }
+                    var start = node == rs ? Math.Min(size, data.Length) : 0;
+
+                    ApplyMask(data[start..], masks, offset);
+                    offset += data.Length - start;
                 }
             }
         }
