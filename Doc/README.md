@@ -90,6 +90,7 @@ NewLife.Core 是一个全功能的 .NET 基础类库，提供日志、网络、�
 | **Span写入器** | [Span写入器SpanWriter.md](Span写入器SpanWriter.md) | 高效二进制写入 |
 | **缓冲区** | [缓冲区Buffers.md](缓冲区Buffers.md) | 缓冲区管理 |
 | **池化写入器** | [池化写入器PooledByteBufferWriter.md](池化写入器PooledByteBufferWriter.md) | 池化字节写入器 |
+| **序列读取器** | [序列读取器SequenceReader.md](序列读取器SequenceReader.md) | 跨段顺序读取（全 TFM） |
 
 ### ?? 网络通信
 

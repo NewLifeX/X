@@ -332,8 +332,9 @@ var seq = pk.AsReadOnlySequence();      // 只读窗口，顺序解析
 var head = pk.AsReadOnlySequence(0, 8); // 头部窗口（跨段自动裁剪）
 ```
 
-> 协议头部前缀解析（首段直读 + 跨段拼读）由 PacketHelper 内部统一提供（`GetPrefix`/`CopyPrefix`），
-> 数据管道的读取窗口同样直接使用 `ReadOnlySequence<Byte>`，详见《数据管道PacketPipe.md》。
+> 协议解析优先使用 `SequenceReader<T>` 在只读序列上顺序读取（全 18 TFM 可用，旧框架经 `Stub/SequenceReader.cs` 垫片补齐）；
+> `IPacket` 链的帧首头部直读仍可用 `PacketHelper.GetPrefix`。
+> 数据管道的读取窗口同样直接使用 `ReadOnlySequence<Byte>`，详见《数据管道PacketPipe.md》与《序列读取器SequenceReader.md》。
 
 ---
 

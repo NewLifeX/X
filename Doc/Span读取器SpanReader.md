@@ -261,3 +261,4 @@ public async Task<List<Record>> ParseStreamAsync(Stream stream)
 - [`SpanWriter`](./SpanWriter.md) - 对应的写入器
 - [`SpanHelper`](./SpanHelper.md) - Span相关的辅助方法
 - [`PooledByteBufferWriter`](./PooledByteBufferWriter.md) - 池化的动态缓冲区写入器
+- [`SequenceReader<T>`](./序列读取器SequenceReader.md) - 跨段只读序列的顺序读取器（全 TFM 可用，旧框架经垫片补齐）
