@@ -1,0 +1,260 @@
+using System.ComponentModel;
+using System.Net.Sockets;
+using NewLife;
+using NewLife.Data;
+using NewLife.Http;
+using NewLife.Log;
+using NewLife.Net;
+using NewLife.Net.Handlers;
+using Xunit;
+
+namespace XUnitTest.Net;
+
+/// <summary>Unix域套接字传输测试。依赖操作系统的AF_UNIX支持（Linux/macOS，Windows 10 1803+），不支持时静默跳过</summary>
+[Collection("Net")]
+[DisplayName("Unix域套接字测试")]
+public class UdsNetServerTests
+{
+    #region 辅助
+    private static String NewTempPath() => Path.Combine(Path.GetTempPath(), $"nl_uds_{Guid.NewGuid():N}.sock");
+
+    /// <summary>探测当前系统是否支持Unix域套接字</summary>
+    private static Boolean UnixSupported()
+    {
+        var path = NewTempPath();
+        try
+        {
+            using var sock = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            sock.Bind(new UnixDomainSocketEndPoint(path));
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+    #endregion
+
+    [Fact]
+    [DisplayName("Unix域套接字_Echo回环")]
+    public void Echo()
+    {
+        if (!UnixSupported())
+        {
+            XTrace.WriteLine("当前系统不支持Unix域套接字，跳过测试");
+            return;
+        }
+
+        var path = NewTempPath();
+        try
+        {
+            using var server = new UdsEchoServer { Local = new NetUri($"unix://{path}") };
+            server.Start();
+
+            Assert.True(server.Active);
+            Assert.True(File.Exists(path));
+
+            using var client = new NetUri($"unix://{path}").CreateRemote();
+
+            var wait = new ManualResetEventSlim();
+            Byte[]? received = null;
+            client.Received += (s, e) =>
+            {
+                received = e.GetBytes();
+                wait.Set();
+            };
+
+            client.Open();
+
+            var payload = new Byte[32];
+            Random.Shared.NextBytes(payload);
+            _ = client.Send(payload);
+
+            Assert.True(wait.Wait(3_000));
+            Assert.NotNull(received);
+            Assert.Equal(payload, received);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字_编解码器Echo")]
+    public async Task CodecEcho()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        try
+        {
+            using var server = new NetServer
+            {
+                Local = new NetUri($"unix://{path}"),
+            };
+            server.Add<StandardCodec>();
+            server.Received += (s, e) =>
+            {
+                if (s is not INetSession session) return;
+
+                // 优先回显解码后的负载，e.Packet 为整轮原始数据（含帧头）
+                var pk = e.Message as IPacket ?? e.Packet;
+                if (pk != null && pk.Total > 0) session.SendReply(pk, e);
+            };
+            server.Start();
+
+            Assert.True(server.Active);
+
+            using var client = new NetUri($"unix://{path}").CreateRemote();
+            client.Add<StandardCodec>();
+            client.Open();
+
+            var sendData = new ArrayPacket("Hello UDS"u8.ToArray());
+            var response = await client.SendMessageAsync(sendData);
+
+            Assert.NotNull(response);
+            var pk = Assert.IsAssignableFrom<IPacket>(response);
+            Assert.Equal("Hello UDS"u8.ToArray(), pk.ToArray());
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字_停止后删除套接字文件")]
+    public void StopDeletesFile()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        var server = new NetServer { Local = new NetUri($"unix://{path}") };
+        server.Start();
+
+        Assert.True(File.Exists(path));
+
+        server.Stop("Test");
+        server.Dispose();
+
+        Assert.False(File.Exists(path));
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字_自动清理残留文件后重启")]
+    public void CleanResidualFile()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        try
+        {
+            // 制造残留：绑定原始套接字后关闭，不删除文件（模拟进程异常退出）
+            using (var raw = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified))
+            {
+                raw.Bind(new UnixDomainSocketEndPoint(path));
+            }
+
+            // 平台自动删除文件时，本用例退化为普通启动场景
+            using var server = new NetServer { Local = new NetUri($"unix://{path}") };
+            server.Start();
+
+            Assert.True(server.Active);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字_已被监听时拒绝启动")]
+    public void RejectWhenInUse()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        try
+        {
+            using var server1 = new NetServer { Local = new NetUri($"unix://{path}") };
+            server1.Start();
+            Assert.True(server1.Active);
+
+            // 第二个实例使用相同路径时，应拒绝启动而不是抢占
+            using var server2 = new NetServer { Local = new NetUri($"unix://{path}") };
+            var ex = Assert.Throws<InvalidOperationException>(() => server2.Start());
+            Assert.Contains(path, ex.Message);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字_HttpServer冒烟")]
+    public void HttpOverUds()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        try
+        {
+            using var server = new HttpServer { Local = new NetUri($"unix://{path}") };
+            server.MapGet("/ping", () => "pong");
+            server.Start();
+
+            Assert.True(server.Active);
+
+            using var client = new NetUri($"unix://{path}").CreateRemote();
+
+            // HTTP响应可能分片到达，用事件收集；同步Receive会与后台接收环竞争同一连接
+            var wait = new ManualResetEventSlim();
+            var text = "";
+            client.Received += (s, e) =>
+            {
+                var bytes = e.GetBytes();
+                if (bytes != null) text += bytes.ToStr();
+
+                if (text.Contains("pong")) wait.Set();
+            };
+
+            client.Open();
+
+            var request = "GET /ping HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n".GetBytes();
+            _ = client.Send(request);
+
+            Assert.True(wait.Wait(3_000), "未收到HTTP响应");
+
+            Assert.Contains("200", text);
+            Assert.Contains("pong", text);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+
+    #region 服务端
+    class UdsEchoServer : NetServer<UdsEchoSession>
+    {
+    }
+
+    class UdsEchoSession : NetSession<UdsEchoServer>
+    {
+        protected override void OnReceive(ReceivedEventArgs e)
+        {
+            var packet = e.Packet;
+            if (packet == null || packet.Length == 0) return;
+
+            Send(packet);
+        }
+    }
+    #endregion
+}

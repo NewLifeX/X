@@ -252,9 +252,10 @@ public static class NetHelper
     }
 
     /// <summary>检查该协议的地址端口是否已经被使用</summary>
+    /// <remarks>Unix域套接字不使用端口，由服务器启动时实测探测</remarks>
     /// <param name="uri"></param>
     /// <returns></returns>
-    public static Boolean CheckPort(this NetUri uri) => uri.Address.CheckPort(uri.Type, uri.Port);
+    public static Boolean CheckPort(this NetUri uri) => !uri.IsUnix && uri.Address.CheckPort(uri.Type, uri.Port);
 
     /// <summary>获取所有Tcp连接，带进程Id</summary>
     /// <returns></returns>
@@ -686,6 +687,7 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Local = local },
                 NetType.Udp => new UdpServer { Local = local },
+                NetType.Unix => new TcpSession { Local = local },
                 _ => throw new NotSupportedException($"The {local.Type} protocol is not supported"),
             };
     }
@@ -701,6 +703,7 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
+                NetType.Unix => new TcpSession { Remote = remote },
                 NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 _ => throw new NotSupportedException($"The {remote.Type} protocol is not supported"),
@@ -724,6 +727,18 @@ public static class NetHelper
     internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
     internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+
+    /// <summary>创建Unix域套接字</summary>
+    /// <remarks>使用文件系统路径作为地址，仅支持本机进程间通信</remarks>
+    /// <returns></returns>
+    internal static Socket CreateUnix()
+    {
+#if NETFRAMEWORK || NETSTANDARD2_0
+        throw new PlatformNotSupportedException("Unix Domain Socket 需要 .NET Standard 2.1 或更高版本的目标框架");
+#else
+        return new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+#endif
+    }
 
     /// <summary>创建已绑定本地随机端口的 UdpClient，可安全地在并发任务中同时执行 SendAsync 和 ReceiveAsync</summary>
     /// <remarks>

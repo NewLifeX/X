@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Net;
 using System.Net.Sockets;
 using NewLife.Net;
 using Xunit;
@@ -87,5 +88,50 @@ public class NetUriTests
         Assert.Equal("/", uri.AbsolutePath);
         Assert.NotEmpty(uri.Segments);
         Assert.Equal("/", uri.Segments[0]);
+    }
+
+    [Theory]
+    [DisplayName("Unix域套接字地址解析")]
+    [InlineData("unix:///tmp/app.sock", "/tmp/app.sock", "unix:///tmp/app.sock")]
+    [InlineData("uds:///var/run/app.sock", "/var/run/app.sock", "unix:///var/run/app.sock")]
+    [InlineData("unix://tmp/app.sock", "tmp/app.sock", "unix://tmp/app.sock")]
+    public void ParseUnix(String address, String path, String expected)
+    {
+        var uri = new NetUri(address);
+
+        Assert.Equal(NetType.Unix, uri.Type);
+        Assert.True(uri.IsUnix);
+        Assert.False(uri.IsTcp);
+        Assert.False(uri.IsUdp);
+        Assert.Equal(path, uri.Path);
+
+        // 序列化往返，uds 别名归一为 unix
+        Assert.Equal(expected, uri.ToString());
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字解析后再次解析其它协议不残留路径")]
+    public void ParseUnixThenTcp()
+    {
+        var uri = new NetUri("unix:///tmp/a.sock");
+        Assert.Equal("/tmp/a.sock", uri.Path);
+
+        // 同一个实例再次解析其它协议，Path 应被重置
+        uri.Parse("tcp://127.0.0.1:8080");
+        Assert.Equal(NetType.Tcp, uri.Type);
+        Assert.Null(uri.Path);
+        Assert.Equal(8080, uri.Port);
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字克隆保留路径")]
+    public void CloneUnix()
+    {
+        var uri = new NetUri("unix:///tmp/a.sock");
+        var clone = uri.Clone();
+
+        Assert.Equal(NetType.Unix, clone.Type);
+        Assert.Equal("/tmp/a.sock", clone.Path);
+        Assert.Equal("unix:///tmp/a.sock", clone.ToString());
     }
 }

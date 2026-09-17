@@ -146,16 +146,18 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         try
         {
             var sock = Client;
+            var isUnix = Local.IsUnix;
 
             // 开始监听
             //if (Server == null) Server = new TcpListener(Local.EndPoint);
-            if (sock == null) Client = sock = NetHelper.CreateTcp(Local.Address.IsIPv4());
+            if (sock == null) Client = sock = isUnix ? NetHelper.CreateUnix() : NetHelper.CreateTcp(Local.Address.IsIPv4());
 
             try
             {
                 // 地址重用，主要应用于网络服务器重启交替。前一个进程关闭时，端口在短时间内处于TIME_WAIT，导致新进程无法监听。
                 // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
-                if (ReuseAddress) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                // Unix域套接字以文件路径为地址，没有端口重用的概念
+                if (ReuseAddress && !isUnix) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             }
             catch (Exception ex)
             {
@@ -168,14 +170,18 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
             //Server.Start();
-            sock.Bind(Local.EndPoint);
+            if (isUnix)
+                BindUnix(sock, Local.Path);
+            else
+                sock.Bind(Local.EndPoint);
             //sock.Listen(Int32.MaxValue);
             sock.Listen(65535);
 
-            if (Local.Port == 0 && sock.LocalEndPoint is IPEndPoint ep)
+            if (!isUnix && Local.Port == 0 && sock.LocalEndPoint is IPEndPoint ep)
                 Local.Port = ep.Port;
 
-            if (Runtime.Windows)
+            // Unix域套接字不支持TCP选项
+            if (Runtime.Windows && !isUnix)
             {
                 sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
@@ -216,6 +222,19 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
             Client?.Shutdown();
             Client = null;
+
+            // Unix域套接字需要删除文件，否则残留文件会导致下次启动拒绝服务
+            if (Local.IsUnix && !Local.Path.IsNullOrEmpty())
+            {
+                try
+                {
+                    File.Delete(Local.Path!);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteLine(ex.Message);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -223,6 +242,49 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             throw;
         }
     }
+    #endregion
+
+    #region Unix域套接字
+    /// <summary>绑定Unix域套接字，自动清理残留文件</summary>
+    /// <param name="sock">监听套接字</param>
+    /// <param name="path">套接字文件路径</param>
+    private static void BindUnix(Socket sock, String? path)
+    {
+#if NETFRAMEWORK || NETSTANDARD2_0
+        throw new PlatformNotSupportedException("Unix Domain Socket 需要 .NET Standard 2.1 或更高版本的目标框架");
+#else
+        if (path.IsNullOrEmpty()) throw new ArgumentNullException(nameof(path), "Unix域套接字路径不能为空");
+
+        // 已有服务在监听时拒绝启动，避免两套服务各自服务一部分连接
+        if (File.Exists(path) && UnixSocketAlive(path!))
+            throw new InvalidOperationException($"Unix域套接字[{path}]已被其它服务监听");
+
+        // 清理进程异常退出后残留的套接字文件
+        if (File.Exists(path))
+        {
+            XTrace.WriteLine("清理残留的Unix域套接字文件 {0}", path);
+            File.Delete(path!);
+        }
+
+        sock.Bind(new UnixDomainSocketEndPoint(path!));
+#endif
+    }
+
+#if !NETFRAMEWORK && !NETSTANDARD2_0
+    /// <summary>探测Unix域套接字上是否存在活动服务</summary>
+    /// <param name="path">套接字文件路径</param>
+    /// <returns></returns>
+    private static Boolean UnixSocketAlive(String path)
+    {
+        using var probe = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        try
+        {
+            probe.Connect(new UnixDomainSocketEndPoint(path));
+            return true;
+        }
+        catch (SocketException) { return false; }
+    }
+#endif
     #endregion
 
     #region 连接处理
@@ -319,8 +381,8 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     {
         var session = CreateSession(client);
 
-        // 设置心跳时间
-        if (KeepAliveInterval > 0) client.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
+        // 设置心跳时间。Unix域套接字不支持TCP选项
+        if (KeepAliveInterval > 0 && !Local.IsUnix) client.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
 
         if (_Sessions.Add(session))
         {
@@ -365,8 +427,8 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             Tracer = Tracer,
         };
 
-        // 为了降低延迟，服务端不要合并小包
-        client.NoDelay = NoDelay;
+        // 为了降低延迟，服务端不要合并小包。Unix域套接字不支持TCP选项
+        if (!Local.IsUnix) client.NoDelay = NoDelay;
 
         return session;
     }

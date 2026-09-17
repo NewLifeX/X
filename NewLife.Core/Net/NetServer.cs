@@ -268,7 +268,8 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     {
         if (Servers.Contains(server)) return false;
 
-        server.Name = $"{Name}{(server.Local.IsTcp ? "Tcp" : "Udp")}{(server.Local.Address.IsIPv4() ? "" : "6")}";
+        var type = server.Local.IsUnix ? "Unix" : server.Local.IsTcp ? "Tcp" : "Udp";
+        server.Name = $"{Name}{type}{(server.Local.Address.IsIPv4() ? "" : "6")}";
         server.NewSession += Server_NewSession;
 
         if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
@@ -396,7 +397,8 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         // 随机端口可能落入系统保留段（如 Windows 仅 UDP 排除的范围），TCP 绑到该端口后 UDP 绑定失败抛 WSAEACCES。
         // 失败时清理已启动服务器并重新随机分配端口，有界重试避免环境性偶发失败导致整个服务不可用
-        var maxRetry = Port == 0 ? 3 : 0;
+        // Unix域套接字以文件路径为地址，没有端口重试的概念
+        var maxRetry = Port == 0 && !Local.IsUnix ? 3 : 0;
         for (var attempt = 0; ; attempt++)
         {
             var snapshot = Servers.ToArray();
@@ -783,6 +785,9 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                 return ss;
             case NetType.Udp:
                 return CreateServer<UdpServer>(address, port, family);
+            case NetType.Unix:
+                // Unix域套接字以文件路径为地址，不区分IPv4/IPv6，仅创建单个服务器
+                return [new TcpServer { Local = Local.Clone() }];
             case NetType.Unknown:
             default:
                 var list = new List<ISocketServer>();

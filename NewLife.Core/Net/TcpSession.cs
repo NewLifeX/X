@@ -89,6 +89,20 @@ public class TcpSession : SessionBase, ISocketSession
         var socket = client;
         if (socket.LocalEndPoint is IPEndPoint localEp) Local.EndPoint = localEp;
         if (socket.RemoteEndPoint is IPEndPoint remoteEp) Remote.EndPoint = remoteEp;
+
+#if !NETFRAMEWORK && !NETSTANDARD2_0
+        // Unix域套接字回填路径，便于日志显示
+        if (socket.LocalEndPoint is UnixDomainSocketEndPoint localUds && !localUds.ToString().IsNullOrEmpty())
+        {
+            Local.Type = NetType.Unix;
+            Local.Path = localUds.ToString();
+        }
+        if (socket.RemoteEndPoint is UnixDomainSocketEndPoint remoteUds && !remoteUds.ToString().IsNullOrEmpty())
+        {
+            Remote.Type = NetType.Unix;
+            Remote.Path = remoteUds.ToString();
+        }
+#endif
     }
 
     internal TcpSession(ISocketServer server, Socket client)
@@ -108,10 +122,10 @@ public class TcpSession : SessionBase, ISocketSession
         // 管道
         Pipeline?.Open(CreateContext(this));
 
-        // 设置读写超时
+        // 设置读写超时。Unix域套接字不支持TCP选项
         var sock = Client;
         var timeout = Timeout;
-        if (timeout > 0 && sock != null)
+        if (timeout > 0 && sock != null && !Local.IsUnix)
         {
             sock.SendTimeout = timeout;
             sock.ReceiveTimeout = timeout;
@@ -148,67 +162,101 @@ public class TcpSession : SessionBase, ISocketSession
         var span = DefaultSpan.Current;
         var timeout = Timeout;
         var uri = Remote;
+        var isUnix = uri != null && uri.IsUnix;
         var sock = Client;
         if (sock == null || !sock.IsBound)
         {
             span?.AppendTag($"Local={Local}");
 
-            // 根据目标地址适配本地IPv4/IPv6
-            if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
+            if (isUnix)
             {
-                Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily)!;
+                // Unix域套接字以文件路径为地址，客户端无需绑定本地地址
+                sock = Client = NetHelper.CreateUnix();
+                if (timeout > 0)
+                {
+                    sock.SendTimeout = timeout;
+                    sock.ReceiveTimeout = timeout;
+                }
             }
-
-            sock = Client = NetHelper.CreateTcp(Local.Address!.IsIPv4());
-            //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
-            if (NoDelay) sock.NoDelay = true;
-            if (timeout > 0)
+            else
             {
-                sock.SendTimeout = timeout;
-                sock.ReceiveTimeout = timeout;
-            }
+                // 根据目标地址适配本地IPv4/IPv6
+                if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
+                {
+                    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily)!;
+                }
 
-            sock.Bind(Local.EndPoint);
-            if (sock.LocalEndPoint is IPEndPoint ep) Local.EndPoint.Port = ep.Port;
-            span?.AppendTag($"LocalEndPoint={sock.LocalEndPoint}");
+                sock = Client = NetHelper.CreateTcp(Local.Address!.IsIPv4());
+                //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
+                if (NoDelay) sock.NoDelay = true;
+                if (timeout > 0)
+                {
+                    sock.SendTimeout = timeout;
+                    sock.ReceiveTimeout = timeout;
+                }
+
+                sock.Bind(Local.EndPoint);
+                if (sock.LocalEndPoint is IPEndPoint ep) Local.EndPoint.Port = ep.Port;
+                span?.AppendTag($"LocalEndPoint={sock.LocalEndPoint}");
+            }
 
             WriteLog("Open {0}", this);
         }
 
         // 打开端口前如果已设定远程地址，则自动连接
-        if (uri == null || uri.EndPoint.IsAny()) return false;
+        if (uri == null) return false;
+        if (isUnix)
+        {
+            if (uri.Path.IsNullOrEmpty()) return false;
+        }
+        else if (uri.EndPoint.IsAny()) return false;
 
         try
         {
-            var addrs = uri.GetAddresses();
-            addrs = addrs.Where(ip => ip.AddressFamily == sock.AddressFamily).ToArray();
-            span?.AppendTag($"addrs={addrs.Join()} port={uri.Port}");
-
-            if (timeout <= 0)
-                sock.Connect(addrs, uri.Port);
-            else
+            // Unix域套接字直接以文件路径连接
+            if (isUnix)
             {
-#if NET5_0_OR_GREATER
-                using var source = new CancellationTokenSource(timeout);
-                using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, source.Token);
-                using var _ = cts2.Token.Register(() => sock.Close());
-                await sock.ConnectAsync(addrs, uri.Port, cts2.Token).ConfigureAwait(false);
+#if NETFRAMEWORK || NETSTANDARD2_0
+                throw new PlatformNotSupportedException("Unix Domain Socket 需要 .NET Standard 2.1 或更高版本的目标框架");
 #else
-                // 采用异步来解决连接超时设置问题
-                var ar = sock.BeginConnect(addrs, uri.Port, null, null);
-                if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
-                {
-                    sock.Close();
-                    throw new TimeoutException($"The connection to server [{uri}] timed out! [{timeout}ms]");
-                }
+                var ep = new UnixDomainSocketEndPoint(uri.Path!);
+                span?.AppendTag($"RemoteEndPoint={ep}");
 
-                //sock.EndConnect(ar);
-                await Task.Factory.FromAsync(ar, sock.EndConnect).ConfigureAwait(false);
+                await ConnectUnixAsync(sock, ep, timeout, cancellationToken).ConfigureAwait(false);
 #endif
             }
+            else
+            {
+                var addrs = uri.GetAddresses();
+                addrs = addrs.Where(ip => ip.AddressFamily == sock.AddressFamily).ToArray();
+                span?.AppendTag($"addrs={addrs.Join()} port={uri.Port}");
 
-            // 作为客户端，启用KeepAlive，及时释放无效连接
-            if (KeepAliveInterval > 0) sock.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
+                if (timeout <= 0)
+                    sock.Connect(addrs, uri.Port);
+                else
+                {
+#if NET5_0_OR_GREATER
+                    using var source = new CancellationTokenSource(timeout);
+                    using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, source.Token);
+                    using var _ = cts2.Token.Register(() => sock.Close());
+                    await sock.ConnectAsync(addrs, uri.Port, cts2.Token).ConfigureAwait(false);
+#else
+                    // 采用异步来解决连接超时设置问题
+                    var ar = sock.BeginConnect(addrs, uri.Port, null, null);
+                    if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
+                    {
+                        sock.Close();
+                        throw new TimeoutException($"The connection to server [{uri}] timed out! [{timeout}ms]");
+                    }
+
+                    //sock.EndConnect(ar);
+                    await Task.Factory.FromAsync(ar, sock.EndConnect).ConfigureAwait(false);
+#endif
+                }
+            }
+
+            // 作为客户端，启用KeepAlive，及时释放无效连接。Unix域套接字不支持
+            if (KeepAliveInterval > 0 && !isUnix) sock.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
 
             RemoteAddress = (sock.RemoteEndPoint as IPEndPoint)?.Address;
             span?.AppendTag($"RemoteEndPoint={sock.RemoteEndPoint}");
@@ -280,6 +328,39 @@ public class TcpSession : SessionBase, ISocketSession
                 .Cast<X509ChainElement>()
                 .Any(x => x.Certificate.Thumbprint == cert.Thumbprint);
     }
+
+#if !NETFRAMEWORK && !NETSTANDARD2_0
+    /// <summary>异步连接Unix域套接字，支持超时</summary>
+    /// <param name="sock">套接字</param>
+    /// <param name="ep">远程终结点</param>
+    /// <param name="timeout">超时时间（毫秒）</param>
+    /// <param name="cancellationToken">取消通知</param>
+    private static async Task ConnectUnixAsync(Socket sock, EndPoint ep, Int32 timeout, CancellationToken cancellationToken)
+    {
+        if (timeout <= 0)
+        {
+            sock.Connect(ep);
+            return;
+        }
+
+#if NET5_0_OR_GREATER
+        using var source = new CancellationTokenSource(timeout);
+        using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, source.Token);
+        using var _ = cts2.Token.Register(() => sock.Close());
+        await sock.ConnectAsync(ep, cts2.Token).ConfigureAwait(false);
+#else
+        // 采用异步来解决连接超时设置问题
+        var ar = sock.BeginConnect(ep, null, null);
+        if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
+        {
+            sock.Close();
+            throw new TimeoutException($"The connection to server [{ep}] timed out! [{timeout}ms]");
+        }
+
+        await Task.Factory.FromAsync(ar, sock.EndConnect).ConfigureAwait(false);
+#endif
+    }
+#endif
 
     /// <summary>关闭</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
