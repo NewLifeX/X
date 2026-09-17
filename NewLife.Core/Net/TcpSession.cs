@@ -21,7 +21,7 @@ namespace NewLife.Net;
 /// <item>线程安全的数据发送</item>
 /// </list>
 /// </remarks>
-public class TcpSession : SessionBase, ISocketSession
+public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 {
     #region 属性
 
@@ -418,13 +418,13 @@ public class TcpSession : SessionBase, ISocketSession
     private Int32 _bsize;
     private SpinLock _spinLock = new();
 
-    /// <summary>发送数据</summary>
+    /// <summary>直接发送数据。无发送队列时走此路径；发送泵的发送委托同样指向本方法</summary>
     /// <remarks>
     /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
     /// </remarks>
     /// <param name="pk">数据包</param>
     /// <returns>是否成功</returns>
-    protected override Int32 OnSend(IPacket pk)
+    private Int32 DirectSend(IPacket pk)
     {
         var count = pk.Total;
 
@@ -492,13 +492,13 @@ public class TcpSession : SessionBase, ISocketSession
         return rs;
     }
 
-    /// <summary>发送数据</summary>
+    /// <summary>直接发送数据。无发送队列时走此路径</summary>
     /// <remarks>
     /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
     /// </remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
-    protected override Int32 OnSend(ArraySegment<Byte> data)
+    private Int32 DirectSend(ArraySegment<Byte> data)
     {
         var count = data.Count;
         var logCount = count > LogDataLength ? count : LogDataLength;
@@ -562,13 +562,13 @@ public class TcpSession : SessionBase, ISocketSession
         return rs;
     }
 
-    /// <summary>发送数据</summary>
+    /// <summary>直接发送数据。无发送队列时走此路径</summary>
     /// <remarks>
     /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
     /// </remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
-    protected override Int32 OnSend(ReadOnlySpan<Byte> data)
+    private Int32 DirectSend(ReadOnlySpan<Byte> data)
     {
         var count = data.Length;
 
@@ -673,6 +673,14 @@ public class TcpSession : SessionBase, ISocketSession
         var sock = Client;
         if (sock == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
 
+        // 背压：数据管道达到暂停水位时暂存接收参数，消费恢复后经 Resumed 事件重启（仍暂停则再次暂存）
+        if (_pipe?.IsPaused == true)
+        {
+            ParkReceive(se);
+
+            return true;
+        }
+
         var ss = _Stream;
         if (ss != null)
         {
@@ -737,6 +745,9 @@ public class TcpSession : SessionBase, ISocketSession
         }
         //else
         //    _empty = 0;
+
+        // 流式视图：本轮数据投递共享切片到入站管道（引用计数），不影响轮句柄与后续传统管道处理链
+        AppendToPipe(pk);
 
         return this;
     }

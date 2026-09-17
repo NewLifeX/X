@@ -9,14 +9,14 @@ using NewLife.Model;
 
 namespace NewLife.Net;
 
-/// <summary>会话基类</summary>
+/// <summary>会话基类。TCP/UDP 共用的报文端点核心：连接生命周期、收发原语、SAEA 接收环与每轮缓冲所有权、消息管道</summary>
 /// <remarks>
 /// <para>封装了Socket客户端和服务端会话的基础功能，包括连接管理、数据收发、消息处理等。</para>
 /// <para>设计理念：</para>
 /// <list type="bullet">
 /// <item>异步优先 - 所有IO操作优先使用异步方式</item>
 /// <item>事件驱动 - 数据接收通过事件通知</item>
-/// <item>管道处理 - 支持灵活的消息编解码管道</item>
+/// <item>消息管道 - 支持灵活的消息编解码管道</item>
 /// <item>对象池化 - 上下文对象池化减少GC压力</item>
 /// </list>
 /// </remarks>
@@ -50,7 +50,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     private volatile Boolean _active;
     /// <summary>是否活动</summary>
-    /// <remarks>表示当前会话是否处于活动状态</remarks>
+    /// <remarks>
+    /// <para>打开成功后置 true；关闭完成后置 false。服务端已接受连接的会话由宿主直接置 true。</para>
+    /// <para>关闭流程内可提前置 false（如底层连接已拆除时），用于阻断掉线重连判断。</para>
+    /// </remarks>
     public Boolean Active { get => _active; set => _active = value; }
 
     /// <summary>底层Socket</summary>
@@ -117,30 +120,21 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     #region 打开关闭
 
-    /// <summary>打开</summary>
+    /// <summary>打开。同步桥接</summary>
+    /// <remarks>转发 <see cref="OpenAsync(CancellationToken)"/> 同步阻塞等待；并发调用不做排队，已打开直接成功</remarks>
     /// <returns>是否成功</returns>
-    public virtual Boolean Open()
-    {
-        if (Active) return true;
-        if (!Monitor.TryEnter(this, Timeout + 100)) return false;
-        try
-        {
-            using var source = new CancellationTokenSource(Timeout);
-            return OpenAsync(source.Token).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        finally
-        {
-            Monitor.Exit(this);
-        }
-    }
+    public Boolean Open() => OpenAsync().GetAwaiter().GetResult();
 
     /// <summary>打开</summary>
+    /// <remarks>
+    /// <para>已打开直接成功；并发调用不做排队，入口检查与置位之间到达的调用可能重复执行打开过程（调用方应避免并发打开）。</para>
+    /// <para>打开过程由 <paramref name="cancellationToken"/> 约束，异常原样抛出。</para>
+    /// </remarks>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>是否成功</returns>
     public virtual async Task<Boolean> OpenAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
-
         if (Active) return true;
         if (cancellationToken.IsCancellationRequested) return false;
 
@@ -151,6 +145,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
             var rs = await OnOpenAsync(cancellationToken).ConfigureAwait(false);
             if (!rs) return false;
+
+            // 打开完成瞬间恰逢销毁：不标记活动，避免留下僵尸会话
+            if (Disposed) return false;
 
             var timeout = Timeout;
             if (timeout > 0 && Client != null)
@@ -199,30 +196,23 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     [MemberNotNullWhen(true, nameof(Client))]
     protected abstract Task<Boolean> OnOpenAsync(CancellationToken cancellationToken);
 
-    /// <summary>关闭</summary>
+    /// <summary>关闭。同步桥接</summary>
+    /// <remarks>转发 <see cref="CloseAsync(String, CancellationToken)"/> 同步阻塞等待；未活动时直接成功</remarks>
     /// <param name="reason">关闭原因。便于日志分析</param>
     /// <returns>是否成功</returns>
-    public virtual Boolean Close(String reason)
-    {
-        if (!Active) return true;
-        if (!Monitor.TryEnter(this, Timeout + 100)) return false;
-        try
-        {
-            using var source = new CancellationTokenSource(Timeout);
-            return CloseAsync(reason, source.Token).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        finally
-        {
-            Monitor.Exit(this);
-        }
-    }
+    public Boolean Close(String reason) => CloseAsync(reason).GetAwaiter().GetResult();
 
     /// <summary>关闭</summary>
+    /// <remarks>
+    /// <para>未活动（无连接）时直接成功；并发关闭不做排队（调用方应避免并发关闭）。</para>
+    /// <para>关闭过程由 <paramref name="cancellationToken"/> 约束，异常原样抛出。</para>
+    /// </remarks>
     /// <param name="reason">关闭原因。便于日志分析</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>是否成功</returns>
     public virtual async Task<Boolean> CloseAsync(String reason, CancellationToken cancellationToken = default)
     {
+        // 无连接：无需关闭
         if (!Active) return true;
         if (cancellationToken.IsCancellationRequested) return false;
 
@@ -243,8 +233,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
             _RecvCount = 0;
 
-            // 根据结果更新状态，然后再触发关闭事件，确保事件观察到最终状态
-            Active = !rs;
+            // 关闭成功后更新状态，然后再触发关闭事件，确保事件观察到最终状态
+            if (rs) Active = false;
 
             // 触发关闭完成的事件
             Closed?.Invoke(this, EventArgs.Empty);
@@ -315,9 +305,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     #region 发送
     /// <summary>直接发送数据包 Byte[]/Packet</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
+    /// <remarks>目标地址由<seealso cref="Remote"/>决定</remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     public Int32 Send(IPacket data)
@@ -329,17 +317,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>发送数据</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
+    /// <remarks>目标地址由<seealso cref="Remote"/>决定</remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     protected abstract Int32 OnSend(IPacket data);
 
     /// <summary>直接发送数据包 Byte[]/Packet</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
+    /// <remarks>目标地址由<seealso cref="Remote"/>决定</remarks>
     /// <param name="data">字节数组</param>
     /// <param name="offset">偏移</param>
     /// <param name="count">字节数</param>
@@ -360,9 +344,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>直接发送数据包 Byte[]/Packet</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
+    /// <remarks>目标地址由<seealso cref="Remote"/>决定</remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     public Int32 Send(ArraySegment<Byte> data)
@@ -374,17 +356,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>发送数据</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
+    /// <remarks>目标地址由<seealso cref="Remote"/>决定</remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     protected abstract Int32 OnSend(ArraySegment<Byte> data);
 
     /// <summary>直接发送数据包 Byte[]/Packet</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
+    /// <remarks>目标地址由<seealso cref="Remote"/>决定</remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     public Int32 Send(ReadOnlySpan<Byte> data)
@@ -396,12 +374,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>发送数据</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
+    /// <remarks>目标地址由<seealso cref="Remote"/>决定</remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     protected abstract Int32 OnSend(ReadOnlySpan<Byte> data);
+
     #endregion 发送
 
     #region 接收
@@ -504,10 +481,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         return true;
     }
 
-    /// <summary>释放一个事件参数</summary>
-    /// <param name="se"></param>
-    /// <param name="reason"></param>
-    private void ReleaseRecv(SocketAsyncEventArgs se, String reason)
+    /// <summary>释放一个事件参数。递减接收计数、归还池化缓冲并销毁</summary>
+    /// <param name="se">接收事件参数</param>
+    /// <param name="reason">释放原因。便于日志分析</param>
+    protected void ReleaseRecv(SocketAsyncEventArgs se, String reason)
     {
         var idx = se.UserToken.ToInt();
 
@@ -528,13 +505,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>当前进入线程递归数量，超过10就另外起线程</summary>
-    private readonly static Int32 _IntoThreadCount = 10;
+    protected readonly static Int32 _IntoThreadCount = 10;
 
     /// <summary>用一个事件参数来开始异步接收</summary>
     /// <param name="se">事件参数</param>
     /// <param name="ioThread">是否在线程池调用,小于等于0不是，大于0是</param>
     /// <returns></returns>
-    private Boolean StartReceive(SocketAsyncEventArgs se, Int32 ioThread)
+    protected Boolean StartReceive(SocketAsyncEventArgs se, Int32 ioThread)
     {
         if (Disposed)
         {

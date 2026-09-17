@@ -120,23 +120,23 @@ await pipe.Writer.FlushAsync();      // 提交，读取方立即可见
 - **不能按瞬时长度判断**：多次小步消费时，跨过恢复水位那一步的起始长度已低于暂停水位，按瞬时判断会漏报恢复事件（e2e 实测教训）。默认值 0 或负数表示不启用背压。
 - **写侧回压（双向背压，2026-09-17；默认挂起对齐 BCL）**：`FlushAsync(ct)` 在暂停态返回未完成任务——发送方向（应用持续写入）与接收方向共用同一套水位状态机；恢复、结束与取消都会唤醒挂起提交，避免无界积压。
 
-## 会话集成（SessionBase）
+## 会话集成（TcpSession）
 
-- `Pipe` 属性懒创建（`CreatePipe()` 虚方法可定制水位）；`GetPipe()` 为不触发创建的访问器；
+- 入站管道由连接型会话 `TcpSession` 提供（接口 `IStreamSession`）：`Pipe` 属性懒创建（`CreatePipe()` 虚方法可定制水位）；`GetPipe()` 为不触发创建的访问器；
 - 接收环每轮把轮数据以**共享切片**（`pk.Slice(0, -1)`，引用计数）投递进管道——轮末裁决因引用计数大于 1 自动换新缓冲，**Detach 协议零改动**；
-- 暂停在 `StartReceive` 统一裁决：处于暂停态时挂起该接收事件参数（`ParkReceive`），`Resumed`（消费线程）经同一入口重启（仍暂停则再次挂起）；
-- `CloseAsync` 完成管道（挂起读取立即得到 IsCompleted）并释放挂起的事件参数。
+- 暂停由 `TcpSession` 在发起下一次接收时判定（`OnReceiveAsync` 内查管道水位）：达到暂停水位时暂存接收事件参数，`Resumed`（消费线程）触发经接收环同一入口重启（仍暂停则再次暂存）；
+- `CloseAsync` 完成管道写侧（挂起读取立即得到 IsCompleted）并释放挂起的事件参数。
 
-> UDP 服务器多客户端共用会话实例，未适配数据管道（UDP 保持整包语义）。
+> 数据管道属于连接型会话能力：`TcpSession` 在接收预处理中投递轮数据、在发起接收时执行背压暂停、在关闭流程中收尾（先排空发送队列、后完成管道写侧）；基类不感知流式概念（仅保留接收环原语供子类驱动），UDP 等报文式协议每包即一帧，不需要字节流管道。
 
 ## 发送管道（出站，2026-09-17）
 
-`SessionBase.SendPipe` 与入站 `Pipe` 对称：懒创建（`CreateSendPipe()` 虚方法可定制水位），**发送泵**（唯一的读侧消费方）循环取出窗口逐段发送（一次唤醒批处理整窗、部分发送自动续发）。
+`TcpSession.SendPipe` 与入站 `Pipe` 对称：懒创建（`CreateSendPipe()` 虚方法可定制水位），**发送泵**由内部组件 `SendPump` 承担（唯一的读侧消费方）循环取出窗口逐段发送（一次唤醒批处理整窗、部分发送自动续发）。
 
-- **单出口**：管道创建后 `Send` 系列方法全部改为追加进管道——`Send(IPacket)` 拥有句柄零拷贝入管道（借阅视图自动转自有拷贝，`Send(byte[])`/`Span` 按副本入管道，调用方可立即复用缓冲）；与管道内排队数据天然无交错，发送在泵上异步完成；
-- **流式发送**：`SessionBase.SendAsync(Stream, length, ct)` 从数据流分块（64KB）读取，每块零拷贝包装入管道并带写侧回压，大文件全程只在读块上驻留；"头 + 流式体"组合消息先 `Send(header)` 再 `SendAsync(body)`，整条消息仍走单出口顺序；
+- **单出口**：管道创建后 `Send` 系列方法全部改为追加进管道（`TcpSession.OnSend` 内部队列优先分发）——`Send(IPacket)` 拥有句柄零拷贝入管道（借阅视图自动转自有拷贝，`Send(byte[])`/`Span` 按副本入管道，调用方可立即复用缓冲）；与管道内排队数据天然无交错，发送在泵上异步完成；
+- **流式发送**：`TcpSession.SendAsync(Stream, length, ct)` 从数据流分块（64KB）读取，每块零拷贝包装入管道并带写侧回压，大文件全程只在读块上驻留；"头 + 流式体"组合消息先 `Send(header)` 再 `SendAsync(body)`，整条消息仍走单出口顺序；
 - **写侧回压**：未发送数据达到 `PauseThreshold` 后 `IsPaused` 为 true，`await pipe.Writer.FlushAsync(ct)` 默认挂起等待（对齐 BCL；`FlushAsync(false, ct)` 仅提交不等待）；泵 `AdvanceTo` 推进降到 `ResumeThreshold` 以下时唤醒（与入站共用同一套水位状态机）；
-- **生命周期**：`CloseAsync` 先完成写入并限时（会话超时）等待泵发完已排队数据，再关闭底层连接；发送失败（`OnSend` 返回负值或抛异常）中止管道——错误随 `Error`，挂起提交被唤醒，后续追加的数据由管道直接释放；未活动会话关闭时直接中止管道，避免泵悬挂；
+- **生命周期**：`TcpSession.CloseAsync` 重写内先完成写入并限时（会话超时）等待泵发完已排队数据，再进入基类关闭流程；无连接关闭时直接中止管道（幂等），避免泵悬挂；发送失败（`OnSend` 返回负值或抛异常）中止管道——错误随 `Error`，挂起提交被唤醒，后续追加的数据由管道直接释放；
 - 数据报协议（如 UDP）不使用本管道，保持整包直发语义；读侧 `pipe.Reader` 为发送泵独占，请勿另作它用。
 
 ```csharp
@@ -153,7 +153,7 @@ await session.SendAsync(bodyStream, len);             // 体流式跟随，单�
 | 消费方 | 接入方式 |
 |--------|----------|
 | WebSocket 服务端（`Http/WebSocket`） | `Process(IPacket)` 同步泵：入管道 → 循环取帧 → 交付消息；借阅视图自动克隆为自有拷贝 |
-| WebSocket 会话（`Net/Handlers/WebSocketCodec`） | `Open` 触建管道；`Read` 检测管道同步泵帧；非 SessionBase 属主回退旧 PacketCodec 路径 |
+| WebSocket 会话（`Net/Handlers/WebSocketCodec`） | `Open` 触建管道；`Read` 检测管道同步泵帧（按 `IStreamSession` 接入）；非流式属主回退旧 PacketCodec 路径 |
 | 自定义消费 | `framer.ReadFrameAsync(pipe.Reader)` 循环、`TryReadHeader` + body 限长流式，或接收线程内 `framer.Pump(reader, frame => ...)` 同步泵出 |
 
 同步泵在接收线程内完成"取帧→交付"，线程语义与旧链路一致；背压由轮末暂停水位裁决驱动。帧泵统一序列委托 `GetFrameLength`；消息协议直接绑定 `Message.TryParseHeader`（旧桥接 `TryParse` 等价）。
