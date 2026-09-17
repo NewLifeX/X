@@ -106,8 +106,8 @@ dotnet run
 |                  | [令牌HTTP过滤器TokenHttpFilter](https://newlifex.com/core/token_http_filter) | HTTP请求自动注入令牌，拦截401/403自动续期。     |
 | **云服务**       | [经纬度哈希GeoHash](https://newlifex.com/core/geo_hash)                      | 将经纬度编码为字符串，用于附近位置搜索。         |
 |                  | ⚠️ 百度地图/高德地图 已提取到独立 NuGet 包。                                 |                                                  |
-| **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP服务端，封装了会话和数据处理。      |
-|                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP网络客户端，简化连接与收发。        |
+| **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP/Unix域套接字服务端，封装了会话和数据处理。 |
+|                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP/Unix网络客户端，简化连接与收发。   |
 |                  | [消息IMessage](/core/message)                                                | 请求-响应消息接口，支持池化内存和释放链。        |
 |                  | [网络编解码器Handlers](/core/net_handlers)                                   | 粘包拆包、消息编解码与协议管道集成。             |
 |                  | [数据包编码器PacketCodec](https://newlifex.com/core/packet_codec)            | 用于网络粘包处理，支持多种消息分包解决方案。     |
