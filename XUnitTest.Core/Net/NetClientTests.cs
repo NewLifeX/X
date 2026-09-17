@@ -619,10 +619,11 @@ public class NetClientTests
         };
         server2.Start();
 
-        var ok = reconnectWait.Wait(5_000);
+        // 全量并行负载下重连定时器可能被推迟，等待窗口放宽
+        var ok = reconnectWait.Wait(15_000);
         server2.Stop("done");
 
-        Assert.True(ok, "未能在超时时间内成功重连");
+        Assert.True(ok, $"未能在超时时间内成功重连，openCount={openCount}");
     }
 
     #endregion

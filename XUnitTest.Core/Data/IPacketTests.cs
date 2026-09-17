@@ -215,7 +215,7 @@ public class IPacketTests
 #pragma warning restore CS0618
     }
 
-    [Fact(DisplayName = "IndexOf：单段、跨段、跨多段与空段查找均返回全局偏移")]
+    [Fact(DisplayName = "IndexOf：单段、跨段、跨多段与空段查找均返回最早匹配的全局偏移")]
     public void IndexOfTest()
     {
         // 单段
@@ -246,6 +246,13 @@ public class IPacketTests
             }
         };
         Assert.Equal(0, f4.IndexOf("xyz"u8));
+
+        // 链式：跨段匹配与段内匹配同时存在时，返回更早的跨段偏移
+        IPacket f5 = new ArrayPacket("A"u8.ToArray())
+        {
+            Next = new ArrayPacket("BxAB"u8.ToArray())
+        };
+        Assert.Equal(0, f5.IndexOf("AB"u8));
 
         // 未命中、超过总长、空目标
         Assert.Equal(-1, f4.IndexOf("xyz!"u8));

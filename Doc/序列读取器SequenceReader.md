@@ -73,4 +73,4 @@ if (reader.TryReadBigEndian(out Int16 magic) &&
 - [缓冲区Buffers](./缓冲区Buffers.md)
 - [Span读取器SpanReader](./Span读取器SpanReader.md)
 - [数据包IPacket](./数据包IPacket.md)
-- [数据管道PacketPipe](./数据管道PacketPipe.md)
+- [数据管道Pipe](./数据管道Pipe.md)

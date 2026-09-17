@@ -656,8 +656,9 @@ public static class PacketHelper
     /// <param name="data">目标字节序列</param>
     /// <returns>匹配起点相对链头的偏移；未找到返回 -1</returns>
     /// <remarks>
-    /// 逐段扫描零拷贝：段内用 span 快速查找；目标可能被切在段与段之间，因此保留“已扫描过的最后 k-1 个字节”，
-    /// 与本段头部拼起来再查一次，目标跨多个短段（含空段）同样能查到。
+    /// 逐段扫描零拷贝：目标可能被切在段与段之间，因此保留“已扫描过的最后 k-1 个字节”，
+    /// 与本段头部拼起来先查一次（跨段匹配的起点必然早于本段内匹配，先查才能返回全局最早匹配），再做段内 span 快速查找；
+    /// 目标跨多个短段（含空段）同样能查到。
     /// </remarks>
     public static Int32 IndexOf(this IPacket pk, ReadOnlySpan<Byte> data)
     {
@@ -695,11 +696,8 @@ public static class PacketHelper
         {
             var span = node.GetSpan();
 
-            // 段内查找
-            var idx = span.IndexOf(data);
-            if (idx >= 0) return pos + idx;
-
-            // 跨段查找：目标被切在段间，起点在“最后 k-1 字节”内、终点在本段头部
+            // 跨段查找：目标被切在段间，起点在“最后 k-1 字节”内、终点在本段头部。
+            // 跨段匹配的起点必然早于本段内的任何匹配，必须先查，否则会返回更晚的段内匹配
             if (tailLen > 0 && span.Length > 0)
             {
                 var headLen = Math.Min(k1, span.Length);
@@ -710,6 +708,10 @@ public static class PacketHelper
                 var j = w.IndexOf(data);
                 if (j >= 0) return pos - tailLen + j;
             }
+
+            // 段内查找
+            var idx = span.IndexOf(data);
+            if (idx >= 0) return pos + idx;
 
             // 滚动更新尾部缓冲：保留“已扫描数据”的最后 k-1 字节
             if (span.Length >= k1)

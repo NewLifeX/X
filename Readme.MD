@@ -84,6 +84,7 @@ dotnet run
 |                  | [Span读取器SpanReader](/core/span_reader)                                    | 零分配高性能二进制流解析器，支持大小端。         |
 |                  | [Span写入器SpanWriter](/core/span_writer)                                    | 零分配高性能二进制数据写入器，支持大小端。       |
 |                  | [Span辅助SpanHelper](/core/span_helper)                                      | Span/ReadOnlySpan扩展方法集，简化内存操作。      |
+|                  | [序列读取器SequenceReader](/core/sequence_reader)                            | 跨段顺序读取器（旧框架经垫片补齐，全18 TFM可用）。 |
 | **应用框架**     | [对象容器ObjectContainer](https://newlifex.com/core/object_container)        | 轻量级依赖注入，支持多种生命周期和注入模式。     |
 |                  | [轻量级应用主机Host](https://newlifex.com/core/host)                         | 简化应用托管，轻松构建长时间运行的后台服务。     |
 |                  | [插件框架IPlugin](https://newlifex.com/core/plugin)                          | 提供标准化的插件管理机制，实现应用模块化开发。   |
