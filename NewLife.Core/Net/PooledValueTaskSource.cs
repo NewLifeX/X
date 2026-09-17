@@ -8,7 +8,7 @@ namespace NewLife.Net;
 /// <remarks>
 /// 生命周期：Rent → AttachSpan/RegisterCancellation → 设置到匹配队列 → SetResult/SetCanceled → 消费者 await 完成 → GetResult 内自动释放资源并归还到池。
 /// 线程安全：通过 CAS 保证 SetResult/SetCanceled 只成功一次。
-/// 非异步模式：SendMessageAsync 无需 async/await，直接返回 ValueTask，消除状态机分配。
+/// 非异步模式：SendMessageAsync 无需 async/await，直接返回 ValueTask，消除状态机分配。数据支撑（基准实测）：替代每次调用的 TaskCompletionSource 分配，并配合非异步化与 ValueTask 返回，逐项消除编译器状态机（约 200B）与 AsTask 包装（约 56B）（见《网络库编解码器Echo性能测试报告》优化项）。
 /// </remarks>
 sealed class PooledValueTaskSource : IValueTaskSource<Object>
 {

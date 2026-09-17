@@ -120,7 +120,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>提交结果；管道已结束时 IsCompleted 为 true（写入方应停止）</returns>
     /// <exception cref="OperationCanceledException">取消令牌已请求取消，或在挂起期间被取消</exception>
-    /// <remarks>写侧回压：未消费数据达到 <see cref="Pipe.PauseThreshold"/> 时提交挂起，直到消费降至 <see cref="Pipe.ResumeThreshold"/> 以下、管道结束或取消。不需要等待水位恢复时使用 <see cref="FlushAsync(Boolean, CancellationToken)"/>(false, ...)。</remarks>
+    /// <remarks>写侧回压：未消费数据达到 <see cref="Pipe.PauseThreshold"/> 时提交挂起，直到消费降至 <see cref="Pipe.ResumeThreshold"/> 以下、管道结束或取消。不需要等待水位恢复时使用 <see cref="FlushAsync(Boolean, CancellationToken)"/>(false, ...)。成本（基准实测）：未处于暂停态时提交约 28ns、零分配——背压是零成本保险，只有真正积压才付出挂起/唤醒。</remarks>
     public ValueTask<FlushResult> FlushAsync(CancellationToken cancellationToken = default) => FlushAsync(true, cancellationToken);
 
     /// <summary>提交写入（可选写侧回压）。waitForResume 为 true 且读侧未消费量达到暂停水位时挂起，直到消费降至恢复水位以下、管道结束或取消；false 仅提交不等待</summary>

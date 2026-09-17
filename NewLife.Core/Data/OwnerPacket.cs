@@ -70,6 +70,9 @@ internal sealed class ArrayOwner(Byte[] buffer, Boolean returnToPool)
 /// <item><b>sealed 密封</b>：无派生需求，JIT 可对 GetSpan/GetMemory 等热路径方法去虚拟化并内联，显著提升协议解析性能。</item>
 /// <item><b>不继承 MemoryManager&lt;T&gt;</b>：仅需 IPacket + IDisposable，MemoryManager 的 Pin/Unpin/IMemoryOwner.Memory 均未使用，
 /// 移除后消除死代码和多余 vtable 开销。</item>
+/// <item><b>成本基线（基准实测）</b>：所有权管理开销恒定、与数据大小无关——构造+释放约 19ns、共享切片（双方各释放一次）约 42ns；
+/// 对照拷贝随大小线性增长（64B≈1.4ns、4KB≈45ns、64KB≈1.05µs、128KB≈2.8µs），故 2–4KB 是“小帧拷贝、大帧切片”的经验分界（≤512B 拷贝更便宜，≥4KB 切片占优）。
+/// 每个拥有句柄固定多 32B 引用计数对象（ArrayOwner）；DEBUG 构建的析构兜底另加约 30~43ns/句柄，Release 默认不编译（见《内存分配与拷贝成本报告》）。</item>
 /// </list>
 /// </remarks>
 public sealed class OwnerPacket : IPacket, IOwnerPacket
@@ -321,6 +324,8 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// <remarks>
     /// <para>用于接收层复用缓冲：每轮把整块缓冲包装为句柄上抛，轮末确认没有其它持有者（<see cref="RefCount"/> 为 1）时脱手，
     /// 缓冲留在会话继续接收，做到零 Rent/Return；归还责任随脱手转交调用方，由其在会话关闭时归还。</para>
+    /// <para>数据支撑（基准实测）：池化 Rent+Return 合计约 8ns、与大小无关，但接收环每轮必经；
+    /// 轮末脱手复用把“归还+再借”的成对开销省为零，缓冲常驻不换新。</para>
     /// <para>与 <see cref="Dispose"/> 的区别：Dispose 释放引用并可能归还池；脱手只废弃句柄，保留缓冲的借用状态。</para>
     /// <para>仍有其它持有者（<see cref="RefCount"/> 大于 1）时抛出异常：它们还在读这块缓冲，脱手会让调用方误以为缓冲可以独占复用。</para>
     /// <para>调用后实例作废，重复调用无操作；借用视图（不持有引用）调用无操作。仅用于无链式后续节点的独占句柄。</para>
@@ -444,6 +449,8 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
     /// <remarks>
     /// <para>切片共享底层缓冲区，不拷贝数据。支持跨段切片，自动处理边界；窗口覆盖的段各递增一次引用计数。</para>
+    /// <para>成本（基准实测）：共享切片双方合计约 42ns，与数据大小无关；≥4KB 帧优于拷贝（64KB 拷贝约 1.05µs），
+    /// ≤512B 小帧直接拷贝更便宜——小帧不要为共享而共享。</para>
     /// <para>本方法不改变原实例，双方（或多方）均可继续读取；每个句柄各自负责 <see cref="Dispose"/>。
     /// 线性交接场景直接传递句柄本身即可，无需切片。</para>
     /// <para><see cref="IPacket.Slice(Int32, Int32)"/> 与 <see cref="IOwnerPacket.Slice(Int32, Int32)"/> 是本方法的显式接口实现，经接口访问时分别返回各自声明类型。</para>

@@ -57,6 +57,7 @@ public class ReceivedEventArgs : EventArgs, IData
     #endregion
 
     /// <summary>获取当前事件的原始数据。避免用户错误使用Packet.Data</summary>
+    /// <remarks>小帧跨轮带出的“不后悔”路线：拷贝随大小线性（64B≈1.4ns、4KB≈45ns），换来合身独立缓冲、不吊住整块收包缓冲；大帧（≥4KB）改用 <see cref="IPacket.Slice(Int32, Int32)"/> 共享切片零拷贝（约 42ns 恒定）。</remarks>
     /// <returns></returns>
     public Byte[]? GetBytes() => Packet?.ToArray();
 

@@ -21,7 +21,7 @@ public class SocketSetting : Config<SocketSetting>
     [Description("会话超时时间。每个Tcp/Udp连接会话，超过一定时间不活跃时做超时下线处理，默认20*60秒")]
     public Int32 SessionTimeout { get; set; } = 20 * 60;
 
-    /// <summary>缓冲区大小。每个IOCP异步接收缓冲区的大小，较大的值能减少小包合并，但是当连接数很多时会浪费大量内存，默认8k</summary>
+    /// <summary>缓冲区大小。每个IOCP异步接收缓冲区的大小，较大的值能减少小包合并，但是当连接数很多时会浪费大量内存，默认8k。8KB 恰在 LOH 安全线（85KB）之下，是单次 recv 频率与内存占用的折中（主流框架落点 1KB~16KB）；百万连接场景应调小到 1~4KB（8K × 100 万连接 = 8GB）</summary>
     [Description("缓冲区大小。每个IOCP异步接收缓冲区的大小，较大的值能减少小包合并，但是当连接数很多时会浪费大量内存，默认8k")]
     public Int32 BufferSize { get; set; } = 8 * 1024;
 
