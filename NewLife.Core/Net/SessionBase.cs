@@ -150,10 +150,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (Disposed) return false;
 
             var timeout = Timeout;
-            if (timeout > 0 && Client != null)
+            if (timeout > 0 && Client is { } sock)
             {
-                Client.SendTimeout = timeout;
-                Client.ReceiveTimeout = timeout;
+                sock.SendTimeout = timeout;
+                sock.ReceiveTimeout = timeout;
             }
 
             Active = true;
@@ -389,13 +389,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-        if (!Open() || Client == null) return null;
+        if (!Open() || Client is not { } sock) return null;
 
         using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
             var pk = new OwnerPacket(BufferSize);
-            var size = Client.Receive(pk.Buffer, SocketFlags.None);
+            var size = sock.Receive(pk.Buffer, SocketFlags.None);
             span?.Value = size;
 
             return pk.Resize(size);
@@ -413,19 +413,20 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-        if (!Open() || Client == null) return null;
+        // 先快照 Client：关闭路径会并发置空该属性，Begin/EndReceive 分支的 EndReceive 在 await 续体里执行，重读可能得到 null
+        if (!Open() || Client is not { } sock) return null;
 
         using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
         try
         {
             var pk = new OwnerPacket(BufferSize);
 #if NETFRAMEWORK || NETSTANDARD2_0
-            var ar = Client.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, Client);
+            var ar = sock.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, sock);
             var size = ar.IsCompleted ?
-                Client.EndReceive(ar) :
-                await Task.Factory.FromAsync(ar, Client.EndReceive).ConfigureAwait(false);
+                sock.EndReceive(ar) :
+                await Task.Factory.FromAsync(ar, sock.EndReceive).ConfigureAwait(false);
 #else
-            var size = await Client.ReceiveAsync(pk.GetMemory(), SocketFlags.None, cancellationToken).ConfigureAwait(false);
+            var size = await sock.ReceiveAsync(pk.GetMemory(), SocketFlags.None, cancellationToken).ConfigureAwait(false);
 #endif
             span?.Value = size;
 

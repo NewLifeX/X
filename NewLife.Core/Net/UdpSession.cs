@@ -57,8 +57,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         set
         {
             _timeout = value;
-            if (Server?.Client != null)
-                Server.Client.ReceiveTimeout = _timeout;
+            if (Server?.Client is { } sock)
+                sock.ReceiveTimeout = _timeout;
         }
     }
 
@@ -276,14 +276,15 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     public IOwnerPacket Receive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
+        var server = Server;
+        if (server?.Client is not { } sock) throw new InvalidOperationException(nameof(Server));
 
         using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
             var ep = Remote.EndPoint as EndPoint;
-            var pk = new OwnerPacket(Server.BufferSize);
-            var size = Server.Client.ReceiveFrom(pk.Buffer, ref ep);
+            var pk = new OwnerPacket(server.BufferSize);
+            var size = sock.ReceiveFrom(pk.Buffer, ref ep);
             span?.Value = size;
 
             return pk.Resize(size);
@@ -303,14 +304,14 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     public virtual async Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
+        var server = Server;
+        if (server?.Client is not { } socket) throw new InvalidOperationException(nameof(Server));
 
         using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
             var ep = Remote.EndPoint as EndPoint;
-            var pk = new OwnerPacket(Server.BufferSize);
-            var socket = Server.Client;
+            var pk = new OwnerPacket(server.BufferSize);
 #if NETFRAMEWORK || NETSTANDARD2_0
             var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);
             var size = ar.IsCompleted ?

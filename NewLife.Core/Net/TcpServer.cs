@@ -297,7 +297,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <returns>开启异步是否成功</returns>
     Boolean StartAccept(SocketAsyncEventArgs se, Boolean io)
     {
-        if (!Active || Client == null)
+        if (!Active || Client is not { } sock)
         {
             se?.Dispose();
             return false;
@@ -308,7 +308,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         try
         {
             se.AcceptSocket = null;
-            rs = Client.AcceptAsync(se);
+            rs = sock.AcceptAsync(se);
         }
         catch (Exception ex)
         {

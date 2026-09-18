@@ -372,7 +372,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     #region 接收
     internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
     {
-        if (!Active || Client == null) return false;
+        if (!Active || Client is not { } sock) return false;
 
         // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
         se.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
@@ -383,9 +383,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         //return Client.ReceiveFromAsync(se);
         // Android 不支持 ReceiveMessageFromAsync 方法
         if (Runtime.Mono)
-            return Client.ReceiveFromAsync(se);
+            return sock.ReceiveFromAsync(se);
         else
-            return Client.ReceiveMessageFromAsync(se);
+            return sock.ReceiveMessageFromAsync(se);
     }
 
     /// <summary>预处理</summary>

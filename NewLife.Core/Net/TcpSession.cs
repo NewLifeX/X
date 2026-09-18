@@ -446,7 +446,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             // 加锁发送
             _spinLock.Enter(ref gotLock);
 
-            if (_Stream == null)
+            if (_Stream is not { } stream)
             {
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
@@ -462,9 +462,9 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             else
             {
                 if (count == 0)
-                    _Stream.Write([]);
+                    stream.Write([]);
                 else
-                    pk.CopyTo(_Stream);
+                    pk.CopyTo(stream);
             }
         }
         catch (Exception ex)
@@ -522,7 +522,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             // 加锁发送
             _spinLock.Enter(ref gotLock);
 
-            if (_Stream == null)
+            if (_Stream is not { } stream)
             {
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
@@ -532,9 +532,9 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             else
             {
                 if (count == 0)
-                    _Stream.Write([]);
+                    stream.Write([]);
                 else
-                    _Stream.Write(data.Array!, data.Offset, data.Count);
+                    stream.Write(data.Array!, data.Offset, data.Count);
             }
         }
         catch (Exception ex)
@@ -590,7 +590,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             // 加锁发送
             _spinLock.Enter(ref gotLock);
 
-            if (_Stream == null)
+            if (_Stream is not { } stream)
             {
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
@@ -604,12 +604,12 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             else
             {
                 if (count == 0)
-                    _Stream.Write([]);
+                    stream.Write([]);
                 else
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-                    _Stream.Write(data);
+                    stream.Write(data);
 #else
-                    _Stream.Write(data.ToArray());
+                    stream.Write(data.ToArray());
 #endif
             }
         }
