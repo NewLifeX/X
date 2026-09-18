@@ -50,17 +50,17 @@ public class SendPumpTests
             Pump = new SendPump(new Pipe(), OnSend, (action, ex) => { lock (Errors) Errors.Add(action); }, (format, args) => { });
         }
 
-        private Int32 OnSend(ReadOnlySpan<Byte> data)
+        private ValueTask<Int32> OnSend(ReadOnlyMemory<Byte> data)
         {
             Gate?.Wait(10_000);
-            if (FailOnSend) return -1;
+            if (FailOnSend) return new(-1);
 
             var chunk = data;
             if (PartialChunk > 0 && data.Length > PartialChunk) chunk = data[..PartialChunk];
 
             lock (Sent) Sent.Add(chunk.ToArray());
 
-            return chunk.Length;
+            return new(chunk.Length);
         }
     }
     #endregion

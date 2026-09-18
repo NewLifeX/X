@@ -103,7 +103,7 @@ partial class TcpSession
     /// <summary>数据发送管道（出站）。按需创建：首次访问后，Send 系列方法把数据追加进管道，由发送泵统一顺序送出</summary>
     /// <remarks>
     /// <para><b>单出口</b>：管道创建后 <see cref="SessionBase.Send(IPacket)"/> 等发送方法全部改为追加进管道（字节数组/跨度输入按副本，借阅视图自动转自有拷贝），与管道内排队数据天然无交错；发送在发送泵上异步完成。</para>
-    /// <para><b>背压</b>：未发送数据达到 <see cref="Pipe.PauseThreshold"/> 后 <see cref="Pipe.IsPaused"/> 为 true，生产方的 <see cref="PipeWriter.FlushAsync(CancellationToken)"/> 默认挂起等待（对齐 BCL）；泵推进降到 <see cref="Pipe.ResumeThreshold"/> 以下时唤醒。</para>
+    /// <para><b>背压</b>：未发送数据达到 <see cref="Pipe.PauseThreshold"/> 后 <see cref="Pipe.IsPaused"/> 为 true，生产方的 <see cref="PipeWriter.FlushAsync(CancellationToken)"/> 默认挂起等待（对齐 BCL）；泵推进降到 <see cref="Pipe.ResumeThreshold"/> 以下时唤醒。水位感知发送可用 <see cref="TrySend(IPacket)"/>（暂停时拒绝）或 <see cref="SendAsync(IPacket, CancellationToken)"/>（挂起等待）。</para>
     /// <para><b>生命周期</b>：关闭时完成写入并限时等待泵发完已排队数据；发送失败中止管道（错误随 <see cref="Pipe.Error"/>，后续追加的数据由管道直接释放）。</para>
     /// <para>读侧 <see cref="Pipe.Reader"/> 为发送泵独占，请勿另作它用。</para>
     /// </remarks>
@@ -135,8 +135,8 @@ partial class TcpSession
             {
                 var created = CreateSendPipe();
 
-                // 发送泵（管道唯一消费方），构造时启动；发送委托必须指向直发方法，避免再次进入队列分流
-                _sendPump = new SendPump(created, DirectSend, OnError, WriteLog);
+                // 发送泵（管道唯一消费方），构造时启动；发送委托指向泵专用发送核心，避免再次进入队列分流
+                _sendPump = new SendPump(created, DirectSendAsync, OnError, WriteLog);
             }
 
             return _sendPump;
@@ -228,6 +228,51 @@ partial class TcpSession
         if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
 
         return GetOrCreatePump().SendAsync(source, length, cancellationToken);
+    }
+    #endregion
+
+    #region 背压发送
+    /// <summary>异步发送数据包。入队后等待积压降到恢复水位以下，等待期间不占用线程</summary>
+    /// <remarks>
+    /// <para>与 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 共用发送管道单出口；积压达到 <see cref="Pipe.PauseThreshold"/> 时挂起，降至 <see cref="Pipe.ResumeThreshold"/> 以下恢复。</para>
+    /// <para>管道已中止时抛出异常（错误随 <see cref="Pipe.Error"/>）。发送管道为单写者：请勿与本方法、<see cref="PipeWriter.FlushAsync(CancellationToken)"/> 并发提交。</para>
+    /// </remarks>
+    /// <param name="data">数据包。拥有句柄零拷贝入管道；借阅视图自动转自有拷贝</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已入队字节数；管道已中止返回 -1</returns>
+    public async ValueTask<Int32> SendAsync(IPacket data, CancellationToken cancellationToken = default)
+    {
+        if (data == null) throw new ArgumentNullException(nameof(data));
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
+
+        var pump = GetOrCreatePump();
+        var rs = pump.Append(data);
+        if (rs < 0) return rs;
+
+        // 背压等待：积压达到暂停水位时挂起，网络消化到恢复水位后继续
+        var flush = await pump.Pipe.Writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        if (flush.IsCompleted) throw new InvalidOperationException("Send pipe has been completed.", pump.Pipe.Error);
+
+        return rs;
+    }
+
+    /// <summary>尝试非阻塞发送数据包。管道积压达到暂停水位时拒绝，交由调用方决定丢弃或稍后重试</summary>
+    /// <remarks>不主动打开连接：非活动会话直接拒绝。首次调用会创建发送管道，此后该会话的发送统一经泵送出（单出口）</remarks>
+    /// <param name="data">数据包。拥有句柄零拷贝入管道；借阅视图自动转自有拷贝</param>
+    /// <returns>是否成功入队；暂停或管道已中止返回 false</returns>
+    public Boolean TrySend(IPacket data)
+    {
+        if (data == null) throw new ArgumentNullException(nameof(data));
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+        // 不主动打开连接：“尝试发送”不应发生阻塞式连接
+        if (!Active) return false;
+
+        var pump = GetOrCreatePump();
+        if (pump.Pipe.IsPaused) return false;
+
+        return pump.Append(data) >= 0;
     }
     #endregion
 }

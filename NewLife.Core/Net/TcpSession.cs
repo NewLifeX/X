@@ -727,6 +727,98 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
         return sent;
     }
+
+#if NET5_0_OR_GREATER
+    /// <summary>发送泵异步发送的预算取消源。泵为单消费者，复用；正常完成时解除计时，触发取消即超时失败</summary>
+    private CancellationTokenSource? _sendCts;
+#endif
+
+#if NET5_0_OR_GREATER
+    /// <summary>异步发送一段数据（发送泵专用），短计数自动续发；等待可写期间不占用线程</summary>
+    /// <remarks>
+    /// <para>与同步直发一致：发送失败记录错误并关闭会话，返回 -1；预算按会话 Timeout 计时，超时取消发送并按失败处理。</para>
+    /// <para>SSL 流内部处理部分写，整段写完才返回。仅由发送泵单消费者调用。</para>
+    /// </remarks>
+    /// <param name="data">数据</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private async ValueTask<Int32> DirectSendAsync(ReadOnlyMemory<Byte> data)
+    {
+        var count = data.Length;
+        var sock = Client;
+        if (sock == null) return -1;
+        if (count == 0) return 0;
+
+        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
+
+        var total = 0;
+
+        // 预算取消源：正常完成不取消（可复用）；已取消说明上轮超时失败，重建后本轮结束即终止
+        var cts = _sendCts ??= new CancellationTokenSource();
+        if (cts.IsCancellationRequested) cts = _sendCts = new CancellationTokenSource();
+
+        var timeout = Timeout;
+        try
+        {
+            while (total < count)
+            {
+                // 每次发送前重设计时预算
+                if (timeout > 0) cts.CancelAfter(timeout);
+
+                Int32 sent;
+                if (_Stream is { } stream)
+                {
+                    // SSL 流内部处理部分写：整段写完才返回，无需续发
+                    await stream.WriteAsync(data, cts.Token).ConfigureAwait(false);
+                    sent = count - total;
+                }
+                else
+                    sent = await sock.SendAsync(data[total..], SocketFlags.None, cts.Token).ConfigureAwait(false);
+
+                if (sent <= 0) throw new IOException($"Send failed (result={sent}), {total}/{count} bytes sent");
+
+                total += sent;
+            }
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // 预算超时：与同步发送超时一致，按发送失败处理
+            var ex = new TimeoutException($"Send timeout, {total}/{count} bytes sent");
+            span?.SetError(ex, null);
+            OnError("Send", ex);
+            Close("SendError");
+
+            return -1;
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+
+            if (!ex.IsDisposed())
+            {
+                OnError("Send", ex);
+
+                // 发送异常可能是连接出了问题，需要关闭
+                Close("SendError");
+            }
+
+            return -1;
+        }
+        finally
+        {
+            // 解除计时预算（触发过取消的取消源不复用）
+            if (!cts.IsCancellationRequested) cts.CancelAfter(System.Threading.Timeout.Infinite);
+        }
+
+        LastTime = DateTime.Now;
+
+        return total;
+    }
+#else
+    /// <summary>异步发送一段数据（发送泵专用）。当前目标框架无带取消令牌的 Socket.SendAsync 重载，降级为同步续发发送</summary>
+    /// <param name="data">数据</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private ValueTask<Int32> DirectSendAsync(ReadOnlyMemory<Byte> data) => new(DirectSend(data.Span));
+#endif
     #endregion 发送
 
     #region 接收

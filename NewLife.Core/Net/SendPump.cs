@@ -6,12 +6,12 @@ namespace NewLife.Net;
 /// <summary>段发送委托</summary>
 /// <param name="data">段数据</param>
 /// <returns>已发送字节数；小于等于 0 视为失败</returns>
-internal delegate Int32 SendSegmentDelegate(ReadOnlySpan<Byte> data);
+internal delegate ValueTask<Int32> SendSegmentDelegate(ReadOnlyMemory<Byte> data);
 
 /// <summary>发送泵。出站管道的唯一消费方：循环取出管道窗口逐段发送（一次唤醒批处理整窗），写侧完成且残余发完后退出；发送失败中止管道</summary>
 /// <remarks>
 /// <para>与发送管道成对使用：<see cref="Append(IPacket)"/> 追加数据（拥有句柄零拷贝入管道；借阅视图自动转自有拷贝），<see cref="FlushAsync(Int32)"/> 关闭前排空，<see cref="Abort(Exception?)"/> 中止。</para>
-/// <para>发送动作经构造传入的委托执行，本组件不感知 Socket 细节，可脱离会话独立测试。</para>
+/// <para>发送动作经构造传入的委托异步执行，本组件不感知 Socket 细节，可脱离会话独立测试。</para>
 /// </remarks>
 internal sealed class SendPump
 {
@@ -191,7 +191,7 @@ internal sealed class SendPump
                     {
                         if (memory.IsEmpty) continue;
 
-                        if (!SendSegment(memory.Span)) return;
+                        if (!await SendSegmentAsync(memory).ConfigureAwait(false)) return;
                     }
 
                     reader.AdvanceTo(buffer.Length);
@@ -215,12 +215,12 @@ internal sealed class SendPump
 
     /// <summary>发送一个段，部分发送自动续发。返回是否全部发出（失败时已中止管道）</summary>
     /// <param name="data">段数据</param>
-    private Boolean SendSegment(ReadOnlySpan<Byte> data)
+    private async ValueTask<Boolean> SendSegmentAsync(ReadOnlyMemory<Byte> data)
     {
         var offset = 0;
         while (offset < data.Length)
         {
-            var rs = _send(data[offset..]);
+            var rs = await _send(data[offset..]).ConfigureAwait(false);
             if (rs <= 0)
             {
                 // 发送失败：中止管道（唤醒挂起提交、释放排队数据），泵退出
