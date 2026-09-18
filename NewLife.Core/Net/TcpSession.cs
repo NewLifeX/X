@@ -423,7 +423,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
     /// </remarks>
     /// <param name="pk">数据包</param>
-    /// <returns>是否成功</returns>
+    /// <returns>已发送字节数；失败返回 -1</returns>
     private Int32 DirectSend(IPacket pk)
     {
         var count = pk.Total;
@@ -448,19 +448,21 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
             if (_Stream is not { } stream)
             {
+                // 同步 Send 在接收方窗口受限时可能只发出一部分，续发循环保证整包送出；总预算按会话 Timeout 计时
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
                 else if (pk.Next == null && pk.TryGetArray(out var segment))
-                    rs = sock.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
+                    rs = SendAll(sock, segment.Array!, segment.Offset, segment.Count, GetSendDeadline());
 #if NETCOREAPP || NETSTANDARD2_1
                 else if (pk.TryGetSpan(out var data))
-                    rs = sock.Send(data);
+                    rs = SendAll(sock, data, GetSendDeadline());
 #endif
                 else
-                    rs = sock.Send(pk.ToSegments());
+                    rs = SendAll(sock, pk.ToSegments(), count, GetSendDeadline());
             }
             else
             {
+                // SSL 流内部已处理部分写：整段写完才返回，失败直接抛异常，无需续发循环
                 if (count == 0)
                     stream.Write([]);
                 else
@@ -497,7 +499,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
     /// </remarks>
     /// <param name="data">数据包</param>
-    /// <returns>是否成功</returns>
+    /// <returns>已发送字节数；失败返回 -1</returns>
     private Int32 DirectSend(ArraySegment<Byte> data)
     {
         var count = data.Count;
@@ -524,13 +526,15 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
             if (_Stream is not { } stream)
             {
+                // 同步 Send 在接收方窗口受限时可能只发出一部分，续发循环保证整段送出；总预算按会话 Timeout 计时
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
                 else
-                    rs = sock.Send(data.Array!, data.Offset, data.Count, SocketFlags.None);
+                    rs = SendAll(sock, data.Array!, data.Offset, data.Count, GetSendDeadline());
             }
             else
             {
+                // SSL 流内部已处理部分写：整段写完才返回，失败直接抛异常，无需续发循环
                 if (count == 0)
                     stream.Write([]);
                 else
@@ -567,7 +571,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
     /// </remarks>
     /// <param name="data">数据包</param>
-    /// <returns>是否成功</returns>
+    /// <returns>已发送字节数；失败返回 -1</returns>
     private Int32 DirectSend(ReadOnlySpan<Byte> data)
     {
         var count = data.Length;
@@ -592,17 +596,19 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
             if (_Stream is not { } stream)
             {
+                // 同步 Send 在接收方窗口受限时可能只发出一部分，续发循环保证整段送出；总预算按会话 Timeout 计时
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
                 else
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-                    rs = sock.Send(data);
+                    rs = SendAll(sock, data, GetSendDeadline());
 #else
-                    rs = sock.Send(data.ToArray());
+                    rs = SendAll(sock, data.ToArray(), 0, count, GetSendDeadline());
 #endif
             }
             else
             {
+                // SSL 流内部已处理部分写：整段写完才返回，失败直接抛异常，无需续发循环
                 if (count == 0)
                     stream.Write([]);
                 else
@@ -636,6 +642,90 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         LastTime = DateTime.Now;
 
         return rs;
+    }
+
+    /// <summary>获取续发总预算的截止时间。返回 0 表示不限制（Timeout 未启用）</summary>
+    private Int64 GetSendDeadline() => Timeout > 0 ? Runtime.TickCount64 + Timeout : 0;
+
+    /// <summary>发送一段数据，短计数自动续发。返回时全部字节已交给内核，失败抛异常</summary>
+    /// <remarks>同步 Send 在接收方窗口受限时可能只发出一部分；循环续发直到发完，总耗时超过预算按超时失败。异常由调用方统一转为发送失败处理</remarks>
+    /// <param name="sock">目标套接字</param>
+    /// <param name="buffer">数据缓冲</param>
+    /// <param name="offset">起始偏移</param>
+    /// <param name="count">字节数</param>
+    /// <param name="deadline">续发总预算截止时间（Runtime.TickCount64 毫秒），0 不限制</param>
+    /// <returns>已发送字节数，等于 count</returns>
+    private static Int32 SendAll(Socket sock, Byte[] buffer, Int32 offset, Int32 count, Int64 deadline)
+    {
+        var total = 0;
+        while (total < count)
+        {
+            var sent = sock.Send(buffer, offset + total, count - total, SocketFlags.None);
+            if (sent <= 0) throw new IOException($"Send failed (result={sent}), {total}/{count} bytes sent");
+
+            total += sent;
+
+            // 续发前检查总预算：对端持续慢读时，单次 SendTimeout 约束不住整包发送的总耗时
+            if (deadline > 0 && total < count && Runtime.TickCount64 > deadline)
+                throw new TimeoutException($"Send timeout, {total}/{count} bytes sent");
+        }
+
+        return total;
+    }
+
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    /// <summary>发送一段数据，短计数自动续发。返回时全部字节已交给内核，失败抛异常</summary>
+    /// <param name="sock">目标套接字</param>
+    /// <param name="data">数据</param>
+    /// <param name="deadline">续发总预算截止时间（Runtime.TickCount64 毫秒），0 不限制</param>
+    /// <returns>已发送字节数，等于 data.Length</returns>
+    private static Int32 SendAll(Socket sock, ReadOnlySpan<Byte> data, Int64 deadline)
+    {
+        var total = 0;
+        while (total < data.Length)
+        {
+            var sent = sock.Send(data[total..]);
+            if (sent <= 0) throw new IOException($"Send failed (result={sent}), {total}/{data.Length} bytes sent");
+
+            total += sent;
+
+            if (deadline > 0 && total < data.Length && Runtime.TickCount64 > deadline)
+                throw new TimeoutException($"Send timeout, {total}/{data.Length} bytes sent");
+        }
+
+        return total;
+    }
+#endif
+
+    /// <summary>发送多段数据（scatter-gather），短计数后按段序跳过已发字节逐段续发</summary>
+    /// <param name="sock">目标套接字</param>
+    /// <param name="segments">数据段列表</param>
+    /// <param name="total">总字节数</param>
+    /// <param name="deadline">续发总预算截止时间（Runtime.TickCount64 毫秒），0 不限制</param>
+    /// <returns>已发送字节数，等于 total</returns>
+    private static Int32 SendAll(Socket sock, IList<ArraySegment<Byte>> segments, Int32 total, Int64 deadline)
+    {
+        // 先尝试一次多段发送（平台可合并系统调用）；正常路径一次发完直接返回
+        var sent = sock.Send(segments);
+        if (sent <= 0) throw new IOException($"Send failed (result={sent}), 0/{total} bytes sent");
+        if (sent >= total) return sent;
+
+        // 短计数：按段序跳过已发字节，逐段续发（复用原段缓冲，零拷贝）
+        var skip = sent;
+        foreach (var seg in segments)
+        {
+            // 跳过已发段
+            if (skip >= seg.Count)
+            {
+                skip -= seg.Count;
+                continue;
+            }
+
+            sent += SendAll(sock, seg.Array!, seg.Offset + skip, seg.Count - skip, deadline);
+            skip = 0;
+        }
+
+        return sent;
     }
     #endregion 发送
 
