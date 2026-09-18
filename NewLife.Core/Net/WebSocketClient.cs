@@ -70,6 +70,8 @@ public class WebSocketClient : TcpSession
         var rs = await base.OnOpenAsync(cancellationToken).ConfigureAwait(false);
         if (!rs) return false;
 
+        // 历史同步握手实现：早期在此同步收发，后移至 WebSocketCodec.Open（因其时 Active 已置位），
+        // 现由下方异步握手取代（直读原语，不经 Open 守卫）；静态 Handshake 保留供手工调用
         //// 连接必须是ws/wss协议
         //if (remote.Type != NetType.WebSocket) return false;
 
@@ -79,6 +81,14 @@ public class WebSocketClient : TcpSession
         //var rs = Handshake(this, Uri);
 
         //Active = false;
+
+        // 异步握手。失败即整条打开失败，释放底层避免半开连接
+        if (!await HandshakeAsync(cancellationToken).ConfigureAwait(false))
+        {
+            Client.TryDispose();
+
+            return false;
+        }
 
         // 订阅 Received 事件以跟踪 Pong 响应（仅事件模式有效）
         Received += OnReceivedPong;
@@ -278,11 +288,11 @@ public class WebSocketClient : TcpSession
     #endregion
 
     #region 辅助
-    /// <summary>握手</summary>
-    /// <param name="client"></param>
-    /// <param name="uri"></param>
-    /// <returns></returns>
-    public static Boolean Handshake(ISocketClient client, Uri uri)
+    /// <summary>构建握手请求。返回请求与客户端密钥（响应校验用）</summary>
+    /// <param name="client">客户端</param>
+    /// <param name="uri">地址</param>
+    /// <returns>请求与密钥</returns>
+    private static (HttpRequest Request, String Key) BuildHandshake(ISocketClient client, Uri uri)
     {
         // 建立WebSocket请求
         var request = new HttpRequest
@@ -309,6 +319,83 @@ public class WebSocketClient : TcpSession
         // 注入链路跟踪标记
         DefaultSpan.Current?.Attach(request.Headers);
 
+        return (request, key);
+    }
+
+    /// <summary>校验握手响应。解析失败返回 false；非 101 或校验头不匹配抛出异常</summary>
+    /// <param name="response">响应数据包</param>
+    /// <param name="key">客户端密钥</param>
+    /// <returns>是否有效</returns>
+    private static Boolean ValidateHandshake(IPacket response, String key)
+    {
+        // 解析响应
+        using var res = new HttpResponse();
+        if (!res.Parse(response)) return false;
+
+        //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
+        if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception("WebSocket握手失败！" + res.StatusDescription);
+
+        // 检查响应头
+        if (!res.Headers.TryGetValue("Sec-WebSocket-Accept", out var accept) ||
+            accept != SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes()).ToBase64())
+            throw new Exception("WebSocket握手失败！");
+
+        return true;
+    }
+
+    /// <summary>打开链路内的异步握手。经直读原语收发，不经过 Open 守卫与接收环；失败返回 false</summary>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>是否成功</returns>
+    private async Task<Boolean> HandshakeAsync(CancellationToken cancellationToken)
+    {
+        var uri = Uri;
+        var (request, key) = BuildHandshake(this, uri);
+
+        using var span = Tracer?.NewSpan($"net:{Name}:WebSocket", uri + "");
+        IOwnerPacket? rs = null;
+        try
+        {
+            // 发送请求。用完后释放数据包，还给缓冲池
+            {
+                using var req = request.Build();
+                OnSend(req);
+            }
+
+            // 接收响应。打开链路尚未启动接收环，直接原语直读（SSL 会话由 TcpSession 重写适配）
+#if NETFRAMEWORK || NETSTANDARD2_0
+            // 旧目标无带取消令牌的异步直读重载，临时收紧套接字接收超时后同步直读（沿用旧行为）
+            if (Client != null) Client.ReceiveTimeout = Timeout > 0 ? Timeout : 3_000;
+            rs = OnDirectReceive();
+#else
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(Timeout > 0 ? Timeout : 3_000);
+            rs = await OnDirectReceiveAsync(cts.Token).ConfigureAwait(false);
+#endif
+            if (rs == null || rs.Length == 0) return false;
+
+            return ValidateHandshake(rs, key);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            WriteLog("WebSocket握手失败！" + ex.Message);
+
+            return false;
+        }
+        finally
+        {
+            rs.TryDispose();
+        }
+    }
+
+    /// <summary>握手（同步阻塞版，供手工调用）</summary>
+    /// <param name="client"></param>
+    /// <param name="uri"></param>
+    /// <returns></returns>
+    public static Boolean Handshake(ISocketClient client, Uri uri)
+    {
+        var (request, key) = BuildHandshake(client, uri);
+
         using var span = client.Tracer?.NewSpan($"net:{client.Name}:WebSocket", uri + "");
         try
         {
@@ -322,17 +409,7 @@ public class WebSocketClient : TcpSession
             using var rs = client.Receive();
             if (rs == null || rs.Length == 0) return false;
 
-            // 解析响应
-            using var res = new HttpResponse();
-            if (!res.Parse(rs)) return false;
-
-            //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
-            if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception("WebSocket握手失败！" + res.StatusDescription);
-
-            // 检查响应头
-            if (!res.Headers.TryGetValue("Sec-WebSocket-Accept", out var accept) ||
-                accept != SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes()).ToBase64())
-                throw new Exception("WebSocket握手失败！");
+            return ValidateHandshake(rs, key);
         }
         catch (Exception ex)
         {
@@ -344,8 +421,6 @@ public class WebSocketClient : TcpSession
 
             return false;
         }
-
-        return true;
     }
     #endregion
 }

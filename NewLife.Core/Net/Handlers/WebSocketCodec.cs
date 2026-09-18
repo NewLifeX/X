@@ -18,18 +18,10 @@ public class WebSocketCodec : Handler
     private const String CodecKey = "WebSocketCodec";
 
     /// <summary>打开连接</summary>
+    /// <remarks>WebSocket 客户端握手由 <see cref="NewLife.Net.WebSocketClient"/> 在打开链路内异步完成</remarks>
     /// <param name="context">上下文</param>
     public override Boolean Open(IHandlerContext context)
     {
-        if (context.Owner is ISocketClient client)
-        {
-            // 连接必须是ws/wss协议
-            if (client.Remote.Type == NetType.WebSocket && client is WebSocketClient ws)
-            {
-                WebSocketClient.Handshake(client, ws.Uri);
-            }
-        }
-
         return base.Open(context);
     }
 
