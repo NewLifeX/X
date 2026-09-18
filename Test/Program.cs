@@ -197,7 +197,7 @@ public class Program
         client.Log = XTrace.Log;
         client.LogSend = true;
         client.LogReceive = true;
-        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        if (client is TcpSession tcp) tcp.AutoReceive = false;
         client.Open();
 
         client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");

@@ -26,7 +26,7 @@ public class SessionLifecycleTests
     /// <summary>生命周期测试假体：不连套接字，打开/关闭可挂起以观察并发语义</summary>
     private sealed class FakeSession : SessionBase
     {
-        public FakeSession() => MaxAsync = 0;
+        public FakeSession() => AutoReceive = false;
 
         /// <summary>打开闸门。非空时挂起打开，直到释放</summary>
         public ManualResetEventSlim? OpenGate { get; set; }

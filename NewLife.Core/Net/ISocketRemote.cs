@@ -65,19 +65,20 @@ public interface ISocketRemote : ISocket, IExtend
     #endregion
 
     #region 数据接收
-    /// <summary>同步接收数据包</summary>
+    /// <summary>同步接收数据包。拉取模式接口</summary>
     /// <returns>接收到的数据包，无数据时返回null</returns>
     /// <remarks>
     /// <para>该方法会阻塞当前线程直到有数据到达或连接关闭。</para>
+    /// <para>事件模式下（接收环运行）将抛出异常；拉取模式请在打开前设置 <see cref="SessionBase.AutoReceive"/> = false。</para>
     /// <para>返回的数据包需要在使用完毕后正确释放，避免内存泄漏。</para>
     /// </remarks>
     IOwnerPacket? Receive();
 
-    /// <summary>异步接收数据包</summary>
+    /// <summary>异步接收数据包。拉取模式接口，不阻塞调用线程</summary>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>接收到的数据包，无数据时返回null</returns>
     /// <remarks>
-    /// <para>推荐的异步接收方式，不会阻塞调用线程。</para>
+    /// <para>推荐的异步拉取方式。事件模式下（接收环运行）将抛出异常；拉取模式请在打开前设置 <see cref="SessionBase.AutoReceive"/> = false。</para>
     /// <para>返回的数据包需要在使用完毕后正确释放，避免内存泄漏。</para>
     /// </remarks>
     Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default);

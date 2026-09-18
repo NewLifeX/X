@@ -18,7 +18,7 @@ namespace NewLife.Net;
 /// <item>支持地址重用（快速重启）</item>
 /// <item>支持环回数据过滤</item>
 /// </list>
-/// <para>如果已经打开异步接收，还要使用同步接收，则同步Receive内部不再调用底层Socket，而是等待截走异步数据。</para>
+/// <para>接收模式二选一：默认自动接收（打开后启动接收环走事件推送，不允许拉取）；打开前设置 AutoReceive=false 则只允许同步/异步拉取（直读Socket）。</para>
 /// </remarks>
 public class UdpServer : SessionBase, ISocketServer, ILogFeature
 {
@@ -40,6 +40,14 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <para>SO_REUSEADDR用于对TCP套接字处于TIME_WAIT状态下的socket，才可以重复绑定使用。</para>
     /// </remarks>
     public Boolean ReuseAddress { get; set; }
+
+    /// <summary>最大并行接收数。接收环并发待收的报文数量，默认CPU*1.6</summary>
+    /// <remarks>小于等于0时按1处理。仅控制接收环并行度，接收模式由 <see cref="SessionBase.AutoReceive"/> 决定</remarks>
+    public Int32 MaxAsync
+    {
+        get => MaxReceiveCount;
+        set => MaxReceiveCount = value > 0 ? value : 1;
+    }
     #endregion
 
     #region 构造

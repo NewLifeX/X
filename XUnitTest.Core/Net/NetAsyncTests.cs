@@ -47,7 +47,7 @@ public class NetAsyncTests
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
         client.Log = XTrace.Log;
-        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        if (client is TcpSession tcp) tcp.AutoReceive = false;
         client.Open();
 
         // 发送数据
@@ -85,6 +85,7 @@ public class NetAsyncTests
         var client = uri.CreateRemote();
         client.Timeout = 1000; // 1秒超时
         client.Log = XTrace.Log;
+        if (client is TcpSession tcp2) tcp2.AutoReceive = false;
         client.Open();
 
         // 发送数据

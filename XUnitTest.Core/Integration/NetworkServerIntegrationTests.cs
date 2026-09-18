@@ -222,7 +222,7 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         client.Name = "集成测试Tcp客户";
         client.Log = XTrace.Log;
 
-        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        if (client is TcpSession tcp) tcp.AutoReceive = false;
         client.Open();  // 明确触发 TCP 连接，确保服务端在断言前建立会话
 
         // 等待服务端完成会话建立

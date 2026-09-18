@@ -63,6 +63,10 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     /// <summary>超时时间（毫秒）。默认 3000</summary>
     public Int32 Timeout { get; set; } = 3_000;
 
+    /// <summary>自动接收。为 true 时打开后自动启动接收环进入事件模式（拉取不可用）；为 false 时只允许拉取。默认 true</summary>
+    /// <remarks>透传给内部Socket客户端，请在打开之前设置</remarks>
+    public Boolean AutoReceive { get; set; } = true;
+
     /// <summary>是否自动重连。默认 true</summary>
     /// <remarks>连接意外断开后自动发起重连，主动调用 <see cref="Close"/> 不触发重连</remarks>
     public Boolean AutoReconnect { get; set; } = true;
@@ -230,6 +234,8 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
         client.Name = Name;
         client.Timeout = Timeout;
         client.Log = Log;
+
+        if (client is SessionBase session) session.AutoReceive = AutoReceive;
 
         if (Pipeline != null) client.Pipeline = Pipeline;
         if (Tracer != null) client.Tracer = Tracer;

@@ -9,7 +9,7 @@ namespace XUnitTest.Compat;
 /// <summary>网络会话兼容性测试：net462 走 NETFRAMEWORK 的 Begin/EndReceive 分支、net8.0 走 Socket.ReceiveAsync 分支，同一套用例校验显式接收行为一致</summary>
 public class NetCompatTests
 {
-    /// <summary>显式接收（MaxAsync=0 关闭后台接收环）在回环回显下完整往返，覆盖两个目标框架各自的接收分支</summary>
+    /// <summary>显式接收（AutoReceive=false 关闭接收环）在回环回显下完整往返，覆盖两个目标框架各自的接收分支</summary>
     [Fact]
     [DisplayName("显式接收_回环回显_数据完整往返")]
     public async Task ReceiveAsync_LoopbackEcho()
@@ -29,11 +29,11 @@ public class NetCompatTests
         };
         server.Start();
 
-        // MaxAsync=0 关闭后台接收环，显式调用 ReceiveAsync（用法见 WebSocketClient.ReceiveMessageAsync 注释）
+        // AutoReceive=false 拉取模式，显式调用 ReceiveAsync（用法见 WebSocketClient.ReceiveMessageAsync 注释）
         using var client = new TcpSession
         {
             Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
-            MaxAsync = 0,
+            AutoReceive = false,
             Timeout = 5000,
         };
         client.Open();

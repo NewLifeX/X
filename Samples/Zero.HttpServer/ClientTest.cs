@@ -83,7 +83,7 @@ static class ClientTest
             Tracer = tracer,
             Log = XTrace.Log
         };
-        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        if (client is TcpSession tcp) tcp.AutoReceive = false;
 
         await client.SendTextAsync("Hello NewLife");
 

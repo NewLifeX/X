@@ -640,32 +640,51 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     #endregion 发送
 
     #region 接收
-    /// <summary>异步接收数据。重载以支持SSL</summary>
+    /// <summary>同步直读数据。重写以支持SSL</summary>
     /// <returns></returns>
-    public override async Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
+    protected override IOwnerPacket? OnDirectReceive()
     {
-        if (!Open() || Client == null) return null;
-
         var ss = _Stream;
-        if (ss != null)
+        if (ss == null) return base.OnDirectReceive();
+
+        using var span = Tracer?.NewSpan($"net:{Name}:Receive");
+        try
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
-            try
-            {
-                var pk = new OwnerPacket(BufferSize);
-                var size = await ss.ReadAsync(pk.Buffer, 0, pk.Length, cancellationToken).ConfigureAwait(false);
-                span?.Value = size;
+            var pk = new OwnerPacket(BufferSize);
+            var size = ss.Read(pk.Buffer, 0, pk.Length);
+            span?.Value = size;
 
-                return pk.Resize(size);
-            }
-            catch (Exception ex)
-            {
-                span?.SetError(ex, null);
-                throw;
-            }
+            return pk.Resize(size);
         }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
+        }
+    }
 
-        return await base.ReceiveAsync(cancellationToken).ConfigureAwait(false);
+    /// <summary>异步直读数据。重写以支持SSL</summary>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    protected override async Task<IOwnerPacket?> OnDirectReceiveAsync(CancellationToken cancellationToken = default)
+    {
+        var ss = _Stream;
+        if (ss == null) return await base.OnDirectReceiveAsync(cancellationToken).ConfigureAwait(false);
+
+        using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
+        try
+        {
+            var pk = new OwnerPacket(BufferSize);
+            var size = await ss.ReadAsync(pk.Buffer, 0, pk.Length, cancellationToken).ConfigureAwait(false);
+            span?.Value = size;
+
+            return pk.Resize(size);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
+        }
     }
 
     internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)

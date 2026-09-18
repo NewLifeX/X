@@ -64,9 +64,15 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <remarks>主要表示活跃时间，包括收发操作</remarks>
     public DateTime LastTime { get; internal protected set; } = DateTime.Now;
 
-    /// <summary>最大并行接收数</summary>
-    /// <remarks>Tcp默认1，Udp默认CPU*1.6，0关闭异步接收使用同步接收</remarks>
-    public Int32 MaxAsync { get; set; } = 1;
+    /// <summary>自动接收。为 true 时打开后自动启动接收环进入事件模式（不允许拉取数据）；为 false 时只允许同步/异步拉取</summary>
+    /// <remarks>
+    /// <para>默认 true，请在打开之前设置，打开后修改不影响已启动的接收环。</para>
+    /// <para>接收环运行期间调用 <see cref="Receive()"/> 或 <see cref="ReceiveAsync(CancellationToken)"/> 将抛出异常。</para>
+    /// </remarks>
+    public Boolean AutoReceive { get; set; } = true;
+
+    /// <summary>最大并行接收数。接收环并发待收数量，默认1</summary>
+    internal Int32 MaxReceiveCount { get; set; } = 1;
 
     /// <summary>缓冲区大小</summary>
     /// <remarks>接收缓冲区大小，默认使用全局配置</remarks>
@@ -178,8 +184,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             // 触发打开完成的事件（状态已变更，管道已打开）
             Opened?.Invoke(this, EventArgs.Empty);
 
-            // 最后开始接收，避免事件处理阻塞接收初始化
-            ReceiveAsync();
+            // 最后开始接收，避免事件处理阻塞接收初始化；拉取模式（AutoReceive=false）不启动接收环
+            if (AutoReceive) ReceiveAsync();
         }
         catch (Exception ex)
         {
@@ -383,17 +389,37 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     #region 接收
 
-    /// <summary>接收数据</summary>
+    /// <summary>同步拉取数据。直接读取Socket，仅在接收环未运行时可用</summary>
+    /// <remarks>
+    /// <para>拉取模式（<see cref="AutoReceive"/> = false）下独占直读；事件模式下若接收环已运行，将抛出异常。</para>
+    /// <para>该方法会阻塞当前线程直到有数据到达或连接关闭。</para>
+    /// </remarks>
     /// <returns></returns>
     public virtual IOwnerPacket? Receive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-        if (!Open() || Client is not { } sock) return null;
+        if (!Open() || Client == null) return null;
 
+        // 接收环运行时禁止拉取：两条读路径会争抢同一链路，数据被分流且不可预期
+        if (_RecvCount > 0) throw new InvalidOperationException(NoPullMessage);
+
+        return OnDirectReceive();
+    }
+
+    /// <summary>拉取模式提示。接收环已启动时拉取数据将被拒绝</summary>
+    private String NoPullMessage => $"[{Name}] 接收环已启动（AutoReceive=true），不允许拉取数据；请在打开前设置 AutoReceive=false 使用拉取模式，或改用 Received 事件/管道接收数据";
+
+    /// <summary>直读数据。子类可重写以适配特殊链路（如SSL流）</summary>
+    /// <returns></returns>
+    protected virtual IOwnerPacket? OnDirectReceive()
+    {
         using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
+            var sock = Client;
+            if (sock == null) return null;
+
             var pk = new OwnerPacket(BufferSize);
             var size = sock.Receive(pk.Buffer, SocketFlags.None);
             span?.Value = size;
@@ -407,18 +433,34 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
     }
 
-    /// <summary>异步接收数据</summary>
+    /// <summary>异步拉取数据。直接读取Socket，仅在接收环未运行时可用</summary>
+    /// <remarks>拉取模式（<see cref="AutoReceive"/> = false）下独占直读；事件模式下若接收环已运行，将抛出异常。</remarks>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
     public virtual async Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-        // 先快照 Client：关闭路径会并发置空该属性，Begin/EndReceive 分支的 EndReceive 在 await 续体里执行，重读可能得到 null
-        if (!Open() || Client is not { } sock) return null;
+        if (!Open() || Client == null) return null;
 
+        // 接收环运行时禁止拉取：两条读路径会争抢同一链路，数据被分流且不可预期
+        if (_RecvCount > 0) throw new InvalidOperationException(NoPullMessage);
+
+        return await OnDirectReceiveAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>异步直读数据。子类可重写以适配特殊链路（如SSL流）</summary>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    protected virtual async Task<IOwnerPacket?> OnDirectReceiveAsync(CancellationToken cancellationToken = default)
+    {
         using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
         try
         {
+            // 快照 Client：关闭路径会并发置空该属性，Begin/EndReceive 分支的 EndReceive 在 await 续体里执行，重读可能得到 null
+            var sock = Client;
+            if (sock == null) return null;
+
             var pk = new OwnerPacket(BufferSize);
 #if NETFRAMEWORK || NETSTANDARD2_0
             var ar = sock.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, sock);
@@ -442,7 +484,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>当前异步接收个数</summary>
     private Int32 _RecvCount;
 
-    /// <summary>开始异步接收。在事件中返回数据</summary>
+    /// <summary>开始异步接收。确保接收环运行，数据在事件中返回</summary>
+    /// <remarks>调用后进入事件模式；此后 <see cref="Receive()"/> 与 <see cref="ReceiveAsync(CancellationToken)"/> 将抛出异常</remarks>
     /// <returns>是否成功</returns>
     public virtual Boolean ReceiveAsync()
     {
@@ -451,7 +494,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (!Open()) return false;
 
         var count = _RecvCount;
-        var max = MaxAsync;
+        var max = MaxReceiveCount;
         if (count >= max) return false;
 
         // 按照最大并发创建异步委托

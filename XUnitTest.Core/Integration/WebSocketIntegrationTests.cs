@@ -1,6 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net;
+using System.Security.Authentication;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using NewLife;
 using NewLife.Data;
 using NewLife.Http;
@@ -78,7 +81,7 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
     }
 
     /// <summary>
-    /// 建连+文本+二进制收发+Active验证，走 Received 事件路径（MaxAsync=1，后台管道接收循环）。
+    /// 建连+文本+二进制收发+Active验证，走 Received 事件路径（事件模式，后台管道接收循环）。
     /// WS Close 帧由接收循环检测服务端关闭，Active 异步变 false。
     /// </summary>
     [Fact(DisplayName = "02-建连+文本+二进制收发+Active验证（Received事件路径）")]
@@ -127,21 +130,21 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
     }
 
     /// <summary>
-    /// 建连+文本+二进制收发+Active验证，走 ReceiveMessageAsync 路径（MaxAsync=0，禁用后台接收循环）。
+    /// 建连+文本+二进制收发+Active验证，走 ReceiveMessageAsync 路径（拉取模式，禁用接收环）。
     /// 无后台循环时直接调用 ReceiveMessageAsync 读取 WS 帧；关闭使用 SessionBase.CloseAsync 直接关 TCP。
     /// </summary>
     /// <remarks>
     /// 前提：每次只有一条消息在途（发一条→立即等回显→再发），不存在粘包可能。
-    /// 若需流水线发送多条消息，必须改用 Received 事件（MaxAsync=1），
+    /// 若需流水线发送多条消息，必须改用 Received 事件（事件模式），
     /// 由 WebSocketCodec+PacketCodec 在管道内完成粘包/拆包。
     /// </remarks>
-    [Fact(DisplayName = "03-建连+文本+二进制收发+Active验证（ReceiveMessageAsync路径，MaxAsync=0）")]
+    [Fact(DisplayName = "03-建连+文本+二进制收发+Active验证（ReceiveMessageAsync路径，拉取模式）")]
     public async Task Test03_BasicEcho_ReceiveMessageAsync()
     {
         var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws")
         {
             Log = XTrace.Log,
-            MaxAsync = 0,   // 禁用后台接收循环，ReceiveMessageAsync 直接读原始 WS 帧
+            AutoReceive = false,   // 拉取模式：禁用接收环，ReceiveMessageAsync 直接读原始 WS 帧
         };
 
         Assert.True(await ws.OpenAsync());
@@ -166,13 +169,13 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         Assert.Equal(WebSocketMessageType.Binary, binaryMsg.Type);
         Assert.Equal(originalPayload, binaryMsg.Payload?.ToArray());
 
-        // MaxAsync=0 时无接收循环检测关闭帧，直接关闭 TCP，Active 同步变 false
+        // 拉取模式无接收循环检测关闭帧，直接关闭 TCP，Active 同步变 false
         await ws.CloseAsync("done");
         Assert.False(ws.Active, "CloseAsync 后 Active 应为 false");
     }
 
     /// <summary>
-    /// 4KB 二进制 SHA256 完整性校验 + DefaultMessage 格式字节完整性，走 ReceiveMessageAsync 路径（MaxAsync=0）。
+    /// 4KB 二进制 SHA256 完整性校验 + DefaultMessage 格式字节完整性，走 ReceiveMessageAsync 路径（拉取模式）。
     /// loopback 环境下单次 ReceiveAsync 可携带完整 WS 帧（loopback MTU=65536），且仅一条消息在途，
     /// 不存在粘包，ReceiveMessageAsync 可安全使用。
     /// </summary>
@@ -184,7 +187,7 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         Random.Shared.NextBytes(payload4K);
         var sentHash = SHA256.HashData(payload4K);
 
-        var ws1 = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { Log = XTrace.Log, MaxAsync = 0 };
+        var ws1 = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { Log = XTrace.Log, AutoReceive = false };
         Assert.True(await ws1.OpenAsync());
 
         await ws1.SendBinaryAsync(new ArrayPacket(payload4K));
@@ -207,7 +210,7 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         // ToPacket 会原地 XOR 修改数组，先保存副本
         var originalFrame = frame.ToArray();
 
-        var ws2 = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { Log = XTrace.Log, MaxAsync = 0 };
+        var ws2 = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { Log = XTrace.Log, AutoReceive = false };
         Assert.True(await ws2.OpenAsync());
 
         await ws2.SendBinaryAsync(new ArrayPacket(frame));
@@ -220,10 +223,10 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
     }
 
     /// <summary>
-    /// 20 客户端并发文本收发，走 ReceiveMessageAsync 路径（MaxAsync=0）。
+    /// 20 客户端并发文本收发，走 ReceiveMessageAsync 路径（拉取模式）。
     /// 无需事件订阅，代码更简洁；每个客户端发送后直接 await ReceiveMessageAsync 取回显。
     /// </summary>
-    [Fact(DisplayName = "05-20客户端并发收发（ReceiveMessageAsync路径，MaxAsync=0）")]
+    [Fact(DisplayName = "05-20客户端并发收发（ReceiveMessageAsync路径，拉取模式）")]
     public async Task Test05_ConcurrentClients_ReceiveMessageAsync()
     {
         const Int32 count = 20;
@@ -233,7 +236,7 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
             var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws")
             {
                 Log = XTrace.Log,
-                MaxAsync = 0,
+                AutoReceive = false,
             };
             Assert.True(await ws.OpenAsync());
 
@@ -254,7 +257,7 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
     }
 
     /// <summary>
-    /// 高吞吐 TPS 测试（Received 事件路径，MaxAsync=1 默认）：
+    /// 高吞吐 TPS 测试（Received 事件路径，事件模式）：
     /// 流水线发送（发完全部再统一接收），由管道内 WebSocketCodec+PacketCodec 负责粘包/拆包，
     /// 确保每个 WS 帧完整触发 Received 事件；
     /// 先预热 500条/客户端，稀释 JIT/线程池扩张冷启动；
@@ -365,7 +368,7 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         // partial[4..8] 掩码（全零即可），partial[8..18] 少量负载
 
         {
-            var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { MaxAsync = 0 };
+            var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { AutoReceive = false };
             Assert.True(await ws.OpenAsync());
 
             ws.Send(new ArrayPacket(partial));
@@ -379,7 +382,7 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         Assert.True(fixture.Server.Active, "半帧断开后服务器应保持可用");
 
         // 新连接回显正常
-        var ws2 = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { MaxAsync = 0 };
+        var ws2 = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws") { AutoReceive = false };
         Assert.True(await ws2.OpenAsync());
 
         var text = $"after-partial-{Guid.NewGuid():N}";
@@ -477,6 +480,57 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
 
         // 第三帧使用显式设置的掩码
         Assert.Equal(custom, keys[2]);
+
+        await ws.CloseAsync(1000, "done");
+    }
+
+    /// <summary>
+    /// wss（TLS）建连+握手+文本回显：自签证书启动 HTTPS 服务端；
+    /// 覆盖打开窗口内同步 Receive 直读 SSL 流的握手路径（修复前读到 TLS 密文导致握手失败）。
+    /// </summary>
+    [Fact(DisplayName = "10-wss建连+握手+文本回显（自签证书）")]
+    public async Task Test10_WssEcho_SelfSigned()
+    {
+        // 自签证书启动 wss 服务端（随机端口）
+        var asm = typeof(WebSocketIntegrationTests).Assembly;
+        using var stream = asm.GetManifestResourceStream("XUnitTest.certs.newlifex.com.pfx")!;
+        var pfx = stream.ReadBytes(-1);
+#if NET9_0_OR_GREATER
+        var cert = X509CertificateLoader.LoadPkcs12(pfx, "123456");
+#else
+        var cert = new X509Certificate2(pfx, "123456", X509KeyStorageFlags.DefaultKeySet);
+#endif
+        using var server = new HttpServer
+        {
+            Name = "wss集成测试服务器",
+            Local = new NetUri(NetType.Https, IPAddress.Loopback, 0),
+            Certificate = cert,
+            SslProtocol = SslProtocols.Tls12,
+            Log = XTrace.Log,
+        };
+        server.Map("/ws", new WsEchoHandler());
+        server.Start();
+
+        var ws = new WebSocketClient($"wss://127.0.0.1:{server.Port}/ws")
+        {
+            SslProtocol = SslProtocols.Tls12,
+            Log = XTrace.Log,
+        };
+
+        Assert.True(await ws.OpenAsync(), "wss 建连与握手应成功");
+        Assert.True(ws.Active);
+
+        var textWait = new TaskCompletionSource<String>();
+        ws.Received += (s, e) =>
+        {
+            if (e.Message is WebSocketMessage m && m.Type == WebSocketMessageType.Text)
+                textWait.TrySetResult(m.Payload?.ToStr() ?? String.Empty);
+        };
+
+        var text = "hello-wss";
+        await ws.SendTextAsync(text);
+        var reply = await textWait.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal($"ws-echo:{text}", reply);
 
         await ws.CloseAsync(1000, "done");
     }
