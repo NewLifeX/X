@@ -28,8 +28,8 @@ public class MyWebSocketHandler : IHttpHandler
         {
             case WebSocketMessageType.Text:
                 WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
-                // 群发所有客户端
-                socket.SendAll($"[{remote}]说，{msg}");
+                // 群发所有客户端。同步处理器无法等待，弃置任务即可
+                _ = socket.SendAllAsync($"[{remote}]说，{msg}");
                 break;
             case WebSocketMessageType.Close:
                 WriteLog("WebSocket关闭[{0}] [{1}] {2}", remote, message.CloseStatus, message.StatusDescription);

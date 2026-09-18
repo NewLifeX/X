@@ -142,7 +142,7 @@ public class PullModeTests
         client.Open();
 
         // 拉取模式下可自行启动接收环（转事件模式）
-        Assert.True(client.ReceiveAsync());
+        Assert.True(client.StartReceive());
 
         // 开环后拉取被禁止
         Assert.Throws<InvalidOperationException>(() => client.Receive());

@@ -143,6 +143,7 @@ public class WebSocketClient : TcpSession
     }
 
     /// <summary>发送消息</summary>
+    /// <remarks>异步形态为发送链异步化的接口预留；当前帧经 WebSocketCodec 同步送出，返回已完成任务</remarks>
     /// <param name="message"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>

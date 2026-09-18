@@ -709,29 +709,36 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     public virtual Task<Int32> SendAllAsync(IPacket data) => SendAllAsync(data, null);
 
     /// <summary>异步群发数据给所有客户端</summary>
+    /// <remarks>各会话相互独立，并行送出；发送异常的会话跳过且不计入</remarks>
     /// <param name="data">要发送的数据包</param>
     /// <param name="predicate">过滤器，判断指定会话是否需要发送，null表示发送给所有会话</param>
     /// <returns>已群发客户端总数</returns>
-    public virtual Task<Int32> SendAllAsync(IPacket data, Func<INetSession, Boolean>? predicate = null)
+    public virtual async Task<Int32> SendAllAsync(IPacket data, Func<INetSession, Boolean>? predicate = null)
     {
         if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
         var count = 0;
-        // 直接遍历Values，避免KeyValuePair的额外开销
+        var tasks = new List<Task>();
+        // 直接遍历Values，避免KeyValuePair的额外开销；逐会话并行发送，避免慢会话拖住整体群发
         foreach (var session in _Sessions.Values)
         {
             if (predicate == null || predicate(session))
             {
-                try
+                tasks.Add(Task.Run(() =>
                 {
-                    session.Send(data);
-                    count++;
-                }
-                catch { }
+                    try
+                    {
+                        session.Send(data);
+                        Interlocked.Increment(ref count);
+                    }
+                    catch { }
+                }));
             }
         }
 
-        return Task.FromResult(count);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        return count;
     }
 
     /// <summary>群发管道消息给所有客户端</summary>

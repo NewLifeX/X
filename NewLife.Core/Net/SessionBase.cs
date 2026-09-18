@@ -185,7 +185,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             Opened?.Invoke(this, EventArgs.Empty);
 
             // 最后开始接收，避免事件处理阻塞接收初始化；拉取模式（AutoReceive=false）不启动接收环
-            if (AutoReceive) ReceiveAsync();
+            if (AutoReceive) StartReceive();
         }
         catch (Exception ex)
         {
@@ -484,10 +484,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>当前异步接收个数</summary>
     private Int32 _RecvCount;
 
-    /// <summary>开始异步接收。确保接收环运行，数据在事件中返回</summary>
+    /// <summary>开始接收环。确保异步接收运行，数据在事件中返回</summary>
     /// <remarks>调用后进入事件模式；此后 <see cref="Receive()"/> 与 <see cref="ReceiveAsync(CancellationToken)"/> 将抛出异常</remarks>
     /// <returns>是否成功</returns>
-    public virtual Boolean ReceiveAsync()
+    public virtual Boolean StartReceive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 

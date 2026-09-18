@@ -149,7 +149,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             _Stream = sslStream;
         }
 
-        ReceiveAsync();
+        StartReceive();
     }
 
     /// <summary>打开</summary>

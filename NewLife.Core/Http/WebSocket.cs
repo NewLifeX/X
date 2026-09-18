@@ -186,21 +186,28 @@ public class WebSocket : IDisposable
     /// <param name="data"></param>
     /// <param name="type"></param>
     /// <param name="predicate"></param>
-    public void SendAll(IPacket data, WebSocketMessageType type, Func<INetSession, Boolean>? predicate = null)
+    /// <returns>已群发客户端总数</returns>
+    public async Task<Int32> SendAllAsync(IPacket data, WebSocketMessageType type, Func<INetSession, Boolean>? predicate = null)
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
         var data2 = msg.ToPacket();
-        session.Host.SendAllAsync(data2, predicate).ConfigureAwait(false).GetAwaiter().GetResult();
-
-        // 发送完成后归还封包（SendAllAsync 同步完成；封包持有负载引用，释放封包即归还整链）
-        data2.TryDispose();
+        try
+        {
+            // 经服务端对各会话并行送出，等待完成后再归还封包（封包持有负载引用，释放封包即归还整链）
+            return await session.Host.SendAllAsync(data2, predicate).ConfigureAwait(false);
+        }
+        finally
+        {
+            data2.TryDispose();
+        }
     }
 
-    /// <summary>想所有连接发送文本消息</summary>
+    /// <summary>向所有连接发送文本消息</summary>
     /// <param name="message"></param>
     /// <param name="predicate"></param>
-    public void SendAll(String message, Func<INetSession, Boolean>? predicate = null) => SendAll((ArrayPacket)message.GetBytes(), WebSocketMessageType.Text, predicate);
+    /// <returns>已群发客户端总数</returns>
+    public Task<Int32> SendAllAsync(String message, Func<INetSession, Boolean>? predicate = null) => SendAllAsync((ArrayPacket)message.GetBytes(), WebSocketMessageType.Text, predicate);
 
     /// <summary>发送关闭连接</summary>
     /// <param name="closeStatus"></param>
