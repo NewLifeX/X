@@ -654,6 +654,49 @@ public class NetClientTests
         Assert.True(old is DisposeBase db && db.Disposed, "旧客户端实例应被释放");
     }
 
+    [Fact(DisplayName = "重连_生产路径_达上限后停止不再重连")]
+    public async Task MaxReconnect_ProductionPath_StopsAfterLimit()
+    {
+        var logs = new List<String>();
+        using var server = CreateEchoServer();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}")
+        {
+            Timeout = 300,
+            AutoReconnect = true,
+            ReconnectDelay = 100,
+            MaxReconnect = 2,
+            Log = new ActionLog(msg => { lock (logs) logs.Add(msg); }),
+        };
+
+        Assert.True(client.Open());
+
+        // 服务端停止且不重启：后续重连尝试全部失败
+        server.Stop("stop");
+        server.Dispose();
+
+        // 等待两次重连尝试发生
+        for (var i = 0; i < 200 && CountReconnect(logs) < 2; i++) await Task.Delay(50);
+        Assert.Equal(2, CountReconnect(logs));
+
+        // 等待“达上限停止”日志
+        for (var i = 0; i < 40; i++)
+        {
+            lock (logs) { if (logs.Any(m => m.Contains("已达最大重连次数"))) break; }
+            await Task.Delay(50);
+        }
+        lock (logs) Assert.Contains(logs, m => m.Contains("已达最大重连次数"));
+
+        // 再等待一段时间，确认不再发起新的重连
+        await Task.Delay(500);
+        Assert.Equal(2, CountReconnect(logs));
+    }
+
+    private static Int32 CountReconnect(List<String> logs)
+    {
+        lock (logs) return logs.Count(m => m.Contains("正在重连"));
+    }
+
     #endregion
 
     #region CreateClient 扩展点
