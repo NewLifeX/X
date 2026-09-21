@@ -152,8 +152,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             var rs = await OnOpenAsync(cancellationToken).ConfigureAwait(false);
             if (!rs) return false;
 
-            // 打开完成瞬间恰逢销毁：不标记活动，避免留下僵尸会话
-            if (Disposed) return false;
+            // 打开完成瞬间恰逢销毁：释放刚建立的连接，避免留下僵尸会话与句柄泄漏
+            if (Disposed)
+            {
+                Client.TryDispose();
+                Client = null;
+                return false;
+            }
 
             var timeout = Timeout;
             if (timeout > 0 && Client is { } sock)

@@ -807,4 +807,49 @@ public class SessionBaseTests
         Assert.True(closedFired);
     }
     #endregion
+
+    #region 打开期间销毁测试
+    /// <summary>打开流程挂起期间销毁会话：连接在销毁之后才建立，应被释放而不是泄漏</summary>
+    [Fact(DisplayName = "打开挂起期间销毁_建立中的连接被释放")]
+    public async Task OpenSuspendedThenDispose_ReleasesClient()
+    {
+        using var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        listener.Listen(1);
+        var port = ((IPEndPoint)listener.LocalEndPoint!).Port;
+
+        var session = new SlowOpenSession
+        {
+            Remote = new NetUri($"tcp://127.0.0.1:{port}"),
+            AutoReceive = false,
+        };
+        var openTask = session.OpenAsync();
+
+        // 等待进入打开流程（此时尚未建立连接），随后销毁会话
+        Assert.True(session.Entered.Wait(5000));
+        session.Dispose();
+
+        // 放行打开流程：连接在销毁之后才建立，应被立即释放（未修复时会留下未关闭的socket）
+        session.Gate.Set();
+        var completed = await Task.WhenAny(openTask, Task.Delay(10_000)) == openTask;
+        Assert.True(completed, "打开流程未在10秒内完成");
+        Assert.False(await openTask);
+        Assert.Null(session.Client);
+    }
+
+    /// <summary>打开流程可控挂起的测试会话：闸门放行后才真正建立连接</summary>
+    private sealed class SlowOpenSession : TcpSession
+    {
+        public ManualResetEventSlim Entered { get; } = new(false);
+        public ManualResetEventSlim Gate { get; } = new(false);
+
+        protected override async Task<Boolean> OnOpenAsync(CancellationToken cancellationToken)
+        {
+            Entered.Set();
+            await Task.Run(() => Gate.Wait(cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            return await base.OnOpenAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+    #endregion
 }
