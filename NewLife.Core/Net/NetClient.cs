@@ -142,7 +142,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
                 return false;
             }
 
-            _client = client;
+            SwitchClient(client);
             return true;
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
@@ -171,7 +171,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
                 return false;
             }
 
-            _client = client;
+            SwitchClient(client);
             return true;
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
@@ -261,16 +261,34 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
         client.Error -= OnClientError;
     }
 
+    /// <summary>替换内部Socket客户端。摘除旧实例的事件订阅并释放，避免旧连接继续转发事件或泄漏资源</summary>
+    /// <param name="client">新的客户端实例</param>
+    private void SwitchClient(ISocketClient client)
+    {
+        var old = Interlocked.Exchange(ref _client, client);
+        if (old != null && !ReferenceEquals(old, client))
+        {
+            Detach(old);
+            old.TryDispose();
+        }
+    }
+
     #endregion
 
     #region 断线重连
 
+    private readonly Object _reconnectLock = new();
     private TimerX? _reconnectTimer;
     private volatile Int32 _reconnectCount;
 
     private void StopReconnect()
     {
-        var t = Interlocked.Exchange(ref _reconnectTimer, null);
+        TimerX? t;
+        lock (_reconnectLock)
+        {
+            t = _reconnectTimer;
+            _reconnectTimer = null;
+        }
         t?.TryDispose();
     }
 
@@ -278,22 +296,26 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     {
         if (!AutoReconnect || Disposed || _userClosed) return;
 
-        // 已有定时器挂起中，不重复创建
-        if (_reconnectTimer != null) return;
-
-        // 超过最大重连次数后停止。
-        // 注意：此处不清零计数，确保后续 Error/Closed 事件再次触发 ScheduleReconnect 时仍被拦住
-        if (MaxReconnect > 0 && _reconnectCount >= MaxReconnect)
+        // 并发 Closed/Error 事件可能同时到达，用锁保证“检查+创建”原子，避免排出多个一次性定时器
+        lock (_reconnectLock)
         {
-            WriteLog("已达最大重连次数 {0}，停止重连", MaxReconnect);
-            return;
+            // 已有定时器挂起中，不重复创建
+            if (_reconnectTimer != null) return;
+
+            // 超过最大重连次数后停止。
+            // 注意：此处不清零计数，确保后续 Error/Closed 事件再次触发 ScheduleReconnect 时仍被拦住
+            if (MaxReconnect > 0 && _reconnectCount >= MaxReconnect)
+            {
+                WriteLog("已达最大重连次数 {0}，停止重连", MaxReconnect);
+                return;
+            }
+
+            var delay = ReconnectDelay > 0 ? ReconnectDelay : 5_000;
+            WriteLog("连接断开，{0}ms 后发起第 {1} 次重连 {2}", delay, _reconnectCount + 1, Remote);
+
+            // Period = 0 表示一次性定时器，触发后不再重复
+            _reconnectTimer = new TimerX(DoReconnect, null, delay, 0) { Async = true };
         }
-
-        var delay = ReconnectDelay > 0 ? ReconnectDelay : 5_000;
-        WriteLog("连接断开，{0}ms 后发起第 {1} 次重连 {2}", delay, _reconnectCount + 1, Remote);
-
-        // Period = 0 表示一次性定时器，触发后不再重复
-        _reconnectTimer = new TimerX(DoReconnect, null, delay, 0) { Async = true };
     }
 
     private async void DoReconnect(Object? state)
@@ -310,7 +332,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
             var client = CreateClient();
             if (await client.OpenAsync().ConfigureAwait(false))
             {
-                _client = client;
+                SwitchClient(client);
                 // 重连成功：清零计数，下次断线后可重新累计
                 _reconnectCount = 0;
                 WriteLog("重连成功 {0}", Remote);

@@ -626,6 +626,34 @@ public class NetClientTests
         Assert.True(ok, $"未能在超时时间内成功重连，openCount={openCount}");
     }
 
+    [Fact(DisplayName = "重连_替换内部客户端_旧实例被摘除并释放")]
+    public async Task Reconnect_ReplacesClient_OldDisposed()
+    {
+        using var server = CreateEchoServer();
+        using var client = CreateTcpClient(server.Port);
+        client.AutoReconnect = true;
+        client.ReconnectDelay = 200;
+
+        Assert.True(client.Open());
+        var old = client.Client;
+        Assert.NotNull(old);
+
+        // 模拟网络断开：直接关闭内部客户端，触发自动重连
+        old!.Close("simulate");
+
+        // 等待重连成功替换内部客户端
+        var replaced = false;
+        for (var i = 0; i < 150 && !replaced; i++)
+        {
+            await Task.Delay(50);
+            replaced = client.Client != null && !ReferenceEquals(client.Client, old) && client.Client.Active;
+        }
+
+        Assert.True(replaced, "未在超时时间内完成重连替换");
+        // 旧实例应被摘除事件订阅并释放，避免继续转发事件或泄漏资源
+        Assert.True(old is DisposeBase db && db.Disposed, "旧客户端实例应被释放");
+    }
+
     #endregion
 
     #region CreateClient 扩展点
