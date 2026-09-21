@@ -183,3 +183,172 @@ class ThroughputNetServer : NetServer
             _completed.Set();
     }
 }
+
+/// <summary>裸 Socket 层 TCP 回声基准：逐包往返与流水线两种模式，覆盖包大小与并发维度</summary>
+/// <remarks>
+/// <para>对比 NetServerThroughputBenchmark（单向接收、32B 固定维度）：本类走完整回声链路（收→回发→收），
+/// 维度为 包大小 × 并发，可用于评估不同报文规模下的往返链路成本与流水线吞吐上限。</para>
+/// <para>换算说明：单迭代每客户端传输约 <see cref="TargetBytes"/> 字节（往返模式收发各一遍，流量翻倍），
+/// 不设 OperationsPerInvoke，报表 ns/op 即“每迭代（每客户端目标字节数）”成本；
+/// MB/s = 传输字节 ÷ 迭代耗时，msg/s = 包数 ÷ 迭代耗时。</para>
+/// <para>命令：dotnet run --project Benchmark/Benchmark.csproj -c Release -- --filter "*NetEchoBenchmark*"</para>
+/// </remarks>
+[MemoryDiagnoser]
+[GcServer(true)]
+[SimpleJob(warmupCount: 2, iterationCount: 5)]
+public class NetEchoBenchmark : IDisposable
+{
+    /// <summary>单迭代每客户端传输目标字节（按档缩放包数，保持各包大小档迭代时长可比）</summary>
+    private const Int64 TargetBytes = 256L * 1024 * 1024;
+
+    private const Int32 EchoPort = 7780;
+
+    /// <summary>接收兜底超时，防基准迭代永久挂起</summary>
+    private const Int32 EchoTimeoutMs = 120_000;
+
+    private NetServer? _echoServer;
+    private ISocketClient[] _echoClients = null!;
+    private Byte[] _echoPayload = null!;
+
+    /// <summary>数据包大小（字节）</summary>
+    [Params(16, 256, 4096, 65536, 1048576)]
+    public Int32 EchoPacketSize { get; set; }
+
+    /// <summary>并发客户端数</summary>
+    [Params(1, 4, 16, 64)]
+    public Int32 EchoConcurrency { get; set; }
+
+    /// <summary>每客户端单迭代包数（按目标字节数缩放）</summary>
+    private Int32 PacketsPerClient => Math.Max(1, (Int32)(TargetBytes / EchoPacketSize / EchoConcurrency));
+
+    /// <summary>全局初始化：启动回声服务端并建立全部客户端</summary>
+    [GlobalSetup(Targets = [nameof(RoundTrip), nameof(Pipeline)])]
+    public void EchoSetup()
+    {
+        _echoPayload = new Byte[EchoPacketSize];
+        Random.Shared.NextBytes(_echoPayload);
+
+        // 增大接收缓冲区，降低大包分段的系统调用开销
+        SocketSetting.Current.BufferSize = 256 * 1024;
+
+        _echoServer = new NetServer
+        {
+            Port = EchoPort,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        _echoServer.Received += (s, e) =>
+        {
+            if (e.Packet != null && s is INetSession session) session.Send(e.Packet);
+        };
+        _echoServer.Start();
+
+        _echoClients = new ISocketClient[EchoConcurrency];
+        for (var i = 0; i < EchoConcurrency; i++)
+        {
+            // 拉取模式：每客户端独享直读回显，避免事件分发干扰基准
+            var client = new TcpSession
+            {
+                Remote = new NetUri($"tcp://127.0.0.1:{EchoPort}"),
+                AutoReceive = false,
+                BufferSize = Math.Max(64 * 1024, EchoPacketSize),
+                Timeout = EchoTimeoutMs,
+            };
+            client.Open();
+            _echoClients[i] = client;
+        }
+    }
+
+    /// <summary>逐包往返：每客户端发一包读满一包回显，测最小往返链路开销</summary>
+    [Benchmark(Description = "逐包往返")]
+    public Int64 RoundTrip()
+    {
+        var rounds = PacketsPerClient;
+        var tasks = new Task[EchoConcurrency];
+        for (var i = 0; i < EchoConcurrency; i++)
+        {
+            var idx = i;
+            tasks[i] = Task.Run(() => EchoLoop(_echoClients[idx], rounds));
+        }
+
+        Task.WaitAll(tasks);
+
+        return (Int64)EchoPacketSize * rounds * EchoConcurrency;
+    }
+
+    /// <summary>流水线：各客户端持续发送不等待回显，服务端边收边回，客户端按字节读满</summary>
+    [Benchmark(Description = "流水线")]
+    public Int64 Pipeline()
+    {
+        var count = PacketsPerClient;
+        var tasks = new Task[EchoConcurrency];
+        for (var i = 0; i < EchoConcurrency; i++)
+        {
+            var idx = i;
+            tasks[i] = Task.Run(() => SendAndReceive(_echoClients[idx], count));
+        }
+
+        Task.WaitAll(tasks);
+
+        return (Int64)EchoPacketSize * count * EchoConcurrency;
+    }
+
+    /// <summary>单客户端逐包往返：发一包后读满同字节回显，再发下一包</summary>
+    private void EchoLoop(ISocketClient client, Int32 rounds)
+    {
+        for (var n = 0; n < rounds; n++)
+        {
+            client.Send(_echoPayload);
+
+            var received = 0;
+            while (received < EchoPacketSize)
+            {
+                using var pk = client.Receive();
+                if (pk == null || pk.Length <= 0) throw new TimeoutException("回显接收中断");
+
+                received += pk.Length;
+            }
+        }
+    }
+
+    /// <summary>单客户端流水线：发送与回显读取并行，按字节计数读满目标流量</summary>
+    private void SendAndReceive(ISocketClient client, Int32 count)
+    {
+        var expected = (Int64)EchoPacketSize * count;
+        var received = 0L;
+
+        var sendTask = Task.Run(() =>
+        {
+            for (var n = 0; n < count; n++)
+                client.Send(_echoPayload);
+        });
+
+        while (received < expected)
+        {
+            using var pk = client.Receive();
+            if (pk == null || pk.Length <= 0) throw new TimeoutException("回显接收中断");
+
+            received += pk.Length;
+        }
+
+        sendTask.Wait();
+    }
+
+    /// <summary>回声基准清理：释放所有客户端和服务端</summary>
+    [GlobalCleanup(Targets = [nameof(RoundTrip), nameof(Pipeline)])]
+    public void EchoCleanup()
+    {
+        if (_echoClients != null)
+        {
+            foreach (var c in _echoClients)
+                c?.Dispose();
+            _echoClients = null!;
+        }
+
+        _echoServer?.Dispose();
+        _echoServer = null;
+    }
+
+    /// <summary>释放资源</summary>
+    public void Dispose() => EchoCleanup();
+}
