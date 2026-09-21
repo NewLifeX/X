@@ -12,6 +12,7 @@ namespace NewLife.Http;
 public delegate void WebSocketDelegate(WebSocket socket, WebSocketMessage message);
 
 /// <summary>WebSocket会话管理</summary>
+/// <remarks>HTTP 服务端升级后的 WS 会话（由 HttpSession 触发），自持数据管道与帧泵（Pipe + PacketFramer）解析帧；Net 侧通用编解码器见 <see cref="NewLife.Net.Handlers.WebSocketCodec"/>。</remarks>
 public class WebSocket : IDisposable
 {
     #region 属性
@@ -33,7 +34,13 @@ public class WebSocket : IDisposable
     /// <summary>活跃时间</summary>
     public DateTime ActiveTime { get; set; }
 
-    private PacketCodec? _packetCodec;
+    private Pipe? _pipe;
+
+    /// <summary>帧解析原型。TryParse 只取返回值（帧长），实例状态被丢弃；共享使用无竞争</summary>
+    private static readonly WebSocketMessage _parser = new();
+
+    /// <summary>帧泵。无状态，可跨会话共享</summary>
+    private static readonly PacketFramer _framer = new() { GetFrameLength = static buffer => _parser.TryParse(buffer, out _) };
     #endregion
 
     #region 方法
@@ -82,19 +89,25 @@ public class WebSocket : IDisposable
         return true;
     }
 
-    /// <summary>处理WebSocket数据包，通过 PacketCodec 缓冲不完整帧，支持跨 TCP 接收边界的粘包/分包场景。</summary>
+    /// <summary>处理WebSocket数据包。数据进入数据管道，逐帧同步泵出完整帧交给消息处理，支持跨接收边界的粘包/分包</summary>
     /// <param name="pk">已到达的原始数据包，可能包含零个或多个完整 WebSocket 帧</param>
+    /// <remarks>帧未完整时残片保留在管道内等下一轮；入参为借阅视图时自动转为自有拷贝（跨轮安全）</remarks>
     public void Process(IPacket pk)
     {
-        // 帧长委托链感知：WebSocket 头部与掩码（最多 14 字节）跨节点自动拼读
-        _packetCodec ??= new PacketCodec { GetLength = WebSocketMessage.GetFrameTotalLength };
-        var frames = _packetCodec.Parse(pk);
-        foreach (var frame in frames)
+        // 数据进入管道：共享切片保持调用方句柄不受影响；借阅视图不能跨轮保留，转为自有拷贝
+        var node = pk.Slice(0, -1);
+        if (node is not OwnerPacket op || op.RefCount == 0) node = node.Clone();
+
+        _pipe ??= new Pipe();
+        _pipe.Writer.Append(node);
+
+        // 同步泵：当前缓冲内可成的整帧全部处理；头部不足或帧未完整则留给下一轮
+        // 静态 Lambda + 状态重载：接收热路径零闭包分配
+        _framer.Pump(_pipe.Reader, this, static (socket, frame) =>
         {
             using var message = new WebSocketMessage();
-            if (message.Read(frame)) Process(message);
-            frame.TryDispose();
-        }
+            if (message.ReadFrame(frame)) socket.Process(message);
+        });
     }
 
     /// <summary>处理WebSocket消息</summary>
@@ -110,12 +123,7 @@ public class WebSocket : IDisposable
 
         var session = Context?.Connection;
         var socket = Context?.Socket;
-        if (session == null && socket == null)
-        {
-            // 释放内存
-            message.Payload?.TryDispose();
-            return;
-        }
+        if (session == null && socket == null) return;
 
         switch (message.Type)
         {
@@ -142,8 +150,7 @@ public class WebSocket : IDisposable
                 break;
         }
 
-        // 释放内存。Ping 负载在 Pong 发送之后才释放，避免使用已归还的缓冲
-        message.Payload?.TryDispose();
+        // 负载不在此释放：所有权随消息容器（帧泵回调 using / 调用方负责）；Pong 为同步发送，容器释放前负载始终有效
     }
 
     private void Send(WebSocketMessage msg)
@@ -152,7 +159,7 @@ public class WebSocket : IDisposable
         var socket = Context?.Socket;
         if (session == null && socket == null) throw new ObjectDisposedException(nameof(Context));
 
-        var data = msg.ToPacket();
+        var data = msg.Build();
         if (session != null)
             session.Send(data);
         else
@@ -191,7 +198,7 @@ public class WebSocket : IDisposable
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
-        var data2 = msg.ToPacket();
+        var data2 = msg.Build();
         try
         {
             // 经服务端对各会话并行送出，等待完成后再归还封包（封包持有负载引用，释放封包即归还整链）
@@ -225,11 +232,11 @@ public class WebSocket : IDisposable
     #endregion
 
     #region 销毁
-    /// <summary>销毁。归还粘包编码器的段链缓冲（连接结束时调用）</summary>
+    /// <summary>销毁。归还数据管道的段链缓冲（连接结束时调用）</summary>
     public void Dispose()
     {
-        _packetCodec?.Dispose();
-        _packetCodec = null;
+        _pipe?.Dispose();
+        _pipe = null;
     }
     #endregion
 }

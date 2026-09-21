@@ -126,7 +126,7 @@ public class WebSocketClient : TcpSession
     /// <summary>接收单条 WebSocket 消息。</summary>
     /// <remarks>
     /// 底层调用 <see cref="SessionBase.ReceiveAsync(CancellationToken)"/> 读取一次原始数据，
-    /// 再用 <see cref="WebSocketMessage.Read"/> 解析其中第一个 WS 帧，剩余字节随即丢弃。
+    /// 再用 <see cref="WebSocketMessage.ReadFrame"/> 解析其中第一个 WS 帧，剩余字节随即丢弃。
     /// 因此本方法有以下约束：
     /// <list type="bullet">
     /// <item>必须为拉取模式（打开前将 <see cref="SessionBase.AutoReceive"/> 设为 false），
@@ -147,7 +147,7 @@ public class WebSocketClient : TcpSession
         if (rs == null) return null;
 
         var msg = new WebSocketMessage();
-        if (!msg.Read(rs)) return null;
+        if (!msg.ReadFrame(rs)) return null;
 
         return msg;
     }
