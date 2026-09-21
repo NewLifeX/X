@@ -769,6 +769,88 @@ public class NetServerTests
         foreach (var client in clients)
             client.Dispose();
     }
+
+    /// <summary>强断言群发：每个存活客户端都收到完全相同的字节流；已踢出会话不干扰其余会话</summary>
+    [Fact(DisplayName = "群发_多会话_逐客户端字节一致_踢出会话容错")]
+    public async Task SendAllAsync_StrongAssert_AliveClientsReceiveExact()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            UseSession = true,
+            Log = XTrace.Log,
+        };
+
+        var sessions = new List<INetSession>();
+        server.NewSession += (s, e) => { lock (sessions) sessions.Add(e.Session); };
+        server.Start();
+
+        // 4 个客户端顺序接入
+        var clients = new List<TcpClient>();
+        for (var i = 0; i < 4; i++)
+        {
+            var client = new TcpClient();
+            client.Connect(IPAddress.Loopback, server.Port);
+            client.ReceiveTimeout = 3_000;
+            clients.Add(client);
+        }
+
+        // 等待全部会话建立
+        for (var i = 0; i < 100; i++)
+        {
+            lock (sessions) { if (sessions.Count >= 4) break; }
+            Thread.Sleep(20);
+        }
+        lock (sessions) Assert.True(sessions.Count >= 4, $"应建立4个会话，实际 {sessions.Count}");
+
+        // 踢出最后一个会话（Close 应断开底层连接），按其远端端口与客户端对应
+        INetSession kicked;
+        lock (sessions) kicked = sessions[^1];
+        kicked.Close("kick");
+        Thread.Sleep(200);
+        var kickedPort = ((IPEndPoint)kicked.Session.Remote.EndPoint).Port;
+
+        // 群发随机报价，逐字节校验
+        var payload = new Byte[256];
+        Random.Shared.NextBytes(payload);
+        var count = await server.SendAllAsync(new ArrayPacket(payload));
+
+        // 存活会话全部送达；已断开会话的 Send 返回 -1 仍计入（既有语义）
+        Assert.InRange(count, 3, 4);
+
+        foreach (var client in clients)
+        {
+            var stream = client.GetStream();
+            var isKicked = ((IPEndPoint)client.Client.LocalEndPoint!).Port == kickedPort;
+            if (isKicked)
+            {
+                // 被踢出的客户端不应收到群发数据
+                Thread.Sleep(500);
+                Assert.False(stream.DataAvailable, "被踢出的客户端不应收到群发数据");
+                continue;
+            }
+
+            // 等待数据完整到达
+            var buf = new Byte[1024];
+            var total = 0;
+            for (var k = 0; k < 100 && total < payload.Length; k++)
+            {
+                while (total < payload.Length && stream.DataAvailable)
+                {
+                    var len = stream.Read(buf, total, buf.Length - total);
+                    if (len <= 0) break;
+                    total += len;
+                }
+                if (total < payload.Length) Thread.Sleep(20);
+            }
+
+            Assert.Equal(payload.Length, total);
+            Assert.Equal(payload, buf[..total]);
+        }
+
+        foreach (var client in clients) client.Dispose();
+    }
     #endregion
 
     #region SSL测试
