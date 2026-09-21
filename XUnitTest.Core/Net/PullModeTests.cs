@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Sockets;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
@@ -195,6 +197,88 @@ public class PullModeTests
 
         udp.MaxAsync = -3;
         Assert.Equal(1, udp.MaxAsync);
+    }
+    #endregion
+
+    #region UdpSession 会话拉取（来源过滤与接收环互斥）
+    /// <summary>拉取模式下，会话只接受本会话远端的数据报，其它对端的数据报被丢弃</summary>
+    [Fact(DisplayName = "拉取_UdpSession会话_过滤其它对端数据报")]
+    public void UdpSessionPull_FilterForeignDatagram()
+    {
+        // 服务器拉取模式：不会启动接收环，可手动创建会话直接拉取
+        using var server = new UdpServer { AutoReceive = false, Log = XTrace.Log };
+        server.Open();
+        var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
+
+        using var sockA = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        sockA.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        var epA = (IPEndPoint)sockA.LocalEndPoint!;
+
+        using var sockB = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        sockB.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+
+        var session = Assert.IsType<UdpSession>(server.CreateSession(null, epA));
+        session.Timeout = 3_000;
+
+        // B 先发：应被会话丢弃；A 后发：应被取到
+        sockB.SendTo("foreign-bbb".GetBytes(), serverEp);
+        Thread.Sleep(50);
+        sockA.SendTo("own-aaa".GetBytes(), serverEp);
+
+        using var pk = session.Receive();
+        Assert.Equal("own-aaa", pk.ToStr());
+    }
+
+    /// <summary>拉取模式下，仅有其它对端数据时全部被丢弃，本会话收不到数据（接收超时）</summary>
+    [Fact(DisplayName = "拉取_UdpSession会话_仅其它对端数据_丢弃后超时")]
+    public void UdpSessionPull_ForeignOnly_TimesOut()
+    {
+        using var server = new UdpServer { AutoReceive = false, Log = XTrace.Log };
+        server.Open();
+        var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
+
+        using var sockA = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        sockA.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        var epA = (IPEndPoint)sockA.LocalEndPoint!;
+
+        using var sockB = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        sockB.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+
+        var session = Assert.IsType<UdpSession>(server.CreateSession(null, epA));
+        session.Timeout = 300;
+
+        sockB.SendTo("foreign-bbb".GetBytes(), serverEp);
+        Thread.Sleep(50);
+
+        // 非本会话来源的数据被丢弃，直到接收超时（未修复前会直接返回 foreign-bbb）
+        var ex = Assert.Throws<SocketException>(() => session.Receive());
+        Assert.Equal(SocketError.TimedOut, ex.SocketErrorCode);
+    }
+
+    /// <summary>默认事件模式（服务器接收环运行）下，会话拉取直接抛异常</summary>
+    [Fact(DisplayName = "拉取_UdpSession会话_服务器接收环运行时抛异常")]
+    public async Task UdpSessionPull_RefusedWhenServerReceiving()
+    {
+        using var server = new UdpServer { Log = XTrace.Log };
+        server.Open();
+        var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
+
+        using var sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        sock.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        sock.SendTo("hello".GetBytes(), serverEp);
+
+        // 等待服务器接收环创建会话
+        UdpSession? session = null;
+        for (var i = 0; i < 50 && session == null; i++)
+        {
+            Thread.Sleep(20);
+            session = server.Sessions.Values.OfType<UdpSession>().FirstOrDefault();
+        }
+        Assert.NotNull(session);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => session!.Receive());
+        Assert.Contains("AutoReceive", ex.Message);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => session!.ReceiveAsync(default));
     }
     #endregion
 }

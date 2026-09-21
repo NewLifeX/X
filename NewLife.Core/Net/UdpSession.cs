@@ -118,7 +118,12 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         WriteLog("New {0}", Remote.EndPoint);
 
         // 管道
-        Pipeline?.Open(Server.CreateContext(this));
+        if (Pipeline != null)
+        {
+            var ctx = Server.CreateContext(this);
+            Pipeline.Open(ctx);
+            Server.ReturnContext(ctx);
+        }
     }
 
     private void Stop(String reason)
@@ -128,9 +133,12 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         WriteLog("Close {0} {1}", Remote.EndPoint, reason);
 
         // 管道
-        var ctx = Server?.CreateContext(this);
-        if (ctx != null)
-            Pipeline?.Close(ctx, reason);
+        if (Pipeline != null)
+        {
+            var ctx = Server.CreateContext(this);
+            Pipeline.Close(ctx, reason);
+            Server.ReturnContext(ctx);
+        }
 
         Server = null!;
     }
@@ -239,15 +247,19 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
 
         var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
+        var ctx = Server.CreateContext(this);
         try
         {
-            var ctx = Server.CreateContext(this);
             var source = PooledValueTaskSource.Rent();
             source.AttachSpan(span);
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
+
+            // 写入完成后立即归还上下文，source已加入匹配队列，不再需要上下文
+            Server.ReturnContext(ctx);
+            ctx = null;
 
             if (rs < 0)
                 source.TrySetResult(TaskEx.CompletedTask);
@@ -263,6 +275,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             else
                 span?.SetError(ex, message);
             span?.Dispose();
+
+            if (ctx != null) Server.ReturnContext(ctx);
             throw;
         }
     }
@@ -279,15 +293,24 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         var server = Server;
         if (server?.Client is not { } sock) throw new InvalidOperationException(nameof(Server));
 
+        // 服务器接收环运行时禁止会话拉取：两条读路径会争抢同一Socket，数据被分流且不可预期
+        if (server.IsReceiving) throw new InvalidOperationException(NoPullMessage);
+
         using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
-            var ep = Remote.EndPoint as EndPoint;
+            var remote = Remote.EndPoint;
+            var ep = remote as EndPoint;
             var pk = new OwnerPacket(server.BufferSize);
-            var size = sock.ReceiveFrom(pk.Buffer, ref ep);
-            span?.Value = size;
+            while (true)
+            {
+                var size = sock.ReceiveFrom(pk.Buffer, ref ep);
+                // 共享Socket可能收到其他对端的数据报，丢弃非本会话来源的数据报继续等待（契约：Udp只接受来自所属远方的数据）
+                if (!IsFromRemote(ep, remote)) continue;
 
-            return pk.Resize(size);
+                span?.Value = size;
+                return pk.Resize(size);
+            }
         }
         catch (Exception ex)
         {
@@ -307,26 +330,38 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         var server = Server;
         if (server?.Client is not { } socket) throw new InvalidOperationException(nameof(Server));
 
+        // 服务器接收环运行时禁止会话拉取：两条读路径会争抢同一Socket，数据被分流且不可预期
+        if (server.IsReceiving) throw new InvalidOperationException(NoPullMessage);
+
         using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
-            var ep = Remote.EndPoint as EndPoint;
+            var remote = Remote.EndPoint;
+            var ep = remote as EndPoint;
             var pk = new OwnerPacket(server.BufferSize);
+            while (true)
+            {
 #if NETFRAMEWORK || NETSTANDARD2_0
-            var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);
-            var size = ar.IsCompleted ?
-                socket.EndReceive(ar) :
-                await Task.Factory.FromAsync(ar, e => socket.EndReceiveFrom(e, ref ep)).ConfigureAwait(false);
+                var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);
+                var size = ar.IsCompleted ?
+                    socket.EndReceiveFrom(ar, ref ep) :
+                    await Task.Factory.FromAsync(ar, e => socket.EndReceiveFrom(e, ref ep)).ConfigureAwait(false);
+                // 共享Socket可能收到其他对端的数据报，丢弃非本会话来源的数据报继续等待
+                if (!IsFromRemote(ep, remote)) continue;
 #elif NET7_0_OR_GREATER
-            var result = await socket.ReceiveFromAsync(pk.GetMemory(), ep, cancellationToken).ConfigureAwait(false);
-            var size = result.ReceivedBytes;
+                var result = await socket.ReceiveFromAsync(pk.GetMemory(), ep, cancellationToken).ConfigureAwait(false);
+                // 共享Socket可能收到其他对端的数据报，丢弃非本会话来源的数据报继续等待
+                if (!IsFromRemote(result.RemoteEndPoint, remote)) continue;
+                var size = result.ReceivedBytes;
 #else
-            var result = await socket.ReceiveFromAsync(pk.Buffer, SocketFlags.None, ep).ConfigureAwait(false);
-            var size = result.ReceivedBytes;
+                var result = await socket.ReceiveFromAsync(pk.Buffer, SocketFlags.None, ep).ConfigureAwait(false);
+                // 共享Socket可能收到其他对端的数据报，丢弃非本会话来源的数据报继续等待
+                if (!IsFromRemote(result.RemoteEndPoint, remote)) continue;
+                var size = result.ReceivedBytes;
 #endif
-            span?.Value = size;
-
-            return pk.Resize(size);
+                span?.Value = size;
+                return pk.Resize(size);
+            }
         }
         catch (Exception ex)
         {
@@ -380,6 +415,21 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             return $"{Local}<={Remote.EndPoint}";
         else
             return Local.ToString();
+    }
+
+    /// <summary>拉取模式提示。服务器接收环已启动时拉取数据将被拒绝</summary>
+    private String NoPullMessage => $"[{Name}] 服务器接收环已启动（AutoReceive=true），不允许从会话拉取数据；请改用 Received 事件接收，或在服务器打开前设置 AutoReceive=false 使用拉取模式";
+
+    /// <summary>判断数据报是否来自本会话的远端</summary>
+    /// <param name="source">数据报的实际来源地址</param>
+    /// <param name="remote">本会话的远端地址</param>
+    /// <returns></returns>
+    private static Boolean IsFromRemote(EndPoint? source, IPEndPoint remote)
+    {
+        // 远端为通配地址时不做过滤（防御）
+        if (remote.Address.IsAny()) return true;
+
+        return source is IPEndPoint ep && ep.Port == remote.Port && ep.Address.Equals(remote.Address);
     }
     #endregion
 

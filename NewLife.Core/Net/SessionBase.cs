@@ -484,6 +484,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>当前异步接收个数</summary>
     private Int32 _RecvCount;
 
+    /// <summary>接收环是否运行中。拉取模式判据：接收环运行时不允许多路径直读同一Socket</summary>
+    internal Boolean IsReceiving => _RecvCount > 0;
+
     /// <summary>开始接收环。确保异步接收运行，数据在事件中返回</summary>
     /// <remarks>调用后进入事件模式；此后 <see cref="Receive()"/> 与 <see cref="ReceiveAsync(CancellationToken)"/> 将抛出异常</remarks>
     /// <returns>是否成功</returns>
