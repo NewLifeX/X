@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- 子目录中的独立项目（如 NetLoadTest）由各自 csproj 编译，排除其源码与 obj 产物，避免被本项目的 **/*.cs 通配吞入 -->
+    <Compile Remove="NetLoadTest/**" />
+    <None Remove="NetLoadTest/**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
   </ItemGroup>
 
