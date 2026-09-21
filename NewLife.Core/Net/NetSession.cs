@@ -271,6 +271,9 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         {
             WriteLog("Disconnect [{0}] {1}", Session, reason);
 
+            // 主动断开底层连接（UDP 会话无连接可断，跳过）；被动断开路径下底层已在关闭，二次关闭是安全空操作
+            if (Session is ISocketClient sc) sc.Close(reason);
+
             // 只调用带原因的重载，保证 Disconnected 事件只触发一次
             OnDisconnected(reason);
         }
