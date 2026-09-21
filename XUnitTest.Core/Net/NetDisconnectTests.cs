@@ -130,4 +130,40 @@ public class NetDisconnectTests
         if (result is IOwnerPacket pk) Assert.Equal(0, pk.Length);
         else Assert.IsAssignableFrom<Exception>(result);
     }
+
+    /// <summary>客户端半关闭（shutdown 发送方向）：服务端读到 FIN 应按对端关闭回收会话</summary>
+    [Fact(DisplayName = "断开_客户端半关闭发送方向_服务端感知关闭")]
+    public void HalfClose_ClientShutdownSend_ServerDetects()
+    {
+        var sessionReady = new ManualResetEventSlim(false);
+        INetSession? serverSession = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+            Log = XTrace.Log,
+        };
+        server.NewSession += (s, e) => { serverSession = e.Session; sessionReady.Set(); };
+        server.Start();
+
+        var sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        sock.Connect(IPAddress.Loopback, server.Port);
+
+        Assert.True(sessionReady.Wait(3000));
+        Assert.NotNull(serverSession);
+
+        // 发送数据后半关闭发送方向：TCP 发出 FIN，接收方向保持打开
+        _ = sock.Send("half-close"u8);
+        Thread.Sleep(100);
+        sock.Shutdown(SocketShutdown.Send);
+
+        // 服务端读到 FIN（0字节）后应按对端关闭处理：会话关闭、资源回收
+        var sb = (SessionBase)serverSession!.Session;
+        for (var i = 0; i < 100 && sb.Active; i++) Thread.Sleep(50);
+        Assert.False(sb.Active, "服务端应感知半关闭并关闭会话");
+
+        sock.Close();
+    }
 }
