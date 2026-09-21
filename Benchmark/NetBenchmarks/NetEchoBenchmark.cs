@@ -188,8 +188,8 @@ class ThroughputNetServer : NetServer
 /// <remarks>
 /// <para>对比 NetServerThroughputBenchmark（单向接收、32B 固定维度）：本类走完整回声链路（收→回发→收），
 /// 维度为 包大小 × 并发，可用于评估不同报文规模下的往返链路成本与流水线吞吐上限。</para>
-/// <para>换算说明：单迭代每客户端传输约 <see cref="TargetBytes"/> 字节（往返模式收发各一遍，流量翻倍），
-/// 不设 OperationsPerInvoke，报表 ns/op 即“每迭代（每客户端目标字节数）”成本；
+/// <para>换算说明：单迭代数据量按 <see cref="TargetBytes"/> 字节限流，小包档以往返次数/包数上限保护；
+/// 不设 OperationsPerInvoke，报表 ns/op 即“每迭代”成本；
 /// MB/s = 传输字节 ÷ 迭代耗时，msg/s = 包数 ÷ 迭代耗时。</para>
 /// <para>命令：dotnet run --project Benchmark/Benchmark.csproj -c Release -- --filter "*NetEchoBenchmark*"</para>
 /// </remarks>
@@ -198,8 +198,14 @@ class ThroughputNetServer : NetServer
 [SimpleJob(warmupCount: 2, iterationCount: 5)]
 public class NetEchoBenchmark : IDisposable
 {
-    /// <summary>单迭代每客户端传输目标字节（按档缩放包数，保持各包大小档迭代时长可比）</summary>
+    /// <summary>单迭代数据传输字节目标（大包档按字节限流）</summary>
     private const Int64 TargetBytes = 256L * 1024 * 1024;
+
+    /// <summary>往返模式单迭代总往返次数上限（小包档防迭代过长）</summary>
+    private const Int32 MaxRoundTrips = 50_000;
+
+    /// <summary>流水线模式单迭代总包数上限（小包档防迭代过长）</summary>
+    private const Int32 MaxPackets = 2_000_000;
 
     private const Int32 EchoPort = 7780;
 
@@ -218,13 +224,19 @@ public class NetEchoBenchmark : IDisposable
     [Params(1, 4, 16, 64)]
     public Int32 EchoConcurrency { get; set; }
 
-    /// <summary>每客户端单迭代包数（按目标字节数缩放）</summary>
-    private Int32 PacketsPerClient => Math.Max(1, (Int32)(TargetBytes / EchoPacketSize / EchoConcurrency));
+    /// <summary>每客户端单迭代往返数（字节目标与次数上限取小者）</summary>
+    private Int32 RoundsPerClient => Math.Max(1, (Int32)Math.Min(TargetBytes / EchoPacketSize, MaxRoundTrips) / EchoConcurrency);
+
+    /// <summary>每客户端单迭代包数（字节目标与包数上限取小者）</summary>
+    private Int32 PacketsPerClient => Math.Max(1, (Int32)Math.Min(TargetBytes / EchoPacketSize, MaxPackets) / EchoConcurrency);
 
     /// <summary>全局初始化：启动回声服务端并建立全部客户端</summary>
     [GlobalSetup(Targets = [nameof(RoundTrip), nameof(Pipeline)])]
     public void EchoSetup()
     {
+        // 高并发同步往返会触发线程池注入限速（~1线程/秒），预热最小线程避免秒级毛刺污染测量
+        ThreadPool.SetMinThreads(512, 512);
+
         _echoPayload = new Byte[EchoPacketSize];
         Random.Shared.NextBytes(_echoPayload);
 
@@ -263,7 +275,7 @@ public class NetEchoBenchmark : IDisposable
     [Benchmark(Description = "逐包往返")]
     public Int64 RoundTrip()
     {
-        var rounds = PacketsPerClient;
+        var rounds = RoundsPerClient;
         var tasks = new Task[EchoConcurrency];
         for (var i = 0; i < EchoConcurrency; i++)
         {
