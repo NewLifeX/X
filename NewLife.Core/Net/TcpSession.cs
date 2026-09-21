@@ -120,7 +120,13 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     internal void Start()
     {
         // 管道
-        Pipeline?.Open(CreateContext(this));
+        if (Pipeline != null)
+        {
+            // 使用上下文池调用Open
+            var ctx = CreateContext(this);
+            Pipeline.Open(ctx);
+            ReturnContext(ctx);
+        }
 
         // 设置读写超时。Unix域套接字不支持TCP选项
         var sock = Client;

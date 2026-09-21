@@ -666,6 +666,53 @@ public class SessionBaseTests
         Assert.True(receivedEvent.Wait(3000));
         Assert.NotNull(receivedMessage);
     }
+
+    /// <summary>回归：会话管道打开与关闭成对触发且各一次（Open/Close 使用上下文池并成对归还）</summary>
+    [Fact(DisplayName = "会话管道_打开关闭_各触发一次")]
+    public void SessionPipeline_OpenClose_Once()
+    {
+        var handler = new SpyHandler();
+
+        using var server = new TcpServer { Port = 0, Log = XTrace.Log };
+        server.Pipeline = new Pipeline();
+        server.Pipeline.Add(handler);
+        server.Start();
+
+        using var client = new TcpSession
+        {
+            Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
+            Log = XTrace.Log,
+        };
+        client.Open();
+
+        // 等待服务端会话启动并打开管道
+        for (var i = 0; i < 50 && handler.OpenCount == 0; i++) Thread.Sleep(20);
+        Assert.Equal(1, handler.OpenCount);
+
+        // 关闭客户端，等待服务端会话关闭管道
+        client.Close("test");
+        for (var i = 0; i < 100 && handler.CloseCount == 0; i++) Thread.Sleep(20);
+        Assert.Equal(1, handler.CloseCount);
+    }
+
+    /// <summary>统计打开/关闭次数的测试处理器</summary>
+    class SpyHandler : Handler
+    {
+        public Int32 OpenCount;
+        public Int32 CloseCount;
+
+        public override Boolean Open(IHandlerContext context)
+        {
+            Interlocked.Increment(ref OpenCount);
+            return base.Open(context);
+        }
+
+        public override Boolean Close(IHandlerContext context, String reason)
+        {
+            Interlocked.Increment(ref CloseCount);
+            return base.Close(context, reason);
+        }
+    }
     #endregion
 
     #region 错误处理测试
