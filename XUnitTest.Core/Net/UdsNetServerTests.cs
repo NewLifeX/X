@@ -241,6 +241,87 @@ public class UdsNetServerTests
         }
     }
 
+    [Fact]
+    [DisplayName("Unix域套接字_拉取模式收发")]
+    public async Task PullModeEcho()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        try
+        {
+            using var server = new NetServer { Local = new NetUri($"unix://{path}") };
+            server.Received += (s, e) =>
+            {
+                if (s is INetSession session && e.Packet != null) session.Send(e.Packet);
+            };
+            server.Start();
+
+            // 拉取模式客户端：打开前关闭自动接收环
+            using var client = new TcpSession
+            {
+                Remote = new NetUri($"unix://{path}"),
+                AutoReceive = false,
+                Log = XTrace.Log,
+            };
+            client.Open();
+
+            _ = client.Send("uds-pull");
+
+            using var pk = await client.ReceiveAsync(default).WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.NotNull(pk);
+            Assert.Equal("uds-pull", pk!.ToStr());
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字_拉取时对端关闭_不挂死")]
+    public async Task PullModeRemoteClose()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        try
+        {
+            // 服务端：收到数据后主动关闭会话
+            using var server = new NetServer { Local = new NetUri($"unix://{path}") };
+            server.Received += (s, e) =>
+            {
+                if (s is NetSession ns) ns.Close("server-close");
+            };
+            server.Start();
+
+            using var client = new TcpSession
+            {
+                Remote = new NetUri($"unix://{path}"),
+                AutoReceive = false,
+                Log = XTrace.Log,
+            };
+            client.Open();
+
+            _ = client.Send("bye");
+
+            // 对端关闭后应结束拉取（空引用/空包或连接级异常），而不是永久挂起
+            try
+            {
+                using var pk = await client.ReceiveAsync(default).WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.True(pk == null || pk.Length == 0, $"对端关闭后拉取应结束，实际收到 {pk?.Length} 字节");
+            }
+            catch (Exception ex) when (ex is IOException or SocketException or ObjectDisposedException)
+            {
+                // 连接级异常亦为有效断开语义
+            }
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+
     #region 服务端
     class UdsEchoServer : NetServer<UdsEchoSession>
     {
