@@ -974,31 +974,6 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
     #endregion 接收
 
-    #region 自动重连
-
-    ///// <summary>重连次数</summary>
-    //private Int32 _Reconnect;
-    //void Reconnect()
-    //{
-    //    if (Disposed) return;
-    //    // 如果重连次数达到最大重连次数，则退出
-    //    if (Interlocked.Increment(ref _Reconnect) > AutoReconnect) return;
-
-    //    WriteLog("Reconnect {0}", this);
-
-    //    using var span = Tracer?.NewSpan($"net:{Name}:Reconnect", _Reconnect + "");
-    //    try
-    //    {
-    //        Open();
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        span?.SetError(ex, null);
-    //    }
-    //}
-
-    #endregion 自动重连
-
     #region 辅助
     /// <summary>日志前缀</summary>
     public override String? LogPrefix

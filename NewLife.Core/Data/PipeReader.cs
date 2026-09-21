@@ -64,8 +64,12 @@ public sealed class PipeReader
     /// <summary>读取数据。有数据立即返回；无数据挂起直到追加、完成或取消</summary>
     /// <param name="cancellationToken">取消通知。取消时抛出 <see cref="OperationCanceledException"/></param>
     /// <returns>读取结果</returns>
+    /// <remarks>挂起等待时若管道处于暂停态，将解除暂停并触发 <see cref="Pipe.Resumed"/>（读饥饿让位）：
+    /// 读侧挂起意味着已无新数据可交付，消费不会再来、暂停无法再经消费解除，若继续持有会令接收方停摆、读取永远等不到后续字节（整帧/最小长度读取死锁）。</remarks>
     public ValueTask<ReadResult> ReadAsync(CancellationToken cancellationToken = default)
     {
+        Boolean resumed;
+        TaskCompletionSource<ReadResult> tcs;
         lock (_pipe.SyncRoot)
         {
             // 取消、结束、已完成或已有新数据：结果立即可得
@@ -85,17 +89,22 @@ public sealed class PipeReader
 
 #if NET45
             // net45 没有 RunContinuationsAsynchronously，接受同步续体
-            var tcs = new TaskCompletionSource<ReadResult>();
+            tcs = new TaskCompletionSource<ReadResult>();
 #else
-            var tcs = new TaskCompletionSource<ReadResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+            tcs = new TaskCompletionSource<ReadResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 #endif
             _waiting = tcs;
 
             if (cancellationToken.CanBeCanceled)
                 _waitingReg = cancellationToken.Register(static state => ((TaskCompletionSource<ReadResult>)state!).TrySetCanceled(), tcs);
 
-            return new ValueTask<ReadResult>(tcs.Task);
+            // 读饥饿让位：见 remarks；解除后由恢复事件放行接收
+            resumed = _pipe.ReleasePauseForReaderLocked();
         }
+
+        if (resumed) _pipe.RaiseResumed();
+
+        return new ValueTask<ReadResult>(tcs.Task);
     }
 
     /// <summary>尝试同步读取（不等待）。有数据、已取消或管道已结束时返回 true</summary>

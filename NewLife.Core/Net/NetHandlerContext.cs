@@ -9,7 +9,10 @@ using NewLife.Serialization;
 namespace NewLife.Net;
 
 /// <summary>网络处理器上下文</summary>
-/// <remarks>上下文按轮租借，承载处理器调用链的临时数据</remarks>
+/// <remarks>
+/// 上下文按轮租借，承载处理器调用链的临时数据。
+/// 同时携带会话对象（<see cref="Session"/> 与 <see cref="HandlerContext.Owner"/>），协议层与处理器可据此访问 ISocket 会话、底层 Socket（<see cref="ISocket.Client"/>）与会话扩展数据。
+/// </remarks>
 public class NetHandlerContext : HandlerContext
 {
     #region 池

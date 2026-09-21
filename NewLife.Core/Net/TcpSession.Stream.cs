@@ -40,6 +40,8 @@ partial class TcpSession
     /// <returns>数据管道</returns>
     protected virtual Pipe CreatePipe()
     {
+        // 入站水位保持 Pipe 默认 1M/512K：与 Kestrel 入站缓冲上限 MaxRequestBufferSize（1MB）同量级，作为慢消费场景的内存安全阀；
+        // 读侧挂起等待（整帧/最小长度未凑齐）时自动“饥饿让位”解除暂停放行数据，大帧不受水位阻挡（见《背压水位定档与内存测算报告》）。
         var pipe = new Pipe();
         pipe.Resumed += (s, e) => ResumeParkedReceive();
 
@@ -68,6 +70,8 @@ partial class TcpSession
 
     /// <summary>暂存接收。数据管道暂停（背压）时暂不发起新接收，待消费恢复</summary>
     /// <param name="se">接收事件参数</param>
+    /// <remarks>存入后复查暂停态：消费线程可能在“读取暂停态”与“存入暂存”之间完成恢复（其恢复路径取到空暂存），
+    /// 此时必须立即取回重启，否则本条接收无人唤醒、接收环永久停摆（丢唤醒）。取回统一走 <see cref="ResumeParkedReceive"/>，两路以原子交换互斥、恰好一次。</remarks>
     private void ParkReceive(SocketAsyncEventArgs se)
     {
         var old = Interlocked.Exchange(ref _parkedRecv, se);
@@ -76,6 +80,9 @@ partial class TcpSession
             // 理论不可达：单 SAEA 串行接收至多一个暂存。防御性释放，避免泄漏
             ReleaseRecv(old, "ParkReceive");
         }
+
+        // 丢唤醒防护：若存入瞬间暂停已解除（消费恢复路径未取到本暂存），立即重启接收
+        if (_pipe?.IsPaused != true) ResumeParkedReceive();
     }
 
     /// <summary>消费恢复后重启暂存的接收（仍暂停则经 OnReceiveAsync 再次暂存）</summary>
@@ -120,7 +127,12 @@ partial class TcpSession
 
     /// <summary>创建数据发送管道。子类可重写以自定义水位等参数</summary>
     /// <returns>数据发送管道</returns>
-    protected virtual Pipe CreateSendPipe() => new();
+    /// <remarks>出站水位默认 64K 暂停 / 32K 恢复：对齐 BCL 管道默认与 Kestrel 出站阻塞阈值（MaxResponseBufferSize=64KB），慢速对端下每连接最坏排队内存为入站侧（1M）的十六分之一；各档位吞吐实测无差异（见《背压水位定档与内存测算报告》）。入站方向保持 1M/512K（Kestrel 入站同量级的内存安全阀；读饥饿时自动让位，不束缚帧尺寸）。</remarks>
+    protected virtual Pipe CreateSendPipe() => new()
+    {
+        PauseThreshold = 64 * 1024,
+        ResumeThreshold = 32 * 1024,
+    };
 
     /// <summary>获取或创建发送泵（管道唯一消费方，构造时启动）</summary>
     /// <returns>发送泵</returns>

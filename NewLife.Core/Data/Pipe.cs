@@ -45,7 +45,7 @@ public sealed class Pipe : IDisposable
     /// <summary>完成时的异常。写侧 Complete(error) 时携带</summary>
     public Exception? Error { get; internal set; }
 
-    /// <summary>消费推进使未消费数据降到恢复水位以下时触发，接收方可恢复接收</summary>
+    /// <summary>消费推进使未消费数据降到恢复水位以下、或读侧挂起等待触发饥饿让位时触发，接收方可恢复接收</summary>
     public event EventHandler? Resumed;
     #endregion
 
@@ -130,6 +130,19 @@ public sealed class Pipe : IDisposable
 
     /// <summary>重置暂停态（调用方持锁）。读侧结束时调用，不再触发恢复事件</summary>
     internal void ResetPauseLocked() => _paused = false;
+
+    /// <summary>读饥饿让位（调用方持锁）。返回本次是否需要触发恢复事件</summary>
+    /// <remarks>读侧在“无新数据可交付”时才会挂起等待：此时不会再有消费、暂停已不可能按常规路径（消费降压）解除，
+    /// 若继续持有，接收方将停摆，读者永远等不到后续字节（整帧/最小长度读取死锁）。故挂起前解除暂停，由调用方触发 <see cref="Resumed"/> 放行接收。
+    /// 背压约束的是“已到达但未被检查/消费”的积压；读者正在等待的数据不计入该约束。</remarks>
+    internal Boolean ReleasePauseForReaderLocked()
+    {
+        if (!_paused) return false;
+
+        _paused = false;
+
+        return true;
+    }
 
     /// <summary>触发恢复（锁外调用）：唤醒挂起的写侧提交并触发恢复事件，避免用户代码进入锁内</summary>
     internal void RaiseResumed()

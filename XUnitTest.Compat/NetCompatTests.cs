@@ -43,7 +43,7 @@ public class NetCompatTests
         {
             Assert.Equal(sendData.Length, client.Send(sendData));
 
-            // 显式传入令牌以选择 Task 版重载（无参 ReceiveAsync() 是启动后台接收环的 Boolean 版）
+            // 显式传入令牌以选择 Task 版重载（启动后台接收环的 Boolean 版已改名 StartReceive）
             var receiveTask = client.ReceiveAsync(CancellationToken.None);
             var finished = await Task.WhenAny(receiveTask, Task.Delay(5000));
             Assert.True(finished == receiveTask, "等待回显数据超时");

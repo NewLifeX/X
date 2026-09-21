@@ -482,7 +482,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>当前异步接收个数</summary>
-    private Int32 _RecvCount;
+    private volatile Int32 _RecvCount;
 
     /// <summary>接收环是否运行中。拉取模式判据：接收环运行时不允许多路径直读同一Socket</summary>
     internal Boolean IsReceiving => _RecvCount > 0;
