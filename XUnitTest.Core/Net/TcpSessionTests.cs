@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using NewLife;
+using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
@@ -134,5 +135,108 @@ public class TcpSessionTests
             client.Log = XTrace.Log;
             client.Open();
         }
+    }
+
+    /// <summary>加载测试自签名证书（内嵌 pfx）</summary>
+    private static X509Certificate2 LoadTestCert()
+    {
+        var pfx = typeof(TcpSessionTests).Assembly.GetManifestResourceStream("XUnitTest.certs.newlifex.com.pfx")!.ReadBytes(-1);
+#if NET9_0_OR_GREATER
+        return X509CertificateLoader.LoadPkcs12(pfx, "123456");
+#else
+        return new X509Certificate2(pfx, "123456", X509KeyStorageFlags.DefaultKeySet);
+#endif
+    }
+
+    /// <summary>SSL 回环 echo：256KB 逐字节一致（流式多轮读取）</summary>
+    [Fact(DisplayName = "SSL_回环echo_256KB逐字节一致")]
+    public async Task SslEcho_256KB()
+    {
+        using var cert = LoadTestCert();
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            SslProtocol = SslProtocols.Tls12,
+            Certificate = cert,
+            Log = XTrace.Log,
+        };
+        server.Received += (s, e) =>
+        {
+            if (s is INetSession session && e.Packet != null && e.Packet.Length > 0) session.Send(e.Packet);
+        };
+        server.Start();
+
+        using var client = new TcpSession
+        {
+            Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
+            SslProtocol = SslProtocols.Tls12,
+            AutoReceive = false,
+            Log = XTrace.Log,
+        };
+        client.Open();
+
+        var payload = new Byte[256 * 1024];
+        Random.Shared.NextBytes(payload);
+        _ = client.Send(payload);
+
+        // 拉取读满（SSL 流按字节读，不依赖包边界）
+        var offset = 0;
+        while (offset < payload.Length)
+        {
+            using var pk = await client.ReceiveAsync(default).WaitAsync(TimeSpan.FromSeconds(15));
+            Assert.NotNull(pk);
+            Assert.True(pk!.Length > 0, "SSL回显中断");
+
+            var bytes = pk.ToArray();
+            Assert.True(payload.AsSpan(offset, bytes.Length).SequenceEqual(bytes), $"偏移 {offset} 数据不一致");
+            offset += bytes.Length;
+        }
+    }
+
+    /// <summary>SSL 客户端强制 RST：服务端应感知流异常并关闭会话，不悬挂</summary>
+    [Fact(DisplayName = "SSL_客户端强制RST_服务端感知并关闭会话")]
+    public void SslClientRst_ServerDetects()
+    {
+        var sessionReady = new ManualResetEventSlim(false);
+        INetSession? serverSession = null;
+
+        using var cert = LoadTestCert();
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            SslProtocol = SslProtocols.Tls12,
+            Certificate = cert,
+            Log = XTrace.Log,
+        };
+        server.NewSession += (s, e) => { serverSession = e.Session; sessionReady.Set(); };
+        server.Start();
+
+        using var client = new TcpSession
+        {
+            Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
+            SslProtocol = SslProtocols.Tls12,
+            Log = XTrace.Log,
+        };
+        client.Open();
+
+        Assert.True(sessionReady.Wait(5000));
+        Assert.NotNull(serverSession);
+
+        // 先发一点数据确保服务端会话进入接收
+        _ = client.Send("hello");
+        Thread.Sleep(200);
+
+        // 强制 RST：以 Linger0 直接关闭底层套接字，不发 close_notify、不走四次挥手
+        var sock = client.Client;
+        Assert.NotNull(sock);
+        sock!.LingerState = new LingerOption(true, 0);
+        sock.Close();
+
+        // 服务端应在数秒内感知流异常并关闭会话（未修复时 SSL 读回调异常被吞，会话悬挂）
+        var ss = (SessionBase)serverSession!.Session;
+        for (var i = 0; i < 160 && ss.Active; i++) Thread.Sleep(50);
+        Assert.False(ss.Active, "服务端应感知SSL客户端强制断开并关闭会话");
     }
 }

@@ -913,6 +913,12 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             if (ex is IOException ||
             ex is SocketException sex && sex.SocketErrorCode == SocketError.ConnectionReset)
             {
+                // 对端关闭/重置：按对端已关闭（0字节）处理，触发会话断开链路；否则SSL读异常被吞后会话无感知悬挂
+                if (ar.AsyncState is SocketAsyncEventArgs args)
+                {
+                    args.SocketError = SocketError.Success;
+                    ProcessEvent(args, 0, 1);
+                }
             }
             else
             {
