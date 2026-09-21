@@ -13,6 +13,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>NetServer网络服务器单元测试</summary>
+[Collection("Net")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetServerTests
 {
@@ -171,7 +172,7 @@ public class NetServerTests
     }
 
     /// <summary>测试UDP数据收发</summary>
-    [Fact]
+    [Fact(DisplayName = "UDP_数据收发双向字节一致")]
     public void UdpDataTransfer()
     {
         var receivedData = new List<Byte[]>();
@@ -207,17 +208,20 @@ public class NetServerTests
 
         // 客户端发送
         using var client = new UdpClient();
+        var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
         var sendData = "Hello UDP"u8.ToArray();
-        client.Send(sendData, sendData.Length, new IPEndPoint(IPAddress.Loopback, server.Port));
+        client.Send(sendData, sendData.Length, serverEp);
 
-        // 等待接收
-        var received = receivedEvent.Wait(5000);
-        if (received)
-        {
-            Assert.Single(receivedData);
-            Assert.Equal(sendData, receivedData[0]);
-        }
-        // 如果未收到数据，不抛出断言失败，因为UDP在某些测试环境下可能有问题
+        // 回环UDP必须收到，未收到即失败
+        Assert.True(receivedEvent.Wait(5000), "未在超时内收到UDP数据");
+        Assert.Single(receivedData);
+        Assert.Equal(sendData, receivedData[0]);
+
+        // 客户端读取Echo回复，验证双向
+        client.Client.ReceiveTimeout = 5000;
+        var echoEp = new IPEndPoint(IPAddress.Any, 0);
+        var echo = client.Receive(ref echoEp);
+        Assert.Equal(sendData, echo);
     }
 
     /// <summary>测试多次数据发送</summary>
@@ -666,11 +670,11 @@ public class NetServerTests
 
     #region 群发测试
     /// <summary>测试群发消息</summary>
-    [Fact]
+    [Fact(DisplayName = "群发_全部客户端收到相同字节")]
     public async Task BroadcastMessage()
     {
-        var receiveCounts = new Int32[3];
-        var allReceived = new ManualResetEventSlim(false);
+        var sessionEvent = new ManualResetEventSlim(false);
+        var sessionCount = 0;
 
         using var server = new NetServer
         {
@@ -679,6 +683,7 @@ public class NetServerTests
             UseSession = true,
             Log = XTrace.Log,
         };
+        server.NewSession += (s, e) => { if (Interlocked.Increment(ref sessionCount) >= 3) sessionEvent.Set(); };
 
         server.Start();
 
@@ -695,29 +700,27 @@ public class NetServerTests
         }
 
         // 等待所有会话创建
-        Thread.Sleep(500);
+        Assert.True(sessionEvent.Wait(5000), "未创建 3 个会话");
 
-        // 群发数据
+        // 群发数据：3 个会话都应发送成功
         var sendData = "Broadcast Message"u8.ToArray();
-        await server.SendAllAsync(new ArrayPacket(sendData));
+        var count = await server.SendAllAsync(new ArrayPacket(sendData));
+        Assert.Equal(3, count);
 
-        // 等待接收
-        Thread.Sleep(500);
-
-        // 验证每个客户端都收到数据
+        // 逐个客户端限时读满：3 个都必须收到且内容一致
         for (var i = 0; i < 3; i++)
         {
-            var stream = streams[i];
-            if (stream.DataAvailable)
+            streams[i].ReadTimeout = 5000;
+            var buf = new Byte[64];
+            var total = 0;
+            while (total < sendData.Length)
             {
-                var buf = new Byte[1024];
-                var len = stream.Read(buf, 0, buf.Length);
-                if (len > 0) receiveCounts[i] = len;
+                var len = streams[i].Read(buf, total, buf.Length - total);
+                Assert.True(len > 0, $"客户端{i}未收到群发数据");
+                total += len;
             }
+            Assert.Equal(sendData, buf[..total]);
         }
-
-        // 至少有一个客户端收到数据
-        Assert.Contains(receiveCounts, c => c > 0);
 
         // 清理
         foreach (var client in clients)
@@ -725,9 +728,12 @@ public class NetServerTests
     }
 
     /// <summary>测试带条件的群发</summary>
-    [Fact]
+    [Fact(DisplayName = "群发_条件筛选_精确计数")]
     public async Task BroadcastWithPredicate()
     {
+        var sessionEvent = new ManualResetEventSlim(false);
+        var sessions = new List<INetSession>();
+
         using var server = new NetServer
         {
             Port = 0,
@@ -740,7 +746,14 @@ public class NetServerTests
         {
             // 为会话设置标记，通过Session的Items属性
             if (e.Session is NetSession ns)
+            {
                 ns.Session["Tag"] = ns.ID % 2 == 0 ? "Even" : "Odd";
+                lock (sessions)
+                {
+                    sessions.Add(ns);
+                    if (sessions.Count >= 4) sessionEvent.Set();
+                }
+            }
         };
 
         server.Start();
@@ -754,16 +767,19 @@ public class NetServerTests
             clients.Add(client);
         }
 
-        Thread.Sleep(500);
+        // 等待 4 个会话全部创建
+        Assert.True(sessionEvent.Wait(5000), "未创建 4 个会话");
 
-        // 只向偶数会话发送
+        // 只向偶数会话发送，发送数应精确等于偶数会话数
         var sendData = "Even Only"u8.ToArray();
+        Int32 evenCount;
+        lock (sessions) evenCount = sessions.Count(s => s is NetSession ns && ns.Session["Tag"]?.ToString() == "Even");
+        Assert.InRange(evenCount, 1, 4);
         var count = await server.SendAllAsync(
             new ArrayPacket(sendData),
             session => session is NetSession ns && ns.Session["Tag"]?.ToString() == "Even");
 
-        // 验证发送数量
-        Assert.True(count >= 0);
+        Assert.Equal(evenCount, count);
 
         // 清理
         foreach (var client in clients)
@@ -872,7 +888,7 @@ public class NetServerTests
 
     #region 地址重用测试
     /// <summary>测试地址重用</summary>
-    [Fact]
+    [Fact(DisplayName = "地址重用_监听器停止后同端口立即重启")]
     public void ReuseAddressTest()
     {
         var port = 0;
@@ -900,16 +916,9 @@ public class NetServerTests
             Log = XTrace.Log,
         };
 
-        // 这可能成功也可能失败，取决于系统
-        try
-        {
-            server2.Start();
-            Assert.True(server2.Active);
-        }
-        catch
-        {
-            // 某些系统可能仍然不允许立即重用
-        }
+        // 启用地址重用后，监听器停止后可立即在同端口重启
+        server2.Start();
+        Assert.True(server2.Active);
     }
     #endregion
 

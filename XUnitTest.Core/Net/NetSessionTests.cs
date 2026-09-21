@@ -11,6 +11,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>NetSession网络会话单元测试</summary>
+[Collection("Net")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetSessionTests
 {

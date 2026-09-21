@@ -9,6 +9,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>接收模式二选一（AutoReceive）测试：事件模式禁止拉取、拉取模式直读、手动开环、UdpServer.MaxAsync 并发数</summary>
+[Collection("Net")]
 public class PullModeTests
 {
     #region 事件模式禁止拉取

@@ -10,6 +10,7 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
+[Collection("Net")]
 public class ISocketRemoteTests
 {
     [Fact]

@@ -10,6 +10,7 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
+[Collection("Net")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class TcpSessionTests
 {

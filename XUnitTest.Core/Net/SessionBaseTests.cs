@@ -11,6 +11,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>SessionBase及相关类单元测试</summary>
+[Collection("Net")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class SessionBaseTests
 {

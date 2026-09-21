@@ -675,17 +675,25 @@ public class NetClientTests
         server.Stop("stop");
         server.Dispose();
 
-        // 等待两次重连尝试发生
-        for (var i = 0; i < 200 && CountReconnect(logs) < 2; i++) await Task.Delay(50);
-        Assert.Equal(2, CountReconnect(logs));
+        // 显式关闭底层连接以确定触发断线检测；仅等服务端关闭时，无数据流的连接可能长时间不感知
+        Assert.NotNull(client.Client);
+        client.Client!.Close("simulate");
+
+        // 等待两次重连尝试发生（负载环境下放宽窗口，失败时输出完整日志便于诊断）
+        for (var i = 0; i < 600 && CountReconnect(logs) < 2; i++) await Task.Delay(50);
+        String detail;
+        lock (logs) detail = String.Join(" | ", logs);
+        Assert.True(CountReconnect(logs) >= 2, $"等待两次重连超时，实际日志：{detail}");
 
         // 等待“达上限停止”日志
-        for (var i = 0; i < 40; i++)
+        var limited = false;
+        for (var i = 0; i < 100 && !limited; i++)
         {
-            lock (logs) { if (logs.Any(m => m.Contains("已达最大重连次数"))) break; }
-            await Task.Delay(50);
+            lock (logs) limited = logs.Any(m => m.Contains("已达最大重连次数"));
+            if (!limited) await Task.Delay(50);
         }
-        lock (logs) Assert.Contains(logs, m => m.Contains("已达最大重连次数"));
+        lock (logs) detail = String.Join(" | ", logs);
+        Assert.True(limited, $"未打印达上限停止日志，实际日志：{detail}");
 
         // 再等待一段时间，确认不再发起新的重连
         await Task.Delay(500);

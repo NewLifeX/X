@@ -10,14 +10,16 @@ using Xunit;
 
 namespace XUnitTest.Net
 {
+    /// <summary>裸 Socket 层基础收发冒烟测试</summary>
+    [Collection("Net")]
     public class NetSeverTests
     {
-        [Fact]
+        [Fact(DisplayName = "裸Tcp_客户端发字节_服务端回显一致")]
         public void TcpEmptyData()
         {
             var server = new NetServer
             {
-                Port = 7777,
+                Port = 0,
 
                 Log = XTrace.Log,
                 SessionLog = XTrace.Log,
@@ -45,10 +47,20 @@ namespace XUnitTest.Net
                     client.Connect(uri.EndPoint);
 
                     using var ns = client.GetStream();
-                    ns.Write("Stone@NewLife.com".GetBytes());
+                    var payload = "Stone@NewLife.com".GetBytes();
+                    ns.Write(payload);
 
+                    // 回显读满（NetworkStream 可能短读）
                     var buf = new Byte[1024];
-                    var rs = ns.Read(buf, 0, buf.Length);
+                    var total = 0;
+                    while (total < payload.Length)
+                    {
+                        var rs = ns.Read(buf, total, buf.Length - total);
+                        Assert.True(rs > 0, "服务端未回显数据");
+                        total += rs;
+                    }
+
+                    Assert.Equal(payload, buf[..total]);
                 }
             }
             finally
