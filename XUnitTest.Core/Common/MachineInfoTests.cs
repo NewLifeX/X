@@ -90,6 +90,29 @@ public class MachineInfoTests
         Assert.Null(mi["NonExistent"]);
     }
 
+    [Fact(DisplayName = "磁盘标识")]
+    public void DiskTest()
+    {
+        var mi = new MachineInfo();
+        mi.Init();
+
+        // 仅 Linux 使用 by-id/by-uuid 逻辑
+        if (!Runtime.Linux) return;
+
+        Assert.NotNull(mi.DiskID);
+
+        // 存在硬件标识时，优先使用 by-id（如 mmc-8GTF4R_0x4c4f4bb2），而不是文件系统 UUID
+        var byId = MachineInfo.GetFiles("/dev/disk/by-id", true);
+        if (byId.Count > 0)
+        {
+            foreach (var item in mi.DiskID.Split(','))
+            {
+                // UUID 形如 3273d6bf-2c9f-4364-9269-0b2bf026c735，长度为36且第9位为连字符
+                Assert.False(item.Length == 36 && item[8] == '-', $"不应使用文件系统UUID：{item}");
+            }
+        }
+    }
+
     [Fact(DisplayName = "WMI单属性查询测试")]
     public void GetInfoTest()
     {

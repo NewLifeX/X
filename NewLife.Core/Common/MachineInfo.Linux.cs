@@ -103,23 +103,28 @@ public partial class MachineInfo
             if (TryRead(file, out value)) Board = value;
         }
 
-        // 在虚拟机中，uuid可能出现一个时间id和一个guid。
-        var disks = GetFiles("/dev/disk/by-uuid", false);
+        // 优先读取磁盘硬件标识（如 mmc-8GTF4R_0x4c4f4bb2），它来自磁盘固件，
+        // 不随系统重装或重新烧写而变化；文件系统UUID重新格式化后改变，仅作回退
+        var disks = GetFiles("/dev/disk/by-id", true);
         if (disks.Count > 0)
         {
-            // 去掉时间id例如 2025-08-14-18-36-42-00，因为它随着时间在改变
-            disks = disks.Where(e => !e.IsNullOrEmpty() && (e.Length < 10 || e[4] != '-' || e[..10].ToDateTime().Year < 2000)).ToList();
+            // id中需要剔除QEMU，去掉virtio-前缀，例如 virtio-uf6ag3b49w6v4e9ldgcj
+            disks = disks.Where(e => !e.IsNullOrEmpty() && !e.Contains("QEMU_")).Select(e => e.TrimPrefix("virtio-")).ToList();
         }
 
         if (disks.Count == 0)
         {
-            // id中需要剔除QEMU，去掉virtio-前缀，例如 virtio-uf6ag3b49w6v4e9ldgcj
-            disks = GetFiles("/dev/disk/by-id", true);
-            disks = disks.Where(e => !e.IsNullOrEmpty() && !e.Contains("QEMU_")).Select(e => e.TrimPrefix("virtio-")).ToList();
+            // 在虚拟机中，uuid可能出现一个时间id和一个guid。
+            // 去掉时间id例如 2025-08-14-18-36-42-00，因为它随着时间在改变
+            disks = GetFiles("/dev/disk/by-uuid", false);
+            if (disks.Count > 0)
+                disks = disks.Where(e => !e.IsNullOrEmpty() && (e.Length < 10 || e[4] != '-' || e[..10].ToDateTime().Year < 2000)).ToList();
         }
 
         if (disks.Count == 0) disks = GetFiles("/dev/disk/by-partuuid", true);
-        if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).Join(",");
+
+        // 排序输出，保证多次启动时顺序一致，便于比对设备身份
+        if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).OrderBy(e => e, StringComparer.Ordinal).Join(",");
 
         // 从*-release文件读取产品信息，具有更高优先级
         file = "/etc/os-release";
