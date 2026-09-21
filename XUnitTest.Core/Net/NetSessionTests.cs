@@ -261,6 +261,47 @@ public class NetSessionTests
         createdSession.Close("TestClose2");
     }
 
+    /// <summary>回归：Close 只触发一次 Disconnected 事件（曾双发：先空参、后带原因）</summary>
+    [Fact(DisplayName = "会话关闭_Disconnected事件只触发一次")]
+    public void DisconnectedEvent_FiresOnce()
+    {
+        var count = 0;
+        var sessionCreated = new ManualResetEventSlim(false);
+        INetSession? createdSession = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+            Log = XTrace.Log,
+        };
+
+        server.NewSession += (s, e) =>
+        {
+            createdSession = e.Session;
+            if (e.Session is NetSession ns)
+            {
+                ns.Disconnected += (sender, args) => Interlocked.Increment(ref count);
+            }
+            sessionCreated.Set();
+        };
+
+        server.Start();
+
+        using var client = new TcpClient();
+        client.Connect(IPAddress.Loopback, server.Port);
+
+        Assert.True(sessionCreated.Wait(3000));
+        Assert.NotNull(createdSession);
+
+        // 主动关闭会话，Disconnected 应当且仅当触发一次
+        createdSession!.Close("TestClose");
+        Thread.Sleep(200);
+
+        Assert.Equal(1, count);
+    }
+
     class ConnectedTestSession : NetSession
     {
         protected override void OnConnected()

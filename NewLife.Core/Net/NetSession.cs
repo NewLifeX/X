@@ -271,9 +271,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         {
             WriteLog("Disconnect [{0}] {1}", Session, reason);
 
-#pragma warning disable CS0618 // 类型或成员已过时
-            OnDisconnected();
-#pragma warning restore CS0618 // 类型或成员已过时
+            // 只调用带原因的重载，保证 Disconnected 事件只触发一次
             OnDisconnected(reason);
         }
         catch (Exception ex)
