@@ -188,12 +188,10 @@ static class Program
     /// <summary>单向上行：仅发送不回读，测服务端纯接收吞吐（配合 --server 分离进程消除 CPU 共享）</summary>
     private static void RunOneWay(List<ISocketClient> conns, Byte[] payload, Int32 size, Int32 seconds)
     {
-        var sent = new Int64[conns.Count];
         var tasks = new List<Task>();
         for (var i = 0; i < conns.Count; i++)
         {
-            var idx = i;
-            var conn = conns[idx];
+            var conn = conns[i];
             tasks.Add(Task.Run(() =>
             {
                 var n = 0L;
@@ -212,14 +210,15 @@ static class Program
                     }
                 }
                 Interlocked.Add(ref _sentBytes, batch);
-                sent[idx] = n;
             }));
         }
 
-        // 发送窗结束后仍有少量在途：TCP 流控下缓冲满时会稍晚返回，宽限等待
-        Task.WaitAll(tasks.ToArray(), TimeSpan.FromSeconds(seconds + 60));
-        var total = sent.Sum(n => n);
-        Console.WriteLine($"完整发送    : {total:N0} 包 / {total * (Int64)size:N0} B（无回读，接收真值以服务端计数为准）");
+        // 发送窗结束后仍有少量在途：TCP 流控下缓冲满时会稍晚返回，宽限等待。
+        // 服务端饱和场景中 Send 可能长期阻塞于零窗口，宽限 10 秒后放弃等待：
+        // 发送统计直接读全局累计（_sentBytes），不依赖阻塞任务是否返回
+        Task.WaitAll(tasks.ToArray(), TimeSpan.FromSeconds(10));
+        var totalBytes = Interlocked.Read(ref _sentBytes);
+        Console.WriteLine($"完整发送    : {totalBytes / size:N0} 包 / {totalBytes:N0} B（无回读，接收真值以服务端计数为准）");
     }
 
     /// <summary>流水线模式：持续发送 + 并发读取回显，发送停止后排水读满</summary>
