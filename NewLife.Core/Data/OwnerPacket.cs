@@ -22,7 +22,7 @@ internal sealed class ArrayOwner(Byte[] buffer, Boolean returnToPool)
 {
     #region 属性
     /// <summary>缓冲数组</summary>
-    public Byte[] Buffer { get; } = buffer;
+    public Byte[] Buffer { get; private set; } = buffer;
 
     /// <summary>引用归零时是否归还内存池</summary>
     public Boolean ReturnToPool { get; } = returnToPool;
@@ -43,6 +43,10 @@ internal sealed class ArrayOwner(Byte[] buffer, Boolean returnToPool)
         if (Interlocked.Decrement(ref _refCount) == 0 && ReturnToPool)
             ArrayPool<Byte>.Shared.Return(Buffer);
     }
+
+    /// <summary>接收环复用：重新绑定缓冲（前提：无其它引用持有）</summary>
+    /// <param name="buffer">新的缓冲数组</param>
+    public void Reset(Byte[] buffer) => Buffer = buffer;
     #endregion
 }
 
@@ -322,8 +326,9 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
 
     /// <summary>脱手：放弃本句柄的引用，但<strong>不归还</strong>池化缓冲区，缓冲保持“已借出”状态交给调用方继续使用</summary>
     /// <remarks>
-    /// <para>用于接收层复用缓冲：每轮把整块缓冲包装为句柄上抛，轮末确认没有其它持有者（<see cref="RefCount"/> 为 1）时脱手，
-    /// 缓冲留在会话继续接收，做到零 Rent/Return；归还责任随脱手转交调用方，由其在会话关闭时归还。</para>
+    /// <para>用于接收层复用缓冲：每轮把整块缓冲包装为句柄上抛，轮末确认没有其它持有者（<see cref="RefCount"/> 为 1）时即可脱手，
+    /// 缓冲留在会话继续接收，做到零 Rent/Return；归还责任随脱手转交调用方，由其在会话关闭时归还。
+    /// 接收环的日常轮末改为把句柄回挂接收槽复用（见 <see cref="Rebind"/>），仅在会话关闭时才真正脱手。</para>
     /// <para>数据支撑（基准实测）：池化 Rent+Return 合计约 8ns、与大小无关，但接收环每轮必经；
     /// 轮末脱手复用把“归还+再借”的成对开销省为零，缓冲常驻不换新。</para>
     /// <para>与 <see cref="Dispose"/> 的区别：Dispose 释放引用并可能归还池；脱手只废弃句柄，保留缓冲的借用状态。</para>
@@ -347,6 +352,31 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         _buffer = null;
         _length = 0;
         Next = null;
+    }
+
+    /// <summary>接收环复用：把本句柄重新绑定到下一轮缓冲段，避免每轮新建包装对象</summary>
+    /// <remarks>
+    /// <para>仅用于接收层：轮末无外部持有（<see cref="RefCount"/> 为 1）时把句柄回挂接收槽，下一轮开始时重绑到新收到的数据段。</para>
+    /// <para>调用前提：本实例无其它持有者。缓冲通常仍是会话常驻缓冲，地址不变时仅更新偏移与长度；所有者缺失时补建。</para>
+    /// </remarks>
+    /// <param name="buffer">缓冲数组</param>
+    /// <param name="offset">数据起始偏移</param>
+    /// <param name="length">数据长度</param>
+    /// <exception cref="InvalidOperationException">仍有其它句柄持有缓冲区</exception>
+    internal void Rebind(Byte[] buffer, Int32 offset, Int32 length)
+    {
+        if (RefCount != 1)
+            throw new InvalidOperationException($"Cannot rebind while other handle(s) still hold the buffer: {RefCount}");
+
+        _buffer = buffer;
+        _offset = offset;
+        _length = length;
+        Next = null;
+
+        if (_owner == null)
+            _owner = new ArrayOwner(buffer, true);
+        else
+            _owner.Reset(buffer);
     }
 
     /// <summary>立即放弃所有权，不归还缓冲区（兼容旧版）</summary>

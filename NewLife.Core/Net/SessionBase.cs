@@ -516,14 +516,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             }
 
             // 池化接收缓冲：从 ArrayPool 借出，归本会话持有。每轮把整块缓冲包装为本轮拥有句柄上抛，
-            // 轮末按引用计数裁决：无人持有则脱手（Detach）保留缓冲继续接收（零 Rent/Return），
-            // 被下游消费或带出时才解绑换新。归还见 ReleaseRecv 与 OwnerPacket.Detach 协议。
+            // 轮末按引用计数裁决：无人持有则句柄回挂接收槽（UserToken）供下轮重绑复用，缓冲继续接收（零 Rent/Return），
+            // 被下游消费或带出时才解绑换新。归还见 ReleaseRecv 与 OwnerPacket.Detach/Rebind 协议。
             // 加大接收缓冲区，规避SocketError.MessageSize问题
             var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
             var se = new SocketAsyncEventArgs();
             se.SetBuffer(buf, 0, BufferSize);
             se.Completed += (s, e) => ProcessEvent(e, -1, _IntoThreadCount);
-            se.UserToken = count;
+            se.UserToken = new RecvSlot(count);
 
             if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
 
@@ -538,14 +538,22 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="reason">释放原因。便于日志分析</param>
     protected void ReleaseRecv(SocketAsyncEventArgs se, String reason)
     {
-        var idx = se.UserToken.ToInt();
+        var idx = (se.UserToken as RecvSlot)?.Index ?? -1;
 
         if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", idx, reason);
 
         if (_RecvCount > 0) Interlocked.Decrement(ref _RecvCount);
         try
         {
-            // 归还池化接收缓冲。缓冲要么无人带出（轮末已 Detach 脱手，仍在 se.Buffer 上），
+            // 接收槽回挂的复用句柄先脱手（不归还），抑制析构兜底，避免与本次归还将同一缓冲二次放回池
+            if (se.UserToken is RecvSlot slot && slot.Packet != null)
+            {
+                var cached = slot.Packet;
+                slot.Packet = null;
+                cached.Detach();
+            }
+
+            // 归还池化接收缓冲。缓冲要么无人带出（轮末已回挂复用，仍在 se.Buffer 上），
             // 要么本轮被消费/带出时已解绑并换了新缓冲；因此这里归还的一定是本会话独有、
             // 无外部持有者的缓冲，恰好一次；被带出的缓冲由最后释放的共享句柄归还。
             var buffer = se.Buffer;
@@ -671,8 +679,20 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 if (bytes < 0) bytes = se.BytesTransferred;
                 if (se.Buffer != null)
                 {
-                    // 同步执行，直接使用数据，不需要拷贝：整块缓冲包装为本轮拥有句柄，交由管道与事件消费
-                    var pk = new OwnerPacket(se.Buffer, se.Offset, bytes, true);
+                    // 同步执行，直接使用数据，不需要拷贝：整块缓冲包装为本轮拥有句柄，交由管道与事件消费。
+                    // 接收环复用：优先取回挂在接收槽上的上一轮句柄，重绑到本段数据；无则新建。
+                    var slot = se.UserToken as RecvSlot;
+                    var pk = slot?.Packet;
+                    if (pk != null)
+                    {
+                        slot!.Packet = null;
+                        pk.Rebind(se.Buffer, se.Offset, bytes);
+                    }
+                    else
+                    {
+                        pk = new OwnerPacket(se.Buffer, se.Offset, bytes, true);
+                    }
+
                     try
                     {
                         ProcessReceive(se, ep, pk);
@@ -680,12 +700,16 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                     finally
                     {
                         // 轮末裁决缓冲归属，正常与异常路径一致：
-                        // 计数为 1（无他人持有）→ 脱手：放弃本句柄引用但不归还，缓冲留在会话继续接收，零 Rent/Return；
+                        // 计数为 1（无他人持有）→ 句柄回挂接收槽供下轮重绑复用，缓冲留在会话继续接收，零 Rent/Return；
                         // 其余情况（已被下游消费归零，或存在共享切片大于 1）→ 释放本句柄（已释放则空操作），解绑换新；
                         // 不在此归还：计数大于 1 时旧缓冲仍被外部使用，归还它会把正在使用的缓冲交还给池。
                         if (pk.RefCount == 1)
                         {
-                            pk.Detach();
+                            // 槽缺失（理论不发生）时按旧语义脱手，防止句柄被弃后析构兜底误归还缓冲
+                            if (slot != null)
+                                slot.Packet = pk;
+                            else
+                                pk.Detach();
                         }
                         else
                         {
@@ -1035,4 +1059,15 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     #endregion 日志
+}
+
+/// <summary>接收槽状态：槽序号 + 轮末回挂复用的数据包句柄</summary>
+/// <param name="index">槽序号（第几个接收事件参数）</param>
+internal sealed class RecvSlot(Int32 index)
+{
+    /// <summary>槽序号（第几个接收事件参数）</summary>
+    public Int32 Index { get; } = index;
+
+    /// <summary>轮末回挂的数据包句柄，下一轮重绑复用；无外部持有者时非空</summary>
+    public OwnerPacket? Packet { get; set; }
 }
