@@ -59,7 +59,9 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 
 > ³ UDP 单点毛刺（偶发调度/内核缓冲），低频可忽略；P99 89.9µs 正常。
 
-低并发下的基础链路成本：**最小往返 23.8 µs（TCP）/ 26.4 µs（1KB）**，即单次 socket 往返的物理底线约 **25µs**（回环 + 两次 IOCP 调度）。
+低并发下的基础链路成本：**最小往返 23.8 µs（TCP）/ 26.4 µs（1KB）**，即本库**同步拉取模型**的单次往返实现底线约 **25µs**。
+
+> 口径勘误（2026-09-21）：25µs **不是回环网络的物理极限**——loopback 单次内核传输仅 1-1.2µs；这 25µs 的大头是**两次用户态系统调用（Send + 阻塞 Receive 唤醒）+ 线程调度 + 服务端回显链路**。异步/单向上行路径不受此限（见“第二轮：单向上行与极限实验”）。
 
 ### 3. 内存分配
 
@@ -86,6 +88,12 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 | 流水线 | 1048576 | 64 | 196.3 ms | 2.2 ms | 201 KB | 161.2 ms / 5.7 ms |
 
 > 线程池预热后，大并发（64）大包往返的 **StdDev 从数百毫秒收敛到 1-2ms**（-99.7% 以上），Mean 同步下降 77-84%——与压测程序侧“秒级毛刺”对照完全一致（见缺陷 2）。
+
+**表格读法（Mean/StdDev 单位换算）**：
+- **Mean/StdDev 单位为毫秒**（BDN 自动选单位，本组均为 ms），且是**单次迭代耗时**而非单次操作——每迭代受 `TargetBytes = 256MB` / `MaxPackets = 2M` / `MaxRoundTrips = 50K` 限流；
+- **换算吞吐**：`吞吐 ≈ 迭代数据量 ÷ Mean`。如 1MB×64 流水线 196.3ms → 256MB ÷ 0.1963s ≈ 1.30 GB/s；
+- **StdDev 是迭代间的标准差**（迭代 5 次），**StdDev/Mean 越小越稳**：预热后大包档 StdDev 1-2ms ≈ 1-2%，即抖动 <2%；毛刺轮 StdDev 875ms 甚至大于 Mean 695ms，说明迭代间极不稳定（部分迭代被秒级停顿支配）；
+- 小包档 Mean 更大是**限流保护**所致（MaxPackets/MaxRoundTrips 提前终止），不同档位间**不要直接比 Mean 绝对值**，用换算吞吐对照。
 
 ## 缺陷发现与改进闭环
 
@@ -125,6 +133,52 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 - 影响：通用的 `s is INetSession` 分支在 UDP 下静默不命中（压测程序开发中实际踩到）；
 - 处置：本次**不改库**（给 `UdpSession` 补接口涉及类型布局变更，风险高于收益），作为文档记录，建议在 `UdpSession`/`NetServer.Received` 注释中明确说明。
 
+## 第二轮：单向上行、接收环复用与极限实验（2026-09-21）
+
+### 1. 分离进程与单向上行（消除 CPU 共享与回显流量）
+
+原同进程 echo 双向流量下（1KB ≈1.0GB/s），将服务端独立为进程（`--server`）、客户端只发不收（`--oneway`）后：
+
+| 场景 | 吞吐 | 带宽 | 分配 |
+|---|---:|---:|---:|
+| 8 客户端 × 1KB 单向 | 139.5 万 pkt/s | **1.36 GB/s** | 0.0 B/msg |
+| 8 客户端 × 64KB 单向 | 6.9 万 pkt/s | **4.34 GB/s**（粘包口径峰值 5.03） | 0.1 B/msg |
+
+- 64KB 单向 **4.3-5.0 GB/s（34-40 Gbps）** 已超越历史版本记录（23.4Gbps）；
+- 1KB 单向服务端稳态 1.42-1.44 GB/s（约 142 万 pkt/s）。
+
+### 2. 服务端单进程接收饱和
+
+4 客户端进程 × 8 连接 = 32 连接 × 1KB 单向：服务端稳态 **1,542-1,610 MB/s（≈155-160 万 pkt/s）**，较 8 客户端仅 +20%——**单进程接收环已饱和**，瓶颈为每包固定成本（回调、轮末裁决、互锁计数）。横向扩展需多服务端实例。
+
+### 3. 接收环 OwnerPacket 复用（commit ff0514c11）
+
+- **原状**：每轮接收固定 `new OwnerPacket + new ArrayOwner`（2 对象），轮末无外部持有时 `Detach` 脱手；有共享切片时换缓冲；
+- **改造**：句柄轮末**回挂接收槽**（`RecvSlot` 挂 `SocketAsyncEventArgs.UserToken`：槽序号 + 回挂句柄），下一轮 `Rebind` 重绑到新数据段（`ArrayOwner.Reset` 同步缓冲），会话释放时统一脱手归还——**热路径零包装对象分配**；
+- **对照**：
+
+| 场景 | 改造前 | 改造后 | 变化 |
+|---|---:|---:|---:|
+| 1KB 单向 | 131.7 万 pkt/s | **139.5 万 pkt/s** | **+6~10%** |
+| 64KB 单向 | 3.87 GB/s | **4.34 GB/s** | **+12~15%** |
+| 分配（两档） | 0.0 / 0.1 B/msg | 0.0 / 0.1 B/msg | 持平（本就池化极限） |
+
+- 收益来源：省去每轮对象构造、`Detach`/finalizer 抑制与所有者重建的固定成本——包越小、轮次越多，收益越显著；
+- 正确性：全量 2943 用例回归通过（含切片共享、链式帧、会话生命周期专项）。
+
+### 4. 粘包口径与历史记录对照
+
+历史记录（ChangeLog：**23.4 Gbps / 1.4 亿 pkt/s**）经确认为“带协议 TCP + 大量 24B 小帧粘连成大包整体收发”的口径。新压测程序支持 `--frame 24`：发送缓冲对齐到帧整倍数，吞吐按“接收字节 ÷ 帧大小”折算逻辑帧：
+
+| 场景 | 大包尺寸 | 逻辑帧/包 | 帧吞吐 | 字节带宽 |
+|---|---:|---:|---:|---:|
+| 1KB 邻接 | 1,008 B | 42 | **5,636 万 frame/s** | 1.29 GB/s |
+| 64KB 大粘包 | 65,520 B | 2,730 | **2.2 亿 frame/s**（服务端峰值 2.31 亿） | **5.03 GB/s** |
+
+- **64KB 粘包场景帧吞吐 2.2 亿 frame/s，超越历史 1.4 亿记录 57%**；对应带宽 40.2Gbps（历史 23.4Gbps）；
+- 帧率随粘包粒度上升而增长（1KB 档受“每轮固定成本”主导，64KB 档接近“每字节成本”极限），历史 1.4 亿对应约 3.4GB/s 带宽，位于两档之间，符合“当时版本 + 当时粘包粒度”的预期；
+- 本组为**裸 Socket 口径**（不含协议解码）；协议层解码帧率另见编解码器报告。
+
 ## 分析
 
 1. **TCP 裸层吞吐**：单进程回环 echo 达 **1.0-1.3 GB/s / 104 万 msg/s（1KB）**；对照纯接收基线（32B 不回发 C=64 时 ~524ns/包 ≈ 190 万包/s），echo 往返流量（双向）下的 104 万 msg/s 处于合理区间，链路无显著瓶颈。
@@ -139,6 +193,9 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 2. **UDP 发送端限速**（无流控本质），或通过 `UdpServer.MaxAsync` 提高接收环并发度；
 3. **延迟基线参考**：单连接回环往返 25-45µs、4 并发 P99 ≈85µs、64 并发（预热后）P99 ≈360µs；
 4. 后续若需进一步压榨往返路径分配，可专项评估 `OwnerPacket` 对象池化（预估收益 ≤80B/包，需重审引用计数语义）。
+   ——已闭环：接收环改用“句柄回挂接收槽”复用（不离散化对象池），见“第二轮 · 3”，单向吞吐 +6~15%（commit ff0514c11）。
+5. **接收环饱和与扩展**：单进程 1KB 接收饱和 ≈1.6GB/s（≈155 万 pkt/s），更高吞吐需横向多实例；每包固定成本（回调/轮末裁决/引用计数）是小包档主要开销，后续可评估“批处理回调”。
+6. **粘包粒度红利**：业务允许时增大发送聚合（更大的应用层批），可显著摊薄每包固定成本（64KB 档帧率 2.2 亿 vs 1KB 档 5,636 万）。
 
 ## 复现命令
 
@@ -150,4 +207,11 @@ dotnet run --project Benchmark/Benchmark.csproj -c Release -- --filter "*NetEcho
 dotnet run --project Benchmark/NetLoadTest -c Release -- --mode pipeline  --clients 8 --size 1024 --seconds 10
 dotnet run --project Benchmark/NetLoadTest -c Release -- --mode roundtrip --clients 4 --size 1024 --seconds 10
 dotnet run --project Benchmark/NetLoadTest -c Release -- --udp --mode roundtrip --clients 1 --size 256 --seconds 5
+
+# 分离进程单向压测（服务端独立进程，消除 CPU 共享）
+Benchmark/NetLoadTest/bin/Release/net10.0/NetLoadTest.exe --server --port 7789 --oneway
+Benchmark/NetLoadTest/bin/Release/net10.0/NetLoadTest.exe --remote 127.0.0.1:7789 --clients 8 --size 65536 --seconds 10 --warmup 2 --oneway
+
+# 粘包口径（24B 逻辑帧，对标历史 1.4 亿 pkt/s）
+Benchmark/NetLoadTest/bin/Release/net10.0/NetLoadTest.exe --remote 127.0.0.1:7789 --clients 8 --size 65536 --seconds 10 --oneway --frame 24
 ```

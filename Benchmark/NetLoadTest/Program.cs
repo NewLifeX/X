@@ -8,8 +8,9 @@ namespace NetLoadTest;
 
 /// <summary>裸 Socket 层回环压测程序：同进程 echo 服务端 + N 客户端，测量吞吐、往返延迟与内存分配</summary>
 /// <remarks>
-/// <para>用法：dotnet run --project Benchmark/NetLoadTest -c Release -- [--mode pipeline|roundtrip] [--clients 4] [--size 1024] [--seconds 10] [--warmup 2] [--udp]</para>
+/// <para>用法：dotnet run --project Benchmark/NetLoadTest -c Release -- [--mode pipeline|roundtrip] [--clients 4] [--size 1024] [--seconds 10] [--warmup 2] [--udp] [--frame 24]</para>
 /// <para>pipeline：客户端持续发送不等待回显，测吞吐上限（MB/s、msg/s）；roundtrip：逐包往返，测 P50/P95/P99 延迟。</para>
+/// <para>--frame：应用层帧大小，发送缓冲对齐到帧整倍数模拟粘包，吞吐折算为逻辑帧口径（对标历史 1.4 亿 pkt/s）。</para>
 /// <para>分配数据来自进程级 GC.GetTotalAllocatedBytes，含服务端与客户端双向开销（同进程回环）。</para>
 /// </remarks>
 static class Program
@@ -32,13 +33,18 @@ static class Program
         var remote = GetArg(args, "--remote");
         var port = GetInt(args, "--port", 7800);
         var oneway = args.Contains("--oneway");
+        var frame = GetInt(args, "--frame", 0);
+
+        // --frame：应用层帧大小。发送缓冲对齐到帧整倍数，模拟“大量小帧粘成大包”的协议场景，
+        // 统计口径折算为逻辑帧吞吐（对标历史 23.4Gbps ÷ 24B = 1.4 亿 pkt/s 记录）
+        if (frame > 0) size = Math.Max(frame, size / frame * frame);
 
         var roundtrip = mode.Equals("roundtrip", StringComparison.OrdinalIgnoreCase);
 
         Console.WriteLine("=== 裸Socket回环压测（同进程 echo）===");
         Console.WriteLine($"模式    : {(roundtrip ? "逐包往返（延迟）" : "流水线（吞吐）")}");
         Console.WriteLine($"协议    : {(udp ? "UDP" : "TCP")}");
-        Console.WriteLine($"包大小  : {size:N0} B");
+        Console.WriteLine($"包大小  : {size:N0} B{(frame > 0 ? $"（含 {size / frame:N0} 个 {frame} B 逻辑帧，粘包口径）" : "")}");
         Console.WriteLine($"客户端  : {clients}");
         Console.WriteLine($"预热/窗口: {warmup} s / {seconds} s");
         Console.WriteLine();
@@ -82,7 +88,17 @@ static class Program
             {
                 Thread.Sleep(1000);
                 var now = Interlocked.Read(ref _serverBytes);
-                Console.WriteLine($"[server] {((now - last) / 1024.0 / 1024.0):N1} MB/s  累计 {now / 1024.0 / 1024.0:N1} MB");
+                var rate = (now - last) / 1024.0 / 1024.0;
+                if (frame > 0)
+                {
+                    // 粘包口径：吞吐按逻辑帧折算（接收字节 ÷ 帧大小）
+                    var frames = (now - last) / (Double)frame;
+                    Console.WriteLine($"[server] {rate:N1} MB/s  累计 {now / 1024.0 / 1024.0:N1} MB  帧率 {frames / 1_000_000:N2} M帧/s");
+                }
+                else
+                {
+                    Console.WriteLine($"[server] {rate:N1} MB/s  累计 {now / 1024.0 / 1024.0:N1} MB");
+                }
                 last = now;
             }
         }
@@ -155,6 +171,12 @@ static class Program
         Console.WriteLine();
         Console.WriteLine("------- 结果 -------");
         Console.WriteLine($"吞吐      : {totalMsgs / elapsed:N0} msg/s | {mbps:N1} MB/s");
+        if (frame > 0)
+        {
+            // 粘包口径：按逻辑帧折算吞吐，对标历史“1.4 亿 pkt/s”（23.4Gbps ÷ 24B）
+            var totalFrames = totalBytes / frame;
+            Console.WriteLine($"帧吞吐    : {totalFrames / elapsed:N0} frame/s（帧大小 {frame} B，每大包 {size / frame:N0} 帧）");
+        }
         Console.WriteLine($"服务端回显: {totalMsgs:N0} 包 / {totalBytes:N0} B（窗口 {elapsed:F2} s）");
         Console.WriteLine($"分配      : {allocPerMsg:N1} B/msg | 窗口总分配 {(alloc1 - alloc0) / (1024.0 * 1024.0):N1} MB");
         Console.WriteLine($"GC        : Gen0 +{GC.CollectionCount(0) - gen0} Gen1 +{GC.CollectionCount(1) - gen1} Gen2 +{GC.CollectionCount(2) - gen2}");
