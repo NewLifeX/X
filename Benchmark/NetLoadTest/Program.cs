@@ -15,6 +15,7 @@ namespace NetLoadTest;
 static class Program
 {
     private static Int64 _serverBytes;
+    private static Int64 _sentBytes;
 
     public static void Main(String[] args)
     {
@@ -27,6 +28,10 @@ static class Program
         var seconds = GetInt(args, "--seconds", 10);
         var warmup = GetInt(args, "--warmup", 2);
         var udp = args.Contains("--udp");
+        var serverOnly = args.Contains("--server");
+        var remote = GetArg(args, "--remote");
+        var port = GetInt(args, "--port", 7800);
+        var oneway = args.Contains("--oneway");
 
         var roundtrip = mode.Equals("roundtrip", StringComparison.OrdinalIgnoreCase);
 
@@ -42,24 +47,45 @@ static class Program
         // 增大会话接收缓冲，降低大包分段的系统调用开销
         SocketSetting.Current.BufferSize = Math.Max(64 * 1024, size);
 
-        var server = new NetServer
+        NetServer? server = null;
+        if (remote == null || serverOnly)
         {
-            Port = 0,
-            ProtocolType = udp ? NetType.Udp : NetType.Tcp,
-            AddressFamily = AddressFamily.InterNetwork,
-        };
-        server.Received += (s, e) =>
+            server = new NetServer
+            {
+                Port = serverOnly ? port : 0,
+                ProtocolType = udp ? NetType.Udp : NetType.Tcp,
+                AddressFamily = AddressFamily.InterNetwork,
+            };
+            server.Received += (s, e) =>
+            {
+                var pk = e.Packet;
+                if (pk == null || pk.Length <= 0) return;
+
+                Interlocked.Add(ref _serverBytes, pk.Length);
+
+                // 单向上行模式只计数不回发，用于测量服务端纯接收吞吐（对齐历史口径）
+                if (oneway) return;
+
+                // TCP 服务端 sender 为 NetSession（INetSession）；UDP 服务端 sender 为 UdpSession（ISocketSession），两者接口不同
+                if (s is INetSession ns) ns.Send(pk);
+                else if (s is UdpSession us) us.Send(pk);
+            };
+            server.Start();
+        }
+
+        if (serverOnly)
         {
-            var pk = e.Packet;
-            if (pk == null || pk.Length <= 0) return;
-
-            Interlocked.Add(ref _serverBytes, pk.Length);
-
-            // TCP 服务端 sender 为 NetSession（INetSession）；UDP 服务端 sender 为 UdpSession（ISocketSession），两者接口不同
-            if (s is INetSession ns) ns.Send(pk);
-            else if (s is UdpSession us) us.Send(pk);
-        };
-        server.Start();
+            // 独立服务端进程：打印就绪与每秒接收速率，持续运行（Ctrl+C 退出）
+            Console.WriteLine($"READY {(udp ? "udp" : "tcp")}://0.0.0.0:{server!.Port}");
+            var last = 0L;
+            while (true)
+            {
+                Thread.Sleep(1000);
+                var now = Interlocked.Read(ref _serverBytes);
+                Console.WriteLine($"[server] {((now - last) / 1024.0 / 1024.0):N1} MB/s  累计 {now / 1024.0 / 1024.0:N1} MB");
+                last = now;
+            }
+        }
 
         // ===== 客户端（拉取模式） =====
         var payload = new Byte[size];
@@ -68,12 +94,13 @@ static class Program
         var conns = new List<ISocketClient>();
         for (var i = 0; i < clients; i++)
         {
+            var hostPort = remote ?? $"127.0.0.1:{server!.Port}";
             ISocketClient conn;
             if (udp)
             {
                 conn = new UdpServer
                 {
-                    Remote = new NetUri($"udp://127.0.0.1:{server.Port}"),
+                    Remote = new NetUri($"udp://{hostPort}"),
                     AutoReceive = false,
                     // UDP 无流控可能丢包：短接收超时便于排水阶段识别“不再有数据”
                     Timeout = 300,
@@ -83,7 +110,7 @@ static class Program
             {
                 conn = new TcpSession
                 {
-                    Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
+                    Remote = new NetUri($"tcp://{hostPort}"),
                     AutoReceive = false,
                     BufferSize = Math.Max(64 * 1024, size),
                     Timeout = 30_000,
@@ -101,20 +128,26 @@ static class Program
         var gen1 = GC.CollectionCount(1);
         var gen2 = GC.CollectionCount(2);
         var bytes0 = Interlocked.Read(ref _serverBytes);
+        var sent0 = Interlocked.Read(ref _sentBytes);
         var sw = Stopwatch.StartNew();
 
         if (roundtrip)
             RunRoundTrip(conns, payload, size, seconds, udp);
+        else if (oneway)
+            RunOneWay(conns, payload, size, seconds);
         else
             RunPipeline(conns, payload, size, seconds, udp);
 
         sw.Stop();
         var bytes1 = Interlocked.Read(ref _serverBytes);
+        var sent1 = Interlocked.Read(ref _sentBytes);
         var alloc1 = GC.GetTotalAllocatedBytes(false);
 
         // ===== 统计 =====
-        var elapsed = sw.Elapsed.TotalSeconds;
-        var totalBytes = bytes1 - bytes0;
+        // 本地模式以服务端回显字节为准；远程模式（--remote）以客户端发送字节为准（TCP 回环等值）
+        // 单向上行按固定发送窗计时（排水阶段不计入窗口）
+        var elapsed = oneway ? seconds : sw.Elapsed.TotalSeconds;
+        var totalBytes = remote != null ? sent1 - sent0 : bytes1 - bytes0;
         var totalMsgs = totalBytes / size;
         var mbps = totalBytes / elapsed / (1024.0 * 1024.0);
         var allocPerMsg = totalMsgs > 0 ? (alloc1 - alloc0) / (Double)totalMsgs : 0;
@@ -127,7 +160,44 @@ static class Program
         Console.WriteLine($"GC        : Gen0 +{GC.CollectionCount(0) - gen0} Gen1 +{GC.CollectionCount(1) - gen1} Gen2 +{GC.CollectionCount(2) - gen2}");
 
         foreach (var conn in conns) conn.Dispose();
-        server.Dispose();
+        server?.Dispose();
+    }
+
+    /// <summary>单向上行：仅发送不回读，测服务端纯接收吞吐（配合 --server 分离进程消除 CPU 共享）</summary>
+    private static void RunOneWay(List<ISocketClient> conns, Byte[] payload, Int32 size, Int32 seconds)
+    {
+        var sent = new Int64[conns.Count];
+        var tasks = new List<Task>();
+        for (var i = 0; i < conns.Count; i++)
+        {
+            var idx = i;
+            var conn = conns[idx];
+            tasks.Add(Task.Run(() =>
+            {
+                var n = 0L;
+                var batch = 0L;
+                // 各客户端独立时间窗，到点即停（阻塞中的 Send 返回后立即退出）
+                var deadline = Stopwatch.GetTimestamp() + (Int64)(seconds * Stopwatch.Frequency);
+                while (Stopwatch.GetTimestamp() < deadline)
+                {
+                    conn.Send(payload);
+                    n++;
+                    batch += payload.Length;
+                    if ((n & 0xFF) == 0)
+                    {
+                        Interlocked.Add(ref _sentBytes, batch);
+                        batch = 0;
+                    }
+                }
+                Interlocked.Add(ref _sentBytes, batch);
+                sent[idx] = n;
+            }));
+        }
+
+        // 发送窗结束后仍有少量在途：TCP 流控下缓冲满时会稍晚返回，宽限等待
+        Task.WaitAll(tasks.ToArray(), TimeSpan.FromSeconds(seconds + 60));
+        var total = sent.Sum(n => n);
+        Console.WriteLine($"完整发送    : {total:N0} 包 / {total * (Int64)size:N0} B（无回读，接收真值以服务端计数为准）");
     }
 
     /// <summary>流水线模式：持续发送 + 并发读取回显，发送停止后排水读满</summary>
@@ -240,16 +310,25 @@ static class Program
             => Task.Run(() =>
             {
                 var n = 0L;
+                var batch = 0L;
                 try
                 {
                     while (!_stopped)
                     {
                         _conn.Send(payload);
                         n++;
+                        batch += payload.Length;
+                        // 每 256 包汇入一次全局发送计数，兼顾实时窗口统计与低原子开销
+                        if ((n & 0xFF) == 0)
+                        {
+                            Interlocked.Add(ref _sentBytes, batch);
+                            batch = 0;
+                        }
                     }
                 }
                 finally
                 {
+                    Interlocked.Add(ref _sentBytes, batch);
                     SentPackets = n;
                 }
             });
