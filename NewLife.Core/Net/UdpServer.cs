@@ -115,15 +115,50 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 XTrace.WriteLine(ex.Message);
             }
 
+            // 打开前本地端口为 0，说明未指定监听端口（纯客户端模式）。首次判定后保持，重开时不再依赖已被赋值的端口
+            if (Local.Port == 0) _autoLocalPort = true;
+
             sock.Bind(Local.EndPoint);
 
             if (Local.Port == 0 && sock.LocalEndPoint is IPEndPoint ep)
                 Local.Port = ep.Port;
 
+            // 客户端模式连接远端：发送走已连接路径（免每包 SendTo 序列化 SocketAddress），接收也只收该远端数据。
+            // 指定了本地端口的实例可能同时监听（双角色），保持 SendTo 与全量接收语义
+            if (_autoLocalPort && !Runtime.Mono && Remote != null && Remote.EndPoint is IPEndPoint remoteEP)
+                TryConnect(sock, remoteEP);
+
             WriteLog("Open {0}", this);
         }
 
         return Task.FromResult(true);
+    }
+
+    /// <summary>客户端模式连接远端，收发都限定到该端点。广播/组播地址不能连接，保持 SendTo 语义</summary>
+    /// <param name="sock">底层Socket</param>
+    /// <param name="remote">远端端点</param>
+    private void TryConnect(Socket sock, IPEndPoint remote)
+    {
+        if (remote.Port <= 0 || remote.Address.IsAny()) return;
+
+        var buf = remote.Address.GetAddressBytes();
+        if (buf.Length == 4)
+        {
+            // 广播与组播地址不能连接，否则无法再向该地址发送
+            if (buf[0] >= 224 && buf[0] <= 239) return;
+            if (buf[3] == 255) return;
+        }
+        else if (remote.Address.IsIPv6Multicast) return;
+
+        try
+        {
+            sock.Connect(remote);
+        }
+        catch (Exception ex)
+        {
+            // 少数平台不支持连接（如未开广播的子网地址），回退 SendTo 发送路径即可
+            WriteLog("Connect {0} 失败：{1}", remote, ex.Message);
+        }
     }
 
     /// <summary>关闭</summary>
@@ -382,7 +417,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     {
         if (!Active || Client is not { } sock) return false;
 
-        // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
+        // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一。
+        // 注意：运行时在完成回调中“就地”更新该端点对象，且对象会随接收结果成为会话的远程端点被长期保留，
+        // 因此每次重投都必须新建对象；不能复用同一实例重置，否则会改到其它会话的端点。
         se.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
 
         // 在StarAgent中，此时可能收到广播包，SocketFlags是Broadcast，需要清空，否则报错“参考的对象类型不支持尝试的操作”
@@ -466,7 +503,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         if (sessions != null)
         {
             var ep = se.RemoteEndPoint as IPEndPoint;
-            var ss = sessions.Get(ep + "");
+            var ss = ep != null ? sessions.Get(ep) : null;
             ss?.Dispose();
         }
         // 无论如何，Udp都不关闭自己
@@ -483,6 +520,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
     private readonly Dictionary<Int32, ISocketSession> _broadcasts = [];
+
+    /// <summary>本地端口由系统自动分配（未指定监听端口，纯客户端模式）。首次打开时判定，决定是否连接远端</summary>
+    private Boolean _autoLocalPort;
 
     Int32 g_ID = 0;
     /// <summary>创建会话</summary>
@@ -507,7 +547,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         }
 
         // 需要查找已有会话，已有会话不存在时才创建新会话
-        var session = sessions.Get(remoteEP + "");
+        // 端点键快路径：免去每包拼接字符串键（IPEndPoint.ToString 的多次字符串分配）
+        var session = sessions.Get(remoteEP);
         // 是否匹配广播端口
         var port = remoteEP.Port;
         if (session != null || _broadcasts.TryGetValue(port, out session)) return session;
@@ -516,7 +557,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         lock (sessions)
         {
             // 需要查找已有会话，已有会话不存在时才创建新会话
-            session = sessions.Get(remoteEP + "");
+            session = sessions.Get(remoteEP);
             if (session != null || _broadcasts.TryGetValue(port, out session)) return session;
 
             var us = new UdpSession(this, local, remoteEP)

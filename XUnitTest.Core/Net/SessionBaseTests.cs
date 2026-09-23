@@ -335,6 +335,84 @@ public class SessionBaseTests
         }
     }
 
+    /// <summary>相同远程端点复用同一会话；会话销毁后端点缓存失效，可重新创建</summary>
+    [Fact]
+    public void UdpServerCreateSessionEndPointCache()
+    {
+        using var server = new UdpServer { Port = 0 };
+        server.Open();
+
+        var s1 = server.CreateSession(null, new IPEndPoint(IPAddress.Loopback, 12345));
+        Assert.NotNull(s1);
+
+        // 等值但不同实例的端点，应命中同一会话（端点缓存路径）
+        var s2 = server.CreateSession(null, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12345));
+        Assert.Same(s1, s2);
+        Assert.Single(server.Sessions);
+
+        // 会话销毁后缓存同步失效，同端点重新创建新会话
+        s1.Dispose();
+        var s3 = server.CreateSession(null, new IPEndPoint(IPAddress.Loopback, 12345));
+        Assert.NotSame(s1, s3);
+        Assert.Single(server.Sessions);
+
+        s3.Dispose();
+    }
+
+    /// <summary>UDP客户端打开后自动连接远端：发送走已连接路径，服务端正常建立会话</summary>
+    [Fact]
+    public void UdpClientAutoConnectRemote()
+    {
+        var receivedEvent = new ManualResetEventSlim(false);
+        Byte[]? received = null;
+
+        using var server = new UdpServer { Port = 0 };
+        server.Received += (s, e) =>
+        {
+            received = e.GetBytes();
+            receivedEvent.Set();
+        };
+        server.Open();
+
+        using var client = new UdpServer { Remote = new NetUri($"udp://127.0.0.1:{server.Port}") };
+        client.Open();
+
+        // 纯客户端模式（未指定本地端口）自动连接远端
+        Assert.True(client.Client!.Connected);
+
+        var payload = "auto connect"u8.ToArray();
+        client.Send(payload);
+
+        Assert.True(receivedEvent.Wait(3000));
+        Assert.Equal(payload, received);
+        Assert.Single(server.Sessions);
+    }
+
+    /// <summary>广播远端与指定本地端口的实例不自动连接，保持 SendTo 语义</summary>
+    [Fact]
+    public void UdpServerNoAutoConnectForBroadcastAndLocalPort()
+    {
+        using var server = new UdpServer { Port = 0 };
+        server.Open();
+
+        // 广播地址不能连接
+        using (var broadcast = new UdpServer { Remote = new NetUri($"udp://255.255.255.255:{server.Port}") })
+        {
+            broadcast.Open();
+            Assert.False(broadcast.Client!.Connected);
+        }
+
+        // 指定本地端口的实例可能同时监听（双角色），不自动连接
+        var probe = new UdpServer { Port = 0 };
+        probe.Open();
+        var localPort = probe.Port;
+        probe.Close("probe");
+
+        using var dual = new UdpServer { Port = localPort, Remote = new NetUri($"udp://127.0.0.1:{server.Port}") };
+        dual.Open();
+        Assert.False(dual.Client!.Connected);
+    }
+
     /// <summary>测试UdpServer会话超时</summary>
     [Fact]
     public void UdpServerSessionTimeout()

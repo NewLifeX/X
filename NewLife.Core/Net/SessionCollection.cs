@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using NewLife.Threading;
 
 namespace NewLife.Net;
@@ -14,6 +15,9 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 {
     #region 属性
     private readonly ConcurrentDictionary<String, ISocketSession> _dic = new();
+
+    /// <summary>远程端点缓存。热路径（UDP 每包查找会话）以端点对象为键，免去每包拼接字符串键（IPEndPoint.ToString 的多次字符串分配）</summary>
+    private readonly ConcurrentDictionary<IPEndPoint, ISocketSession> _endPoints = new();
 
     /// <summary>服务端</summary>
     public ISocketServer Server { get; private set; }
@@ -59,13 +63,18 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
         if (!_dic.TryAdd(key, session)) return false;
 
+        _endPoints[session.Remote.EndPoint] = session;
+
         var p = ClearPeriod * 1000;
         _clearTimer ??= new TimerX(RemoveNotAlive, null, p, p) { Async = true, };
 
         session.OnDisposed += (s, e) =>
         {
             if (s is ISocketSession ss)
+            {
                 _dic.TryRemove(ss.Remote.EndPoint + "", out _);
+                RemoveCache(ss);
+            }
         };
 
         return true;
@@ -79,6 +88,28 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         if (!_dic.TryGetValue(key, out var session)) return null;
 
         return session;
+    }
+
+    /// <summary>获取会话（按远程端点）</summary>
+    /// <remarks>仅作加速：未命中时回退字符串键路径；创建与移除路径同步维护缓存，保证与实际集合一致。</remarks>
+    /// <param name="endPoint">远程端点</param>
+    /// <returns>会话实例</returns>
+    internal ISocketSession? Get(IPEndPoint endPoint)
+    {
+        if (_endPoints.TryGetValue(endPoint, out var session) && !session.Disposed) return session;
+
+        // 首包或缓存失效时回退字符串键路径，命中后写入缓存
+        session = Get(endPoint + "");
+        if (session != null) _endPoints[endPoint] = session;
+
+        return session;
+    }
+
+    /// <summary>从端点缓存移除指向指定会话的条目（值校验，避免旧会话销毁时误删同端点的新会话）</summary>
+    private void RemoveCache(ISocketSession session)
+    {
+        var ep = session.Remote.EndPoint;
+        if (_endPoints.TryGetValue(ep, out var item) && ReferenceEquals(item, session)) _endPoints.TryRemove(ep, out _);
     }
 
     /// <summary>关闭所有会话</summary>
@@ -119,10 +150,11 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
                 values.Add(elm.Value);
             }
         }
-        // 从会话集合里删除这些键值，并行字典操作安全
-        foreach (var item in keys)
+        // 从会话集合里删除这些键值，并行字典操作安全；同步清理端点缓存（值校验，防止误删同端点的新会话）
+        for (var i = 0; i < keys.Count; i++)
         {
-            _dic.TryRemove(item, out _);
+            _dic.TryRemove(keys[i], out _);
+            RemoveCache(values[i]);
         }
 
         // 已经离开了锁，慢慢释放各个会话
@@ -140,7 +172,11 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     #region 成员
     /// <summary>清空会话集合</summary>
-    public void Clear() => _dic.Clear();
+    public void Clear()
+    {
+        _dic.Clear();
+        _endPoints.Clear();
+    }
 
     /// <summary>会话数量</summary>
     public Int32 Count => _dic.Count;
@@ -167,6 +203,8 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     {
         if (!_dic.TryRemove(key, out var session)) return false;
 
+        RemoveCache(session);
+
         if (session is INetSession ss) ss.Close("Remove");
         session.Dispose();
 
@@ -181,7 +219,15 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values => _dic.Values;
 
-    ISocketSession IDictionary<String, ISocketSession>.this[String key] { get => _dic[key]; set => _dic[key] = value; }
+    ISocketSession IDictionary<String, ISocketSession>.this[String key]
+    {
+        get => _dic[key];
+        set
+        {
+            _dic[key] = value;
+            _endPoints[value.Remote.EndPoint] = value;
+        }
+    }
 
     #endregion
 
