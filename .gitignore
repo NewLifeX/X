@@ -26,3 +26,5 @@ bld/
 !XUnitTest.Core/Log/
 BenchmarkDotNet.Artifacts/
 /XUnitTest.Core/TestResults
+/TestResults
+/Benchmark/NetLoadTest/results
