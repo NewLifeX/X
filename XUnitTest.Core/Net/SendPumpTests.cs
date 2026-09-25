@@ -67,6 +67,33 @@ public class SendPumpTests
 
     #region 基本
     [Fact]
+    [DisplayName("发送泵_追加拥有句柄_共享引用不夺走调用方句柄")]
+    public async Task Append_OwnerPacket_TakesSharedReference()
+    {
+        var fake = new FakePump();
+        using var gate = new ManualResetEventSlim(false);
+        fake.Gate = gate;
+
+        using var pk = new OwnerPacket(4);
+        pk.GetSpan().Fill(0x5A);
+
+        Assert.Equal(1, pk.RefCount);
+
+        fake.Pump.Append(pk);
+
+        // 管道额外持有一份引用：调用方自己的句柄保持有效，用完自行释放。
+        // 若这里不计数，接收轮末会按“RefCount==1 即无人持有”把仍在发送的缓冲拿去接收下一轮数据
+        await WaitUntilAsync(() => pk.RefCount == 2);
+
+        gate.Set();
+
+        // 发完后管道释放自己那份引用，缓冲只剩调用方持有
+        await WaitUntilAsync(() => fake.SendCount == 1);
+        Assert.Equal(new Byte[] { 0x5A, 0x5A, 0x5A, 0x5A }, fake.Sent[0]);
+        await WaitUntilAsync(() => pk.RefCount == 1);
+    }
+
+    [Fact]
     [DisplayName("发送泵_追加_按序送出")]
     public async Task Append_PumpSendsInOrder()
     {

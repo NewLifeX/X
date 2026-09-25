@@ -10,7 +10,8 @@ internal delegate ValueTask<Int32> SendSegmentDelegate(ReadOnlyMemory<Byte> data
 
 /// <summary>发送泵。出站管道的唯一消费方：循环取出管道窗口逐段发送（一次唤醒批处理整窗），写侧完成且残余发完后退出；发送失败中止管道</summary>
 /// <remarks>
-/// <para>与发送管道成对使用：<see cref="Append(IPacket)"/> 追加数据（拥有句柄零拷贝入管道；借阅视图自动转自有拷贝），<see cref="FlushAsync(Int32)"/> 关闭前排空，<see cref="Abort(Exception?)"/> 中止。</para>
+/// <para>与发送管道成对使用：<see cref="Append(IPacket)"/> 追加数据（借用语义：调用方保留句柄所有权与释放责任，管道自取一份引用），<see cref="FlushAsync(Int32)"/> 关闭前排空，<see cref="Abort(Exception?)"/> 中止。</para>
+/// <para>借用口径与直发路径一致：入队后调用方即可释放自己的句柄，缓冲由管道持有的引用保活至发送完成。</para>
 /// <para>发送动作经构造传入的委托异步执行，本组件不感知 Socket 细节，可脱离会话独立测试。</para>
 /// </remarks>
 internal sealed class SendPump
@@ -50,10 +51,12 @@ internal sealed class SendPump
     #endregion
 
     #region 追加
-    /// <summary>追加数据包（拥有句柄所有权转移；头节点为借阅视图时自动转自有拷贝）。返回已接收字节数</summary>
+    /// <summary>追加数据包（借用语义；头节点为借阅视图时自动转自有拷贝）。返回已接收字节数</summary>
     /// <param name="pk">数据包</param>
     /// <returns>已接收字节数；管道已完成时返回 -1</returns>
     /// <remarks>
+    /// <para><b>借用语义</b>：调用方保留自己的引用，发送完成后自行释放；管道额外持有一份引用，消费后释放。
+    /// 因此可以放心地把接收轮句柄、构建产物交给发送，再立即释放自己的引用。</para>
     /// <para>仅检查<b>头节点</b>是否拥有句柄：头节点为拥有句柄时零拷贝入管道，否则整链克隆为自有拷贝。</para>
     /// <para><b>时效</b>：链中若含借阅视图节点（如帧头链 <c>new OwnerPacket(size) { Next = view }</c>），该视图不会被克隆——入管道后仍引用调用方缓冲，数据真正发出前不得复用或改写该缓冲。</para>
     /// </remarks>
@@ -64,15 +67,20 @@ internal sealed class SendPump
 
         var count = pk.Total;
 
-        // 借阅视图（非拥有句柄）不能跨轮保留：转自有拷贝后入管道，调用方可立即复用原缓冲；拥有句柄零拷贝入管道
-        if (pk is not OwnerPacket op || op.RefCount == 0) pk = pk.Clone();
+        // 拥有句柄：切出共享句柄（引用计数 +1）交给管道，管道消费时释放该引用；调用方自己的句柄不变，用完自行释放。
+        // 这份计数不能省：接收轮末按“RefCount==1 即无人持有”判定并复用缓冲，
+        // 零拷贝交接若不计数，轮末会把仍在发送中的缓冲交给下一轮接收数据覆盖。
+        if (pk is OwnerPacket op && op.RefCount > 0)
+            pk = op.Slice(0, -1);
+        else
+            pk = pk.Clone();
 
         pipe.Writer.Append(pk);
 
         return count;
     }
 
-    /// <summary>追加字节跨度（按副本入管道，调用方可立即复用原缓冲）。返回已接收字节数</summary>
+    /// <summary>追加字节跨度（按副本入管道，所有权随副本转移，调用方可立即复用原缓冲）。返回已接收字节数</summary>
     /// <param name="data">字节数据</param>
     /// <returns>已接收字节数；管道已完成时返回 -1</returns>
     public Int32 Append(ReadOnlySpan<Byte> data)
@@ -83,7 +91,12 @@ internal sealed class SendPump
         var pk = new OwnerPacket(data.Length);
         data.CopyTo(pk.GetSpan());
 
-        return Append(pk);
+        var count = pk.Total;
+
+        // 副本为自有句柄：所有权直接交给管道，不再额外计数（否则多出的引用没人释放）
+        Pipe.Writer.Append(pk);
+
+        return count;
     }
     #endregion
 
