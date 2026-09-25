@@ -20,9 +20,9 @@ using NewLife.Data;
 using NewLife.Http;
 using NewLife.IO;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Handlers;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -399,16 +399,21 @@ public class Program
         var uri = new NetUri("tcp://127.0.0.3:12345");
         var client = uri.CreateRemote();
         client.Log = XTrace.Log;
-
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Open();
 
-        client.SendMessage($"Send File {fi.Name}");
+        var msg = new DefaultMessage { OneWay = true };
+        msg.SetBody(new ArrayPacket($"Send File {fi.Name}".GetBytes()));
+        client.SendMessage(msg);
 
-        var rs = client.SendFile(fi.FullName);
-        XTrace.WriteLine("分片：{0}", rs);
+        // 流式发送文件：头部先行声明长度，文件内容分块入发送管道（不整载内存）
+        using var fs = fi.OpenRead();
+        var sent = ((SessionBase)client).SendMessageAsync(new DefaultMessage { OneWay = true }, fs, fi.Length).AsTask().GetAwaiter().GetResult();
+        XTrace.WriteLine("发送：{0}", sent);
 
-        client.SendMessage($"Send File Finished!");
+        var msg2 = new DefaultMessage { OneWay = true };
+        msg2.SetBody(new ArrayPacket("Send File Finished!".GetBytes()));
+        client.SendMessage(msg2);
 
         //Console.ReadKey();
     }

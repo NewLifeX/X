@@ -21,7 +21,7 @@ namespace NewLife.Net;
 /// <para>典型用法：</para>
 /// <code>
 /// var client = new NetClient("tcp://127.0.0.1:8080");
-/// client.Add&lt;StandardCodec&gt;();
+/// client.Protocol = new SrmpCodec();
 /// client.Received += (s, e) =&gt; XTrace.WriteLine("收到：{0}", e.Packet?.ToStr());
 /// client.Open();
 /// client.SendMessage(payload);

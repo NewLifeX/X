@@ -1,6 +1,7 @@
 ﻿using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Messaging;
 
 namespace Zero.WebSocketServer;
 
@@ -12,7 +13,7 @@ public class MyWebSocketHandler : IHttpHandler
     public virtual void ProcessRequest(IHttpContext context)
     {
         var ws = context.WebSocket;
-        ws.Handler = ProcessMessage;
+        ws.MessageHandler = ProcessMessage;
 
         WriteLog("WebSocket连接 {0}", context.Connection?.Remote);
     }
@@ -20,9 +21,9 @@ public class MyWebSocketHandler : IHttpHandler
     /// <summary>处理消息</summary>
     /// <param name="socket"></param>
     /// <param name="message"></param>
-    public virtual void ProcessMessage(WebSocket socket, WebSocketMessage message)
+    public virtual void ProcessMessage(WebSocket socket, WsMessage message)
     {
-        var remote = socket.Context.Connection?.Remote;
+        var remote = socket.Context?.Connection?.Remote;
         var msg = message.Payload?.ToStr();
         switch (message.Type)
         {
