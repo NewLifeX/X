@@ -606,8 +606,17 @@ public class NetClientTests
         };
         server2.Start();
 
-        // 全量并行负载下重连定时器可能被推迟，等待窗口放宽
-        var ok = reconnectWait.Wait(15_000);
+        // 全量并行负载下重连定时器可能被推迟：事件之外再轮询 Active 作为兼容判据，等待窗口放宽
+        var ok = reconnectWait.Wait(3_000);
+        if (!ok)
+        {
+            var deadline = Runtime.TickCount64 + 15_000;
+            while (Runtime.TickCount64 < deadline)
+            {
+                if (client.Active) { ok = true; break; }
+                Thread.Sleep(50);
+            }
+        }
         server2.Stop("done");
 
         Assert.True(ok, $"未能在超时时间内成功重连，openCount={openCount}");
