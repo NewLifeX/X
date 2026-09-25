@@ -16,6 +16,7 @@ public record struct ArrayPacket : IPacket
     public readonly Int32 Offset => _offset;
 
     /// <summary>头部可借位空间。等于视图起点偏移，供下游向前借位写入协议头</summary>
+    /// <remarks>视图起点之前的字节不一定是空闲区：从帧中间切片、或包装远端数组子段时，那里是活数据，借位写入会踩坏它。</remarks>
     public readonly Int32 FreeHeader => _offset;
 
     private readonly Int32 _length;

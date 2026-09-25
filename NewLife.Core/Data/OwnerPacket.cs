@@ -63,7 +63,7 @@ internal sealed class ArrayOwner(Byte[] buffer, Boolean returnToPool)
 /// <list type="number">
 /// <item>共享切片：<see cref="Slice(Int32, Int32)"/> 按段递增引用计数，返回独立句柄（具体类型 <see cref="OwnerPacket"/>，可直接 <c>using</c> 释放）；双方（或多方）均可继续使用，各自 <see cref="Dispose"/>，最后一个释放时才归还内存池</item>
 /// <item>独占换窗：<see cref="OwnerPacket(OwnerPacket, Int32)"/> 头部扩展构造，接管源实例的引用与链，源实例整体作废（仅此一处保留接管语义，调用方需自行确保无其它共享句柄）</item>
-/// <item>接收层轮末裁决：会话私有句柄在轮末按 <see cref="RefCount"/> 判定——无人持有（为 1）时 <see cref="Detach"/> 脱手保留缓冲复用；存在共享切片时 <see cref="Dispose"/> 本引用，缓冲由最后释放的切片归还</item>
+/// <item>接收层轮末裁决：会话私有句柄在轮末按 <see cref="RefCount"/> 判定——无人持有（为 1）时回挂接收槽，下一轮 <see cref="Rebind"/> 重绑复用；存在共享引用时释放本引用并换新缓冲。把数据交给发送管道也计入共享引用（<c>SendPump.Append</c> 切出共享句柄），保证轮末不会复用仍在发送中的缓冲</item>
 /// </list>
 /// <para><b>生命周期管理</b>：每个持有引用的句柄都必须调用 <see cref="Dispose"/>；引用计数归零时缓冲区归还内存池。未释放的句柄会让缓冲区无法回池，这是使用本类型唯一的纪律要求。
 /// 开发期（DEBUG）由析构函数兜底释放漏释放的句柄并输出 XTrace 告警；发布版默认不编译析构，不产生终结队列登记与终结器调度开销，如需生产兜底可定义编译符号 OWNERPACKET_FINALIZER 开启。</para>

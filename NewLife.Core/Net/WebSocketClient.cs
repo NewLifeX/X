@@ -19,7 +19,7 @@ public class WebSocketClient : TcpSession
     /// <summary>资源地址</summary>
     public Uri Uri { get; set; } = null!;
 
-    /// <summary>WebSocket心跳间隔。默认60秒</summary>
+    /// <summary>WebSocket心跳间隔。默认120秒</summary>
     public TimeSpan KeepAlive { get; set; } = TimeSpan.FromSeconds(120);
 
     /// <summary>请求头。ws握手时可以传递Token</summary>
