@@ -1,86 +1,100 @@
-﻿using NewLife.Data;
+﻿﻿using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Messaging;
 
-/// <summary>消息命令接口</summary>
+/// <summary>消息种类。与协议状态位一一对应：00 请求 / 01 单向 / 10 响应 / 11 响应+错误</summary>
 /// <remarks>
-/// 消息接口定义了请求-响应模式的基本消息结构：
-/// <list type="bullet">
-/// <item><description><see cref="Reply"/>：标识消息方向，请求或响应</description></item>
-/// <item><description><see cref="Error"/>：标识处理状态，成功或失败</description></item>
-/// <item><description><see cref="OneWay"/>：标识通信模式，单向或双向</description></item>
-/// <item><description><see cref="Payload"/>：消息负载数据</description></item>
-/// </list>
-/// 实现类应保证线程安全性，特别是在消息池化复用场景。
+/// 值即协议位（头部高 2 位 mode），请求-响应语义的完整分类。
+/// 仅带状态位协议的消息使用方向字段；无状态位协议（长度字段/分隔符等）不使用，保持默认的请求即可。
+/// </remarks>
+public enum MessageKinds
+{
+    /// <summary>请求</summary>
+    Request = 0,
+
+    /// <summary>单向请求。不需要等待响应</summary>
+    OneWay = 1,
+
+    /// <summary>响应</summary>
+    Response = 2,
+
+    /// <summary>响应+错误</summary>
+    Error = 3,
+}
+
+/// <summary>消息契约。纯数据与负载读写；帧格式的解析与构建由 <see cref="IMessageCodec"/> 承担</summary>
+/// <remarks>
+/// <para>消息接口定义消息的最小契约：负载读写（<see cref="Payload"/>/<see cref="Body"/>）与方向语义（<see cref="Kind"/>/<see cref="Reply"/>）。</para>
+/// <para>消息为纯数据载体，不感知帧字节：定界/解析/构建由协议对象（<see cref="IMessageCodec"/>）统一处理。</para>
+/// <para>协议字段的读写属于消息类：带帧字段的消息子类公开 TryParse/WriteHeader 方法，由 codec 委托调用（参考 <see cref="DefaultMessage"/> 与 <see cref="WsMessage"/>）。</para>
+/// <para>实现类须自行声明线程安全性（本接口不承诺线程安全；<see cref="Message"/> 及其子类为非线程安全）。</para>
 /// </remarks>
 public interface IMessage : IDisposable
 {
-    /// <summary>是否响应。为true表示这是响应消息，为false表示这是请求消息</summary>
-    Boolean Reply { get; set; }
-
-    /// <summary>是否有错。为true表示处理过程中发生错误</summary>
-    Boolean Error { get; set; }
-
-    /// <summary>单向请求。为true表示不需要等待响应</summary>
-    Boolean OneWay { get; set; }
-
-    /// <summary>负载数据。消息的实际内容</summary>
+    /// <summary>负载数据包。消息体的句柄视图：整帧/发送模式为底层数据包（零拷贝，所有权随消息）；流式模式为 null</summary>
     /// <remarks>
     /// 负载为数据包（借阅视图或拥有帧/链）。拥有帧的所有权随消息持有：消息 <see cref="IDisposable.Dispose"/>
-    /// 或池化 <c>Reset</c> 时唯一归还（<see cref="IPacket"/> 实现 Dispose 归还池化缓冲）；
-    /// 借阅视图（ArrayPacket 等）无所有权，仅在本轮同步链路内有效。
+    /// 时唯一归还（<see cref="IPacket"/> 实现 Dispose 归还池化缓冲）；
+    /// 借阅视图（ArrayPacket 等）无所有权，仅在本轮同步链路内有效。写路径统一走 <see cref="SetBody"/>（null 表示所有权转移、不归还）。
+    /// 流式消息体经 <see cref="Body"/> 读取，本属性为 null。
     /// </remarks>
-    IPacket? Payload { get; set; }
+    IPacket? Payload { get; }
 
-    /// <summary>根据请求创建配对的响应消息</summary>
-    /// <remarks>
-    /// 响应消息会继承请求消息的序列号等关键属性，用于请求-响应匹配。
-    /// 仅请求消息可调用此方法，响应消息调用将抛出异常。
-    /// </remarks>
-    /// <returns>响应消息实例</returns>
-    /// <exception cref="InvalidOperationException">当在响应消息上调用时抛出</exception>
-    IMessage CreateReply();
+    /// <summary>消息体。整帧模式为内存视图，头先行模式为限长流式读取器；未设置时为 null</summary>
+    LimitedReader? Body { get; }
 
-    /// <summary>从数据包读取消息</summary>
-    /// <remarks>本方法不释放入参 <paramref name="pk"/>，由调用方负责释放；负载为共享切片（引用计数）独立持有，拥有帧的所有权随消息（Dispose/Reset 时唯一归还）。</remarks>
-    /// <param name="pk">完整帧数据（含协议头；借阅视图或拥有帧）</param>
-    /// <returns>是否成功解析</returns>
-    Boolean Read(IPacket pk);
+    /// <summary>消息种类。请求/单向/响应/响应+错误，与协议状态位一一对应</summary>
+    /// <remarks>无状态位协议不使用本字段，保持默认的请求即可</remarks>
+    MessageKinds Kind { get; set; }
 
-    /// <summary>把消息转为封包（发送边界，转为拥有所有权的数据包）</summary>
-    /// <returns>序列化后的数据包，调用方负责 Dispose</returns>
-    IPacket? ToPacket();
+    /// <summary>是否为应答消息（响应或响应+错误）。配对交付与流式物化的判断入口</summary>
+    Boolean Reply { get; }
+
+    /// <summary>根据请求创建配对的响应消息（继承序列号等配对键）</summary>
+    /// <returns>响应消息实例；当前消息是应答（<see cref="Reply"/>）或协议不支持回复时返回 null</returns>
+    IMessage? CreateReply();
+
+    /// <summary>设置消息体（整帧/发送路径）。拥有句柄所有权随消息，Dispose 时归还；传入 null 表示所有权转移（调用方接管），不归还</summary>
+    /// <param name="packet">消息体数据包</param>
+    void SetBody(IPacket? packet);
+
+    /// <summary>绑定流式消息体（帧层专用）。头部先行解析后由帧泵调用</summary>
+    /// <param name="body">限长读取器；null 表示清除流式体绑定（不归还其资源，由帧层管理）</param>
+    void BindBody(LimitedReader body);
 }
 
-/// <summary>消息命令基类</summary>
+/// <summary>消息基类。负载协作面的基础实现；帧格式由 <see cref="IMessageCodec"/> 承担</summary>
 /// <remarks>
-/// 提供 <see cref="IMessage"/> 接口的基础实现，支持：
-/// <list type="bullet">
-/// <item><description>基本的请求/响应/错误/单向标志位</description></item>
-/// <item><description>负载数据的透传</description></item>
-/// <item><description>资源释放（回收数据包到内存池）</description></item>
-/// </list>
-/// 子类可重写 <see cref="Read"/> 和 <see cref="ToPacket"/> 实现自定义协议格式。
+/// <para>消息只承载头部字段与负载（<see cref="SetBody"/>/<see cref="BindBody"/> 由帧层在解析后绑定），不感知帧字节。</para>
+/// <para>方向字段对无状态位协议无意义（保持默认请求）；<see cref="Reply"/> 与 <see cref="OneWay"/> 为 <see cref="Kind"/> 的便捷视图。</para>
 /// </remarks>
 public class Message : IMessage
 {
     #region 属性
-    /// <summary>是否响应。为true表示这是响应消息，为false表示这是请求消息</summary>
-    public Boolean Reply { get; set; }
+    /// <summary>消息体。整帧模式为内存视图，头先行模式为限长流式读取器；未设置时为 null</summary>
+    public LimitedReader? Body { get; private set; }
 
-    /// <summary>是否有错。为true表示处理过程中发生错误</summary>
-    public Boolean Error { get; set; }
+    /// <summary>负载数据包。消息体的句柄视图：整帧/发送模式为底层数据包（零拷贝，所有权随消息）；流式模式为 null</summary>
+    /// <remarks>写路径统一走 <see cref="SetBody"/>；置 null 表示所有权转移、不归还。</remarks>
+    public IPacket? Payload { get; private set; }
 
-    /// <summary>单向请求。为true表示不需要等待响应</summary>
-    public Boolean OneWay { get; set; }
+    /// <summary>消息种类。请求/单向/响应/响应+错误，与协议状态位一一对应</summary>
+    public MessageKinds Kind { get; set; }
 
-    /// <summary>负载数据。消息的实际内容</summary>
-    /// <remarks>
-    /// 拥有帧（<see cref="OwnerPacket"/> 或其链）的所有权随消息持有，Dispose/Reset 时唯一归还；
-    /// 借阅视图（ArrayPacket）无所有权，仅本轮同步链路内有效。
-    /// </remarks>
-    public IPacket? Payload { get; set; }
+    /// <summary>是否为应答消息（响应或响应+错误）。配对交付与流式物化的判断入口</summary>
+    public Boolean Reply
+    {
+        get => Kind is MessageKinds.Response or MessageKinds.Error;
+        set => Kind = value ? MessageKinds.Response : MessageKinds.Request;
+    }
+
+    /// <summary>是否为单向请求（无需应答）</summary>
+    public Boolean OneWay
+    {
+        get => Kind == MessageKinds.OneWay;
+        set => Kind = value ? MessageKinds.OneWay : MessageKinds.Request;
+    }
     #endregion
 
     #region 构造
@@ -97,26 +111,15 @@ public class Message : IMessage
     {
         if (disposing)
         {
-            // 负载拥有帧时归还池化缓冲；借阅视图（ArrayPacket）Dispose 无操作
+            // 拥有帧时归还池化缓冲；借阅视图（ArrayPacket）Dispose 无操作；流式体的管道端由帧层管理
             Payload.TryDispose();
             Payload = null;
+            Body = null;
         }
     }
     #endregion
 
     #region 方法
-    /// <summary>根据请求创建配对的响应消息</summary>
-    /// <returns>响应消息实例</returns>
-    public virtual IMessage CreateReply()
-    {
-        if (Reply) throw new InvalidOperationException("Cannot create response message based on response message");
-
-        var msg = CreateInstance();
-        msg.Reply = true;
-
-        return msg;
-    }
-
     /// <summary>创建当前类型的新实例</summary>
     /// <remarks>子类可重写以避免反射开销，或实现对象池化复用</remarks>
     /// <returns>新的消息实例</returns>
@@ -130,32 +133,40 @@ public class Message : IMessage
         throw new InvalidOperationException($"Cannot create an instance of type [{type.FullName}]");
     }
 
-    /// <summary>从数据包中读取消息（负载 = 整帧数据包；不释放入参）</summary>
-    /// <remarks>拥有帧（<see cref="IOwnerPacket"/>）经共享切片取得独立引用（引用计数），消息 Dispose/Reset 时唯一归还；借阅视图直接引用。调用方负责释放 <paramref name="pk"/>。</remarks>
-    /// <param name="pk">原始数据包</param>
-    /// <returns>是否成功解析</returns>
-    public virtual Boolean Read(IPacket pk)
-    {
-        // 拥有帧：共享切片持有独立引用（各自释放，最后一个归零归还内存池）；借阅视图无所有权，直接引用
-        Payload = pk is IOwnerPacket ? pk.Slice(0, -1) : pk;
+    /// <summary>根据请求创建配对的响应消息。基类不支持回复，返回 null；带配对键的协议子类重写</summary>
+    /// <returns>响应消息实例；基类恒返回 null</returns>
+    public virtual IMessage? CreateReply() => null;
 
-        return true;
+    /// <summary>设置消息体（整帧/发送路径）</summary>
+    /// <param name="packet">消息体数据包；置 null 表示所有权转移（调用方接管），不归还</param>
+    public void SetBody(IPacket? packet)
+    {
+        var old = Payload;
+
+        // 置 null 表示所有权转移：负载已随构建结果或调用方交付，消息不再持有，也不能归还。
+        // 构建路径中 ExpandHeader 可能以旧句柄为后继链节点，此时归还会击穿结果包链
+        if (packet == null)
+        {
+            Payload = null;
+            Body = null;
+            return;
+        }
+
+        Payload = packet;
+        Body = new LimitedReader(packet, 0, packet.Total);
+
+        // 替换旧体时归还其拥有帧
+        if (old != null && !ReferenceEquals(old, packet)) old.TryDispose();
     }
 
-    /// <summary>把消息转为封包</summary>
-    /// <returns>序列化后的数据包</returns>
-    public virtual IPacket? ToPacket() => Payload;
-
-    /// <summary>重置消息状态，用于对象池复用</summary>
-    /// <remarks>子类应重写此方法以重置所有字段到初始状态</remarks>
-    public virtual void Reset()
+    /// <summary>绑定流式消息体（帧层专用）。头部先行解析后由帧泵调用</summary>
+    /// <param name="body">限长读取器</param>
+    public void BindBody(LimitedReader body)
     {
-        Reply = false;
-        Error = false;
-        OneWay = false;
-        // 归还拥有负载（安全网）；借阅视图无操作。调用方须先转移已交付的所有权（Payload 置 null）
-        Payload.TryDispose();
+        var old = Payload;
         Payload = null;
+        Body = body;
+        old?.TryDispose();
     }
     #endregion
 }
