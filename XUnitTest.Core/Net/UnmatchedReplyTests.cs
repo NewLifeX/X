@@ -3,7 +3,6 @@ using System.Net.Sockets;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Net.Handlers;
 using Xunit;
 
 namespace XUnitTest.Net;
@@ -17,11 +16,9 @@ namespace XUnitTest.Net;
 public class UnmatchedReplyTests
 {
     [Theory(DisplayName = "无等待方应答：事件全量可见且缓冲安全归还")]
-    [InlineData(256, false)]
-    [InlineData(256, true)]
-    [InlineData(60_000, false)]
-    [InlineData(60_000, true)]
-    public async Task UnsolicitedReply_NoWaiter(Int32 payloadSize, Boolean userPacket)
+    [InlineData(256)]
+    [InlineData(60_000)]
+    public async Task UnsolicitedReply_NoWaiter(Int32 payloadSize)
     {
         const Int32 pushCount = 8;
 
@@ -31,16 +28,16 @@ public class UnmatchedReplyTests
             ProtocolType = NetType.Tcp,
             AddressFamily = AddressFamily.InterNetwork,
         };
-        server.Add(new StandardCodec { UserPacket = false });
+        server.Protocol = new SrmpCodec();
         server.Received += (s, e) =>
         {
-            if (s is INetSession session && e.Message is IMessage req)
+            if (s is INetSession session && e.Message is DefaultMessage req)
             {
                 // 1条配对应答（供客户端等待方匹配），随后为空队列推送多条无等待方应答
                 for (var i = 0; i < pushCount + 1; i++)
                 {
                     var reply = req.CreateReply();
-                    reply.Payload = new ArrayPacket(new Byte[payloadSize]);
+                    reply.SetBody(new ArrayPacket(new Byte[payloadSize]));
                     session.SendMessage(reply);
                 }
             }
@@ -48,7 +45,7 @@ public class UnmatchedReplyTests
         server.Start();
 
         using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
-        client.Add(new StandardCodec { UserPacket = userPacket });
+        client.Protocol = new SrmpCodec();
         client.Timeout = 15_000;
 
         var received = 0;
@@ -60,7 +57,9 @@ public class UnmatchedReplyTests
         client.Open();
 
         // 建立并清空匹配队列；随后到达的推送应答全部走"无等待方"路径
-        var resp = await client.SendMessageAsync(new ArrayPacket(new Byte[16]));
+        var request = new DefaultMessage();
+        request.SetBody(new ArrayPacket(new Byte[16]));
+        var resp = await client.SendMessageAsync(request);
         (resp as IDisposable)?.Dispose();
 
         await allDone.Task.WaitAsync(TimeSpan.FromSeconds(15));

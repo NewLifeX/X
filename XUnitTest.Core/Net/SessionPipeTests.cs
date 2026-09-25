@@ -42,18 +42,20 @@ public class SessionPipeTests
         await Task.Delay(20);
         _ = client.Send(f2[100..]);
 
-        var parser = new DefaultMessage();
-        var framer = new PacketFramer { GetFrameLength = buffer => parser.TryParse(buffer, out _) };
-        var p1 = await framer.ReadFrameAsync(pipe!.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.NotNull(p1);
-        Assert.Equal(f1, p1!.AsReadOnlySequence().ToArray());
+        var pump = new MessagePump(new SrmpCodec());
+        var m1 = await pump.ReadAsync(pipe!.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.NotNull(m1);
+        var b1 = await m1!.Body!.ReadAllAsync();
+        Assert.Equal(Fill(10, 1), b1.AsReadOnlySequence().ToArray());
+        b1.TryDispose();
+        m1.Dispose();
 
-        var p2 = await framer.ReadFrameAsync(pipe!.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.NotNull(p2);
-        Assert.Equal(f2, p2!.AsReadOnlySequence().ToArray());
-
-        p1.TryDispose();
-        p2.TryDispose();
+        var m2 = await pump.ReadAsync(pipe!.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.NotNull(m2);
+        var b2 = await m2!.Body!.ReadAllAsync();
+        Assert.Equal(Fill(300, 2), b2.AsReadOnlySequence().ToArray());
+        b2.TryDispose();
+        m2.Dispose();
     }
 
     [Fact]
@@ -118,13 +120,11 @@ public class SessionPipeTests
 
         // 发送端后台推送 40 帧 × 4KB：接收端不消费时管道应达到暂停水位并停止接收
         const Int32 frameCount = 40;
-        var totalSent = 0L;
         var frames = new List<Byte[]>();
         for (var i = 0; i < frameCount; i++)
         {
             var f = BuildFrame(Fill(4 * 1024, (Byte)i));
             frames.Add(f);
-            totalSent += f.Length;
         }
 
         var sender = Task.Run(() =>
@@ -139,24 +139,25 @@ public class SessionPipeTests
         Assert.True(pipe.IsPaused, "接收数据未触发暂停水位");
 
         // 持续消费：降到恢复水位以下应触发 Resumed 并恢复接收，最终收完所有帧
-        var parser = new DefaultMessage();
-        var framer = new PacketFramer { GetFrameLength = buffer => parser.TryParse(buffer, out _) };
+        var pump = new MessagePump(new SrmpCodec());
         var received = 0;
         var total = 0L;
         while (received < frameCount)
         {
-            var frame = await framer.ReadFrameAsync(pipe.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(10));
-            Assert.NotNull(frame);
+            var m = await pump.ReadAsync(pipe.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.NotNull(m);
 
-            total += frame!.Total;
+            var body = await m!.Body!.ReadAllAsync();
+            total += body.Total;
+            body.TryDispose();
+            m.Dispose();
             received++;
-            frame.TryDispose();
         }
 
         await sender.WaitAsync(TimeSpan.FromSeconds(10));
 
         Assert.True(resumed > 0, "消费降压后未触发恢复事件");
-        Assert.Equal(totalSent, total);
+        Assert.Equal((Int64)frameCount * 4 * 1024, total);
         Assert.False(pipe.IsPaused);
     }
 
@@ -205,14 +206,15 @@ public class SessionPipeTests
         });
 
         // 整帧路径：帧不完整不消费，暂停先触发；但读侧挂起等待（饥饿）时让位放行，帧应完整到达
-        var parser = new DefaultMessage();
-        var framer = new PacketFramer { GetFrameLength = buffer => parser.TryParse(buffer, out _) };
-        var pk = await framer.ReadFrameAsync(pipe.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(15));
+        var pump = new MessagePump(new SrmpCodec());
+        var m = await pump.ReadAsync(pipe.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(15));
 
-        Assert.NotNull(pk);
-        Assert.Equal(frame.Length, pk!.Total);
-        Assert.Equal(frame, pk.AsReadOnlySequence().ToArray());
-        pk.TryDispose();
+        Assert.NotNull(m);
+        var body = await m!.Body!.ReadAllAsync();
+        Assert.Equal(256 * 1024, body.Total);
+        Assert.Equal(frame[8..], body.AsReadOnlySequence().ToArray());
+        body.TryDispose();
+        m.Dispose();
 
         // 读饥饿让位至少发生一次：暂停已触发，但读者等待的数据被放行
         Assert.True(resumed > 0, "超大帧等待期间未发生读饥饿让位");
@@ -245,8 +247,7 @@ public class SessionPipeTests
         pipe!.PauseThreshold = 16 * 1024;
         pipe.ResumeThreshold = 8 * 1024;
 
-        var parser = new DefaultMessage();
-        var framer = new PacketFramer { GetFrameLength = buffer => parser.TryParse(buffer, out _) };
+        var pump = new MessagePump(new SrmpCodec());
 
         // 多轮发送：跨轮复现“前轮正常、后轮接收停摆”的场景（对齐基准规模，制造高频暂停/恢复）
         for (var round = 0; round < 2; round++)
@@ -268,9 +269,11 @@ public class SessionPipeTests
             {
                 while (received < frameCount)
                 {
-                    var f = await framer.ReadFrameAsync(pipe.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(30));
-                    Assert.NotNull(f);
-                    f!.TryDispose();
+                    var m = await pump.ReadAsync(pipe.Reader).AsTask().WaitAsync(TimeSpan.FromSeconds(30));
+                    Assert.NotNull(m);
+                    var body = await m!.Body!.ReadAllAsync();
+                    body.TryDispose();
+                    m.Dispose();
                     received++;
                 }
             }

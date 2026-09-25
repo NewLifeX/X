@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.ComponentModel;
 using System.Net.Sockets;
 using NewLife;
@@ -5,7 +6,7 @@ using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Net;
@@ -97,30 +98,35 @@ public class UdsNetServerTests
             using var server = new NetServer
             {
                 Local = new NetUri($"unix://{path}"),
+                Protocol = new SrmpCodec(),
             };
-            server.Add<StandardCodec>();
-            server.Received += (s, e) =>
+            server.Received += async (s, e) =>
             {
                 if (s is not INetSession session) return;
+                if (e.Message is not DefaultMessage m) return;
 
-                // 优先回显解码后的负载，e.Packet 为整轮原始数据（含帧头）
-                var pk = e.Message as IPacket ?? e.Packet;
-                if (pk != null && pk.Total > 0) session.SendReply(pk, e);
+                // 回显解码后的消息体
+                var reply = m.CreateReply();
+                if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                session.SendReply(reply, e);
             };
             server.Start();
 
             Assert.True(server.Active);
 
             using var client = new NetUri($"unix://{path}").CreateRemote();
-            client.Add<StandardCodec>();
+            ((SessionBase)client).Protocol = new SrmpCodec();
             client.Open();
 
-            var sendData = new ArrayPacket("Hello UDS"u8.ToArray());
-            var response = await client.SendMessageAsync(sendData);
+            var request = new DefaultMessage();
+            request.SetBody(new ArrayPacket("Hello UDS"u8.ToArray()));
+            var response = await client.SendMessageAsync(request);
 
             Assert.NotNull(response);
-            var pk = Assert.IsAssignableFrom<IPacket>(response);
-            Assert.Equal("Hello UDS"u8.ToArray(), pk.ToArray());
+            var respMsg = Assert.IsAssignableFrom<IMessage>(response);
+            var body = await respMsg.Body!.ReadAllAsync();
+            Assert.Equal("Hello UDS"u8.ToArray(), body.AsReadOnlySequence().ToArray());
+            body.TryDispose();
         }
         finally
         {

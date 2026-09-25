@@ -1,4 +1,4 @@
-﻿using NewLife;
+using NewLife;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Reflection;
@@ -8,9 +8,8 @@ namespace XUnitTest.Messaging;
 
 /// <summary>IMessage 所有权释放机制单元测试</summary>
 /// <remarks>
-/// 契约：<see cref="IMessage.Payload"/> 为数据包。<c>Read(IPacket)</c> 解析拥有帧时
-/// 经共享切片（<c>Slice</c>）使负载获得独立引用（<see cref="OwnerPacket"/> 引用计数），
-/// 且不释放入参（帧句柄由调用方释放）；消息 Dispose / Reset 时唯一归还负载；借阅视图（ArrayPacket）无所有权。本组测试验证该释放链路。
+/// 契约：<see cref="IMessage.Payload"/> 为数据包。编解码器定界产出消息后，帧层以共享切片（<c>Slice</c>）
+/// 绑定负载（<see cref="OwnerPacket"/> 引用计数），且不释放入参（帧句柄由调用方释放）；消息 Dispose 时唯一归还负载；借阅视图（ArrayPacket）无所有权。本组测试验证该释放链路。
 /// </remarks>
 public class MessageDisposeTests
 {
@@ -28,18 +27,22 @@ public class MessageDisposeTests
         return raw;
     }
 
-    [Fact(DisplayName = "Read不释放入参：负载独立持有，消息Dispose归还底层OwnerPacket")]
+    [Fact(DisplayName = "解析不释放入参：负载独立持有，消息Dispose归还底层OwnerPacket")]
     public void Dispose_AfterRead_ShouldReturnOwnerPacket()
     {
         var raw = BuildFrame(10);
         Assert.NotNull(raw.GetValue("_owner"));
 
-        var msg = new DefaultMessage();
-        Assert.True(msg.Read(raw));
+        var rs = new SrmpCodec().TryParse(raw.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var msg = (DefaultMessage)rs.Value.Message!;
         Assert.Equal(5, msg.Sequence);
+
+        // 帧层绑定：窗口切片共享负载（拥有帧引用计数 +1），不释放入参
+        msg.SetBody(raw.Slice(4, 10));
         Assert.Equal(10, msg.Payload!.Length);
 
-        // 入参句柄仍归调用方：Read 不释放
+        // 入参句柄仍归调用方
         Assert.NotNull(raw.GetValue("_owner"));
         var owned = (OwnerPacket)msg.Payload;
         Assert.NotNull(owned.GetValue("_owner"));
@@ -54,7 +57,7 @@ public class MessageDisposeTests
         Assert.Null(owned.GetValue("_owner"));
     }
 
-    [Fact(DisplayName = "链式帧：Read取共享负载，消息与入参各自释放")]
+    [Fact(DisplayName = "链式帧：解析取共享负载，消息与入参各自释放")]
     public void Dispose_WithChainedOwnerPacket_ShouldDisposeEntireChain()
     {
         // 链式包：头部在第一段，负载可能跨段
@@ -64,8 +67,12 @@ public class MessageDisposeTests
         part1.GetSpan()[..4].Fill(0x01);
         part1.GetSpan()[2] = 0x0A; // Length=10（低字节）
 
-        var msg = new Message();
-        Assert.True(msg.Read(part1));
+        var rs = new SrmpCodec().TryParse(part1.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var msg = (DefaultMessage)rs.Value.Message!;
+
+        // 帧层绑定：负载切片共享引用
+        msg.SetBody(part2.Slice(4, 10));
         Assert.NotNull(part1.GetValue("_owner"));
         Assert.NotNull(part2.GetValue("_owner"));
 
@@ -86,7 +93,7 @@ public class MessageDisposeTests
     {
         var pk = new ArrayPacket(new Byte[] { 1, 2, 3 });
         var msg = new Message();
-        Assert.True(msg.Read(pk));
+        msg.SetBody(pk);
 
         // 借阅视图无所有权，Dispose 仅清理 Payload（置 null），不应抛出
         msg.Dispose();
@@ -96,35 +103,16 @@ public class MessageDisposeTests
     public void Dispose_MultipleTimes_ShouldNotThrow()
     {
         var raw = BuildFrame(4);
-        var msg = new DefaultMessage();
-        Assert.True(msg.Read(raw));
+        var rs = new SrmpCodec().TryParse(raw.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var msg = (DefaultMessage)rs.Value.Message!;
+        msg.SetBody(raw.Slice(4, 4));
 
         msg.Dispose();
         msg.Dispose(); // 第二次不应抛出
 
-        // 入参句柄保持有效（Read 不释放）
+        // 入参句柄保持有效（解析不释放）
         Assert.NotNull(raw.GetValue("_owner"));
-        raw.TryDispose();
-    }
-
-    [Fact(DisplayName = "Reset归还原Owner：对象池复用前归还池化缓冲")]
-    public void Reset_ShouldReturnOwnerPacket()
-    {
-        var raw = BuildFrame(8);
-        var msg = new DefaultMessage();
-        Assert.True(msg.Read(raw));
-
-        // 负载获得独立引用，消息持有；入参句柄仍归调用方
-        Assert.NotNull(raw.GetValue("_owner"));
-        var owned = (OwnerPacket)msg.Payload!;
-        Assert.NotNull(owned.GetValue("_owner"));
-
-        msg.Reset();
-
-        // Reset 归还负载（池化缓冲）并清空 Payload
-        Assert.Null(owned.GetValue("_owner"));
-        Assert.Null(msg.Payload);
-
         raw.TryDispose();
     }
 
@@ -132,11 +120,13 @@ public class MessageDisposeTests
     public void Using_ShouldAutoDisposePayloadOnScopeExit()
     {
         var raw = BuildFrame(64);
+        var rs = new SrmpCodec().TryParse(raw.AsReadOnlySequence());
+        Assert.NotNull(rs);
 
         OwnerPacket? owned = null;
-        using (var msg = new DefaultMessage())
+        using (var msg = rs.Value.Message!)
         {
-            Assert.True(msg.Read(raw));
+            msg.SetBody(raw.Slice(4, 64));
             owned = (OwnerPacket)msg.Payload!;
             Assert.NotNull(owned.GetValue("_owner"));
         }
@@ -151,8 +141,10 @@ public class MessageDisposeTests
     public void CreateReply_ShouldNotAffectOriginal()
     {
         using var raw = BuildFrame(8);
-        var request = new DefaultMessage();
-        Assert.True(request.Read(raw));
+        var rs = new SrmpCodec().TryParse(raw.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var request = (DefaultMessage)rs.Value.Message!;
+        request.SetBody(raw.Slice(4, 8));
 
         // 负载独立持有引用；入参由 using 作用域释放
         Assert.NotNull(raw.GetValue("_owner"));
@@ -171,14 +163,16 @@ public class MessageDisposeTests
         Assert.Null(owned.GetValue("_owner"));
     }
 
-    [Fact(DisplayName = "完整生命周期：借→Read→解析→Dispose归还")]
+    [Fact(DisplayName = "完整生命周期：借→解析→切片绑定→Dispose归还")]
     public void FullLifecycle_OwnerPacketAsRaw()
     {
         var raw = BuildFrame(4);
         Assert.NotNull(raw.GetValue("_owner"));
 
-        var msg = new DefaultMessage();
-        Assert.True(msg.Read(raw));
+        var rs = new SrmpCodec().TryParse(raw.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var msg = (DefaultMessage)rs.Value.Message!;
+        msg.SetBody(raw.Slice(4, 4));
         Assert.Equal(4, msg.Payload!.Length);
 
         // 负载共享持有引用；入参句柄由调用方释放
@@ -192,65 +186,30 @@ public class MessageDisposeTests
         raw.TryDispose();
     }
 
-    [Fact(DisplayName = "GetRaw：拥有帧负载切片后帧头+负载完整可读（展示链）")]
-    public void GetRaw_AfterOwnedFrameSlice_ShouldReadFullFrame()
+    [Fact(DisplayName = "解析后入参窗口完整可读：不消费、不破坏帧头与负载")]
+    public void TryParse_AfterOwnedFrameSlice_ShouldReadFullFrame()
     {
         var raw = BuildFrame(10);
-        var msg = new DefaultMessage();
-        Assert.True(msg.Read(raw));
+        var rs = new SrmpCodec().TryParse(raw.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var msg = (DefaultMessage)rs.Value.Message!;
+        msg.SetBody(raw.Slice(4, 10));
 
-        var view = msg.GetRaw();
-        Assert.NotNull(view);
-        Assert.Equal(14, view!.Total);
-
-        // 帧头字节与负载完整可读
-        Assert.Equal(0x01, view[0]);
-        Assert.Equal(0x05, view[1]);
-        Assert.Equal(10, view[2]);
-        Assert.Equal(0x00, view[3]);
+        // 解析不消费、不破坏入参窗口：帧头字节与负载完整可读
+        var span = raw.GetSpan();
+        Assert.Equal(0x01, span[0]);
+        Assert.Equal(0x05, span[1]);
+        Assert.Equal(10, span[2]);
+        Assert.Equal(0x00, span[3]);
         for (var i = 0; i < 10; i++)
-            Assert.Equal((Byte)(i & 0xFF), view[4 + i]);
+            Assert.Equal((Byte)(i & 0xFF), span[4 + i]);
 
         msg.Dispose();
         raw.TryDispose();
     }
 
-    [Fact(DisplayName = "GetRaw：帧头跨轮组链后完整可读")]
-    public void GetRaw_FrameAcrossRounds_ShouldReadFullFrame()
-    {
-        // 帧头跨轮：第1轮仅 2 字节（不足 4 字节帧头），第2轮补齐后直接组链成帧（不并段）
-        using var full = BuildFrame(10);
-        // BuildFrame 缓冲为 8+payload，这里截取真实帧窗口（4 头 + 10 负载）
-        var raw = full.ToArray()[..14];
-
-        var codec = new PacketCodec { GetLength = DefaultMessage.GetLength };
-        Assert.Empty(codec.Parse(new ArrayPacket(raw, 0, 2)));
-
-        var frames = codec.Parse(new ArrayPacket(raw, 2, raw.Length - 2));
-        Assert.Single(frames);
-        var frame = frames[0];
-        Assert.Equal(14, frame.Total);    // 帧头跨轮组链成帧
-        Assert.NotNull(frame.Next);
-
-        var msg = new DefaultMessage();
-        Assert.True(msg.Read(frame));
-        Assert.Equal(10, msg.Payload!.Length);
-
-        var view = msg.GetRaw();
-        Assert.NotNull(view);
-        Assert.Equal(4 + 10, view!.Total);
-        Assert.Equal(0x01, view[0]);
-        Assert.Equal(0x05, view[1]);
-        Assert.Equal(10, view[2]);
-        for (var i = 0; i < 10; i++)
-            Assert.Equal((Byte)(i & 0xFF), view[4 + i]);
-
-        msg.Dispose();
-        frame.TryDispose();
-    }
-
-    [Fact(DisplayName = "Read：链式帧首段不足头部时拼读兼容（兼容旧直调路径）")]
-    public void Read_WithChainedFrame_ShouldParse()
+    [Fact(DisplayName = "链式帧：首段不足头部时跨段解析正确")]
+    public void TryParse_WithChainedFrame_ShouldParse()
     {
         // 头部前 2 字节在首段，长度与负载在次段——首段不足 8 字节头部，拼入栈缓冲后正常解析
         var part1 = new OwnerPacket(2);
@@ -265,10 +224,16 @@ public class MessageDisposeTests
         span2[1] = (Byte)(payloadLen >> 8);
         for (var i = 0; i < payloadLen; i++) span2[2 + i] = (Byte)(i & 0xFF);
 
-        var msg = new DefaultMessage();
-        Assert.True(msg.Read(part1));
+        var rs = new SrmpCodec().TryParse(part1.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        Assert.Equal(4, rs.Value.HeaderSize);
+        Assert.Equal(10L, rs.Value.BodyLength);
+        var msg = (DefaultMessage)rs.Value.Message!;
         Assert.Equal(0x01, msg.Flag);
         Assert.Equal(5, msg.Sequence);
+
+        // 帧层绑定：负载切片共享引用
+        msg.SetBody(part2.Slice(2, payloadLen));
         Assert.Equal(payloadLen, msg.Payload!.Total);
         for (var i = 0; i < payloadLen; i++)
             Assert.Equal((Byte)(i & 0xFF), msg.Payload[i]);
@@ -277,8 +242,8 @@ public class MessageDisposeTests
         part1.TryDispose();
     }
 
-    [Fact(DisplayName = "GetRaw：链式拥有帧（首段短于帧头）切片后完整可读")]
-    public void GetRaw_ChainedOwnedFrame_ShouldReadFullFrame()
+    [Fact(DisplayName = "链式帧：解析后入参链完整可读，负载切片独立释放")]
+    public void TryParse_ChainedOwnedFrame_ShouldKeepWindowIntact()
     {
         // 首段仅 2 字节（不足 4 字节帧头），帧头跨段
         var part1 = new OwnerPacket(2);
@@ -293,20 +258,89 @@ public class MessageDisposeTests
         span2[1] = (Byte)(payloadLen >> 8);
         for (var i = 0; i < payloadLen; i++) span2[2 + i] = (Byte)(i & 0xFF);
 
-        var msg = new DefaultMessage();
-        Assert.True(msg.Read(part1));
+        var rs = new SrmpCodec().TryParse(part1.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var msg = (DefaultMessage)rs.Value.Message!;
+
+        // 帧层绑定：负载切片共享引用
+        var owned = (OwnerPacket)part2.Slice(2, payloadLen);
+        msg.SetBody(owned);
         Assert.Equal(payloadLen, msg.Payload!.Length);
 
-        var view = msg.GetRaw();
-        Assert.NotNull(view);
-        Assert.Equal(4 + payloadLen, view!.Total);
-        Assert.Equal(0x01, view[0]);
-        Assert.Equal(0x05, view[1]);
-        Assert.Equal(payloadLen, view[2]);
+        // 解析不消费、不破坏入参链：两段数据完整可读
+        Assert.Equal(0x01, part1.GetSpan()[0]);
+        Assert.Equal(0x05, part1.GetSpan()[1]);
+        Assert.Equal((Byte)(payloadLen & 0xFF), part2.GetSpan()[0]);
         for (var i = 0; i < payloadLen; i++)
-            Assert.Equal((Byte)(i & 0xFF), view[4 + i]);
+            Assert.Equal((Byte)(i & 0xFF), part2.GetSpan()[2 + i]);
 
+        // 消息释放负载引用后，入参链仍归调用方
         msg.Dispose();
+        Assert.Null(owned.GetValue("_owner"));
+        Assert.NotNull(part1.GetValue("_owner"));
+        Assert.NotNull(part2.GetValue("_owner"));
+
         part1.TryDispose();
+    }
+
+    [Fact(DisplayName = "SetBody(null)表示所有权转移：消息Dispose不归还已转移句柄")]
+    public void SetBodyNull_TransfersOwnership()
+    {
+        var owner = new OwnerPacket(8);
+        owner.GetSpan().Fill(0x41);
+
+        var msg = new DefaultMessage();
+        msg.SetBody(owner);
+        Assert.NotNull(owner.GetValue("_owner"));
+
+        // 转移：消息放弃持有、不归还
+        msg.SetBody((IPacket?)null);
+        msg.Dispose();
+
+        // 已转移句柄未被归还，由调用方接管
+        Assert.NotNull(owner.GetValue("_owner"));
+
+        owner.Dispose();
+        Assert.Null(owner.GetValue("_owner"));
+    }
+
+    [Fact(DisplayName = "Build构建后所有权转移：消息Dispose不击穿结果包链")]
+    public void Build_TransfersOwnership_DisposeDoesNotBreakResult()
+    {
+        var owner = new OwnerPacket(5);
+        "hello".GetBytes().CopyTo(owner.GetSpan());
+
+        var msg = new DefaultMessage { Sequence = 3 };
+        msg.SetBody(owner);
+        var pk = new SrmpCodec().Build(msg);
+        Assert.NotNull(pk);
+        Assert.Equal(4 + 5, pk!.Total);
+
+        // 转移：消息不再持有负载（构建结果包接管），Dispose 不得归还
+        msg.Dispose();
+        Assert.NotNull(owner.GetValue("_owner"));
+        Assert.Equal(4 + 5, pk.Total);
+
+        var tail = pk.Slice(4, -1);
+        Assert.Equal("hello", tail.ToStr());
+        tail.TryDispose();
+
+        // 结果包释放时才级联归还链上缓冲
+        pk.TryDispose();
+        Assert.Null(owner.GetValue("_owner"));
+    }
+
+    [Fact(DisplayName = "CreateReply继承Flag/Sequence并置为响应；响应上创建回应返回 null")]
+    public void CreateReply_InheritsFlagAndSequence()
+    {
+        var req = new DefaultMessage { Flag = (Byte)DataKinds.Json, Sequence = 42 };
+        var reply = req.CreateReply();
+
+        var dm = Assert.IsType<DefaultMessage>(reply);
+        Assert.Equal(MessageKinds.Response, dm.Kind);
+        Assert.Equal((Byte)DataKinds.Json, dm.Flag);
+        Assert.Equal(42, dm.Sequence);
+
+        Assert.Null(dm.CreateReply());
     }
 }

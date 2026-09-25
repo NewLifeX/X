@@ -98,6 +98,25 @@ public class HttpResponseTests
         Assert.Equal("failed", resp4.StatusDescription);
     }
 
+    [Fact(DisplayName = "流式响应_整包构建_物化流并释放")]
+    public void BodyStream_Build_Materializes()
+    {
+        var ms = new MemoryStream("stream-body".GetBytes());
+        var resp = new HttpResponse { BodyStream = ms };
+
+        using var pk = resp.Build();
+        var text = pk.ToStr();
+        Assert.Contains("Content-Length: 11\r\n", text);
+        Assert.EndsWith("stream-body", text);
+
+        // 物化后流已释放、BodyStream 清空；二次构建可重复
+        Assert.Null(resp.BodyStream);
+        Assert.Throws<ObjectDisposedException>(() => ms.ReadByte());
+
+        using var pk2 = resp.Build();
+        Assert.Equal(pk.Total, pk2.Total);
+    }
+
     [Fact]
     public void Valid_ThrowsOnNonOk()
     {

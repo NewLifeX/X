@@ -12,12 +12,11 @@ public class DefaultMessageTests
     [Fact]
     public void BinaryEncode()
     {
-        var msg = new DefaultMessage
-        {
-            Sequence = 1,
-            Payload = "Open".GetBytes().AsPacket(),
-        };
-        var pk = msg.ToPacket();
+        var codec = new SrmpCodec();
+
+        var msg = new DefaultMessage { Sequence = 1 };
+        msg.SetBody("Open".GetBytes().AsPacket());
+        var pk = codec.Build(msg)!;
         Assert.Equal(1, pk[0]);
         Assert.Equal(1, pk[1]);
         Assert.Equal(4, pk[2]);
@@ -26,23 +25,21 @@ public class DefaultMessageTests
         Assert.Equal("Open", tail1.ToStr());                    // 只读查看：共享切片需自行释放
         tail1.TryDispose();
 
-        var msgd = new DefaultMessage();
-        var rs = msgd.Read(pk);
-        Assert.True(rs);
+        // 解析回读（帧层绑体：内存模式，体为共享切片）
+        var rs = codec.TryParse(pk.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var msgd = Assert.IsType<DefaultMessage>(rs.Value.Message);
+        msgd.SetBody(pk.Slice(rs.Value.HeaderSize, (Int32)rs.Value.BodyLength));
         Assert.Equal(msg.Flag, msgd.Flag);
         Assert.Equal(msg.Sequence, msgd.Sequence);
-        Assert.Equal(msg.Payload.ToStr(), msgd.Payload.ToStr());
+        Assert.Equal("Open", msgd.Payload!.ToStr());
 
         msgd.Dispose();
         pk.TryDispose();
 
-        var msg2 = new DefaultMessage
-        {
-            Reply = true,
-            Sequence = 1,
-            Payload = "执行成功".GetBytes().AsPacket(),
-        };
-        var pk2 = msg2.ToPacket();
+        var msg2 = new DefaultMessage { Kind = MessageKinds.Response, Sequence = 1 };
+        msg2.SetBody("执行成功".GetBytes().AsPacket());
+        var pk2 = codec.Build(msg2)!;
         Assert.Equal(0x81, pk2[0]);
         Assert.Equal(1, pk2[1]);
         Assert.Equal(12, pk2[2]);
@@ -51,12 +48,13 @@ public class DefaultMessageTests
         Assert.Equal("执行成功", tail2.ToStr());                 // 只读查看：共享切片需自行释放
         tail2.TryDispose();
 
-        var msgd2 = new DefaultMessage();
-        var rs2 = msgd2.Read(pk2);
-        Assert.True(rs2);
+        var rs2 = codec.TryParse(pk2.AsReadOnlySequence());
+        Assert.NotNull(rs2);
+        var msgd2 = Assert.IsType<DefaultMessage>(rs2.Value.Message);
+        msgd2.SetBody(pk2.Slice(rs2.Value.HeaderSize, (Int32)rs2.Value.BodyLength));
         Assert.Equal(msg2.Flag, msgd2.Flag);
         Assert.Equal(msg2.Sequence, msgd2.Sequence);
-        Assert.Equal(msg2.Payload.ToStr(), msgd2.Payload.ToStr());
+        Assert.Equal("执行成功", msgd2.Payload!.ToStr());
 
         msgd2.Dispose();
         pk2.TryDispose();

@@ -95,6 +95,45 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1", resp);
     }
 
+    [Fact(DisplayName = "KeepAlive 第二请求头分片中间轮：不得重放已完成的上一请求")]
+    public async Task SplitRequestHead_SecondRequest_NoReplay()
+    {
+        _server.Map("/first", () => "FIRST");
+        _server.Map("/second", () => "SECOND");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 第一请求：完整 GET（无主体，KeepAlive）
+        var head1 = "GET /first HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".GetBytes();
+        await ns.WriteAsync(head1);
+        await ns.FlushAsync();
+
+        var buf = new Byte[4096];
+        var n1 = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Contains("FIRST", buf.AsSpan(0, n1).ToStr());
+
+        // 第二请求：请求头跨两片发送；第一片不完整（本轮不应产生任何响应）
+        var head2 = "GET /second HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".GetBytes();
+        await ns.WriteAsync(head2.AsMemory(0, 12));
+        await ns.FlushAsync();
+
+        // 中间轮探测：旧行为会在这里重放 /first 响应；修复后应无数据（等待后续分片）
+        var probe = new Byte[4096];
+        var readTask = ns.ReadAsync(probe.AsMemory()).AsTask();
+        var first = await Task.WhenAny(readTask, Task.Delay(500));
+        Assert.NotSame(readTask, first);
+
+        // 补齐请求头：挂起中的读取将收到 /second 的响应（NetworkStream 单一读取操作，探测读继续复用）
+        await ns.WriteAsync(head2.AsMemory(12));
+        await ns.FlushAsync();
+
+        var n2 = await readTask.WaitAsync(TimeSpan.FromSeconds(5));
+        var resp2 = probe.AsSpan(0, n2).ToStr();
+        Assert.Contains("SECOND", resp2);
+    }
+
     [Fact]
     public async Task MapStaticFiles()
     {
@@ -106,6 +145,70 @@ public class HttpServerTests : IDisposable
 
         Assert.NotNull(rs);
         Assert.Equal(93917, rs.ReadBytes(-1).Length);
+    }
+
+    [Fact(DisplayName = "流式响应_可寻址流_按Content-Length完整到达")]
+    public async Task StreamResponse_ContentLength()
+    {
+        var payload = new Byte[256 * 1024];
+        Random.Shared.NextBytes(payload);
+        _server.Map("/stream", new StreamTestHandler { Payload = payload });
+
+        using var client = new HttpClient { BaseAddress = _baseUri };
+        var rs = await client.GetAsync("/stream");
+        Assert.Equal(HttpStatusCode.OK, rs.StatusCode);
+        Assert.Null(rs.Headers.TransferEncodingChunked);
+        Assert.Equal(payload, await rs.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact(DisplayName = "流式响应_不可寻址流_分块传输完整到达")]
+    public async Task StreamResponse_Chunked()
+    {
+        var payload = new Byte[64 * 1024 + 123];
+        Random.Shared.NextBytes(payload);
+        _server.Map("/chunked", new StreamTestHandler { Payload = payload, NonSeekable = true });
+
+        using var client = new HttpClient { BaseAddress = _baseUri };
+        var rs = await client.GetAsync("/chunked");
+        Assert.Equal(HttpStatusCode.OK, rs.StatusCode);
+        Assert.True(rs.Headers.TransferEncodingChunked);
+        Assert.Equal(payload, await rs.Content.ReadAsByteArrayAsync());
+
+        // 同连接复用：分块传输结束后协议对齐，后续请求正常
+        var rs2 = await client.GetAsync("/chunked");
+        Assert.Equal(payload, await rs2.Content.ReadAsByteArrayAsync());
+    }
+
+    /// <summary>流式响应测试处理器。NonSeekable 时长度未知，触发分块传输</summary>
+    class StreamTestHandler : IHttpHandler
+    {
+        public Byte[] Payload { get; set; } = [];
+
+        public Boolean NonSeekable { get; set; }
+
+        public void ProcessRequest(IHttpContext context)
+        {
+            Stream stream = new MemoryStream(Payload);
+            if (NonSeekable) stream = new NonSeekableStream(stream);
+
+            context.Response.ContentType = "application/octet-stream";
+            context.Response.BodyStream = stream;
+        }
+    }
+
+    /// <summary>不可寻址流包装：长度未知，触发分块传输</summary>
+    class NonSeekableStream(Stream inner) : Stream
+    {
+        public override Boolean CanRead => inner.CanRead;
+        public override Boolean CanSeek => false;
+        public override Boolean CanWrite => false;
+        public override Int64 Length => throw new NotSupportedException();
+        public override Int64 Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count) => inner.Read(buffer, offset, count);
+        public override Int64 Seek(Int64 offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(Int64 value) => throw new NotSupportedException();
+        public override void Write(Byte[] buffer, Int32 offset, Int32 count) => throw new NotSupportedException();
     }
 
     [Fact]
@@ -291,6 +394,37 @@ Content-Type: application/octet-stream
         Assert.NotNull(av);
         Assert.Equal("logo.bin", av.FileName);
         Assert.Equal(512L, av.Length);
+        Assert.Equal(fileData, av.OpenReadStream()!.ReadBytes(-1));
+    }
+
+    [Fact(DisplayName = "ParseFormData 引号边界与参数、前导内容：正常解析")]
+    public void ParseFormData_QuotedBoundary_WithParamsAndPreamble()
+    {
+        var bd = "------X";
+        var text = $"preamble\r\n{bd}\r\nContent-Disposition: form-data; name=\"name\"\r\n\r\n大石头\r\n{bd}\r\nContent-Disposition: form-data; name=\"avatar\"; filename=\"a.bin\"\r\nContent-Type: application/octet-stream\r\n\r\n";
+        var fileData = new Byte[32];
+        for (var i = 0; i < fileData.Length; i++) fileData[i] = (Byte)(i + 1);
+        var tail = $"\r\n{bd}--\r\n";
+
+        // 主体切到 3 个节点：文本区 + 文件数据 + 结束标记
+        IPacket pk = new ArrayPacket(text.GetBytes());
+        pk.Append(new ArrayPacket(fileData));
+        pk.Append(new ArrayPacket(tail.GetBytes()));
+
+        var req = new HttpRequest
+        {
+            // 边界带引号且后随其它参数；首个分隔标记之前有前导内容（MIME preamble）
+            ContentType = "multipart/form-data; boundary=\"----X\"; charset=utf-8",
+            Body = pk
+        };
+
+        var dic = req.ParseFormData();
+        Assert.Equal("大石头", dic["name"]);
+
+        var av = dic["avatar"] as FormFile;
+        Assert.NotNull(av);
+        Assert.Equal("a.bin", av.FileName);
+        Assert.Equal(32L, av.Length);
         Assert.Equal(fileData, av.OpenReadStream()!.ReadBytes(-1));
     }
 

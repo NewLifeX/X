@@ -87,12 +87,4 @@ public class IExtendTests
         Assert.Null(ext["bbb"]);
         //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
     }
-
-    [Fact]
-    public void KeyNotFound4()
-    {
-        var ext = new HandlerContext();
-        Assert.Null(ext["bbb"]);
-        //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
-    }
 }

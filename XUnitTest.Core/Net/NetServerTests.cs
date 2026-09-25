@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -7,7 +7,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Net;
@@ -440,14 +440,18 @@ public class NetServerTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
-        server.Received += (s, e) =>
+        server.Protocol = new SrmpCodec();
+        server.Received += async (s, e) =>
         {
             received = e.Message ?? e.Packet;
             receivedMessage.Set();
 
-            if (s is INetSession session && e.Packet != null)
-                session.SendMessage(e.Packet);
+            if (s is INetSession session && e.Message is DefaultMessage m)
+            {
+                var reply = m.CreateReply();
+                if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                session.SendMessage(reply);
+            }
         };
 
         server.Start();
@@ -455,11 +459,12 @@ public class NetServerTests
         // 客户端
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Open();
 
-        var sendData = "Hello StandardCodec"u8.ToArray();
-        client.SendMessage(new ArrayPacket(sendData));
+        var request = new DefaultMessage();
+        request.SetBody(new ArrayPacket("Hello StandardCodec"u8.ToArray()));
+        client.SendMessage(request);
 
         // 等待接收
         Assert.True(receivedMessage.Wait(3000));
@@ -468,9 +473,9 @@ public class NetServerTests
         client.Close("Test");
     }
 
-    /// <summary>测试管道处理器添加</summary>
+    /// <summary>测试协议属性设置</summary>
     [Fact]
-    public void PipelineHandlerAdd()
+    public void ProtocolPropertySet()
     {
         using var server = new NetServer
         {
@@ -479,13 +484,13 @@ public class NetServerTests
             Log = XTrace.Log,
         };
 
-        // 初始时管道为空
-        Assert.Null(server.Pipeline);
+        // 初始无协议
+        Assert.Null(server.Protocol);
 
-        // 添加处理器后管道自动创建
-        server.Add<StandardCodec>();
+        // 设置协议编解码器
+        server.Protocol = new SrmpCodec();
 
-        Assert.NotNull(server.Pipeline);
+        Assert.NotNull(server.Protocol);
     }
 
     /// <summary>测试SplitDataCodec发送数据时追加分割字节</summary>
@@ -501,13 +506,15 @@ public class NetServerTests
             AddressFamily = AddressFamily.InterNetwork,
             Log = XTrace.Log,
         };
-        server.Add<SplitDataCodec>();
-        server.Received += (s, e) =>
+        server.Protocol = new SplitDataCodec();
+        server.Received += async (s, e) =>
         {
-            if (s is INetSession session && e.Packet != null)
+            if (s is INetSession session && e.Message is Message m)
             {
                 // 服务端收到消息后回送，SplitDataCodec.Write 会追加分割字节
-                session.SendMessage(e.Packet);
+                var reply = new Message();
+                if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                session.SendMessage(reply);
                 serverReceived.Set();
             }
         };
@@ -551,12 +558,13 @@ public class NetServerTests
             ProtocolType = NetType.Tcp,
             AddressFamily = AddressFamily.InterNetwork,
         };
-        server.Add<SplitDataCodec>();
+        server.Protocol = new SplitDataCodec();
         server.Received += (s, e) =>
         {
-            if (e.Message is not IPacket pk) return;
+            if (e.Message is not IMessage msg || msg.Payload == null) return;
+            var pk = msg.Payload;
 
-            // 同步消费：帧在本轮同步链路内直接可用（分隔符包含在帧内）
+            // 同步消费：帧在本轮同步链路内直接可用（消息体为行内容，不含分隔符）
             var text = pk.ToStr();
             // 跨轮带出：切出共享切片（引用计数），帧同步归还后切片仍保活
             if (text.StartsWith("keep")) escaped = pk.Slice(0, -1);
@@ -585,7 +593,7 @@ public class NetServerTests
 
         // 帧已由 Read 在同步消费后归还池引用；跨轮切片独立保活数据
         Assert.NotNull(escaped);
-        Assert.Equal("keep\r\n", escaped!.ToStr());
+        Assert.Equal("keep", escaped!.ToStr());
         escaped.TryDispose();
     }
     #endregion
@@ -1370,7 +1378,6 @@ public class NetServerTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
         server.Start();
 
         // 创建客户端
@@ -1384,7 +1391,7 @@ public class NetServerTests
 
         Thread.Sleep(500);
 
-        // 群发消息
+        // 群发消息（无协议模式：直接字节群发）
         var count = server.SendAllMessage(new ArrayPacket("Broadcast"u8.ToArray()));
 
         Assert.True(count >= 0);

@@ -1,10 +1,10 @@
-﻿using System.Net.Sockets;
+using System.Net.Sockets;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Net;
@@ -81,7 +81,7 @@ public class NetClientTests
         Assert.True(client.AutoReconnect);
         Assert.Equal(5_000, client.ReconnectDelay);
         Assert.Equal(0, client.MaxReconnect);
-        Assert.Null(client.Pipeline);
+        Assert.Null(client.Protocol);
         Assert.Null(client.Tracer);
     }
 
@@ -146,31 +146,18 @@ public class NetClientTests
     #region 编解码器
 
     [Fact]
-    public void Add_Instance_CreatesPipeline()
+    public void Protocol_DefaultNull()
     {
         using var client = new NetClient();
-        Assert.Null(client.Pipeline);
-        var result = client.Add(new StandardCodec());
-        Assert.NotNull(client.Pipeline);
-        Assert.Same(client, result);
+        Assert.Null(client.Protocol);
     }
 
     [Fact]
-    public void Add_Generic_CreatesPipeline()
+    public void Protocol_SetSrmp()
     {
-        using var client = new NetClient();
-        var result = client.Add<StandardCodec>();
-        Assert.NotNull(client.Pipeline);
-        Assert.Same(client, result);
-    }
-
-    [Fact]
-    public void Add_Multiple_HandlersOrdered()
-    {
-        using var client = new NetClient();
-        client.Add<StandardCodec>().Add<StandardCodec>();
-        Assert.NotNull(client.Pipeline);
-        Assert.Equal(2, ((Pipeline)client.Pipeline!).Handlers.Count);
+        using var client = new NetClient { Protocol = new SrmpCodec() };
+        Assert.NotNull(client.Protocol);
+        Assert.IsType<SrmpCodec>(client.Protocol);
     }
 
     #endregion
@@ -446,16 +433,16 @@ public class NetClientTests
     }
 
     [Fact]
-    public void Pipeline_PassedToInnerClient()
+    public void Protocol_PassedToInnerClient()
     {
         using var server = CreateEchoServer();
         using var client = CreateTcpClient(server.Port);
-        client.Add<StandardCodec>();
+        client.Protocol = new SrmpCodec();
 
         client.Open();
 
-        Assert.NotNull(client.Pipeline);
-        Assert.Same(client.Pipeline, client.Client!.Pipeline);
+        Assert.NotNull(client.Protocol);
+        Assert.Same(client.Protocol, ((SessionBase)client.Client!).Protocol);
     }
 
     [Fact]

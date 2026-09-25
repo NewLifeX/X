@@ -1,20 +1,21 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Integration;
 
 // ─── 高吞吐量测试固定装置（无人工延迟，专用于 TPS 与原始字节注入测试） ───────────────────────
 
-/// <summary>高速TCP StandardCodec 服务端，无任何人工延迟，用于 100K TPS 测试</summary>
+/// <summary>高速TCP SrmpCodec 服务端，无任何人工延迟，用于 100K TPS 测试</summary>
 public class FastTcpCodecNetServer : NetServer<FastTcpCodecSession>
 {
-    public FastTcpCodecNetServer() { Add<StandardCodec>(); }
+    public FastTcpCodecNetServer() { Protocol = new SrmpCodec(); }
 }
 
 /// <summary>高速会话：直接回显，无延迟</summary>
@@ -22,9 +23,14 @@ public class FastTcpCodecSession : NetSession<FastTcpCodecNetServer>
 {
     protected override void OnReceive(ReceivedEventArgs e)
     {
-        var msg = e.Message;
-        if (msg == null) return;
-        SendReply(msg, e);
+        // 协议模式：应答 = 请求的配对响应 + 原负载回显（体可能为流式，先物化）
+        if (e.Message is not DefaultMessage msg || msg.Kind >= MessageKinds.Response) return;
+
+        var body = msg.Payload;
+        if (body == null && msg.Body != null) body = msg.Body.ReadAllAsync().AsTask().GetAwaiter().GetResult();
+        var reply = msg.CreateReply();
+        reply.SetBody(body);
+        SendMessage(reply);
     }
 }
 
@@ -50,10 +56,10 @@ public class FastTcpCodecServerFixture : IDisposable
     public void Dispose() => Server?.Stop("done");
 }
 
-/// <summary>高速 UDP StandardCodec 服务端，无 payload 存储，专用于吞吐量测试</summary>
+/// <summary>高速 UDP SrmpCodec 服务端，无 payload 存储，专用于吞吐量测试</summary>
 public class FastUdpCodecNetServer : NetServer<FastUdpCodecSession>
 {
-    public FastUdpCodecNetServer() { Add<StandardCodec>(); }
+    public FastUdpCodecNetServer() { Protocol = new SrmpCodec(); }
 }
 
 /// <summary>高速 UDP 会话：直接回显，不存储 payload，减少每包分配开销</summary>
@@ -62,9 +68,14 @@ public class FastUdpCodecSession : NetSession<FastUdpCodecNetServer>
     /// <param name="e">接收事件参数</param>
     protected override void OnReceive(ReceivedEventArgs e)
     {
-        var msg = e.Message;
-        if (msg == null) return;
-        SendReply(msg, e);
+        // 协议模式：应答 = 请求的配对响应 + 原负载回显（体可能为流式，先物化）
+        if (e.Message is not DefaultMessage msg || msg.Kind >= MessageKinds.Response) return;
+
+        var body = msg.Payload;
+        if (body == null && msg.Body != null) body = msg.Body.ReadAllAsync().AsTask().GetAwaiter().GetResult();
+        var reply = msg.CreateReply();
+        reply.SetBody(body);
+        SendMessage(reply);
     }
 }
 
@@ -108,14 +119,22 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
     private NetClient CreateFastTcpClient()
     {
         var c = new NetClient($"tcp://127.0.0.1:{fastTcpFixture.Server.Port}") { AutoReconnect = false };
-        c.Add<StandardCodec>();
+        c.Protocol = new SrmpCodec();
         return c;
+    }
+
+    /// <summary>构造请求消息（协议模式发送入口）</summary>
+    private static DefaultMessage NewRequest(Byte[] payload)
+    {
+        var msg = new DefaultMessage();
+        msg.SetBody(new ArrayPacket(payload));
+        return msg;
     }
 
     private NetClient CreateUdpClient()
     {
         var c = new NetClient($"udp://127.0.0.1:{fastUdpFixture.Server.Port}") { AutoReconnect = false };
-        c.Add<StandardCodec>();
+        c.Protocol = new SrmpCodec();
         return c;
     }
 
@@ -127,7 +146,7 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
         using var wc = CreateFastTcpClient();
         wc.Received += (_, _) => { if (Interlocked.Increment(ref done) >= count) tcs.TrySetResult(true); };
         wc.Open();
-        for (var i = 0; i < count; i++) wc.SendMessage(new Byte[32]);
+        for (var i = 0; i < count; i++) wc.SendMessage(NewRequest(new Byte[32]));
         await tcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
         wc.Close("warmup");
     }
@@ -141,7 +160,7 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
         wc.Received += (_, _) => { if (Interlocked.Increment(ref done) >= count) tcs.TrySetResult(true); };
         wc.Open();
         if (wc.Client?.Client != null) wc.Client.Client.ReceiveBufferSize = 1 << 20;
-        for (var i = 0; i < count; i++) wc.SendMessage(new Byte[16]);
+        for (var i = 0; i < count; i++) wc.SendMessage(NewRequest(new Byte[16]));
         await tcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
         wc.Close("warmup");
     }
@@ -216,7 +235,7 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
             {
                 var payload = new Byte[32];
                 payload[0] = (Byte)(i & 0xFF);
-                c.SendMessage(payload);
+                c.SendMessage(NewRequest(payload));
                 if (i % 100 == 0) await Task.Yield();
             }
         }).ToArray();
@@ -336,7 +355,7 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
             {
                 var payload = new Byte[16];
                 payload[0] = (Byte)(i & 0xFF);
-                c.SendMessage(payload);
+                c.SendMessage(NewRequest(payload));
                 if (i % 100 == 0) await Task.Yield();
             }
         }).ToArray();

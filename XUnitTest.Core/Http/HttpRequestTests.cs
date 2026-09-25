@@ -182,4 +182,136 @@ public class HttpRequestTests
         var ok = req.Parse(pk);
         Assert.False(ok);
     }
+
+    [Fact(DisplayName = "ParseFormData 链式跨段：多字节字符被段边界截断仍正确解码")]
+    public void ParseFormData_Chained_MultiByteSplit()
+    {
+        var head = "------WebKitFormBoundary3ZXeqQWNjAzojVR7\r\n" +
+            "Content-Disposition: form-data; name=\"name\"\r\n\r\n" +
+            "大石头\r\n" +
+            "------WebKitFormBoundary3ZXeqQWNjAzojVR7\r\n" +
+            "Content-Disposition: form-data; name=\"avatar\"; filename=\"logo.bin\"\r\n" +
+            "Content-Type: application/octet-stream\r\n\r\n";
+        var fileData = new Byte[256];
+        for (var i = 0; i < fileData.Length; i++) fileData[i] = (Byte)i;
+        var tail = "\r\n------WebKitFormBoundary3ZXeqQWNjAzojVR7--\r\n";
+
+        var raw = head.GetBytes();
+        // 把“大石头”的 UTF-8 字节切在字符中间（首字节在上一段，其余字节在下一段）
+        var mark = "大石头".GetBytes();
+        var pos = raw.AsSpan().IndexOf(mark);
+        Assert.True(pos > 0);
+        var split = pos + 1;
+
+        IPacket pk = new ArrayPacket(raw[..split]);
+        pk.Append(new ArrayPacket(raw[split..]));
+        pk.Append(new ArrayPacket(fileData[..100]));
+        pk.Append(new ArrayPacket(fileData[100..]));
+        pk.Append(new ArrayPacket(tail.GetBytes()));
+
+        var req = new HttpRequest
+        {
+            ContentType = "multipart/form-data;boundary=----WebKitFormBoundary3ZXeqQWNjAzojVR7",
+            Body = pk
+        };
+
+        var dic = req.ParseFormData();
+        Assert.Equal("大石头", dic["name"]);
+
+        var av = dic["avatar"] as FormFile;
+        Assert.NotNull(av);
+        Assert.Equal("logo.bin", av.FileName);
+        Assert.Equal((Int64)fileData.Length, av.Length);
+        Assert.Equal(fileData, av.OpenReadStream()!.ReadBytes(-1));
+    }
+
+    [Fact(DisplayName = "ParseFormData 池化主体：文本字段不残留切片，文件数据共享引用")]
+    public void ParseFormData_OwnerBody_NoLeak()
+    {
+        var raw = ("------XBoundary\r\n" +
+            "Content-Disposition: form-data; name=\"name\"\r\n\r\n" +
+            "大石头\r\n" +
+            "------XBoundary\r\n" +
+            "Content-Disposition: form-data; name=\"avatar\"; filename=\"logo.bin\"\r\n" +
+            "Content-Type: application/octet-stream\r\n\r\n" +
+            "FILE-DATA-0123456789\r\n" +
+            "------XBoundary--\r\n").GetBytes();
+
+        var body = new OwnerPacket(raw.Length);
+        raw.CopyTo(body.GetSpan());
+
+        var req = new HttpRequest
+        {
+            ContentType = "multipart/form-data;boundary=----XBoundary",
+            Body = body
+        };
+
+        var dic = req.ParseFormData();
+        Assert.Equal("大石头", dic["name"]);
+
+        var av = dic["avatar"] as FormFile;
+        Assert.NotNull(av);
+        Assert.Equal("FILE-DATA-0123456789", av.OpenReadStream()!.ReadBytes(-1).AsSpan().ToStr());
+
+        // 主体句柄(1) + 文件数据共享切片(1)；文本字段不应残留句柄
+        Assert.Equal(2, body.RefCount);
+
+        // 释放主体句柄后，文件数据仍可读取（引用计数共享）
+        req.Body = null;
+        body.Dispose();
+        Assert.Equal("FILE-DATA-0123456789", av.OpenReadStream()!.ReadBytes(-1).AsSpan().ToStr());
+
+        av.Data.TryDispose();
+    }
+
+    [Fact(DisplayName = "ParseFormData 带引号 boundary：仍可正确解析")]
+    public void ParseFormData_QuotedBoundary()
+    {
+        var boundary = "----MyBoundary42";
+        var raw = ($"--{boundary}\r\n" +
+            "Content-Disposition: form-data; name=\"name\"\r\n\r\n" +
+            "大石头\r\n" +
+            $"--{boundary}--\r\n").GetBytes();
+
+        var req = new HttpRequest
+        {
+            ContentType = $"multipart/form-data; boundary=\"{boundary}\"",
+            Body = new ArrayPacket(raw)
+        };
+
+        var dic = req.ParseFormData();
+        Assert.Equal("大石头", dic["name"]);
+    }
+
+    [Fact(DisplayName = "ParseFormData 空文本值与零字节文件：正常解析")]
+    public void ParseFormData_EmptyValue_And_EmptyFile()
+    {
+        var boundary = "----EmptyBd";
+        var head = $"--{boundary}\r\n" +
+            "Content-Disposition: form-data; name=\"note\"\r\n\r\n" +   // 空文本值
+            "\r\n" +
+            $"--{boundary}\r\n" +
+            "Content-Disposition: form-data; name=\"avatar\"; filename=\"empty.bin\"\r\n" +
+            "Content-Type: application/octet-stream\r\n\r\n";           // 零字节文件
+        var tail = $"\r\n--{boundary}--\r\n";
+
+        // 链式：文本区在节点1，尾标记在节点2
+        IPacket pk = new ArrayPacket(head.GetBytes());
+        pk.Append(new ArrayPacket(tail.GetBytes()));
+
+        var req = new HttpRequest
+        {
+            ContentType = $"multipart/form-data; boundary={boundary}",
+            Body = pk
+        };
+
+        var dic = req.ParseFormData();
+        Assert.Equal("", dic["note"]);
+
+        var av = dic["avatar"] as FormFile;
+        Assert.NotNull(av);
+        Assert.Equal(0L, av.Length);
+        Assert.True(av.IsEmpty);
+        Assert.Empty(av.OpenReadStream()!.ReadBytes(-1));
+    }
 }

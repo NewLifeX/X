@@ -5,6 +5,7 @@ using NewLife;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Remoting;
 using Xunit;
@@ -40,7 +41,7 @@ public class HttpServerFixture : IDisposable
         server.Map("/form", new FormEchoHandler());
         server.Map("/upload", new UploadEchoHandler());
 
-        server.MapController<ApiController>("/api");
+        server.MapController<IntegrationInfoController>("/api");
         server.Map("/status", new StatusCodeHandler());
         server.Map("/ws", new IntegrationWebSocketHandler());
 
@@ -51,6 +52,12 @@ public class HttpServerFixture : IDisposable
     }
 
     public void Dispose() => Server?.Dispose();
+}
+
+/// <summary>集成测试控制器：/api/info 返回机器与状态信息（原外部 Remoting ApiController 改本地实现）</summary>
+class IntegrationInfoController
+{
+    public Object Info(String? state) => new { MachineName = Environment.MachineName, State = state ?? "", Time = DateTime.Now };
 }
 
 /// <summary>自定义 HttpHandler</summary>
@@ -103,7 +110,7 @@ class UploadEchoHandler : IHttpHandler
 /// <summary>集成测试专用 WebSocket 处理器：文本回显，二进制原样回显</summary>
 class IntegrationWebSocketHandler : WebSocketHandler
 {
-    public override void ProcessMessage(NewLife.Http.WebSocket socket, WebSocketMessage message)
+    public override void ProcessMessage(NewLife.Http.WebSocket socket, WsMessage message)
     {
         if (message.Type == WebSocketMessageType.Text)
         {
@@ -304,15 +311,8 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
         var wait = new TaskCompletionSource<String>();
         ws.Received += (s, e) =>
         {
-            if (e.Message is WebSocketMessage m && m.Type == WebSocketMessageType.Text)
-            {
-                var str = m.Payload?.ToStr() ?? String.Empty;
-                wait.TrySetResult(str);
-            }
-            else
-            {
-                wait.TrySetResult(e.Packet?.ToStr() ?? String.Empty);
-            }
+            if (e.Message is WsMessage m && m.Type == WebSocketMessageType.Text)
+                wait.TrySetResult(m.Payload?.ToStr() ?? String.Empty);
         };
 
         await ws.SendTextAsync(text);
@@ -342,8 +342,14 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
         var wait = new TaskCompletionSource<Byte[]>();
         ws.Received += (s, e) =>
         {
-            if (e.Message is WebSocketMessage m && m.Type == WebSocketMessageType.Binary)
-                wait.TrySetResult(m.Payload?.ToArray() ?? []);
+            if (e.Message is WsMessage m && m.Type == WebSocketMessageType.Binary)
+            {
+                // 交付契约：事件内读满，数据物化后入信号
+                var all = m.Body!.ReadAllAsync().AsTask().GetAwaiter().GetResult();
+                var binary = all.ToArray();
+                all.TryDispose();
+                wait.TrySetResult(binary);
+            }
         };
 
         await ws.SendBinaryAsync(new ArrayPacket(data));

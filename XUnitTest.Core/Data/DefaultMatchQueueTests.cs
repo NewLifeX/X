@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using NewLife;
 using NewLife.Data;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Data;

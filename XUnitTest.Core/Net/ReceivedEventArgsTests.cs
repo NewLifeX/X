@@ -30,7 +30,6 @@ public class ReceivedEventArgsTests
         Assert.Null(e2.UserState);
         Assert.Null(e2.Local);
         Assert.Null(e2.Remote);
-        Assert.Null(e2.Context);
 
         ReceivedEventArgs.Return(e2);
     }

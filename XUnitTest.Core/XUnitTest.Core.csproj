@@ -44,7 +44,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Remoting\ApiHttpClientRaceTests.cs" />
-    <Compile Include="Remoting\ApiHttpClientTests.cs" />
+    <!-- v12 破坏性变更：ApiHttpClientTests 依赖外部 Remoting 的 ApiServer，待下游 v12 大版本适配后恢复项目引用
+    <Compile Include="Remoting\ApiHttpClientTests.cs" />-->
     <Compile Include="Remoting\ApiHttpClientUnitTests.cs" />
     <Compile Include="Remoting\ConfigServiceResolverTests.cs" />
     <Compile Include="Remoting\LoadBalancerTests.cs" />
@@ -61,7 +62,6 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="NewLife.Modbus" Version="2.0.2026.610" />
-    <PackageReference Include="NewLife.Remoting" Version="3.8.2026.706" />
     <PackageReference Include="NewLife.UnitTest" Version="1.1.2026.102" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
@@ -76,6 +76,10 @@
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
     <ProjectReference Include="..\NewLife.Security\NewLife.Security.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- v12 破坏性变更：外部 Remoting 仓库（ApiServer/ApiClient 等旧栈重度用户）待其 v12 大版本适配后恢复项目引用；
+         当前仅在本测试项目临时停用相关引用与文件，NewLife.Core 内 NewLife.Remoting 命名空间类型不受影响 -->
   </ItemGroup>
   <ItemGroup>
     <None Update="Algorithms\sampled.csv">
