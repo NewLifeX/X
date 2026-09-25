@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 
 namespace NewLife.Net;
@@ -86,6 +87,31 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <remarks>用于记录关键操作的性能追踪</remarks>
     public ITracer? Tracer { get; set; }
 
+    /// <summary>协议编解码器。非空时启用协议模式：数据经数据管道定界，头部到齐即交付消息帧；发送经协议构建整帧</summary>
+    /// <remarks>
+    /// <para>仅流式会话（TCP 等 <see cref="IStreamSession"/>）支持协议模式，请在打开之前设置。</para>
+    /// <para>协议模式：数据经消息泵定界后交付（<see cref="Received"/> 事件）；消息经 <see cref="SendMessage(IMessage)"/> 发送。</para>
+    /// </remarks>
+    public IMessageCodec? Protocol { get; set; }
+
+    /// <summary>消息泵最大缓存字节数（协议模式下无法定界的残余上限），默认 1M。0 表示不限制</summary>
+    /// <remarks>残余达到上限说明对端数据与协议不匹配或已损坏，消息泵随即报错并关闭会话，避免连接僵死</remarks>
+    public Int32 MaxCache { get; set; } = 1024 * 1024;
+
+    /// <summary>请求-响应匹配队列。协议模式下等待响应时使用，首次等待时自动创建，可注入共享或自定义实现</summary>
+    public IMatchQueue? MatchQueue { get; set; }
+
+    /// <summary>请求-响应匹配等待超时（毫秒）。默认30_000</summary>
+    public Int32 MatchTimeout { get; set; } = 30_000;
+
+    /// <summary>最大并发处理数。协议模式下消息处理并发度：1=串行（默认，同连接依次处理）；大于1=并行派发（兼作并发上限）</summary>
+    /// <remarks>
+    /// <para>并行派发前会先物化流式消息体（一次拷贝），使消息脱离数据管道独立可用；因此并行要求业务处理器线程安全。</para>
+    /// <para>并行下同一连接的多个消息处理顺序不定（SRMP 按序列号配对，天然无顺序依赖）；客户端多路复用并发请求时，服务端设置大于1可提升吞吐。</para>
+    /// <para>请在打开之前设置；信号量在首次需要时创建，运行中修改不追溯。</para>
+    /// </remarks>
+    public Int32 MaxConcurrency { get; set; } = 1;
+
     #endregion 属性
 
     #region 构造
@@ -116,6 +142,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             OnError("Dispose", ex);
         }
+
+        _concurrency?.Dispose();
+        _concurrency = null;
     }
 
     /// <summary>已重载。返回本地地址字符串</summary>
@@ -169,25 +198,15 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
             Active = true;
 
-            if (Pipeline is Pipeline pipe && pipe.Handlers.Count > 0)
-            {
-                WriteLog("初始化管道：");
-                foreach (var handler in pipe.Handlers)
-                {
-                    WriteLog("    {0}", handler);
-                }
-            }
-
-            if (Pipeline != null)
-            {
-                // 使用上下文池调用Open
-                var ctx = CreateContext(this);
-                Pipeline.Open(ctx);
-                ReturnContext(ctx);
-            }
-
-            // 触发打开完成的事件（状态已变更，管道已打开）
+            // 触发打开完成的事件（状态已变更）
             Opened?.Invoke(this, EventArgs.Empty);
+
+            // 协议模式：数据经数据管道定界，启动消息泵（先于接收环，首个数据到达前就绪）
+            if (Protocol != null)
+            {
+                if (AutoReceive) StartMessagePump();
+                else WriteLog("协议模式需要自动接收（AutoReceive），拉取模式下消息泵未启动，收到的是原始字节");
+            }
 
             // 最后开始接收，避免事件处理阻塞接收初始化；拉取模式（AutoReceive=false）不启动接收环
             if (AutoReceive) StartReceive();
@@ -232,13 +251,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             CloseReason = reason;
 
-            if (Pipeline != null)
-            {
-                // 使用上下文池调用Close
-                var ctx = CreateContext(this);
-                Pipeline.Close(ctx, reason);
-                ReturnContext(ctx);
-            }
+            // 协议模式：先停消息泵（取消挂起读取），随后关闭处理器链与会话
+            StopMessagePump();
+
+            // 取消挂起的请求-响应等待，避免调用方悬挂
+            MatchQueue?.Clear();
 
             var rs = await OnCloseAsync(reason ?? (GetType().Name + "Close"), cancellationToken).ConfigureAwait(false);
 
@@ -766,7 +783,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         var local = se.ReceiveMessageFromPacketInfo.Address;
         using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", new { total, local, remote }, total);
         ReceivedEventArgs? e = null;
-        NetHandlerContext? ctx = null;
         try
         {
             LastTime = DateTime.Now;
@@ -777,6 +793,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
             if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", total, pk.ToHex(LogDataLength));
 
+            // 协议模式：数据已由 OnPreReceive 投递数据管道，由消息泵定界交付（头部到齐即出消息）
+            if (_pumpTask != null) return;
+
             if (Local.IsTcp) remote = Remote.EndPoint;
 
             e = ReceivedEventArgs.Rent();
@@ -785,19 +804,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             e.Local = local;
             e.Remote = remote;
 
-            // 不管Tcp/Udp，都在这使用管道
-            var pp = Pipeline;
-            if (pp == null)
-                OnReceive(e);
-            else
-            {
-                ctx = CreateContext(ss);
-                ctx.Data = e;
-                ctx.EventArgs = se;
-
-                // 进入管道处理（整轮数据包入口），如果有一个或多个结果通过Finish来处理
-                pp.Read(ctx, pk);
-            }
+            OnReceive(e);
         }
         catch (Exception ex)
         {
@@ -807,7 +814,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         finally
         {
             // 无论正常或异常，都归还池化对象，避免泄漏（缓冲归属由 ProcessEvent 轮末裁决）
-            if (ctx != null) ReturnContext(ctx);
             if (e != null) ReceivedEventArgs.Return(e);
         }
     }
@@ -827,6 +833,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>数据到达事件</summary>
     public event EventHandler<ReceivedEventArgs>? Received;
 
+    /// <summary>把会话收到的数据/消息升格到本服务器层（内部）。协议模式下由会话内的消息路径调用</summary>
+    /// <param name="sender">事件源（会话）</param>
+    /// <param name="e">接收事件参数</param>
+    internal void RaiseReceiveInternal(Object sender, ReceivedEventArgs e) => RaiseReceive(sender, e);
+
     /// <summary>触发数据到达事件</summary>
     /// <param name="sender"></param>
     /// <param name="e">接收事件参数</param>
@@ -845,144 +856,388 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     #endregion 接收
 
-    #region 消息处理
+    #region 消息泵
+    private CancellationTokenSource? _pumpCts;
+    private Task? _pumpTask;
 
-    /// <summary>消息管道。收发消息都经过管道处理器，进行协议编码解码</summary>
+    /// <summary>启动消息泵。协议模式（<see cref="Protocol"/> 非空）下由打开流程与服务端会话启动流程调用</summary>
+    /// <remarks>仅流式会话（<see cref="IStreamSession"/>）支持；首次访问数据管道确保其在接收环启动前就绪。调用方须保证时序（每次会话生命周期至多一次）</remarks>
+    protected void StartMessagePump()
+    {
+        if (this is not IStreamSession stream) return;
+
+        var codec = Protocol;
+        if (codec == null) return;
+
+        // 触建数据管道（接收环启动前就绪，首个数据到达即可投递）
+        var reader = stream.Pipe.Reader;
+
+        var cts = new CancellationTokenSource();
+        _pumpCts = cts;
+
+        WriteLog("启动消息泵：{0}", codec);
+        _pumpTask = PumpAsync(new MessagePump(codec) { MaxCache = MaxCache }, reader, cts.Token);
+    }
+
+    /// <summary>停止消息泵。取消挂起读取，泵任务随后自行退出（数据管道完成同样唤醒读取）</summary>
+    private void StopMessagePump()
+    {
+        var cts = Interlocked.Exchange(ref _pumpCts, null);
+        if (cts != null)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    /// <summary>消息泵循环。定界消息帧并逐帧交付；同连接消息串行处理</summary>
+    /// <param name="pump">消息帧泵</param>
+    /// <param name="reader">数据管道读取器</param>
+    /// <param name="cancellationToken">取消通知（会话关闭）</param>
+    private async Task PumpAsync(MessagePump pump, PipeReader reader, CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            IMessage? message;
+            try
+            {
+                message = await pump.ReadAsync(reader, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                OnError("MessagePump", ex);
+
+                // 数据流不可恢复（协议错误/IO 异常）：关闭会话，避免半开连接僵死
+                Close("MessagePumpError");
+                break;
+            }
+
+            // 数据管道完成（连接关闭）：退出
+            if (message == null) break;
+
+            // 响应消息若可能有等待者，先物化流式体：事件链可观察读取，匹配交付后等待方可异步消费
+            if (MatchQueue != null && message.Reply && message.Body is { IsStreaming: true })
+            {
+                try
+                {
+                    var all = await message.Body.ReadAllAsync(cancellationToken).ConfigureAwait(false);
+                    message.SetBody(all);
+                }
+                catch (OperationCanceledException)
+                {
+                    message.TryDispose();
+                    continue;
+                }
+            }
+
+            // 并行模式：先物化流式体（一次拷贝换并行安全），信号量约束并发后派发；处理顺序不定（SRMP 按序列号配对）
+            if (MaxConcurrency > 1)
+            {
+                if (message.Body is { IsStreaming: true })
+                {
+                    try
+                    {
+                        var all = await message.Body.ReadAllAsync(cancellationToken).ConfigureAwait(false);
+                        message.SetBody(all);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        message.TryDispose();
+                        continue;
+                    }
+                }
+
+                try
+                {
+                    await Concurrency.WaitAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    message.TryDispose();
+                    break;
+                }
+
+                // Task.Run 派发：async 方法首段同步执行，须真正切换线程池，否则同步处理器会阻塞泵循环
+                _ = Task.Run(() => ProcessMessageAsync(message, cancellationToken, true));
+                continue;
+            }
+
+            // 串行模式：同连接依次处理（前一条收尾后才读下一帧）
+            await ProcessMessageAsync(message, cancellationToken, false).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>处理单个消息：统一进入事件链（可观测）→ 响应尝试匹配交付 → 收尾</summary>
+    /// <param name="message">消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <param name="releaseSlot">完成后是否释放并发信号量（并行派发为 true）</param>
     /// <remarks>
-    /// 1，接收数据解码时，从前向后通过管道处理器；
-    /// 2，发送数据编码时，从后向前通过管道处理器；
+    /// <para>交付收尾：未交付等待方的消息丢弃未读负载对齐帧尾，随后释放；命中交付的消息由等待方释放。</para>
+    /// <para>并行模式（<see cref="MaxConcurrency"/> 大于1）下由独立任务调用，异常统一经 <see cref="OnError"/> 上报，不向任务外部抛出。</para>
     /// </remarks>
-    public IPipeline? Pipeline { get; set; }
-
-    /// <summary>创建上下文</summary>
-    /// <param name="session">远程会话</param>
-    /// <returns></returns>
-    protected internal virtual NetHandlerContext CreateContext(ISocketRemote session)
+    private async Task ProcessMessageAsync(IMessage message, CancellationToken cancellationToken, Boolean releaseSlot)
     {
-        // 从池中借用上下文
-        var context = NetHandlerContext.Rent();
-        context.Pipeline = Pipeline;
-        context.Session = session;
-        context.Owner = session;
-
-        return context;
-    }
-
-    /// <summary>归还上下文到对象池</summary>
-    /// <param name="context">上下文</param>
-    protected internal virtual void ReturnContext(IHandlerContext? context)
-    {
-        if (context is NetHandlerContext nhc)
-        {
-            nhc.Reset();
-            NetHandlerContext.Return(nhc);
-        }
-    }
-
-    /// <summary>通过管道发送消息，不等待响应。管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</summary>
-    /// <param name="message">消息</param>
-    /// <param name="context">处理器上下文。用于在收包处理链路中复用解码上下文携带的数据</param>
-    /// <returns></returns>
-    public virtual Int32 SendMessage(Object message, IHandlerContext? context)
-    {
-        if (context == null) return SendMessage(message);
-
-        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
-
-        using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
         try
         {
-            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
+            var delivered = false;
+            try
+            {
+                await OnMessageAsync(message).ConfigureAwait(false);
 
-            // 复用外部上下文。该上下文通常来自接收链路（池化对象），仅建议在当前同步调用栈内使用。
-            // 不覆盖 Owner，避免把接收链路上下文错误绑定到其它会话。
-            context.Pipeline ??= Pipeline;
-
-            return (Int32)(Pipeline.Write(context, message) ?? 0);
+                delivered = TryMatchResponse(message);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                OnError("OnMessage", ex);
+            }
+            finally
+            {
+                // 交付收尾：未交付等待方的消息丢弃未读负载对齐帧尾，随后释放
+                if (!delivered)
+                {
+                    try
+                    {
+                        await MessagePump.DiscardAsync(message, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { }
+                    finally
+                    {
+                        message.TryDispose();
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, message);
-            throw;
-        }
-    }
-
-    /// <summary>通过管道发送消息，不等待响应</summary>
-    /// <param name="message">消息</param>
-    /// <returns>发送字节数</returns>
-    public virtual Int32 SendMessage(Object message)
-    {
-        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
-
-        using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
-        var ctx = CreateContext(this);
-        try
-        {
-            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
-
-            return (Int32)(Pipeline.Write(ctx, message) ?? 0);
-        }
-        catch (Exception ex)
-        {
-            span?.SetError(ex, message);
-            throw;
+            // 兕底：防止 fire-and-forget 任务异常未观察
+            OnError("ProcessMessage", ex);
+            message.TryDispose();
         }
         finally
         {
-            // 写入完成后归还上下文
-            ReturnContext(ctx);
+            // 会话销毁时信号量可能已释放：任务收尾晚于 Dispose 属正常时序，忽略该异常
+            if (releaseSlot)
+            {
+                try { Concurrency.Release(); }
+                catch (ObjectDisposedException) { }
+            }
         }
     }
 
-    /// <summary>通过管道发送消息并等待响应</summary>
-    /// <param name="message">消息</param>
-    /// <param name="cancellationToken">取消通知</param>
-    /// <returns>响应消息</returns>
-    public virtual ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
-    {
-        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
+    private SemaphoreSlim? _concurrency;
 
-        // 非异步实现：消除 async 状态机分配，Span 和 CancellationTokenRegistration 由 PooledValueTaskSource.GetResult 自动释放
-        var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
-        var ctx = CreateContext(this);
+    /// <summary>并发信号量。并行模式（<see cref="MaxConcurrency"/> 大于1）下约束同连接并发处理数，等待时形成背压</summary>
+    private SemaphoreSlim Concurrency => _concurrency ??= new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
+
+    /// <summary>尝试把响应消息匹配给等待中的请求（协议模式）。命中则交付等待方，跳过收尾</summary>
+    /// <param name="message">收到的消息</param>
+    /// <returns>是否已匹配交付</returns>
+    /// <remarks>
+    /// <para>无匹配队列（未发过等待请求）或无配对协议时快速返回，不产生额外开销；
+    /// 消息是否可配对由协议 matcher 判定（如 SRMP 要求应答消息+序列号相等；无方向协议可用恒真 matcher）。</para>
+    /// <para>流式负载在事件交付前物化为内存模式：事件链可观察读取，等待方在任意时机异步消费（一次拷贝换正确性）。
+    /// 未命中时消息按普通流程收尾，负载随消息归还。</para>
+    /// </remarks>
+    private Boolean TryMatchResponse(IMessage message)
+    {
+        var queue = MatchQueue;
+        if (queue == null) return false;
+        if (Protocol is not IMessageMatcher matcher) return false;
+
+        return queue.Match(this, message, message, (req, resp) =>
+            req is IMessage rq && resp is IMessage rs && matcher.Match(rq, rs));
+    }
+
+    /// <summary>收到消息（异步）。协议模式（<see cref="Protocol"/> 非空）下由消息泵逐帧调用</summary>
+    /// <param name="message">消息（头部字段就位、体已绑定）</param>
+    /// <remarks>
+    /// <para>默认触发同步 <see cref="Received"/> 事件链。处理器返回后消息进入收尾：未读体被丢弃对齐帧尾、消息释放。</para>
+    /// <para>需要异步读取流式主体的场景，继承会话重写本方法，在 await 期间消息与数据窗口保持有效；同步事件处理器内需要流式数据时请先物化（<see cref="LimitedReader.ReadAllAsync"/>，数据未到齐会等待——串行语义下正确），或物化后交给后台异步链处理。</para>
+    /// </remarks>
+    protected virtual ValueTask OnMessageAsync(IMessage message)
+    {
+        OnMessage(message);
+
+        return default;
+    }
+
+    /// <summary>收到消息。协议模式（<see cref="Protocol"/> 非空）下由消息泵逐帧调用</summary>
+    /// <param name="message">消息（头部字段就位、体已绑定）</param>
+    /// <remarks>
+    /// <para>构造接收事件参数并进入 <see cref="OnReceive"/> 事件链；消息体未读部分由消息泵在交付后丢弃对齐下一帧。</para>
+    /// <para>事件参数的 <see cref="ReceivedEventArgs.Packet"/> 为消息负载视图（整帧快路径），流式模式下为 null；与消息同生命周期（处理器返回后失效），需要留存请先物化或切出共享句柄。业务请统一经 <see cref="ReceivedEventArgs.Message"/> 读取头部与流式体。</para>
+    /// </remarks>
+    protected virtual void OnMessage(IMessage message)
+    {
+        var e = ReceivedEventArgs.Rent();
         try
         {
-            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
+            e.Local = Local.Address;
+            e.Remote = Remote.EndPoint;
+            e.Packet = message.Payload;
+            e.Message = message;
 
-            var source = PooledValueTaskSource.Rent();
-            source.AttachSpan(span);
-            ctx["TaskSource"] = source;
-            ctx["Span"] = span;
+            OnReceive(e);
+        }
+        finally
+        {
+            ReceivedEventArgs.Return(e);
+        }
+    }
+    #endregion
 
-            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
+    #region 消息处理
 
-            // 写入完成后立即归还上下文，source已加入匹配队列，不再需要上下文
-            ReturnContext(ctx);
-            ctx = null;
+    /// <summary>发送消息。经协议（<see cref="Protocol"/>）构建整帧后发送，不等待响应</summary>
+    /// <param name="message">消息</param>
+    /// <returns>发送字节数</returns>
+    /// <exception cref="InvalidOperationException">未设置协议</exception>
+    public virtual Int32 SendMessage(IMessage message)
+    {
+        if (message == null) throw new ArgumentNullException(nameof(message));
 
-            if (rs < 0)
+        var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
+
+        using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
+        try
+        {
+            var data = codec.Build(message);
+            if (data == null) return 0;
+
+            try
             {
-                source.TrySetResult(TaskEx.CompletedTask);
-                return source.ValueTask;
+                return Send(data);
             }
-
-            // 注册取消令牌，GetResult 中自动释放注册
-            source.RegisterCancellation(cancellationToken);
-
-            // 直接返回 ValueTask，零额外分配
-            return source.ValueTask;
+            finally
+            {
+                // 发送为借阅消费语义：构建产物由本层兜底归还（拥有句柄入发送管道时所有权转移，此处为幂等兜底）
+                data.TryDispose();
+            }
         }
         catch (Exception ex)
         {
-            if (ex is TaskCanceledException)
-                span?.AppendTag(ex.Message);
-            else
-                span?.SetError(ex, null);
-            span?.Dispose();
-
-            if (ctx != null) ReturnContext(ctx);
+            span?.SetError(ex, message);
             throw;
         }
+    }
+
+    /// <summary>发送消息并等待匹配的响应（协议模式）。请求入匹配队列，响应到达时完成</summary>
+    /// <param name="request">请求消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息；调用方负责消费负载并释放（<see cref="IDisposable.Dispose"/> 或读满负载）</returns>
+    /// <exception cref="InvalidOperationException">未设置协议</exception>
+    /// <exception cref="NotSupportedException">协议未实现请求-响应配对（<see cref="IMessageMatcher"/>）</exception>
+    /// <remarks>
+    /// <para>所有响应消息先进入 <see cref="Received"/> 事件链（可观测），随后命中配对的交付本等待方；未命中的按普通消息处理。配对语义由协议的 <see cref="IMessageMatcher.Match"/> 决定。</para>
+    /// <para>交付的响应消息体为内存模式（流式负载在事件交付前物化），可任意异步消费；等待超时为 <see cref="MatchTimeout"/>。</para>
+    /// </remarks>
+    public virtual ValueTask<IMessage> SendMessageAsync(IMessage request, CancellationToken cancellationToken = default)
+    {
+        if (request == null) throw new ArgumentNullException(nameof(request));
+
+        var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
+        if (codec is not IMessageMatcher) throw new NotSupportedException($"协议 [{codec.GetType().Name}] 未实现请求-响应配对（IMessageMatcher），无法等待响应");
+        if (this is not IStreamSession) throw new NotSupportedException($"会话类型 [{GetType().Name}] 不支持请求-响应等待（响应匹配依赖消息泵，仅流式会话可用）");
+
+        var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", request);
+        var source = PooledValueTaskSource<IMessage>.Rent();
+        source.AttachSpan(span);
+
+        try
+        {
+            var queue = MatchQueue ??= new DefaultMatchQueue();
+            queue.Add(this, request, MatchTimeout, source);
+
+            SendMessage(request);
+        }
+        catch (Exception ex)
+        {
+            // 请求未能入队或送出：异常交给等待方（await 时抛出），资源随 GetResult 归还
+            source.TrySetException(ex);
+        }
+
+        source.RegisterCancellation(cancellationToken);
+        return source.ValueTask;
+    }
+
+    /// <summary>发送流式消息（协议模式）：先发协议头部（声明体长），再把数据流内容经发送管道分块送出</summary>
+    /// <param name="message">消息（头部字段就位）</param>
+    /// <param name="body">消息体数据流</param>
+    /// <param name="bodyLength">消息体字节数；负数时从可定位流推导（<see cref="Stream.CanSeek"/>）</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>已写入发送管道的内容字节数</returns>
+    /// <remarks>
+    /// <para>头部与流内容共用发送管道单出口（无交错），整条消息保持一条逻辑消息语义；大消息全程只在读块上驻留，不产生整段内存。</para>
+    /// <para>流提前结束（不足声明长度）或管道中止时抛出异常，已入管道部分仍会尽力送出。</para>
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">未设置协议</exception>
+    /// <exception cref="ArgumentException">体长未知且流不可定位</exception>
+    /// <exception cref="NotSupportedException">会话不支持流式发送（需要发送管道）</exception>
+    public virtual async ValueTask<Int64> SendMessageAsync(IMessage message, Stream body, Int64 bodyLength = -1, CancellationToken cancellationToken = default)
+    {
+        if (message == null) throw new ArgumentNullException(nameof(message));
+        if (body == null) throw new ArgumentNullException(nameof(body));
+        if (this is not TcpSession tcp) throw new NotSupportedException($"会话类型 [{GetType().Name}] 不支持流式发送（需要发送管道）");
+
+        var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
+
+        // 长度未知：从可定位流推导（协议头须先声明长度）
+        if (bodyLength < 0)
+        {
+            if (!body.CanSeek) throw new ArgumentException("无法预知流长度：请提供 bodyLength 或使用可定位流", nameof(bodyLength));
+            bodyLength = body.Length - body.Position;
+        }
+
+        // 头部先行：与流内容共用发送管道（单出口，无交错）
+        var header = codec.BuildHeader(message, bodyLength);
+        try
+        {
+            await tcp.SendAsync(header, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            // 入队后所有权归发送管道，此处为幂等兜底
+            header.TryDispose();
+        }
+
+        return await tcp.SendAsync(body, bodyLength, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>协议模式的响应等待包装（Object 版返回）</summary>
+    /// <param name="message">请求消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息</returns>
+    private async ValueTask<Object> SendMessageAsyncForObject(IMessage message, CancellationToken cancellationToken)
+        => await SendMessageAsync(message, cancellationToken).ConfigureAwait(false);
+
+    /// <summary>发送消息，不等待响应。经协议（<see cref="Protocol"/>）构建整帧后发送</summary>
+    /// <param name="message">消息对象（须实现 <see cref="IMessage"/>）</param>
+    /// <returns>发送字节数</returns>
+    /// <exception cref="InvalidOperationException">未设置协议或消息类型不支持</exception>
+    public virtual Int32 SendMessage(Object message)
+    {
+        // 协议模式：消息经协议构建整帧发送
+        if (Protocol != null && message is IMessage msg) return SendMessage(msg);
+
+        throw new InvalidOperationException($"Protocol not set or message is not IMessage for session [{Name}]");
+    }
+
+    /// <summary>发送消息并等待响应（协议模式）。经协议构建整帧发送，收到匹配响应后交付消息本体</summary>
+    /// <param name="message">请求消息（须实现 <see cref="IMessage"/>）</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息</returns>
+    /// <exception cref="InvalidOperationException">未设置协议或消息类型不支持</exception>
+    public virtual ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
+    {
+        // 协议模式：消息经协议构建并等待匹配响应（交付消息本体）
+        if (Protocol != null && message is IMessage msg) return SendMessageAsyncForObject(msg, cancellationToken);
+
+        throw new InvalidOperationException($"Protocol not set or message is not IMessage for session [{Name}]");
     }
 
     /// <summary>处理数据帧</summary>
@@ -1008,13 +1263,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="ex">异常</param>
     protected internal virtual void OnError(String action, Exception ex)
     {
-        if (Pipeline != null)
-        {
-            var ctx = CreateContext(this);
-            Pipeline.Error(ctx, ex);
-            ReturnContext(ctx);
-        }
-
         Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex.Message);
         Error?.Invoke(this, new ExceptionEventArgs(action, ex));
     }

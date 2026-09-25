@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 
 namespace NewLife.Net;
@@ -35,7 +36,7 @@ public class NetSession<TServer> : NetSession where TServer : NetServer
 /// <list type="bullet">
 /// <item>模板方法模式 - 通过重载 OnConnected/OnDisconnected/OnReceive 实现业务逻辑</item>
 /// <item>事件驱动模式 - 通过订阅 Connected/Disconnected/Received 事件处理业务</item>
-/// <item>管道处理模式 - 通过 Pipeline 实现协议编解码</item>
+/// <item>协议模式 - 通过 Protocol（IMessageCodec）实现消息定界与编解码</item>
 /// </list>
 /// <para>生命周期：</para>
 /// <list type="number">
@@ -95,7 +96,10 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     public NetUri Remote => Session.Remote;
 
     /// <summary>网络数据处理器</summary>
-    /// <remarks>可作为业务处理实现，也可以作为前置协议解析，由服务器的 CreateHandler 方法创建</remarks>
+    /// <remarks>
+    /// <para>可作为业务处理实现，也可以作为前置协议解析，由服务器的 CreateHandler 方法创建。</para>
+    /// <para>协议模式（<see cref="SessionBase.Protocol"/>）下处理器收到的事件参数同样携带消息对象（<see cref="ReceivedEventArgs.Message"/>）。</para>
+    /// </remarks>
     public INetHandler? Handler { get; set; }
 
     /// <summary>用户会话数据</summary>
@@ -391,42 +395,23 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         return this;
     }
 
-    /// <summary>通过管道发送消息，不等待响应</summary>
-    /// <remarks>管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</remarks>
-    /// <param name="message">应用层消息对象</param>
+    /// <summary>发送消息，不等待响应。经协议（<see cref="SessionBase.Protocol"/>）构建整帧后发送</summary>
+    /// <param name="message">应用层消息对象（须实现 <see cref="IMessage"/>）</param>
     /// <returns>实际发送的字节数</returns>
     public virtual Int32 SendMessage(Object message) => Session.SendMessage(message);
 
-    /// <summary>通过管道发送响应消息</summary>
+    /// <summary>发送响应消息</summary>
     /// <remarks>
-    /// 管道内对消息进行报文封装处理，复用接收链路上下文，使 StandardCodec 等编解码器能通过 GetRequest
-    /// 取到原始请求消息，从而自动构造 Reply=true 且 Sequence 匹配的响应帧。
+    /// 协议模式下，响应消息应已通过 <see cref="IMessage.CreateReply"/> 构造（继承请求的配对键），
+    /// 本方法仅转发发送，不再关联接收上下文。
     /// </remarks>
     /// <param name="message">响应消息对象</param>
-    /// <param name="eventArgs">接收到请求的事件参数，用于关联请求上下文</param>
+    /// <param name="eventArgs">接收到请求的事件参数（保留签名兼容）</param>
     /// <returns>实际发送的字节数</returns>
-    public virtual Int32 SendReply(Object message, ReceivedEventArgs eventArgs)
-    {
-        // TcpSession 继承 SessionBase，可直接复用上下文
-        if (Session is SessionBase sb) return sb.SendMessage(message, eventArgs.Context);
+    public virtual Int32 SendReply(Object message, ReceivedEventArgs eventArgs) => Session?.SendMessage(message) ?? -1;
 
-        // UdpSession 不继承 SessionBase，直接复用接收链路上下文写管道，
-        // 与 SessionBase.SendMessage(message, context) 逻辑保持一致
-        if (eventArgs.Context is IHandlerContext ctx)
-        {
-            var pipeline = Session?.Pipeline;
-            if (pipeline != null)
-            {
-                ctx.Pipeline ??= pipeline;
-                return (Int32)(pipeline.Write(ctx, message) ?? -1);
-            }
-        }
-
-        return Session?.SendMessage(message) ?? -1;
-    }
-
-    /// <summary>异步发送消息并等待响应</summary>
-    /// <remarks>管道内对消息进行报文封装处理，支持超时取消</remarks>
+    /// <summary>异步发送消息并等待响应（协议模式）</summary>
+    /// <remarks>经协议构建整帧发送，收到匹配响应后交付消息本体，支持超时取消</remarks>
     /// <param name="message">请求消息对象</param>
     /// <param name="cancellationToken">取消令牌，用于超时控制</param>
     /// <returns>响应消息对象</returns>

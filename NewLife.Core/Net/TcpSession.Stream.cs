@@ -9,7 +9,7 @@ partial class TcpSession
     #region 入站管道
     /// <summary>数据管道。按需创建：首次访问后，接收数据同时投递到管道供流式消费</summary>
     /// <remarks>
-    /// <para>传统管道（<see cref="SessionBase.Pipeline"/>）按处理链同步处理整轮数据；数据管道提供字节流视角，配合 <see cref="NewLife.Messaging.PacketFramer"/> 支持头部先行与负载流式读取。</para>
+    /// <para>数据管道提供字节流视角，配合消息泵（<see cref="NewLife.Messaging.MessagePump"/>）支持头部先行与负载流式读取。</para>
     /// <para>投递采用共享切片（引用计数），不影响既有处理链；消费方负责消费后推进窗口，达到 <see cref="Pipe.PauseThreshold"/> 时自动暂停接收、消费恢复后自动继续。</para>
     /// </remarks>
     public Pipe Pipe

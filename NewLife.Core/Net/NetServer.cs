@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Threading;
 
@@ -139,16 +140,20 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// </remarks>
     public Int32 SessionTimeout { get; set; }
 
-    /// <summary>消息管道</summary>
+    /// <summary>协议编解码器。非空时启用协议模式：各 TCP 会话数据经数据管道定界，头部到齐即交付消息帧</summary>
+    /// <remarks>创建监听服务时下发到 <see cref="TcpServer"/>，由后者创建会话时设置到会话。请在 <see cref="Start"/> 之前设置。</remarks>
+    public IMessageCodec? Protocol { get; set; }
+
+    /// <summary>消息泵最大缓存字节数（协议模式无法定界的残余上限），默认 1M。0 表示不限制</summary>
+    /// <remarks>创建监听服务时随协议一起下发；残余达到上限说明对端数据与协议不匹配或已损坏，会话被关闭</remarks>
+    public Int32 MaxCache { get; set; } = 1024 * 1024;
+
+    /// <summary>最大并发处理数。协议模式下各会话消息处理并发度，创建监听服务时下发：1=串行（默认），大于1=并行派发（兼作并发上限）</summary>
     /// <remarks>
-    /// <para>收发消息都经过管道处理器，进行协议编码解码。</para>
-    /// <para>处理顺序：</para>
-    /// <list type="number">
-    /// <item>接收数据解码时，从前向后通过管道处理器</item>
-    /// <item>发送数据编码时，从后向前通过管道处理器</item>
-    /// </list>
+    /// <para>并行派发前会先物化流式消息体（一次拷贝），使消息脱离数据管道独立可用；因此并行要求业务处理器线程安全。</para>
+    /// <para>并行下同一连接的多个消息处理顺序不定（SRMP 按序列号配对，天然无顺序依赖）；客户端多路复用并发请求时，服务端设置大于1可提升吞吐。</para>
     /// </remarks>
-    public IPipeline? Pipeline { get; set; }
+    public Int32 MaxConcurrency { get; set; } = 1;
 
     /// <summary>是否使用会话集合</summary>
     /// <remarks>
@@ -273,7 +278,6 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         server.NewSession += Server_NewSession;
 
         if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
-        if (Pipeline != null) server.Pipeline = Pipeline;
 
         // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
         if (SocketLog != null) server.Log = SocketLog;
@@ -340,17 +344,6 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         }
     }
 
-    /// <summary>添加管道处理器</summary>
-    /// <typeparam name="THandler">处理器类型</typeparam>
-    public void Add<THandler>() where THandler : IPipelineHandler, new() => GetPipe().Add(new THandler());
-
-    /// <summary>添加管道处理器</summary>
-    /// <param name="handler">处理器实例</param>
-    public void Add(IPipelineHandler handler) => GetPipe().Add(handler);
-
-    /// <summary>获取或创建管道</summary>
-    /// <returns>管道实例</returns>
-    private IPipeline GetPipe() => Pipeline ??= new Pipeline();
     #endregion
 
     #region 方法
@@ -444,15 +437,6 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                 }
 
                 EnsureCreateServer();
-            }
-        }
-
-        if (Pipeline is Pipeline pipe && pipe.Handlers.Count > 0)
-        {
-            WriteLog("初始化管道：");
-            foreach (var handler in pipe.Handlers)
-            {
-                WriteLog("    {0}", handler);
             }
         }
 
@@ -696,7 +680,10 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     }
 
     /// <summary>为会话创建网络数据处理器</summary>
-    /// <remarks>可作为业务处理实现，也可以作为前置协议解析。子类可重载返回自定义处理器</remarks>
+    /// <remarks>
+    /// <para>可作为业务处理实现，也可以作为前置协议解析。子类可重载返回自定义处理器；返回 null 表示会话不启用处理器。</para>
+    /// <para>会话创建时调用一次，结果绑定到 <see cref="NetSession.Handler"/>，会话后续数据经其 <c>Process</c> 处理。</para>
+    /// </remarks>
     /// <param name="session">网络会话</param>
     /// <returns>处理器实例，默认返回null</returns>
     public virtual INetHandler? CreateHandler(INetSession session) => null;
@@ -794,7 +781,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                 return CreateServer<UdpServer>(address, port, family);
             case NetType.Unix:
                 // Unix域套接字以文件路径为地址，不区分IPv4/IPv6，仅创建单个服务器
-                return [new TcpServer { Local = Local.Clone() }];
+                return [new TcpServer { Local = Local.Clone(), Protocol = Protocol, MaxCache = MaxCache, MaxConcurrency = MaxConcurrency }];
             case NetType.Unknown:
             default:
                 var list = new List<ISocketServer>();
@@ -826,6 +813,21 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                     var svr = new TServer();
                     svr.Local.Address = addr;
                     svr.Local.Port = port;
+                    // 协议模式透传：Tcp/Udp 服务器创建会话时下发到各会话
+                    if (Protocol != null)
+                    {
+                        if (svr is TcpServer tcp)
+                        {
+                            tcp.Protocol = Protocol;
+                            tcp.MaxCache = MaxCache;
+                            tcp.MaxConcurrency = MaxConcurrency;
+                        }
+                        else if (svr is UdpServer udp)
+                        {
+                            udp.Protocol = Protocol;
+                            udp.MaxConcurrency = MaxConcurrency;
+                        }
+                    }
                     //svr.AddressFamily = family;
                     //svr.Tracer = SocketTracer;
 

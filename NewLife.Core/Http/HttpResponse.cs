@@ -15,6 +15,13 @@ public class HttpResponse : HttpBase
 
     /// <summary>状态描述</summary>
     public String? StatusDescription { get; set; }
+
+    /// <summary>流式响应体。设置后发送时先发头部、再流式发送该流，不物化到内存；流所有权移交响应，发送完成后释放</summary>
+    /// <remarks>
+    /// <para>长度可知（可寻址流）时声明 Content-Length，未知长度时使用分块传输（Transfer-Encoding: chunked）。</para>
+    /// <para>与 <see cref="HttpBase.Body"/> 二选一，本属性优先；<see cref="Build"/> 整包构建时会把流物化到 <see cref="HttpBase.Body"/> 并释放。</para>
+    /// </remarks>
+    public Stream? BodyStream { get; set; }
     #endregion
 
     /// <summary>分析第一行</summary>
@@ -45,6 +52,15 @@ public class HttpResponse : HttpBase
     /// <returns></returns>
     public override IOwnerPacket Build()
     {
+        // 流式响应体在整包构建时物化并释放（流式发送路径不会走到这里）
+        var stream = BodyStream;
+        if (stream != null)
+        {
+            BodyStream = null;
+            if (Body == null) Body = (ArrayPacket)stream.ReadBytes(-1);
+            stream.Dispose();
+        }
+
         // 如果响应异常，则使用响应描述作为内容
         if (StatusCode > HttpStatusCode.OK && Body == null && !StatusDescription.IsNullOrEmpty())
         {
@@ -71,7 +87,7 @@ public class HttpResponse : HttpBase
         // 内容长度：存在主体明确长度；否则除非 Transfer-Encoding/Upgrade 才可省略，默认发送 0
         if (length > 0)
             Headers["Content-Length"] = length + "";
-        else if (!Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
+        else if (!Headers.ContainsKey("Content-Length") && !Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
             Headers["Content-Length"] = "0";
 
         if (!ContentType.IsNullOrEmpty()) Headers["Content-Type"] = ContentType;
@@ -126,6 +142,7 @@ public class HttpResponse : HttpBase
                 break;
             case Stream stream:
                 contentType ??= "application/octet-stream";
+                // 物化到内存；大文件流式发送请改用 BodyStream（长度可知时 Content-Length，否则分块传输）
                 Body = (ArrayPacket)stream.ReadBytes(-1);
                 break;
             case String str:

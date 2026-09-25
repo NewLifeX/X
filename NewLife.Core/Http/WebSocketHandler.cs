@@ -1,5 +1,6 @@
 ﻿using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 
 namespace NewLife.Http;
 
@@ -15,7 +16,7 @@ public class WebSocketHandler : IHttpHandler
     public virtual void ProcessRequest(IHttpContext context)
     {
         var ws = context.WebSocket;
-        ws?.Handler = ProcessMessage;
+        ws?.MessageHandler = ProcessMessage;
 
         WriteLog(context, "WebSocket连接 {0}", context.Connection?.Remote);
     }
@@ -23,7 +24,7 @@ public class WebSocketHandler : IHttpHandler
     /// <summary>处理消息。可在子类中重写。</summary>
     /// <param name="socket">WebSocket 会话</param>
     /// <param name="message">消息</param>
-    public virtual void ProcessMessage(WebSocket socket, WebSocketMessage message)
+    public virtual void ProcessMessage(WebSocket socket, WsMessage message)
     {
         var remote = (socket.Context?.Connection?.Remote) ?? throw new ObjectDisposedException(nameof(socket.Context));
 

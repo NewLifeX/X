@@ -30,11 +30,12 @@ public class StaticFilesHandler : IHttpHandler
         var fi = file.AsFile();
         if (!fi.Exists) throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
-        var contentType = GetContentType(fi.Extension);
+        var contentType = GetContentType(fi.Extension) ?? "application/octet-stream";
 
-        // 确保使用完以后关闭文件流
-        using var fs = fi.OpenRead();
-        context.Response.SetResult(fs, contentType);
+        // 流式发送文件内容：流所有权移交响应（发送完成后释放），大文件不物化到内存
+        var fs = fi.OpenRead();
+        context.Response.ContentType = contentType;
+        context.Response.BodyStream = fs;
     }
 
     /// <summary>根据文件扩展名获取MIME类型</summary>

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Buffers;
+using System.Net;
 using System.Web;
 using NewLife.Data;
 using NewLife.Log;
@@ -145,7 +146,8 @@ public class HttpSession : INetHandler, IDisposable
             // 已有正在接收的请求，继续拼接主体
             pk.CopyTo(_cache);
 
-            // 防御：若收到数据超过声明长度，立即截断并视为完成
+            // 防御：主体量达到声明长度视为完成；若本轮数据超出声明长度，超出部分会一并进入主体缓存
+            // （已知局限：不支持 HTTP 流水线请求，超出字节不会拆给下一请求）
             if (_cache.Length >= req.ContentLength)
             {
                 _cache.Position = 0;
@@ -176,6 +178,10 @@ public class HttpSession : INetHandler, IDisposable
         if (req != null && req.IsCompleted)
         {
             var rs = ProcessRequest(req, data);
+
+            // 请求已交付处理：清除当前请求引用，防止后续轮次（新请求头分片/残片数据）再次处理旧请求（重放）
+            if (ReferenceEquals(Request, req)) Request = null;
+
             if (rs != null)
             {
                 var server = _session.Host as HttpServer;
@@ -185,9 +191,16 @@ public class HttpSession : INetHandler, IDisposable
                 var closing = !req.KeepAlive && _websocket == null;
                 if (closing && !rs.Headers.ContainsKey("Connection")) rs.Headers["Connection"] = "close";
 
-                // 发送响应。用完后释放数据包，还给缓冲池
-                using var res = rs.Build();
-                _session.Send(res);
+                // 流式响应体：先发头部，再流式发送主体（已知长度走 Content-Length，未知走分块传输）
+                var stream = rs.BodyStream;
+                if (stream != null)
+                    SendStreamBody(rs, stream);
+                else
+                {
+                    // 发送响应。用完后释放数据包，还给缓冲池
+                    using var res = rs.Build();
+                    _session.Send(res);
+                }
 
                 if (closing) _session.Dispose();
             }
@@ -199,6 +212,90 @@ public class HttpSession : INetHandler, IDisposable
             req.Body.TryDispose();
             req.Body = null;
         }
+    }
+
+    /// <summary>发送流式响应体。先发头部，再分块读取并发送主体</summary>
+    /// <param name="rs">响应</param>
+    /// <param name="stream">主体数据流（所有权随响应，发送完成后释放）</param>
+    private void SendStreamBody(HttpResponse rs, Stream stream)
+    {
+        try
+        {
+            // 长度可知（可寻址流）：声明 Content-Length；否则分块传输
+            var length = -1L;
+            if (stream.CanSeek)
+            {
+                try { length = stream.Length - stream.Position; } catch { length = -1; }
+            }
+
+            var chunked = length < 0;
+            if (chunked) rs.Headers["Transfer-Encoding"] = "chunked";
+
+            using var head = rs.BuildHeaderPacket(length);
+            _session.Send(head);
+
+            var buffer = ArrayPool<Byte>.Shared.Rent(64 * 1024);
+            try
+            {
+                while (true)
+                {
+                    var count = stream.Read(buffer, 0, buffer.Length);
+                    if (count <= 0) break;
+
+                    if (chunked)
+                    {
+                        // 分块传输：十六进制长度 CRLF + 数据 + CRLF 组装为单包
+                        using var pk = BuildChunk(buffer, count);
+                        _session.Send(pk);
+                    }
+                    else
+                    {
+                        _session.Send(buffer, 0, count);
+                    }
+                }
+
+                // 终止块
+                if (chunked) _session.Send("0\r\n\r\n");
+            }
+            finally
+            {
+                ArrayPool<Byte>.Shared.Return(buffer);
+            }
+        }
+        catch (Exception ex)
+        {
+            // 发送失败（含流已被释放）：记录并关闭连接，客户端可感知响应不完整
+            (_session as NetSession)?.WriteLog("流式发送失败 {0}", ex.Message);
+            _session.Dispose();
+        }
+        finally
+        {
+            stream.Dispose();
+        }
+    }
+
+    /// <summary>组装分块传输数据块（十六进制长度 CRLF + 数据 CRLF）</summary>
+    /// <param name="data">数据缓冲</param>
+    /// <param name="count">有效字节数</param>
+    /// <returns>分块数据包，调用方负责 Dispose</returns>
+    private static IOwnerPacket BuildChunk(Byte[] data, Int32 count)
+    {
+        var hex = count.ToString("X");
+        var size = hex.Length + 2 + count + 2;
+
+        var pk = new OwnerPacket(size);
+        var span = pk.GetSpan();
+
+        for (var i = 0; i < hex.Length; i++) span[i] = (Byte)hex[i];
+        var p = hex.Length;
+        span[p++] = 13;
+        span[p++] = 10;
+        data.AsSpan(0, count).CopyTo(span[p..]);
+        p += count;
+        span[p++] = 13;
+        span[p] = 10;
+
+        return pk;
     }
 
     /// <summary>收到新的Http请求（仅请求头解析完成时触发）</summary>
@@ -259,11 +356,12 @@ public class HttpSession : INetHandler, IDisposable
             context.Parameters[kv.Key] = kv.Value;
         }
 
-        // 创建请求级作用域，注册 IHttpContext 使构造函数 DI 可获取
+        // 创建请求级作用域，注册 IHttpContext 使构造函数 DI 可获取；请求结束（finally）释放作用域
+        IServiceScope? scope = null;
         var sp = context.ServiceProvider;
         if (sp != null)
         {
-            var scope = sp.CreateScope();
+            scope = sp.CreateScope();
             if (scope is IServiceRegistry registry)
             {
                 registry.TryAdd(typeof(IHttpContext), context);
@@ -317,6 +415,9 @@ public class HttpSession : INetHandler, IDisposable
         {
             // 清理当前上下文，避免泄漏到后续请求
             DefaultHttpContext.Current = null;
+
+            // 释放请求级作用域（scoped 服务的释放语义随 ServiceProvider 实现）
+            scope?.Dispose();
         }
 
         return context.Response;

@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 
 namespace NewLife.Net;
@@ -73,16 +74,14 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <remarks>数据处理时截去请求响应头，默认false</remarks>
     public Boolean EnableHttp { get; set; }
 
-    /// <summary>消息管道</summary>
-    /// <remarks>
-    /// <para>收发消息都经过管道处理器，进行协议编码解码。</para>
-    /// <para>处理顺序：</para>
-    /// <list type="number">
-    /// <item>接收数据解码时，从前向后通过管道处理器</item>
-    /// <item>发送数据编码时，从后向前通过管道处理器</item>
-    /// </list>
-    /// </remarks>
-    public IPipeline? Pipeline { get; set; }
+    /// <summary>协议编解码器。非空时启用协议模式（创建会话时下发），会话数据经数据管道定界，头部到齐即交付消息帧</summary>
+    public IMessageCodec? Protocol { get; set; }
+
+    /// <summary>消息泵最大缓存字节数（协议模式无法定界的残余上限），创建会话时下发，默认 1M。0 表示不限制</summary>
+    public Int32 MaxCache { get; set; } = 1024 * 1024;
+
+    /// <summary>最大并发处理数。协议模式下会话消息处理并发度，创建会话时下发：1=串行（默认），大于1=并行派发（兼作并发上限）</summary>
+    public Int32 MaxConcurrency { get; set; } = 1;
 
     /// <summary>SSL协议版本</summary>
     /// <remarks>默认None不启用SSL</remarks>
@@ -418,7 +417,9 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             //AutoReconnect = 0,
             NoDelay = NoDelay,
             KeepAliveInterval = KeepAliveInterval,
-            Pipeline = Pipeline,
+            Protocol = Protocol,
+            MaxConcurrency = MaxConcurrency,
+            MaxCache = MaxCache,
             //DisconnectWhenEmptyData = false,
 
             Log = Log,

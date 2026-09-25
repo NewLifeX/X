@@ -12,6 +12,7 @@ using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;
+using WebSocketMessageType = NewLife.Messaging.WebSocketMessageType;
 
 namespace NewLife.Http;
 

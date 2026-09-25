@@ -119,15 +119,6 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
     internal void Start()
     {
-        // 管道
-        if (Pipeline != null)
-        {
-            // 使用上下文池调用Open
-            var ctx = CreateContext(this);
-            Pipeline.Open(ctx);
-            ReturnContext(ctx);
-        }
-
         // 设置读写超时。Unix域套接字不支持TCP选项
         var sock = Client;
         var timeout = Timeout;
@@ -153,6 +144,13 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             sslStream.AuthenticateAsServer(cert, false, sp, false);
 
             _Stream = sslStream;
+        }
+
+        // 协议模式：数据经数据管道定界，启动消息泵（先于接收环，首个数据到达前就绪）
+        if (Protocol != null)
+        {
+            if (AutoReceive) StartMessagePump();
+            else WriteLog("协议模式需要自动接收（AutoReceive），拉取模式下消息泵未启动，收到的是原始字节");
         }
 
         StartReceive();

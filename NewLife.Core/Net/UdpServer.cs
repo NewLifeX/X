@@ -472,14 +472,18 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         var session = remote == null ? null : CreateSession(e.Local, remote);
         // 数据直接转交给会话，不再经过事件，那样在会话较多时极为浪费资源
         if (session is UdpSession us)
-            us.OnReceive(e);
+        {
+            // 协议模式：消息在会话内分发并升格到服务器层（RaiseReceiveInternal），原始数据报不再重复抛出
+            var processed = us.OnReceive(e);
+            if (!processed) RaiseReceive(session, e);
+        }
         else
         {
             // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
             if (Log.Enable && LogReceive && pk != null) WriteLog("Recv [{0}]: {1}", pk.Length, pk.ToHex(LogDataLength));
-        }
 
-        if (session != null) RaiseReceive(session, e);
+            if (session != null) RaiseReceive(session, e);
+        }
 
         return true;
     }

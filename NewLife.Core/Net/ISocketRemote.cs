@@ -99,7 +99,7 @@ public interface ISocketRemote : ISocket, IExtend
     /// <returns>响应消息对象</returns>
     /// <remarks>
     /// <para>高级消息通信API，支持请求-响应模式和超时控制。</para>
-    /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送，响应经解码后返回。</para>
+    /// <para>协议模式下经协议（<see cref="SessionBase.Protocol"/>）构建整帧发送，响应经配对交付。</para>
     /// </remarks>
     ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default);
 
@@ -108,7 +108,7 @@ public interface ISocketRemote : ISocket, IExtend
     /// <returns>实际发送的字节数，失败时返回负数</returns>
     /// <remarks>
     /// <para>单向消息发送，适用于通知、推送等场景。</para>
-    /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送。</para>
+    /// <para>协议模式下经协议构建整帧发送。</para>
     /// </remarks>
     Int32 SendMessage(Object message);
 
@@ -200,87 +200,6 @@ public static class SocketRemoteHelper
         if (packet == null || packet.Length == 0) return String.Empty;
 
         return packet.ToStr(encoding ?? Encoding.UTF8);
-    }
-    #endregion
-
-    #region 管道处理器扩展
-    /// <summary>添加类型化处理器</summary>
-    /// <typeparam name="THandler">处理器类型</typeparam>
-    /// <param name="session">Socket会话</param>
-    /// <remarks>处理器必须有无参构造函数</remarks>
-    public static void Add<THandler>(this ISocket session) where THandler : IPipelineHandler, new() => GetPipeline(session).Add(new THandler());
-
-    /// <summary>添加处理器实例</summary>
-    /// <param name="session">Socket会话</param>
-    /// <param name="handler">处理器实例</param>
-    public static void Add(this ISocket session, IPipelineHandler handler) => GetPipeline(session).Add(handler);
-
-#pragma warning disable CS0618 // 类型或成员已过时
-    /// <summary>添加处理器实例</summary>
-    /// <param name="session">Socket会话</param>
-    /// <param name="handler">处理器实例</param>
-    [Obsolete("=>IPipelineHandler")]
-    public static void Add(this ISocket session, IHandler handler) => GetPipeline(session).Add(handler);
-#pragma warning restore CS0618 // 类型或成员已过时
-
-    /// <summary>获取或创建消息管道</summary>
-    private static IPipeline GetPipeline(ISocket session) => session.Pipeline ??= new Pipeline();
-    #endregion
-
-    #region 高级消息传输
-    /// <summary>分块发送数据流为多个消息包</summary>
-    /// <param name="session">Socket会话</param>
-    /// <param name="stream">数据流</param>
-    /// <returns>发送的消息包数量</returns>
-    /// <remarks>
-    /// <para>将大数据流切分为多个消息包发送，接收方可按顺序重组。</para>
-    /// <para>每个消息包会添加标准4字节消息头，由StandardCodec处理器负责编解码。</para>
-    /// </remarks>
-    public static Int32 SendMessages(this ISocketRemote session, Stream stream)
-    {
-        var messageCount = 0;
-        var bufferSize = SocketSetting.Current.BufferSize;
-        var buffer = Pool.Shared.Rent(bufferSize);
-
-        try
-        {
-            while (true)
-            {
-                // 预留4字节消息头空间
-                var bytesRead = stream.Read(buffer, 4, bufferSize - 4);
-                if (bytesRead <= 0) break;
-
-                // StandardCodec将在头部添加4字节长度信息
-                var packet = new ArrayPacket(buffer, 4, bytesRead);
-                session.SendMessage(packet);
-                messageCount++;
-            }
-        }
-        finally
-        {
-            Pool.Shared.Return(buffer);
-        }
-
-        return messageCount;
-    }
-
-    /// <summary>以消息包形式发送文件</summary>
-    /// <param name="session">Socket会话</param>
-    /// <param name="filePath">文件路径</param>
-    /// <param name="compressed">是否启用压缩</param>
-    /// <returns>发送的消息包数量</returns>
-    /// <remarks>
-    /// <para>自动处理文件读取和分块传输，支持可选的压缩功能。</para>
-    /// <para>接收方需要按相同顺序重组消息包以还原完整文件。</para>
-    /// </remarks>
-    public static Int32 SendFile(this ISocketRemote session, String filePath, Boolean compressed = false)
-    {
-        var messageCount = 0;
-        filePath.AsFile().OpenRead(compressed, stream =>
-        {
-            messageCount = session.SendMessages(stream);
-        });
-        return messageCount;
     }
     #endregion
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Threading;
 
@@ -13,7 +14,7 @@ namespace NewLife.Net;
 /// <list type="bullet">
 /// <item>自动识别协议 TCP/UDP/WebSocket，通过 <see cref="Server"/> 或 <see cref="Remote"/> 属性指定地址</item>
 /// <item>断线自动重连，内部透明替换 <see cref="ISocketClient"/> 对象，上层无感知</item>
-/// <item>支持管道编解码器，通过 <see cref="Add{T}()"/> 注册</item>
+/// <item>支持协议编解码器，通过 <see cref="Protocol"/> 属性配置</item>
 /// <item>事件驱动接收，订阅 <see cref="Received"/> 事件</item>
 /// <item>同步 / 异步数据收发，兼容低版本 .NET</item>
 /// </list>
@@ -77,9 +78,16 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     /// <summary>最大重连次数。默认 0 表示无限重连</summary>
     public Int32 MaxReconnect { get; set; }
 
-    /// <summary>消息管道</summary>
-    /// <remarks>收发消息时经过管道处理器进行协议编解码，通过 <see cref="Add{T}()"/> 方法注册处理器</remarks>
-    public IPipeline? Pipeline { get; set; }
+    /// <summary>协议编解码器。非空时启用协议模式（透传给内部 Socket 客户端），请在打开之前设置</summary>
+    /// <remarks>协议模式下收发消息经 <see cref="SendMessage(object)"/> 与 <see cref="Received"/> 事件。</remarks>
+    public IMessageCodec? Protocol { get; set; }
+
+    /// <summary>请求-响应匹配等待超时（毫秒）。默认30_000，透传给内部 Socket 客户端</summary>
+    public Int32 MatchTimeout { get; set; } = 30_000;
+
+    /// <summary>最大并发处理数。透传给内部 Socket 客户端：1=串行（默认），大于1=并行派发（兼作并发上限）</summary>
+    /// <remarks>并行下同一连接的多个消息处理顺序不定（SRMP 按序列号配对）；并行要求业务处理器线程安全。</remarks>
+    public Int32 MaxConcurrency { get; set; } = 1;
 
     /// <summary>APM 性能追踪器</summary>
     public ITracer? Tracer { get; set; }
@@ -235,9 +243,14 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
         client.Timeout = Timeout;
         client.Log = Log;
 
-        if (client is SessionBase session) session.AutoReceive = AutoReceive;
+        if (client is SessionBase session)
+        {
+            session.AutoReceive = AutoReceive;
+            if (Protocol != null) session.Protocol = Protocol;
+            if (MatchTimeout > 0) session.MatchTimeout = MatchTimeout;
+            if (MaxConcurrency > 1) session.MaxConcurrency = MaxConcurrency;
+        }
 
-        if (Pipeline != null) client.Pipeline = Pipeline;
         if (Tracer != null) client.Tracer = Tracer;
         if (Local.Port > 0) client.Local = Local;
 
@@ -395,6 +408,32 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     public ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
         => EnsureClient().SendMessageAsync(message, cancellationToken);
 
+    /// <summary>发送消息并等待匹配的响应（协议模式）</summary>
+    /// <param name="message">请求消息</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>响应消息；调用方负责消费负载并释放</returns>
+    /// <exception cref="NotSupportedException">内部客户端不支持协议模式请求响应</exception>
+    public ValueTask<IMessage> SendMessageAsync(IMessage message, CancellationToken cancellationToken = default)
+    {
+        if (EnsureClient() is SessionBase session) return session.SendMessageAsync(message, cancellationToken);
+
+        throw new NotSupportedException($"内部客户端不支持协议模式请求响应 [{_client?.GetType().Name}]");
+    }
+
+    /// <summary>发送流式消息（协议模式）：先发协议头部（声明体长），再把数据流内容经发送管道分块送出</summary>
+    /// <param name="message">消息（头部字段就位）</param>
+    /// <param name="body">消息体数据流</param>
+    /// <param name="bodyLength">消息体字节数；负数时从可定位流推导</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已写入发送管道的内容字节数</returns>
+    /// <exception cref="NotSupportedException">内部客户端不支持协议模式流式发送</exception>
+    public ValueTask<Int64> SendMessageAsync(Message message, Stream body, Int64 bodyLength = -1, CancellationToken cancellationToken = default)
+    {
+        if (EnsureClient() is SessionBase session) return session.SendMessageAsync(message, body, bodyLength, cancellationToken);
+
+        throw new NotSupportedException($"内部客户端不支持协议模式流式发送 [{_client?.GetType().Name}]");
+    }
+
     private ISocketClient EnsureClient()
     {
         var client = _client;
@@ -465,24 +504,6 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
             && (e.Action == "Disconnect" || e.Action == "Close" || e.Action == "Receive"))
             ScheduleReconnect();
     }
-
-    #endregion
-
-    #region 编解码器
-
-    /// <summary>添加管道处理器</summary>
-    /// <param name="handler">处理器实例</param>
-    /// <returns>当前实例，支持链式调用</returns>
-    public NetClient Add(IPipelineHandler handler)
-    {
-        (Pipeline ??= new Pipeline()).Add(handler);
-        return this;
-    }
-
-    /// <summary>添加管道处理器</summary>
-    /// <typeparam name="T">处理器类型，需有无参构造函数</typeparam>
-    /// <returns>当前实例，支持链式调用</returns>
-    public NetClient Add<T>() where T : IPipelineHandler, new() => Add(new T());
 
     #endregion
 

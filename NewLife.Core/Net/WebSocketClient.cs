@@ -1,10 +1,12 @@
-﻿using System.Net;
+﻿using System.Collections.Concurrent;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
+using System.Text;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using NewLife.Security;
 using NewLife.Threading;
 
@@ -24,7 +26,7 @@ public class WebSocketClient : TcpSession
     public IDictionary<String, String?>? RequestHeaders { get; set; }
 
     /// <summary>客户端掩码密钥。RFC 6455 要求客户端发送的所有帧必须带掩码，服务端发送的帧不能带掩码</summary>
-    /// <remarks>一般无需设置：出站帧默认由 WebSocketCodec 为每帧生成新的随机掩码（RFC 6455 §5.3 要求每帧使用不可预测的新 key）。显式设置后优先使用该值。</remarks>
+    /// <remarks>一般无需设置：出站帧默认由协议（WebSocketCodec）为每帧生成新的随机掩码（RFC 6455 §5.3 要求每帧使用不可预测的新 key）。显式设置后优先使用该值。</remarks>
     public Byte[]? MaskKey { get; set; }
 
     /// <summary>最近收到 Pong 响应的时间。用于心跳超时检测</summary>
@@ -38,8 +40,11 @@ public class WebSocketClient : TcpSession
     /// <summary>实例化</summary>
     public WebSocketClient()
     {
-        // 加入WebSocket编码器，实现报文编解码
-        this.Add<WebSocketCodec>();
+        // 协议模式：客户端角色（发送自动加掩码，接收服务端无掩码帧）
+        Protocol = new WebSocketCodec { IsServer = false };
+
+        // 拉取 API：接收消息入队
+        Received += OnReceivedMessage;
     }
 
     /// <summary>实例化</summary>
@@ -109,7 +114,20 @@ public class WebSocketClient : TcpSession
         _timer?.Dispose();
         _timer = null;
 
+        // 唤醒接收等待者（连接关闭，ReceiveMessageAsync 返回 null）
+        _receivedSignal?.TrySetResult(false);
+
         return base.OnCloseAsync(reason, cancellationToken);
+    }
+
+    /// <summary>销毁。清空未取走的接收消息，避免负载滞留</summary>
+    /// <param name="disposing"></param>
+    protected override void Dispose(Boolean disposing)
+    {
+        base.Dispose(disposing);
+
+        while (_received.TryDequeue(out var msg)) msg.TryDispose();
+        _receivedSignal?.TrySetResult(false);
     }
 
     /// <summary>设置请求头。ws握手时可以传递Token</summary>
@@ -123,51 +141,97 @@ public class WebSocketClient : TcpSession
     }
 
     #region 消息收发
-    /// <summary>接收单条 WebSocket 消息。</summary>
+    /// <summary>接收单条 WebSocket 消息（异步等待）</summary>
     /// <remarks>
-    /// 底层调用 <see cref="SessionBase.ReceiveAsync(CancellationToken)"/> 读取一次原始数据，
-    /// 再用 <see cref="WebSocketMessage.ReadFrame"/> 解析其中第一个 WS 帧，剩余字节随即丢弃。
-    /// 因此本方法有以下约束：
-    /// <list type="bullet">
-    /// <item>必须为拉取模式（打开前将 <see cref="SessionBase.AutoReceive"/> 设为 false），
-    ///   否则接收环已启动，本方法将抛出异常。</item>
-    /// <item>仅适用于<b>严格顺序请求-响应</b>场景（发一条→等回复→再发下一条）。
-    ///   若客户端流水线发送多条消息，多个 WS 帧可能合并到同一 TCP 段，
-    ///   本方法只处理首帧，其余帧永久丢失，接收循环将永久阻塞。</item>
-    /// <item>流水线/批量发送场景请改用事件模式（默认值）
-    ///   并通过 <see cref="SessionBase.Received"/> 事件接收；
-    ///   管道内的 WebSocketCodec 配合 PacketCodec 会正确完成粘包/拆包。</item>
-    /// </list>
+    /// <para>接收经消息泵事件驱动：已到达消息进入内部队列，本方法出队返回；无消息时异步等待，连接关闭或取消时返回 null。</para>
+    /// <para>返回消息的负载为物化拷贝（与事件流解耦，调用方完全拥有）；支持流水线收取，不丢失粘包中的后续帧。</para>
     /// </remarks>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>解析到的消息；连接已关闭或数据不完整时返回 null</returns>
-    public virtual async Task<WebSocketMessage?> ReceiveMessageAsync(CancellationToken cancellationToken = default)
+    /// <returns>消息；连接关闭或取消时返回 null</returns>
+    public virtual async Task<WsMessage?> ReceiveMessageAsync(CancellationToken cancellationToken = default)
     {
-        using var rs = await base.ReceiveAsync(cancellationToken).ConfigureAwait(false);
-        if (rs == null) return null;
+        while (true)
+        {
+            // 已到达消息直接出队
+            if (_received.TryDequeue(out var msg)) return msg;
 
-        var msg = new WebSocketMessage();
-        if (!msg.ReadFrame(rs)) return null;
+            // 连接已关闭：不再等待
+            if (Disposed || !Active) return null;
 
-        return msg;
+            // 等待新消息信号或取消；信号触发后重试出队
+#if NET45
+            // net45 没有 RunContinuationsAsynchronously，接受同步续体
+            _receivedSignal ??= new TaskCompletionSource<Boolean>();
+#else
+            _receivedSignal ??= new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
+            var tcs = _receivedSignal;
+            var signal = tcs.Task;
+
+            // 赋值间隙到达的消息可能读不到信号（入队方见 null 不唤醒），重查一次兜底
+            if (_received.TryDequeue(out msg)) return msg;
+
+            var done = await Task.WhenAny(signal, Task.Delay(-1, cancellationToken)).ConfigureAwait(false);
+            if (done != signal) return null;    // 取消
+
+            Interlocked.CompareExchange<TaskCompletionSource<Boolean>>(ref _receivedSignal, null!, tcs);
+        }
     }
 
-    /// <summary>发送消息</summary>
-    /// <remarks>异步形态为发送链异步化的接口预留；当前帧经 WebSocketCodec 同步送出，返回已完成任务</remarks>
-    /// <param name="message"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public Task SendMessageAsync(WebSocketMessage message, CancellationToken cancellationToken = default)
+    /// <summary>分片重组器（RFC 6455 §5.4）。数据帧 FIN=0 累积，末片合并成完整消息后入队</summary>
+    private readonly WebSocketFragment _fragment = new();
+
+    /// <summary>待收消息队列（拉取 API）</summary>
+    private readonly ConcurrentQueue<WsMessage> _received = new();
+
+    /// <summary>新消息信号</summary>
+    private TaskCompletionSource<Boolean>? _receivedSignal;
+
+    /// <summary>接收消息入队并唤醒等待者（协议模式接收事件）</summary>
+    private void OnReceivedMessage(Object? sender, ReceivedEventArgs e)
     {
-        //var pk = message.ToPacket();
-        //Send(pk);
+        if (e.Message is not WsMessage ws) return;
 
-        // RFC 6455 §5.1：客户端帧必须带掩码；显式设置客户端掩码时优先，未设置时由 WebSocketCodec 每帧随机生成
-        message.MaskKey ??= MaskKey;
+        // Close 帧：从负载解析状态码与描述（在负载物化前）
+        if (ws.Type == WebSocketMessageType.Close) ws.TryReadCloseStatus();
 
-        SendMessage(message);
+        // 物化拷贝：与事件流解耦，拉取方完全拥有（含负载）
+        var msg = new WsMessage
+        {
+            Fin = ws.Fin,
+            Type = ws.Type,
+            MaskKey = ws.MaskKey,
+            CloseStatus = ws.CloseStatus,
+            StatusDescription = ws.StatusDescription,
+        };
 
-        return TaskEx.CompletedTask;
+        // 交付契约：事件内读满（大帧为流式体，Payload 为空）。读满后回填消息体，
+        // 事件链后续订阅者（用户回调）仍可通过 Body 读取；回填体随消息归还
+        if (ws.Payload != null)
+            msg.SetBody((ArrayPacket)ws.Payload.ToArray());
+        else if (ws.Body != null)
+        {
+            var all = ws.Body.ReadAllAsync().AsTask().GetAwaiter().GetResult();
+            ws.SetBody(all);
+            msg.SetBody((ArrayPacket)all.ToArray());
+        }
+
+        // 分片重组：数据帧 FIN=0 累积，续片追加，末片合并成完整消息后入队；控制帧直通
+        if (msg.Type is WebSocketMessageType.Text or WebSocketMessageType.Binary && !msg.Fin)
+        {
+            _fragment.Begin(msg.Type, msg.Payload);
+            return;
+        }
+        if (msg.Type == WebSocketMessageType.Data)
+        {
+            if (_fragment.Append(msg.Fin, msg.Payload) is not { } whole) return;
+            msg = whole;
+        }
+
+        _received.Enqueue(msg);
+
+        // 唤醒等待者（无等待者时静默）
+        _receivedSignal?.TrySetResult(true);
     }
 
     /// <summary>发送文本</summary>
@@ -176,13 +240,16 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     public Task SendTextAsync(IPacket data, CancellationToken cancellationToken = default)
     {
-        var msg = new WebSocketMessage
+        var ws = new WsMessage
         {
             Type = WebSocketMessageType.Text,
-            Payload = data,
+            MaskKey = MaskKey,
         };
+        ws.SetBody(data);
 
-        return SendMessageAsync(msg, cancellationToken);
+        SendMessage(ws);
+
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>发送文本</summary>
@@ -191,13 +258,16 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     public Task SendTextAsync(Byte[] data, CancellationToken cancellationToken = default)
     {
-        var msg = new WebSocketMessage
+        var ws = new WsMessage
         {
             Type = WebSocketMessageType.Text,
-            Payload = (ArrayPacket)data,
+            MaskKey = MaskKey,
         };
+        ws.SetBody((ArrayPacket)data);
 
-        return SendMessageAsync(msg, cancellationToken);
+        SendMessage(ws);
+
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>发送文本</summary>
@@ -212,13 +282,16 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     public Task SendBinaryAsync(IPacket data, CancellationToken cancellationToken = default)
     {
-        var msg = new WebSocketMessage
+        var ws = new WsMessage
         {
             Type = WebSocketMessageType.Binary,
-            Payload = data,
+            MaskKey = MaskKey,
         };
+        ws.SetBody(data);
 
-        return SendMessageAsync(msg, cancellationToken);
+        SendMessage(ws);
+
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>发送关闭</summary>
@@ -228,14 +301,12 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     public Task CloseAsync(Int32 closeStatus, String? statusDescription = null, CancellationToken cancellationToken = default)
     {
-        var msg = new WebSocketMessage
-        {
-            Type = WebSocketMessageType.Close,
-            CloseStatus = closeStatus,
-            StatusDescription = statusDescription,
-        };
+        var ws = new WsMessage { Type = WebSocketMessageType.Close };
+        ws.SetBody(WebSocketCodec.BuildClosePayload(closeStatus, statusDescription));
 
-        return SendMessageAsync(msg, cancellationToken);
+        SendMessage(ws);
+
+        return TaskEx.CompletedTask;
     }
     #endregion
 
@@ -255,16 +326,14 @@ public class WebSocketClient : TcpSession
             }
         }
 
-        var msg = new WebSocketMessage
+        var ws = new WsMessage
         {
             Type = WebSocketMessageType.Ping,
-            Payload = (ArrayPacket)$"Ping {now.ToFullString()}",
+            MaskKey = MaskKey,
         };
+        ws.SetBody((ArrayPacket)$"Ping {now.ToFullString()}");
 
-        // RFC 6455 §5.1：客户端帧必须带掩码；显式设置客户端掩码时优先，未设置时由 WebSocketCodec 每帧随机生成
-        msg.MaskKey ??= MaskKey;
-
-        SendMessage(msg);
+        SendMessage(ws);
 
         _lastPingTime = now;
 
@@ -280,7 +349,7 @@ public class WebSocketClient : TcpSession
 
     private void OnReceivedPong(Object? sender, ReceivedEventArgs e)
     {
-        if (e.Message is WebSocketMessage msg && msg.Type == WebSocketMessageType.Pong)
+        if (e.Message is WsMessage msg && msg.Type == WebSocketMessageType.Pong)
         {
             LastPongTime = DateTime.UtcNow;
         }

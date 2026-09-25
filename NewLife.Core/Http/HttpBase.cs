@@ -145,6 +145,22 @@ public abstract class HttpBase : IDisposable
         return pk.Resize(writer.Position);
     }
 
+    /// <summary>仅创建头部封包（不含主体），流式发送时先发头部</summary>
+    /// <param name="contentLength">主体长度；负数表示未知（调用方应先行设置 Transfer-Encoding 等头部）</param>
+    /// <returns>头部数据包，调用方负责 Dispose</returns>
+    /// <remarks>已知长度时自动写入 Content-Length；长度未知时由调用方设置 Transfer-Encoding: chunked 等头部。</remarks>
+    public IOwnerPacket BuildHeaderPacket(Int64 contentLength = -1)
+    {
+        if (contentLength >= 0) Headers["Content-Length"] = contentLength.ToString();
+
+        var header = BuildHeader(0);
+        var bytes = Encoding.UTF8.GetBytes(header);
+        var pk = new OwnerPacket(bytes.Length);
+        bytes.CopyTo(pk.GetSpan());
+
+        return pk;
+    }
+
     /// <summary>创建头部</summary>
     /// <param name="length"></param>
     /// <returns></returns>

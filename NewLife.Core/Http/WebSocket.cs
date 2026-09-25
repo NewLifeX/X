@@ -6,13 +6,13 @@ using NewLife.Net;
 
 namespace NewLife.Http;
 
-/// <summary>WebSocket消息处理</summary>
+/// <summary>WebSocket消息处理（新协议栈消息）</summary>
 /// <param name="socket"></param>
-/// <param name="message"></param>
-public delegate void WebSocketDelegate(WebSocket socket, WebSocketMessage message);
+/// <param name="message">消息（回调内负载完整可用，返回后收尾）</param>
+public delegate void WsMessageDelegate(WebSocket socket, WsMessage message);
 
 /// <summary>WebSocket会话管理</summary>
-/// <remarks>HTTP 服务端升级后的 WS 会话（由 HttpSession 触发），自持数据管道与帧泵（Pipe + PacketFramer）解析帧；Net 侧通用编解码器见 <see cref="NewLife.Net.Handlers.WebSocketCodec"/>。</remarks>
+/// <remarks>HTTP 服务端升级后的 WS 会话（由 HttpSession 触发），自持消息泵（MessagePump + WebSocketCodec）解析帧。</remarks>
 public class WebSocket : IDisposable
 {
     #region 属性
@@ -20,7 +20,8 @@ public class WebSocket : IDisposable
     public Boolean Connected { get; set; }
 
     /// <summary>消息处理器</summary>
-    public WebSocketDelegate? Handler { get; set; }
+    /// <remarks>回调内消息负载完整可用（已解码），返回后消息收尾</remarks>
+    public WsMessageDelegate? MessageHandler { get; set; }
 
     /// <summary>Http上下文</summary>
     public IHttpContext? Context { get; set; }
@@ -36,11 +37,14 @@ public class WebSocket : IDisposable
 
     private Pipe? _pipe;
 
-    /// <summary>帧解析原型。TryParse 只取返回值（帧长），实例状态被丢弃；共享使用无竞争</summary>
-    private static readonly WebSocketMessage _parser = new();
+    /// <summary>消息编解码器（服务端角色：接收带掩码帧、发送无掩码）。无状态，可跨会话共享</summary>
+    private static readonly WebSocketCodec _codec = new() { IsServer = true };
 
-    /// <summary>帧泵。无状态，可跨会话共享</summary>
-    private static readonly PacketFramer _framer = new() { GetFrameLength = static buffer => _parser.TryParse(buffer, out _) };
+    /// <summary>帧泵。整帧模式：同步泵只能消费整帧，帧未完整留待下一轮</summary>
+    private static readonly MessagePump _pump = new(_codec) { RequireFullFrame = true };
+
+    /// <summary>分片重组器（RFC 6455 §5.4）。数据帧 FIN=0 累积，末片合并成完整消息后交付</summary>
+    private readonly WebSocketFragment _fragment = new();
     #endregion
 
     #region 方法
@@ -102,23 +106,50 @@ public class WebSocket : IDisposable
         _pipe.Writer.Append(node);
 
         // 同步泵：当前缓冲内可成的整帧全部处理；头部不足或帧未完整则留给下一轮
-        // 静态 Lambda + 状态重载：接收热路径零闭包分配
-        _framer.Pump(_pipe.Reader, this, static (socket, frame) =>
+        while (_pump.TryRead(_pipe.Reader, out var message))
         {
-            using var message = new WebSocketMessage();
-            if (message.ReadFrame(frame)) socket.Process(message);
-        });
+            try
+            {
+                if (message is not WsMessage ws) continue;
+
+                // 客户端帧带掩码：整帧路径对负载原地解码（帧内字节独享）
+                ws.Demask();
+
+                // 分片重组：数据帧 FIN=0 累积，续片追加，末片合并成完整消息后交付；控制帧直通
+                if (ws.Type is WebSocketMessageType.Text or WebSocketMessageType.Binary && !ws.Fin)
+                {
+                    _fragment.Begin(ws.Type, ws.Payload);
+                    continue;
+                }
+                if (ws.Type == WebSocketMessageType.Data)
+                {
+                    if (_fragment.Append(ws.Fin, ws.Payload) is { } whole) Process(whole);
+                    continue;
+                }
+
+                // 消息化入口：业务回调直达（负载已解码），协议帧处理内联
+                Process(ws);
+            }
+            finally
+            {
+                message.TryDispose();
+            }
+        }
     }
 
     /// <summary>处理WebSocket消息</summary>
-    public void Process(WebSocketMessage message)
+    /// <param name="message">消息（负载已解码；回调内完整可用，返回后收尾）</param>
+    public void Process(WsMessage message)
     {
         ActiveTime = DateTime.Now;
 
-        // 先调用 Handler，让业务层拿到净载荷（业务层可自行复制或同步消费）
-        Handler?.Invoke(this, message);
+        // Close 帧：从负载解析状态码与描述（在业务回调前，供回调与回显使用）
+        if (message.Type == WebSocketMessageType.Close) message.TryReadCloseStatus();
 
-        // 如果 Ping 有负载，保留引用以便后续回显 Pong
+        // 业务回调：负载完整可用
+        MessageHandler?.Invoke(this, message);
+
+        // 协议帧处理：Close 回显关闭 / Ping 回显 Pong
         var pingPayload = message.Type == WebSocketMessageType.Ping ? message.Payload : null;
 
         var session = Context?.Connection;
@@ -139,13 +170,12 @@ public class WebSocket : IDisposable
                 break;
             case WebSocketMessageType.Ping:
                 {
-                    // RFC 6455 §5.5.3：Pong 必须回传 Ping 的 Application Data
-                    var msg = new WebSocketMessage
-                    {
-                        Type = WebSocketMessageType.Pong,
-                        Payload = pingPayload,
-                    };
-                    Send(msg);
+                    // RFC 6455 §5.5.3：Pong 必须回传 Ping 的 Application Data。
+                    // 负载所有权从 Ping 消息转移到 Pong 帧（消息先清体，避免收尾时重复归还）
+                    var pong = new WsMessage { Type = WebSocketMessageType.Pong };
+                    pong.SetBody(pingPayload);
+                    message.SetBody((IPacket?)null);
+                    Send(pong);
                 }
                 break;
         }
@@ -153,13 +183,13 @@ public class WebSocket : IDisposable
         // 负载不在此释放：所有权随消息容器（帧泵回调 using / 调用方负责）；Pong 为同步发送，容器释放前负载始终有效
     }
 
-    private void Send(WebSocketMessage msg)
+    private void Send(WsMessage msg)
     {
         var session = Context?.Connection;
         var socket = Context?.Socket;
         if (session == null && socket == null) throw new ObjectDisposedException(nameof(Context));
 
-        var data = msg.Build();
+        var data = _codec.Build(msg)!;
         if (session != null)
             session.Send(data);
         else
@@ -172,18 +202,15 @@ public class WebSocket : IDisposable
     /// <param name="type"></param>
     public void Send(IPacket data, WebSocketMessageType type)
     {
-        var msg = new WebSocketMessage { Type = type, Payload = data };
-        Send(msg);
+        var ws = new WsMessage { Type = type };
+        ws.SetBody(data);
+        Send(ws);
     }
 
     /// <summary>发送消息</summary>
     /// <param name="data"></param>
     /// <param name="type"></param>
-    public void Send(Byte[] data, WebSocketMessageType type)
-    {
-        var msg = new WebSocketMessage { Type = type, Payload = (ArrayPacket)data };
-        Send(msg);
-    }
+    public void Send(Byte[] data, WebSocketMessageType type) => Send((ArrayPacket)data, type);
 
     /// <summary>发送文本消息</summary>
     /// <param name="message"></param>
@@ -197,8 +224,10 @@ public class WebSocket : IDisposable
     public async Task<Int32> SendAllAsync(IPacket data, WebSocketMessageType type, Func<INetSession, Boolean>? predicate = null)
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
-        var msg = new WebSocketMessage { Type = type, Payload = data };
-        var data2 = msg.Build();
+        var ws = new WsMessage { Type = type };
+        ws.SetBody(data);
+
+        var data2 = _codec.Build(ws)!;
         try
         {
             // 经服务端对各会话并行送出，等待完成后再归还封包（封包持有负载引用，释放封包即归还整链）
@@ -221,13 +250,9 @@ public class WebSocket : IDisposable
     /// <param name="statusDescription"></param>
     public void Close(Int32 closeStatus, String statusDescription)
     {
-        var msg = new WebSocketMessage
-        {
-            Type = WebSocketMessageType.Close,
-            CloseStatus = closeStatus,
-            StatusDescription = statusDescription
-        };
-        Send(msg);
+        var ws = new WsMessage { Type = WebSocketMessageType.Close };
+        ws.SetBody(WebSocketCodec.BuildClosePayload(closeStatus, statusDescription));
+        Send(ws);
     }
     #endregion
 
