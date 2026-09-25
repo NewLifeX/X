@@ -100,6 +100,7 @@ NewLife.Core 是一个全功能的 .NET 基础类库，提供日志、网络、�
 |------|------|------|
 | **网络服务端** | [网络服务端NetServer.md](网络服务端NetServer.md) | 高性能TCP/UDP服务端 |
 | **网络客户端** | [网络客户端NetClient.md](网络客户端NetClient.md) | 统一TCP/UDP客户端接口 |
+| **消息协议栈** | [消息协议栈.md](消息协议栈.md) | 协议模式：帧泵/编解码器/RPC/流式 |
 | **ApiHttpClient** | [HTTP客户端ApiHttpClient.md](HTTP客户端ApiHttpClient.md) | 面向Web API调用 |
 | **HTTP服务端** | [HTTP服务端HttpServer.md](HTTP服务端HttpServer.md) | 轻量级HTTP服务器 |
 | **HttpClient增强处理器** | [HttpClient增强处理器DnsHttpHandler_HttpTraceHandler.md](HttpClient增强处理器DnsHttpHandler_HttpTraceHandler.md) | DNS解析与APM追踪处理器 |

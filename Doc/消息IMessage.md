@@ -1,8 +1,12 @@
 # IMessage 消息帮助手册
 
+> ⚠️ **旧栈文档（v12 已退役）**：`IFrameMessage` 与消息帧方法（`TryParseHeader`/`ReadFrame`/`Build`/`BuildHeader` 等）已从 `IMessage`/`Message` 整删。现行契约（`IMessage` 消息契约 + `IMessageCodec` 协议契约）见《消息协议栈》，本文章节仅作历史参考。
+
 本文档基于源码 `NewLife.Core/Messaging/IMessage.cs`，说明 `IMessage` 接口及其基类 `Message`、`DefaultMessage` 的设计、用法与注意事项。
 
 > 关键词：请求-响应模式、Dispose 释放链、IOwnerPacket 池化内存、RPC 消息生命周期。
+
+> **契约指引（v12 中间态，已被后续收尾取代）**：`IMessage : IFrameMessage` 曾为单一消息契约——帧读写（`TryParseHeader` 定界 / `ReadFrame` 整帧读体 / `BindBody` 流式体绑定 / `SetBody` 发送体绑定 / `Build` 整帧构建 / `BuildHeader` 头 + 流式体 / `Body` 读取器）在帧契约 `IFrameMessage`，请求-响应语义（`Reply/Error/OneWay` 三个独立布尔 + `Payload` + `CreateReply`）由消息契约在其上追加；`TryParse` 为帧长解析便捷入口（供 `GetFrameLength` 委托绑定）。v12 破坏性变更：旧名 `Read/ToPacket/ToHeaderPacket` 已删除，下游改用 `ReadFrame/Build/BuildHeader` 并重新编译；`WebSocketMessage` 仅实现帧契约。构建采用转移语义：`Build` 成功后消息不再持有体（`SetBody(null)` 表示所有权转移、不归还）；流式体不可整帧构建，请改用 `BuildHeader` + 流式发送。该中间态后续亦删除 `IFrameMessage`，现行契约见《消息协议栈》（`IMessage` 消息契约 + `IMessageCodec` 协议契约）。
 
 ---
 
@@ -17,16 +21,14 @@
 ## 2. 接口定义
 
 ```csharp
-public interface IMessage : IDisposable
+public interface IMessage : IFrameMessage    // 帧契约：TryParseHeader/ReadFrame/Body/SetBody/Build/BuildHeader 等
 {
     Boolean Reply { get; set; }      // 是否响应消息
     Boolean Error { get; set; }      // 是否有错
     Boolean OneWay { get; set; }     // 单向请求
-    IPacket? Payload { get; set; }   // 负载数据
+    IPacket? Payload { get; set; }   // 负载数据（消息体句柄视图，流式模式为 null）
 
     IMessage CreateReply();          // 根据请求创建配对响应
-    Boolean Read(IPacket pk);        // 从数据包解析消息
-    IPacket? ToPacket();             // 序列化为数据包
 }
 ```
 
@@ -42,8 +44,8 @@ public interface IMessage : IDisposable
 ### 2.2 核心方法
 
 - **`CreateReply()`**：根据请求消息创建配对的响应消息，继承序列号等关键属性。仅请求消息可调用。
-- **`Read(IPacket pk)`**：从原始数据包解析消息头和负载。帧头可跨节点（首段不足时自动拼入栈缓冲拼读，负载可继续为链式节点）。
-- **`ToPacket()`**：将消息序列化为数据包，用于网络发送。
+- **`ReadFrame(IPacket pk)`**（帧契约）：从完整帧解析消息头和负载。帧头可跨节点（首段不足时自动拼入栈缓冲拼读，负载可继续为链式节点）。
+- **`Build()`**（帧契约）：将消息构建为完整数据包，用于网络发送；构建采用转移语义。
 
 ---
 
@@ -57,14 +59,15 @@ public class Message : IMessage
     public Boolean Reply { get; set; }
     public Boolean Error { get; set; }
     public Boolean OneWay { get; set; }
-    public IPacket? Payload { get; set; }
+    public IPacket? Payload { get; set; }        // 消息体句柄视图
+    public LimitedReader? Body => _body;         // 消息体读取视图（帧契约）
 
     public void Dispose() { ... }
     protected virtual void Dispose(Boolean disposing) { ... }
 
     public virtual IMessage CreateReply() { ... }
-    public virtual Boolean Read(IPacket pk) { ... }
-    public virtual IPacket? ToPacket() => Payload;
+    public virtual Boolean ReadFrame(IPacket pk) { ... }
+    public virtual IPacket? Build() { ... }      // 转移语义：构建后消息不再持有体
     public virtual void Reset() { ... }
 }
 ```

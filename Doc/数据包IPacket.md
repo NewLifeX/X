@@ -459,7 +459,7 @@ IMessage.Dispose()
 
 1. **零感知释放**：上层代码只需 `using var msg = ...` 或手动 `msg.Dispose()`，无需关心 `Payload` 的具体类型是否需要释放。`TryDispose` 安全地处理了 `ArrayPacket`（非 `IDisposable`）和 `OwnerPacket`（`IDisposable`）的差异。
 
-2. **所有权链条清晰**：`DefaultMessage.Read` 用 `Slice(offset, count)` 把负载切为共享切片归 `Payload` 持有（引用计数）。最终谁持有 `IMessage`，谁就负责释放其持有的引用。
+2. **所有权链条清晰**：codec 解析（如 `SrmpCodec.TryParse`）用 `Slice(offset, count)` 把负载切为共享切片经 `SetBody` 归 `Payload` 持有（引用计数）。最终谁持有 `IMessage`，谁就负责释放其持有的引用。
 
 3. **链式递归**：`OwnerPacket.Dispose` 会递归释放 `Next` 链，即使协议解析产生了多段链式负载，一次 `Dispose` 即可全部归还。
 
@@ -473,12 +473,13 @@ var raw = new OwnerPacket(bufferSize);  // 从池中租用
 var count = await socket.ReceiveAsync(raw.GetMemory());
 raw.Resize(count);
 
-// 解析消息（Read 内部 Slice 共享切片）
-var msg = new DefaultMessage();
-msg.Read(raw);
+// 解析消息（codec 定界；消息经 SetBody 持有负载切片，帧句柄仍归调用方）
+var rs = new SrmpCodec().TryParse(raw.AsReadOnlySequence());
+var msg = rs?.Message;
 
 // 上层处理完毕后释放，自动归还池化内存
-msg.Dispose();
+msg?.Dispose();
+raw.TryDispose();
 ```
 
 > 更多 IMessage 设计细节，请参阅 [消息IMessage.md](消息IMessage.md)。

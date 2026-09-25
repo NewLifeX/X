@@ -162,19 +162,20 @@ public class StringBuilderPool : Pool<StringBuilder>
 ```csharp
 public class MessageProcessor
 {
-    private readonly Pool<Message> _pool = new();
+    private readonly Pool<DefaultMessage> _pool = new();
     
     public void Process(Byte[] data)
     {
         var msg = _pool.Get();
         try
         {
-            msg.Parse(data);
+            msg.SetBody(data.AsPacket());
             HandleMessage(msg);
         }
         finally
         {
-            msg.Reset();  // 重置状态
+            // 归还前释放负载（池不自动清理，由使用方负责）
+            msg.SetBody(null);
             _pool.Return(msg);
         }
     }

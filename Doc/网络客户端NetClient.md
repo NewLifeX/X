@@ -1,4 +1,4 @@
-﻿# NetClient 网络客户端使用手册
+# NetClient 网络客户端使用手册
 
 ## 目录
 
@@ -26,14 +26,14 @@
 
 - **协议自动识别**：通过 `Server` 地址字符串（`tcp://`、`udp://`、`ws://`）自动创建对应的底层 Socket 客户端
 - **透明断线重连**：连接意外断开后自动重连，内部替换 `ISocketClient` 实例，上层业务代码感知不到切换过程
-- **管道编解码**：通过 `Add<T>()` 注册编解码处理器，解决粘包、拆包和协议解析问题
+- **协议编解码**：通过 `Protocol` 属性设置协议编解码器（如 `SrmpCodec`），解决粘包、拆包和协议解析问题
 - **事件驱动接收**：订阅 `Received` 事件，异步处理到达的数据或消息
 - **同步 / 异步双模式**：`Open` / `OpenAsync`、`Send` / `SendMessageAsync` 覆盖全部场景
 
 ```csharp
 // 典型用法
 var client = new NetClient("tcp://127.0.0.1:8080");
-client.Add<StandardCodec>();
+client.Protocol = new SrmpCodec();
 client.Received += (s, e) => XTrace.WriteLine("收到：{0}", e.Packet?.ToStr());
 client.Open();
 client.SendMessage(payload);
@@ -47,7 +47,7 @@ client.SendMessage(payload);
 ┌─────────────────────────────────────────────┐
 │                 NetClient                   │
 │  Server / Remote → CreateClient()           │
-│  AutoReconnect    Pipeline                  │
+│  AutoReconnect    Protocol                  │
 │  Events: Opened / Closed / Received / Error │
 └─────────────┬───────────────────────────────┘
               │ 持有（volatile，断线后替换）
@@ -63,7 +63,7 @@ client.SendMessage(payload);
 ```text
 SendMessage(msg)
   → EnsureClient()       // 确保已连接，AutoReconnect=false 时未连接直接抛出
-  → Pipeline.Encode(msg) // 经管道编码为二进制（若设置了 Pipeline）
+  → 协议构建整帧（Build）// 编码为二进制（若设置了 Protocol）
   → ISocketClient.Send() // 底层发送
 ```
 
@@ -71,7 +71,7 @@ SendMessage(msg)
 
 ```text
 ISocketClient 收到数据
-  → Pipeline.Decode()            // 管道解码
+  → 消息泵定界解码（TryParse）
   → NetClient.OnClientReceived() // 事件转发
   → Received 事件                // 业务层处理
 ```
@@ -120,7 +120,7 @@ client.Open();
 
 ```csharp
 var client = new NetClient("tcp://127.0.0.1:8080");
-client.Add<StandardCodec>();   // 标准长度帧编解码
+client.Protocol = new SrmpCodec();   // 标准长度帧编解码
 
 client.Received += (s, e) =>
 {
@@ -135,7 +135,7 @@ client.SendMessage(myMessage);
 
 ```csharp
 var client = new NetClient("tcp://127.0.0.1:8080");
-client.Add<StandardCodec>();
+client.Protocol = new SrmpCodec();
 await client.OpenAsync();
 
 // SendMessageAsync 等待管道匹配到对应响应后返回
@@ -160,7 +160,7 @@ XTrace.WriteLine("响应：{0}", response);
 | `AutoReconnect` | `Boolean` | `true` | 是否在意外断线后自动重连 |
 | `ReconnectDelay` | `Int32` | `5000` | 两次重连之间的等待时间（毫秒） |
 | `MaxReconnect` | `Int32` | `0` | 最大重连次数，`0` 表示无限重连 |
-| `Pipeline` | `IPipeline?` | `null` | 消息管道，通过 `Add<T>()` 自动创建 |
+| `Protocol` | `IMessageCodec?` | `null` | 协议编解码器，非空启用协议模式（定界/构建，见《消息协议栈》） |
 | `Tracer` | `ITracer?` | `null` | APM 追踪器 |
 | `Log` | `ILog` | `Logger.Null` | 日志对象 |
 | `LogPrefix` | `String` | `"{Name} "` | 日志行前缀 |
@@ -316,59 +316,34 @@ client.Log = XTrace.Log; // 启用日志后，重连过程会输出如：
 
 ---
 
-## 管道编解码
+## 协议编解码
 
-### 注册处理器
+### 启用协议模式
 
 ```csharp
-// 泛型方式（推荐）
-client.Add<StandardCodec>();
+// 标准 SRMP 协议（请求-响应按序列号配对）
+client.Protocol = new SrmpCodec();
 
-// 实例方式
-client.Add(new LengthFieldCodec { MaxLength = 1024 * 1024 });
+// 长度字段协议（适配 MQTT 风格等自定义线格式）
+client.Protocol = new LengthFieldCodec { Offset = 0, Size = 2 };
 
-// 链式调用
-client.Add<StandardCodec>()
-      .Add<MyBusinessHandler>();
+// 组合变换层（如压缩）——装饰器嵌套
+client.Protocol = new CompressedCodec(new SrmpCodec());
 ```
 
-### StandardCodec
+### SrmpCodec
 
-`StandardCodec` 是 NewLife 标准帧编解码器，报文格式：
+`SrmpCodec` 是 NewLife 标准帧编解码器（SRMP），报文格式：
 
 ```text
-[4字节长度][负载数据]
+[1 Flag][1 Sequence][2 Length][负载数据]    （负载 ≥ 0xFFFF 时使用 8 字节扩展头）
 ```
 
-与 `NetServer` + `StandardCodec` 配合使用可直接收发任意长度消息。
+与 `NetServer` + `SrmpCodec` 配合使用可直接收发任意长度消息；`SendMessageAsync` 按序列号等待匹配响应。
 
-### 自定义管道处理器
+### 自定义协议编解码器
 
-```csharp
-public class MyHandler : HandlerBase
-{
-    public override Object? Read(IHandlerContext context, Object message)
-    {
-        if (message is IPacket pkt)
-        {
-            // 自定义解码逻辑
-            var msg = MyProtocol.Decode(pkt);
-            return base.Read(context, msg);
-        }
-        return base.Read(context, message);
-    }
-
-    public override Object? Write(IHandlerContext context, Object message)
-    {
-        if (message is MyMessage msg)
-        {
-            var pkt = MyProtocol.Encode(msg);
-            return base.Write(context, pkt);
-        }
-        return base.Write(context, message);
-    }
-}
-```
+实现 `IMessageCodec`（`TryParse` 定界构造 / `Build` 整帧构建 / `BuildHeader` 头部构建）即可接入，参见《消息协议栈》§6 与 `SrmpCodec` 实现。
 
 ---
 
@@ -397,7 +372,7 @@ public class SslNetClient : NetClient
 }
 ```
 
-> `base.CreateClient()` 内部已完成：设置 `Name`、`Timeout`、`Log`、`Pipeline`、`Tracer`、`Local` 并绑定事件监听。子类在调用 `base.CreateClient()` 后只需追加特定配置。
+> `base.CreateClient()` 内部已完成：设置 `Name`、`Timeout`、`Log`、`Protocol`、`Tracer`、`Local` 并绑定事件监听。子类在调用 `base.CreateClient()` 后只需追加特定配置。
 
 ---
 

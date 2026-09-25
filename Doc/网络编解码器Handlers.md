@@ -1,5 +1,7 @@
 # 网络编解码器Handlers
 
+> ⚠️ **旧栈文档（v12 已退役）**：`NewLife.Net.Handlers` 命名空间与全部 6 个 Handler 编解码器（`StandardCodec` 等）已整删。现行协议编解码器（`SrmpCodec`/`LengthFieldCodec`/`SplitDataCodec`/`WebSocketCodec`）与启用方式（`Protocol` 属性）见《消息协议栈》。
+
 ## 概述
 
 `NewLife.Net.Handlers` 命名空间提供一套可叠加的网络编解码器，用于解决 TCP 长连接的粘包拆包、消息序列化、请求-响应匹配等问题。编解码器以处理器（`Handler`）形式注册到管道（`Pipeline`），收包时正向解码，发包时逆向编码，支持任意组合叠加。

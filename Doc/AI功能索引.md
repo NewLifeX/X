@@ -28,8 +28,8 @@ NuGet 包：`NewLife.Core`
 | NewLife.Http | HTTP 与 WebSocket | 轻量级 HTTP 服务器/客户端和 WebSocket | HttpServer, WebSocketClient, TinyHttpClient |
 | NewLife.IO | 文件与存储 | CSV/Excel 读写、路径工具 | CsvFile, ExcelReader, PathHelper |
 | NewLife.Log | 日志与追踪 | 多输出日志框架，分布式链路追踪 APM | ILog, ITracer, DefaultTracer, XTrace |
-| NewLife.Model | 应用框架 | 依赖注入、插件管理、管道模型、Actor 并发 | ObjectContainer, Host, Actor, IPipeline |
-| NewLife.Net | 网络库 | 高性能 TCP/UDP 服务端/客户端，编解码管道 | NetServer, TcpServer, StandardCodec |
+| NewLife.Model | 应用框架 | 依赖注入、插件管理、Actor 并发 | ObjectContainer, Host, Actor, IPlugin |
+| NewLife.Net | 网络库 | 高性能 TCP/UDP 服务端/客户端，协议编解码 | NetServer, TcpServer, SrmpCodec, MessagePump |
 | NewLife.Reflection | 反射扩展 | 高性能反射、程序集工具、脚本引擎 | IReflect, AssemblyX, ScriptEngine |
 | NewLife.Remoting | RPC 框架 | HTTP API 客户端，负载均衡，故障转移 | IApiClient, ApiHttpClient, ILoadBalancer |
 | NewLife.Security | 安全加密 | RSA/DSA/AES/SM4 加解密，哈希校验 | SecurityHelper, RSAHelper, SM4, Crc32 |
@@ -152,7 +152,7 @@ NuGet 包：`NewLife.Core`
 | Host | [应用主机](https://newlifex.com/core/host) | 轻量级后台服务托管 |
 | IPlugin / PluginManager | [插件框架](https://newlifex.com/core/plugin) | 标准化插件管理，模块化开发 |
 | Actor | [并行模型](https://newlifex.com/core/actor) | Actor 并发模型，消息驱动 |
-| IPipeline / Pipeline | [管道模型](https://newlifex.com/core/pipeline) | 双向处理链，Read/Write/Open/Close |
+| IMessageCodec / MessagePump | — | 协议编解码与消息帧泵（见《消息协议栈》） |
 | DeferredQueue | [延迟队列](https://newlifex.com/core/deferred_queue) | 聚合高频变更并批处理落地 |
 | IHostedService | — | 托管服务接口（兼容 .NET Generic Host） |
 
@@ -164,7 +164,7 @@ NuGet 包：`NewLife.Core`
 | TcpServer / UdpServer | [网络服务端](https://newlifex.com/core/netserver) | 底层 TCP/UDP 服务器 |
 | NetClient | [网络客户端](https://newlifex.com/core/netclient) | 统一 TCP/UDP 客户端 |
 | NetSession | — | 高级网络会话 |
-| StandardCodec | [编解码器](https://newlifex.com/core/net_handlers) | 请求-响应消息匹配编解码 |
+| SrmpCodec | — | SRMP 标准消息编解码（请求-响应按序列号配对，见《消息协议栈》） |
 | LengthFieldCodec | [编解码器](https://newlifex.com/core/net_handlers) | 长度字段粘包拆包 |
 | WebSocketCodec | — | WebSocket 协议编解码 |
 | JsonCodec | — | JSON 消息编解码 |

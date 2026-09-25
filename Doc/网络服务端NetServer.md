@@ -48,7 +48,7 @@ NewLife.Net 是新生命团队开发的高性能网络通信库，支持 TCP/UDP
 │  NetServer / NetServer<TSession>                                │
 │  ├── INetSession (会话管理)                                      │
 │  ├── INetHandler (数据处理器)                                    │
-│  └── Pipeline (消息管道)                                         │
+│  └── Protocol (协议编解码器)                                     │
 ├─────────────────────────────────────────────────────────────────┤
 │                       Socket服务层                               │
 │  ISocketServer                                                   │
@@ -76,7 +76,7 @@ NetServer
     │   ├── TcpServer                // TCP服务
     │   └── UdpServer                // UDP服务
     ├── IDictionary<Int32, INetSession> Sessions  // 网络会话集合
-    └── IPipeline Pipeline           // 消息管道
+    └── IMessageCodec Protocol       // 协议编解码器（协议模式）
 
 INetSession (网络会话)
     ├── ISocketSession Session       // 底层Socket会话
@@ -92,12 +92,12 @@ ISocketSession (Socket会话)
 
 **接收数据流**：
 ```
-Socket接收 → ProcessEvent → OnPreReceive → Pipeline.Read → OnReceive → Received事件
+Socket接收 → ProcessEvent → OnPreReceive → 数据管道 → 消息泵定界 → OnMessage → Received事件
 ```
 
 **发送数据流**：
 ```
-Send/SendMessage → Pipeline.Write → OnSend → Socket发送
+Send/SendMessage → 协议构建整帧 → OnSend → Socket发送
 ```
 
 ### 生命周期
@@ -520,24 +520,19 @@ public class GameSession : NetSession<GameServer>
 }
 ```
 
-### Pipeline - 消息管道
+### 协议编解码（Protocol）
 
-管道用于协议编解码，支持链式处理。
+协议模式通过 `Protocol` 属性设置协议编解码器，消息泵自动定界；收发使用 `SendMessage` / `SendMessageAsync` 与 `Received` 事件。
 
-#### 标准编解码器
+#### 内置协议
 
 ```csharp
-using NewLife.Net.Handlers;
-
 var server = new NetServer { Port = 12345 };
 
-// 添加标准编解码器（4字节头部+数据）
-server.Add<StandardCodec>();
+// 标准 SRMP 协议（请求-响应按序列号配对）
+server.Protocol = new SrmpCodec();
 
-// 添加JSON编解码器
-server.Add<JsonCodec>();
-
-// 接收解码后的消息
+// 协议模式接收
 server.Received += (s, e) =>
 {
     // e.Message 是解码后的消息对象
@@ -552,37 +547,9 @@ server.Received += (s, e) =>
 server.Start();
 ```
 
-#### 自定义处理器
+#### 自定义协议
 
-```csharp
-public class MyHandler : Handler
-{
-    public override Boolean Read(IHandlerContext context, Object message)
-    {
-        // 解码处理（接收数据时）
-        if (message is IPacket pk)
-        {
-            var myMsg = ParseMessage(pk);
-            return context.FireRead(myMsg);
-        }
-        return base.Read(context, message);
-    }
-    
-    public override Boolean Write(IHandlerContext context, Object message)
-    {
-        // 编码处理（发送数据时）
-        if (message is MyMessage msg)
-        {
-            var pk = EncodeMessage(msg);
-            return context.FireWrite(pk);
-        }
-        return base.Write(context, message);
-    }
-}
-
-// 注册处理器
-server.Add(new MyHandler());
-```
+实现 `IMessageCodec`（`TryParse` 定界构造 / `Build` 整帧构建 / `BuildHeader` 头部构建）即可接入，参见《消息协议栈》§6 与 `SrmpCodec` 实现。
 
 ### INetHandler - 网络处理器
 
@@ -675,7 +642,7 @@ server.SendAllMessage(message, session => session.ID != mySession.ID);
 ```csharp
 // 客户端发送请求并等待响应
 var client = new TcpSession { Remote = uri };
-client.Add<StandardCodec>();
+client.Protocol = new SrmpCodec();
 client.Open();
 
 // 异步发送消息并等待响应
@@ -944,10 +911,10 @@ if (server.Server is TcpServer tcp)
 
 ### Q: 如何处理粘包/拆包？
 
-A: 使用 StandardCodec 或自定义协议处理器。StandardCodec 采用 4 字节头部标识数据长度。
+A: 使用 `SrmpCodec`（SRMP 标准封包，4 字节头部标识长度）或自定义 `IMessageCodec`；经 `Protocol` 属性启用协议模式，消息泵自动完成粘包/拆包定界。详见《消息协议栈》。
 
 ```csharp
-server.Add<StandardCodec>();
+server.Protocol = new SrmpCodec();
 ```
 
 ### Q: 如何实现心跳检测？
@@ -1013,7 +980,7 @@ A: 使用流发送或扩展方法。
 using var stream = File.OpenRead("data.bin");
 session.Send(stream);
 
-// 分包发送（配合StandardCodec）
+// 分包发送（协议模式）
 client.SendFile("data.bin");
 ```
 
@@ -1068,7 +1035,7 @@ server.SendAllMessage(message, s => s["RoomId"]?.ToString() == "room1");
 | `NetSession<TServer>` | 泛型网络会话，强类型访问Host |
 | `INetSession` | 网络会话接口 |
 | `INetHandler` | 网络处理器接口，会话级数据预处理 |
-| `IPipeline` | 消息管道接口 |
+| `IMessageCodec` | 协议编解码器接口（见《消息协议栈》） |
 | `ISocketServer` | Socket服务器接口 |
 | `ISocketSession` | Socket会话接口 |
 | `TcpServer` | TCP服务器 |

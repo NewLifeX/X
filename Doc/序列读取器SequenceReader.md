@@ -54,7 +54,7 @@ if (reader.TryReadBigEndian(out Int16 magic) &&
 
 ## 与 PacketHelper "前缀拼读"的关系
 
-- **序列解析（推荐）**：面向 `ReadOnlySequence<Byte>` 的协议帧首解析已迁移到 `SequenceReader<T>`——`DefaultMessage`、`WebSocketMessage`、`MessageCodec`、`EventHub`、`LengthFieldCodec`；
+- **序列解析（推荐）**：面向 `ReadOnlySequence<Byte>` 的协议帧首解析已迁移到 `SequenceReader<T>`——`SrmpCodec`、`WebSocketCodec`、`LengthFieldCodec`、`SplitDataCodec`、`EventHub`；
 - **链头部直读（保留）**：`IPacket` 链的单段头部场景仍可用 `PacketHelper.GetPrefix`（首段直读零拷贝，跨段时拼入调用方缓冲）；
 - `PacketHelper.CopyPrefix` 保留为内部工具，当前协议解析不再依赖它。
 
