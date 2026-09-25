@@ -253,7 +253,7 @@ public class TinyHttpClient : DisposeBase
         return res;
     }
 
-    /// <summary>读取分片，返回链式Packet</summary>
+    /// <summary>读取分片，返回链式 IPacket</summary>
     /// <remarks>只借阅入参，不释放 <paramref name="body"/>；入参句柄由调用方负责释放。</remarks>
     /// <param name="body">待解析的数据包（调用方负责释放）</param>
     /// <returns></returns>

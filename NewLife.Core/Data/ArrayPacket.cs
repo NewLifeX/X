@@ -208,17 +208,17 @@ public record struct ArrayPacket : IPacket
     }
 
     #region 重载运算符
-    /// <summary>重载类型转换，字节数组直接转为Packet对象</summary>
+    /// <summary>重载类型转换，字节数组直接转为 ArrayPacket 对象</summary>
     /// <param name="value"></param>
     /// <returns></returns>
     public static implicit operator ArrayPacket(Byte[] value) => new(value);
 
-    /// <summary>重载类型转换，一维数组直接转为Packet对象</summary>
+    /// <summary>重载类型转换，一维数组直接转为 ArrayPacket 对象</summary>
     /// <param name="value"></param>
     /// <returns></returns>
     public static implicit operator ArrayPacket(ArraySegment<Byte> value) => new(value.Array!, value.Offset, value.Count);
 
-    /// <summary>重载类型转换，字符串直接转为Packet对象</summary>
+    /// <summary>重载类型转换，字符串直接转为 ArrayPacket 对象</summary>
     /// <param name="value"></param>
     /// <returns></returns>
     public static implicit operator ArrayPacket(String value) => new(value.GetBytes());

@@ -11,8 +11,7 @@ using NewLife.Net;
 using NewLife.Remoting;
 using Xunit;
 
-// 本文件部分用例涉及 Packet 的链式 class 语义（struct 的 ArrayPacket 无此行为），抑制 CS0618 过时警告
-#pragma warning disable CS0618
+// 本文件部分用例涉及数据包链式语义（接口形式上链，结构体需以 IPacket 变量持有才能拼接）
 
 namespace XUnitTest.Http;
 
@@ -320,9 +319,10 @@ Content-Type: image/jpeg
 
 ";
         var png = File.ReadAllBytes("http/leaf.png".GetFullPath());
-        var pk = new Packet(data.GetBytes());
-        pk.Next = png;
-        pk.Append("\r\n------WebKitFormBoundary3ZXeqQWNjAzojVR7--\r\n".GetBytes());
+        IPacket pk = (ArrayPacket)data.GetBytes();
+        var pngPk = (ArrayPacket)png;
+        pngPk.Next = (ArrayPacket)"\r\n------WebKitFormBoundary3ZXeqQWNjAzojVR7--\r\n".GetBytes();
+        pk.Next = pngPk;
 
         var req = new HttpRequest
         {
@@ -354,7 +354,7 @@ Content-Type: image/jpeg
         var png2 = av.OpenReadStream().ReadBytes(-1);
         Assert.Equal(png.Length, png2.Length);
         Assert.True(png.SequenceEqual(png2));
-        Assert.Equal(png, (av.Data as Packet)?.Data);
+        Assert.Equal(png, av.Data!.ToArray());
     }
 
     [Fact(DisplayName = "ParseFormData 链式跨段体：现代链式包聚合扫描")]

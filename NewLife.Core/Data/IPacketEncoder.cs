@@ -149,12 +149,6 @@ public class DefaultPacketEncoder : IPacketEncoder
         // 目标就是数据包类型 
         if (type == typeof(IPacket)) return data;
 
-        // 目标是具体的Packet类型
-#pragma warning disable CS0618 // 类型或成员已过时
-        if (type == typeof(Packet))
-            return data is Packet existingPacket ? existingPacket : new Packet(data.ReadBytes());
-#pragma warning restore CS0618 // 类型或成员已过时
-
         // 目标是字节数组
         if (type == typeof(Byte[])) return data.ReadBytes();
 

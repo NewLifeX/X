@@ -245,54 +245,6 @@ public static class HttpHelper
         return rs;
     }
 
-#pragma warning disable CS0618 // 类型或成员已过时
-    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
-    /// <summary>分析头部（修改原 <see cref="Packet"/>，截去首段头部）</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
-    public static IDictionary<String, Object> ParseHeader(Packet pk)
-    {
-        // 客户端收到响应，服务端收到请求
-        var headers = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
-
-        var p = pk.IndexOf(NewLine);
-        if (p < 0) return headers;
-
-        // 截取
-        var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
-        p += 4; // 跳过 CRLFCRLF
-        pk.Set(pk.Data, pk.Offset + p, pk.Count - p);
-
-        // 分析头部
-        headers.Clear();
-        for (var i = 1; i < lines.Length; i++)
-        {
-            var line = lines[i];
-            var k = line.IndexOf(':');
-            if (k > 0) headers[line[..k]] = line[(k + 1)..].Trim();
-        }
-
-        var first = lines.Length > 0 ? lines[0] : "";
-        var ss = first.Split(' ');
-        if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
-        {
-            headers["Method"] = ss[0];
-
-            // 构造资源路径
-            var host = headers.TryGetValue("Host", out var s) ? s : "";
-            var uri = $"http://{host}{ss[1]}"; // 仅能猜测 http，若需 https 应由上层携带
-            headers["Url"] = new Uri(uri);
-        }
-        else if (ss.Length >= 2)
-        {
-            // 分析响应码
-            var code = ss[1].ToInt();
-            if (code > 0) headers["StatusCode"] = (HttpStatusCode)code;
-        }
-
-        return headers;
-    }
-#pragma warning restore CS0618 // 类型或成员已过时
     #endregion
 
     #region 高级功能扩展
