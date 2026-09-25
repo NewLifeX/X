@@ -344,12 +344,16 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         // 判断成功失败
         if (se.SocketError != SocketError.Success)
         {
+            var ex = se.GetException();
+            if (ex != null) OnError("AcceptAsync", ex);
+
             // 未被关闭Socket时，可以继续使用
             //if (!se.IsNotClosed())
+            // 历史：该判断曾被整体注释掉，导致任何接受错误都会释放事件参数并直接返回。
+            // 接受槽位只在启动时按 MaxAsync 创建一次，逐个消耗后服务器将不再接受新连接。
+            // 现按“监听套接字是否已中止”区分：已中止（服务正在关闭）才释放返回，其余错误继续投递。
+            if (se.IsAborted())
             {
-                var ex = se.GetException();
-                if (ex != null) OnError("AcceptAsync", ex);
-
                 se?.Dispose();
                 return;
             }
@@ -396,6 +400,11 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             session.Certificate = Certificate;
             session.Tracer = Tracer;
             session.Start();
+        }
+        else
+        {
+            // 会话集合拒绝（端点重复或并发竞态）：会话已建立但无人接管，立即释放，避免 socket 与接收缓冲泄漏
+            session.TryDispose();
         }
     }
     #endregion

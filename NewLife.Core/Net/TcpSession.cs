@@ -299,9 +299,9 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         }
         catch (Exception ex)
         {
-            if (ex is SocketException) sock.Close();
+            // 连接失败时，任何错误都放弃当前Socket。TLS 认证失败时 socket 已建立，不显式关闭会把句柄挂到 GC
+            sock.Close();
 
-            // 连接失败时，任何错误都放弃当前Socket
             Client = null;
             if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
 
@@ -908,19 +908,14 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         }
         catch (Exception ex)
         {
-            if (ex is IOException ||
-            ex is SocketException sex && sex.SocketErrorCode == SocketError.ConnectionReset)
+            XTrace.WriteException(ex);
+
+            // 读失败统一按对端已关闭（0字节）处理，触发会话断开链路。
+            // 仅记日志会让本接收参数既不重投也不释放，SSL 会话无感知悬挂直到超时清理。
+            if (ar.AsyncState is SocketAsyncEventArgs args)
             {
-                // 对端关闭/重置：按对端已关闭（0字节）处理，触发会话断开链路；否则SSL读异常被吞后会话无感知悬挂
-                if (ar.AsyncState is SocketAsyncEventArgs args)
-                {
-                    args.SocketError = SocketError.Success;
-                    ProcessEvent(args, 0, 1);
-                }
-            }
-            else
-            {
-                XTrace.WriteException(ex);
+                args.SocketError = SocketError.Success;
+                ProcessEvent(args, 0, 1);
             }
 
             return;

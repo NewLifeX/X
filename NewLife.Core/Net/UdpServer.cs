@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Concurrent;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife.Collections;
@@ -237,7 +238,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             // 若此时仍有 IOCP 线程执行 OnReceive → Send，会触发 NullReferenceException 或 throw。
             // 静默返回 -1 代替 throw，避免关闭期间产生无意义的错误日志。
             if (Client is not { } sock) return -1;
-            lock (sock)
+            lock (_sendLock)
             {
                 // Linux+Mono 的Connected总是true，需要特殊处理
                 var connected = sock.Connected;
@@ -322,7 +323,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             var rs = 0;
             // 服务端关闭时 Client 先被置 null，静默返回 -1 代替 throw
             if (Client is not { } sock) return -1;
-            lock (sock)
+            lock (_sendLock)
             {
                 if (sock.Connected && !sock.EnableBroadcast)
                 {
@@ -365,7 +366,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             var rs = 0;
             // 服务端关闭时 Client 先被置 null，静默返回 -1 代替 throw
             if (Client is not { } sock) return -1;
-            lock (sock)
+            lock (_sendLock)
             {
                 if (sock.Connected && !sock.EnableBroadcast)
                 {
@@ -523,7 +524,11 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
     public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
-    private readonly Dictionary<Int32, ISocketSession> _broadcasts = [];
+    // 广播会话按端口索引。并发字典：无锁快路径读取与加锁写入并存，普通字典会在并发读写时损坏结构
+    private readonly ConcurrentDictionary<Int32, ISocketSession> _broadcasts = [];
+
+    /// <summary>发送锁。同一监听Socket上的所有发送（含各 UdpSession）均经此串行化；不用 Socket 实例作锁，避免外部代码对同一对象加锁导致死锁</summary>
+    private readonly Object _sendLock = new();
 
     /// <summary>本地端口由系统自动分配（未指定监听端口，纯客户端模式）。首次打开时判定，决定是否连接远端</summary>
     private Boolean _autoLocalPort;
@@ -595,11 +600,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                     _broadcasts[port] = session;
                     session.OnDisposed += (s, e) =>
                     {
-                        lock (_broadcasts)
-                        {
-                            if (s is UdpSession ss)
-                                _broadcasts.Remove(ss.Remote.Port);
-                        }
+                        if (s is UdpSession ss) _broadcasts.TryRemove(ss.Remote.Port, out _);
                     };
                 }
             }

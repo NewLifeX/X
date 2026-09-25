@@ -387,8 +387,23 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             // 并行模式：数据报体为零拷贝共享切片（天然独立），信号量约束后派发；处理顺序不定（SRMP 按序列号配对）
             if (MaxConcurrency > 1)
             {
-                Concurrency.Wait();
-                _ = Task.Run(() => ProcessMessage(message));
+                // 等待信号量放到线程池上：接收环运行在 IOCP/线程池线程，就地阻塞会拖慢整条接收链并挤爆内核缓冲
+                var concurrency = Concurrency;
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await concurrency.WaitAsync().ConfigureAwait(false);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // 会话销毁：信号量已释放，消息无人处理，就地释放
+                        message.TryDispose();
+                        return;
+                    }
+
+                    ProcessMessage(message);
+                });
 
                 pos += headerSize + bodyLength;
                 continue;

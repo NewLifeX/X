@@ -52,17 +52,23 @@ public static class SocketHelper
         if (remoteEP == null) throw new ArgumentNullException(nameof(remoteEP));
 
         var buffer = Pool.Shared.Rent(1472);
-        while (true)
+        try
         {
-            var n = stream.Read(buffer, 0, buffer.Length);
-            if (n <= 0) break;
+            while (true)
+            {
+                var n = stream.Read(buffer, 0, buffer.Length);
+                if (n <= 0) break;
 
-            socket.SendTo(buffer, 0, n, SocketFlags.None, remoteEP);
-            total += n;
+                socket.SendTo(buffer, 0, n, SocketFlags.None, remoteEP);
+                total += n;
 
-            if (n < buffer.Length) break;
+                if (n < buffer.Length) break;
+            }
         }
-        Pool.Shared.Return(buffer);
+        finally
+        {
+            Pool.Shared.Return(buffer);
+        }
 
         return socket;
     }
@@ -135,14 +141,19 @@ public static class SocketHelper
         EndPoint ep = new IPEndPoint(IPAddress.Any, 0);
 
         var buf = Pool.Shared.Rent(1460);
-        var len = socket.ReceiveFrom(buf, ref ep);
-        if (len <= 0) return String.Empty;
+        try
+        {
+            var len = socket.ReceiveFrom(buf, ref ep);
+            if (len <= 0) return String.Empty;
 
-        encoding ??= Encoding.UTF8;
-        var str = encoding.GetString(buf, 0, len);
-        Pool.Shared.Return(buf);
+            encoding ??= Encoding.UTF8;
 
-        return str;
+            return encoding.GetString(buf, 0, len);
+        }
+        finally
+        {
+            Pool.Shared.Return(buf);
+        }
     }
 
     /// <summary>检查并开启广播</summary>
@@ -203,10 +214,10 @@ public static class SocketHelper
     #endregion
 
     #region 异步事件
-    /// <summary>Socket是否未被关闭</summary>
+    /// <summary>异步事件是否因套接字中止（关闭）而结束</summary>
     /// <param name="se"></param>
     /// <returns></returns>
-    internal static Boolean IsNotClosed(this SocketAsyncEventArgs se) => se.SocketError is SocketError.OperationAborted or SocketError.Interrupted or SocketError.NotSocket;
+    internal static Boolean IsAborted(this SocketAsyncEventArgs se) => se.SocketError is SocketError.OperationAborted or SocketError.Interrupted or SocketError.NotSocket;
 
     /// <summary>根据异步事件获取可输出异常，屏蔽常见异常</summary>
     /// <param name="se"></param>

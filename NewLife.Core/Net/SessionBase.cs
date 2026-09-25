@@ -99,7 +99,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public Int32 MaxCache { get; set; } = 1024 * 1024;
 
     /// <summary>请求-响应匹配队列。协议模式下等待响应时使用，首次等待时自动创建，可注入共享或自定义实现</summary>
-    public IMatchQueue? MatchQueue { get; set; }
+    public IMatchQueue? MatchQueue
+    {
+        get => _matchQueue;
+        set => _matchQueue = value;
+    }
+
+    private IMatchQueue? _matchQueue;
 
     /// <summary>请求-响应匹配等待超时（毫秒）。默认30_000</summary>
     public Int32 MatchTimeout { get; set; } = 30_000;
@@ -617,8 +623,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             return false;
         }
 
-        // 同步返回0数据包，断开连接
-        if (!rs && se.BytesTransferred == 0 && se.SocketError == SocketError.Success)
+        // 同步返回0数据包：仅面向字节流的传输（TCP/Unix域）表示对端关闭，断开连接。
+        // 数据报传输（UDP）的 0 字节是合法报文（UdpSession 约定为结束该远端会话），必须按普通收包派发；
+        // 否则监听方（UdpServer）会因任意对端发来的一个空数据报而关闭整个服务。
+        if (!rs && se.BytesTransferred == 0 && se.SocketError == SocketError.Success && Client is not { SocketType: SocketType.Dgram })
         {
             var reason = CheckClosed() ?? "EmptyData";
             Close(reason);
@@ -1150,7 +1158,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
         try
         {
-            var queue = MatchQueue ??= new DefaultMatchQueue();
+            // 并发首用时只能有一个队列胜出：败者丢弃自建实例，否则请求会入队到无人匹配的队列，只能等超时
+            var queue = MatchQueue;
+            if (queue == null)
+            {
+                var created = new DefaultMatchQueue();
+                queue = Interlocked.CompareExchange(ref _matchQueue, created, null) ?? created;
+            }
+
             queue.Add(this, request, MatchTimeout, source);
 
             SendMessage(request);
