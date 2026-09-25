@@ -15,6 +15,9 @@ public record struct ArrayPacket : IPacket
     /// <summary>数据偏移</summary>
     public readonly Int32 Offset => _offset;
 
+    /// <summary>头部可借位空间。等于视图起点偏移，供下游向前借位写入协议头</summary>
+    public readonly Int32 FreeHeader => _offset;
+
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
     public readonly Int32 Length => _length;
@@ -148,12 +151,17 @@ public record struct ArrayPacket : IPacket
         return Slice(offset, count);
     }
 
-    /// <summary>切片得到新数据包（兼容重载），共用缓冲区。无所有权，忽略转移参数</summary>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。无所有权结构体忽略该参数</param>
-    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
-    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
+    /// <summary>扩展头部空间，共用缓冲区，无内存分配</summary>
+    /// <param name="size">向前扩展的字节数</param>
+    /// <returns>新的数据包实例（视图）</returns>
+    /// <remarks>前置空间足够时向前借位；结构体为借阅视图，调用后应改用返回的新视图，不再使用原实例。</remarks>
+    /// <exception cref="ArgumentOutOfRangeException">前置空间不足</exception>
+    public readonly ArrayPacket ExpandHeader(Int32 size)
+    {
+        if (_offset < size) throw new ArgumentOutOfRangeException(nameof(size), $"Expand size {size} exceeds available front space {_offset}");
+
+        return new ArrayPacket(_buffer, _offset - size, _length + size) { Next = Next };
+    }
 
     /// <summary>切片得到新数据包，共用缓冲区，无内存分配</summary>
     /// <param name="offset">偏移</param>
@@ -188,14 +196,6 @@ public record struct ArrayPacket : IPacket
         // 当前包用一截，剩下的再截取
         return new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain) };
     }
-
-    /// <summary>切片得到新数据包（兼容重载），共用缓冲区，无内存分配。无所有权，忽略转移参数</summary>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。无所有权结构体忽略该参数</param>
-    /// <returns>新的数据包实例</returns>
-    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
-    public ArrayPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>尝试获取缓冲区（仅本段，不含 Next）</summary>
     /// <param name="segment"></param>

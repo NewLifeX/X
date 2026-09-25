@@ -54,11 +54,12 @@ public class SplitDataCodec : IMessageCodec
         return new ParseResult { Message = message, HeaderSize = start, BodyLength = idx };
     }
 
-    /// <summary>整帧构建（内容 + 分隔符）。构建成功后消息体所有权随结果转移</summary>
+    /// <summary>整帧构建（内容 + 分隔符）。构建不消费消息负载</summary>
     /// <param name="message">内容消息</param>
-    /// <returns>整帧数据包，调用方负责 Dispose</returns>
+    /// <returns>整帧拥有句柄，调用方负责 Dispose</returns>
+    /// <remarks>拥有句柄共享切片后挂接分隔符（零拷贝）；视图无法挂链，新分配并拷贝。两种策略都不改动消息负载。</remarks>
     /// <exception cref="InvalidOperationException">消息体为流式绑定，无法整帧构建</exception>
-    public IPacket? Build(IMessage message)
+    public IOwnerPacket? Build(IMessage message)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (message.Body is { IsStreaming: true }) throw new InvalidOperationException("流式消息体无法整帧构建，请使用流式发送");
@@ -68,19 +69,25 @@ public class SplitDataCodec : IMessageCodec
         var tail = new OwnerPacket(sep.Length);
         sep.CopyTo(tail.GetSpan());
 
+        // 空消息：仅分隔符（如心跳空行）
         var body = message.Payload;
-        if (body == null)
+        if (body == null) return tail;
+
+        // 内容 + 分隔符：拥有句柄共享切片后链尾挂接（零拷贝，源体保持有效）
+        if (body is IOwnerPacket owner)
         {
-            // 空消息：仅分隔符（如心跳空行）
-            message.SetBody((IPacket?)null);
-            return tail;
+            var head = owner.Slice(0, -1);
+            head.Append(tail);
+
+            return head;
         }
 
-        // 内容 + 分隔符：原体链尾挂接分隔符，所有权随构建转移
-        body.Append(tail);
-        message.SetBody((IPacket?)null);
+        // 视图无法挂链：新分配并拷贝
+        var pk = new OwnerPacket(body.Total + sep.Length);
+        body.ReadBytes(pk.GetSpan());
+        sep.CopyTo(pk.GetSpan()[body.Total..]);
 
-        return body;
+        return pk;
     }
 
     /// <summary>仅构建头部数据包。分隔符协议无法预声明长度，不支持</summary>
@@ -88,7 +95,7 @@ public class SplitDataCodec : IMessageCodec
     /// <param name="bodyLength">消息体字节数</param>
     /// <returns>头部数据包</returns>
     /// <exception cref="NotSupportedException">分隔符协议不支持头部构建（请使用整帧构建）</exception>
-    public IPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("分隔符协议无法预声明长度，请使用整帧构建（Build）");
+    public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("分隔符协议无法预声明长度，请使用整帧构建（Build）");
     #endregion
 
     #region 辅助

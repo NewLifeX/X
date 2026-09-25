@@ -32,17 +32,18 @@ public interface IMessageCodec
     /// <remarks>实现须保证“成功即有进展”：产出消息时消费 HeaderSize；无消息帧时跳过 HeaderSize（&gt;0）。既不产出消息又不消费字节会被帧层拒绝，避免死循环。</remarks>
     ParseResult? TryParse(ReadOnlySequence<Byte> buffer);
 
-    /// <summary>整帧构建（头 + 内存体链式）。构建成功后消息体所有权随结果转移，消息不再持有</summary>
+    /// <summary>整帧构建（头 + 内存体）。构建不消费消息负载，消息数据保持原样</summary>
     /// <param name="message">消息（体须为内存模式）</param>
-    /// <returns>整帧数据包，调用方负责 Dispose；无内容可发时为 null</returns>
+    /// <returns>整帧拥有句柄，调用方负责 Dispose；无内容可发时为 null</returns>
+    /// <remarks>已预留的负载零拷贝借位共享（帧头落在预留区），其余以新头节点挂接负载链；两种策略都不改动 <see cref="IMessage.Payload"/>。</remarks>
     /// <exception cref="InvalidOperationException">消息体为流式绑定，无法整帧构建（请改用 <see cref="BuildHeader"/> + 流式发送）</exception>
-    IPacket? Build(IMessage message);
+    IOwnerPacket? Build(IMessage message);
 
-    /// <summary>仅构建头部数据包，声明消息体长度（头 + 流式体发送）</summary>
+    /// <summary>仅构建头部数据包，声明消息体长度（头 + 流式体发送）。构建不改动消息数据</summary>
     /// <param name="message">消息（提供头部字段）</param>
     /// <param name="bodyLength">消息体字节数</param>
-    /// <returns>头部数据包，调用方负责 Dispose</returns>
-    IPacket BuildHeader(IMessage message, Int64 bodyLength);
+    /// <returns>头部拥有句柄，调用方负责 Dispose</returns>
+    IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength);
 }
 
 /// <summary>帧解析结果。<see cref="IMessageCodec.TryParse"/> 的产出：消息实例与帧尺寸</summary>

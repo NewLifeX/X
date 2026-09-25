@@ -110,6 +110,9 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// <remarks>仅供观测与决策（如接收层判断缓冲能否复用），不要用于同步控制。</remarks>
     public Int32 RefCount => _owner?.RefCount ?? 0;
 
+    /// <summary>头部可借位空间。等于分配时预留的字节数，供下游向前借位写入协议头</summary>
+    public Int32 FreeHeader => _offset;
+
     /// <summary>获取或设置指定位置的字节值，支持跨链式包访问</summary>
     /// <param name="index">从当前包起始的相对索引位置</param>
     /// <returns>指定位置的字节值</returns>
@@ -150,16 +153,18 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
 
     #region 构造函数
     /// <summary>创建指定长度的内存包，从共享内存池借用缓冲区</summary>
-    /// <param name="length">所需缓冲区长度</param>
-    /// <exception cref="ArgumentOutOfRangeException">长度为负数</exception>
-    /// <remarks>实际分配的缓冲区可能大于请求长度，以适配内存池的分片策略</remarks>
-    public OwnerPacket(Int32 length)
+    /// <param name="length">数据区长度</param>
+    /// <param name="reserve">前置预留头部字节数，供下游向前借位写入协议头（参考 <see cref="Serialization.SpanSerializer.HeaderReserve"/>）</param>
+    /// <exception cref="ArgumentOutOfRangeException">长度为负数或预留为负数</exception>
+    /// <remarks>实际分配的缓冲区可能大于请求长度，以适配内存池的分片策略；预留空间经 <see cref="FreeHeader"/> 查询</remarks>
+    public OwnerPacket(Int32 length, Int32 reserve = 0)
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
+        if (reserve < 0) throw new ArgumentOutOfRangeException(nameof(reserve), "Reserve must be non-negative.");
 
-        var buffer = ArrayPool<Byte>.Shared.Rent(length);
+        var buffer = ArrayPool<Byte>.Shared.Rent(length + reserve);
         _buffer = buffer;
-        _offset = 0;
+        _offset = reserve;
         _length = length;
         _owner = new ArrayOwner(buffer, true);
     }
@@ -378,16 +383,6 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         else
             _owner.Reset(buffer);
     }
-
-    /// <summary>立即放弃所有权，不归还缓冲区（兼容旧版）</summary>
-    /// <remarks>
-    /// <para>为兼容旧版编译的库而保留，内部转发到 <see cref="Detach"/>：无其它句柄持有时允许，缓冲保持已借出状态交给调用方继续使用。</para>
-    /// <para>与旧版区别：仍有其它句柄持有缓冲区时抛出异常（引用计数保护）。新代码请直接使用 <see cref="Detach"/>。</para>
-    /// </remarks>
-    /// <exception cref="InvalidOperationException">仍有其它句柄持有缓冲区</exception>
-    [Obsolete("请改用 Detach()，语义一致且带引用计数保护。")]
-    public void Free() => Detach();
-
     #endregion
 
     #region 内存访问
@@ -548,13 +543,36 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// <remarks>与公开方法同一实现，切片结果始终为 <see cref="OwnerPacket"/> 句柄。</remarks>
     IOwnerPacket IOwnerPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
 
-    /// <summary>切片生成新数据包（兼容重载），共享底层缓冲区（引用计数）</summary>
-    /// <param name="offset">相对当前包的起始偏移</param>
-    /// <param name="count">切片长度，-1 表示到末尾</param>
-    /// <param name="transferOwner">是否转移内存管理权。兼容参数，忽略；引用计数共享模型下双方各自 Dispose，最后一个释放时归还内存池</param>
-    /// <returns>新的独立句柄，与原包同时可用</returns>
-    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
-    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
+    /// <summary>向前扩展头部空间（借位共享）。要求分配时已预留足够头部空间</summary>
+    /// <param name="size">向前扩展的字节数</param>
+    /// <returns>扩展后的新句柄，调用方负责 Dispose</returns>
+    /// <remarks>
+    /// <para>零拷贝借位：新句柄与原句柄共享同一缓冲区（引用计数各自释放），<b>原句柄保持有效</b>，可继续读取或再次构建。</para>
+    /// <para>带链句柄会先切片为独占的共享节点链（节点各自持有引用）再前移链头，源句柄依旧不受影响。</para>
+    /// </remarks>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    /// <exception cref="InvalidOperationException">前置预留空间不足</exception>
+    public OwnerPacket ExpandHeader(Int32 size)
+    {
+        if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
+        if (_offset < size) throw new InvalidOperationException($"未预留 {size} 字节头部空间（当前 {_offset}）；请在分配时预留，例如 new OwnerPacket(size, reserve)");
+
+        // 带链：先切片成独占的共享节点链（引用计数各自持有），链头随即可安全前移；源句柄不受影响
+        if (Next != null)
+        {
+            var head = Slice(0, -1);
+            head._offset -= size;
+            head._length += size;
+
+            return head;
+        }
+
+        // 单节点：共享借位，原句柄保持有效
+        var owner = _owner;
+        owner?.AddRef();
+
+        return new OwnerPacket(_buffer, _offset - size, _length + size, owner);
+    }
     #endregion
 
     #region 切片辅助

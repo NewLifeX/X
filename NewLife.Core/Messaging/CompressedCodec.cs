@@ -44,19 +44,25 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec
         return r;
     }
 
-    /// <summary>整帧构建。压缩消息体后交内层协议构建（消息体所有权随构建转移）</summary>
+    /// <summary>整帧构建。压缩消息体后交内层协议构建，构建后还原消息负载</summary>
     /// <param name="message">消息</param>
-    /// <returns>整帧数据包，调用方负责 Dispose</returns>
-    public IPacket? Build(IMessage message)
+    /// <returns>整帧拥有句柄，调用方负责 Dispose</returns>
+    public IOwnerPacket? Build(IMessage message)
     {
         var body = message.Payload;
         if (body == null || body.Total == 0) return Inner.Build(message);
 
-        // 压缩体替换后交由内层整帧构建（SetBody 归还旧体）
+        // 压缩体替换后交由内层整帧构建；构建完成后还原消息负载（构建不改动消息数据）
         var raw = body.ToArray();
         message.SetBody(new ArrayPacket(raw.Compress()));
-
-        return Inner.Build(message);
+        try
+        {
+            return Inner.Build(message);
+        }
+        finally
+        {
+            message.SetBody(new ArrayPacket(raw));
+        }
     }
 
     /// <summary>仅构建头部。压缩体长度无法预声明，不支持流式发送</summary>
@@ -64,5 +70,5 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec
     /// <param name="bodyLength">消息体字节数</param>
     /// <returns>头部数据包</returns>
     /// <exception cref="NotSupportedException">压缩协议无法预声明压缩后长度</exception>
-    public IPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("压缩协议无法预声明压缩后长度，请使用整帧构建（Build）");
+    public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("压缩协议无法预声明压缩后长度，请使用整帧构建（Build）");
 }

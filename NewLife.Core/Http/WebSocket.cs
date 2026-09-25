@@ -150,8 +150,6 @@ public class WebSocket : IDisposable
         MessageHandler?.Invoke(this, message);
 
         // 协议帧处理：Close 回显关闭 / Ping 回显 Pong
-        var pingPayload = message.Type == WebSocketMessageType.Ping ? message.Payload : null;
-
         var session = Context?.Connection;
         var socket = Context?.Socket;
         if (session == null && socket == null) return;
@@ -171,10 +169,10 @@ public class WebSocket : IDisposable
             case WebSocketMessageType.Ping:
                 {
                     // RFC 6455 §5.5.3：Pong 必须回传 Ping 的 Application Data。
-                    // 负载所有权从 Ping 消息转移到 Pong 帧（消息先清体，避免收尾时重复归还）
+                    // 共享切片（引用计数各自释放）：Pong 帧持有独立句柄，Ping 消息与其负载均不受影响
                     var pong = new WsMessage { Type = WebSocketMessageType.Pong };
-                    pong.SetBody(pingPayload);
-                    message.SetBody((IPacket?)null);
+                    var payload = message.Payload;
+                    if (payload != null) pong.SetBody(payload is IOwnerPacket owner ? owner.Slice(0, -1) : payload);
                     Send(pong);
                 }
                 break;

@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using NewLife.Collections;
@@ -776,54 +775,48 @@ public static class PacketHelper
     #endregion
 
     #region 头部扩展
-    /// <summary>尝试扩展头部空间，用于填充协议头等场景</summary>
+    /// <summary>向前扩展头部空间（借位）。要求原包分配时已预留足够头部空间</summary>
     /// <param name="pk">原数据包</param>
     /// <param name="size">需要扩展的头部字节数</param>
-    /// <param name="newPacket">扩展后的新数据包</param>
-    /// <returns>是否成功扩展</returns>
+    /// <returns>扩展后的数据包（零拷贝）</returns>
     /// <remarks>
-    /// <para>已过时，请使用 <see cref="ExpandHeader"/> 方法。</para>
-    /// <para>该方法仅在原包有足够前置空间时成功，否则返回 false。</para>
+    /// <para>组装内容时用 <c>new OwnerPacket(size, reserve)</c> 预留头部（参考 <see cref="Serialization.SpanSerializer.HeaderReserve"/>），下游即可零拷贝借位写入协议头。</para>
+    /// <para><b>所有权</b>：结果与原包共享数据（拥有句柄引用计数各自释放），原句柄保持有效；未预留空间时请改用 <see cref="PrepareHeader"/> 自动降级。</para>
     /// </remarks>
-    [Obsolete("请改用 ExpandHeader，并确保根据返回结果继续使用新实例。")]
-    public static Boolean TryExpandHeader(this IPacket pk, Int32 size, [NotNullWhen(true)] out IPacket? newPacket)
+    /// <exception cref="InvalidOperationException">前置预留空间不足，或类型不支持借位</exception>
+    public static IPacket ExpandHeader(this IPacket pk, Int32 size)
     {
-        newPacket = null;
+        if (pk is OwnerPacket owner) return owner.ExpandHeader(size);
+        if (pk is ArrayPacket ap) return ap.ExpandHeader(size);
 
-        if (pk is ArrayPacket ap && ap.Offset >= size)
-        {
-            newPacket = new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next };
-            return true;
-        }
-        else if (pk is OwnerPacket owner && owner.Offset >= size)
-        {
-            newPacket = new OwnerPacket(owner, size);
-            return true;
-        }
-        return false;
+        throw new InvalidOperationException($"类型 [{pk.GetType().Name}] 不支持头部借位扩展；头部写入需要预留空间的数据包（OwnerPacket/ArrayPacket）");
     }
 
-    /// <summary>扩展头部空间，优先复用现有缓冲区</summary>
-    /// <param name="pk">原数据包，可为 null</param>
-    /// <param name="size">需要扩展的头部字节数</param>
-    /// <returns>扩展后的数据包，可能复用原缓冲区或创建新缓冲区</returns>
+    /// <summary>为负载准备帧头空间。已预留的拥有句柄零拷贝借位，其余新头节点挂接负载链；原负载句柄始终有效</summary>
+    /// <param name="body">负载包（可空）</param>
+    /// <param name="size">帧头字节数</param>
+    /// <returns>带头部空间的结果包（头部区未初始化），调用方负责 Dispose</returns>
     /// <remarks>
-    /// <para><b>扩展策略</b>：</para>
+    /// <para><b>两种策略（均为零拷贝）</b>：</para>
     /// <list type="number">
-    /// <item>ArrayPacket/OwnerPacket 有足够前置空间时，直接扩展</item>
-    /// <item>否则创建新的 OwnerPacket，原包作为后继链节点</item>
+    /// <item>拥有句柄且已预留（<see cref="OwnerPacket"/>、<see cref="IPacket.FreeHeader"/> 足够）：向前借位共享，帧头落在原缓冲的预留区</item>
+    /// <item>其余：新头节点挂接负载链——拥有句柄先切片为独占的共享链（引用计数各自持有），视图无所有权可直接挂接</item>
     /// </list>
+    /// <para><b>所有权</b>：两种策略都不改动原负载句柄（借位为共享、链式为只读引用），消息负载在构建后依然可用。</para>
+    /// <para><b>时效</b>：结果可能引用原负载缓冲，在帧发送完成前不得复用或改写该缓冲。</para>
     /// </remarks>
-    public static IPacket ExpandHeader(this IPacket? pk, Int32 size)
+    public static IOwnerPacket PrepareHeader(this IPacket? body, Int32 size)
     {
-        return pk switch
-        {
-            ArrayPacket ap when ap.Offset >= size =>
-                new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next },
-            OwnerPacket owner when owner.Offset >= size =>
-                new OwnerPacket(owner, size),
-            _ => new OwnerPacket(size) { Next = pk }
-        };
+        if (body == null) return new OwnerPacket(size);
+
+        // 拥有句柄且已预留：向前借位共享（零拷贝），原句柄保持有效
+        if (body is OwnerPacket op && op.RefCount > 0 && op.FreeHeader >= size) return op.ExpandHeader(size);
+
+        // 其余：新头节点挂接负载。拥有句柄先切片为独占共享链（引用计数各自持有）；
+        // 视图无所有权，可直接挂接（Dispose 为空操作，链不会误放源）
+        var payload = body is IOwnerPacket owner ? owner.Slice(0, -1) : body;
+
+        return new OwnerPacket(size) { Next = payload };
     }
     #endregion
 }

@@ -55,7 +55,7 @@ public interface IMessage : IDisposable
     /// <returns>响应消息实例；当前消息是应答（<see cref="Reply"/>）或协议不支持回复时返回 null</returns>
     IMessage? CreateReply();
 
-    /// <summary>设置消息体（整帧/发送路径）。拥有句柄所有权随消息，Dispose 时归还；传入 null 表示所有权转移（调用方接管），不归还</summary>
+    /// <summary>设置消息体（整帧/发送路径）。拥有句柄所有权随消息，Dispose 时归还；传入 null 表示放弃持有（所有权转移给调用方或构建结果），不归还</summary>
     /// <param name="packet">消息体数据包</param>
     void SetBody(IPacket? packet);
 
@@ -138,13 +138,12 @@ public class Message : IMessage
     public virtual IMessage? CreateReply() => null;
 
     /// <summary>设置消息体（整帧/发送路径）</summary>
-    /// <param name="packet">消息体数据包；置 null 表示所有权转移（调用方接管），不归还</param>
+    /// <param name="packet">消息体数据包；置 null 表示放弃持有（所有权已转移给构建结果或调用方），不归还</param>
     public void SetBody(IPacket? packet)
     {
         var old = Payload;
 
-        // 置 null 表示所有权转移：负载已随构建结果或调用方交付，消息不再持有，也不能归还。
-        // 构建路径中 ExpandHeader 可能以旧句柄为后继链节点，此时归还会击穿结果包链
+        // 置 null 表示放弃持有：负载已随调用方交付，消息不再持有，也不能归还
         if (packet == null)
         {
             Payload = null;

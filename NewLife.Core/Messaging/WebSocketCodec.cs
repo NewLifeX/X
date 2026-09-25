@@ -39,20 +39,22 @@ public class WebSocketCodec : IMessageCodec
         return new ParseResult { Message = message, HeaderSize = headerSize, BodyLength = bodyLength };
     }
 
-    /// <summary>整帧构建（帧头 + 负载）。构建成功后消息不再持有体</summary>
+    /// <summary>整帧构建（帧头 + 负载）。构建不改动消息数据</summary>
     /// <param name="message">消息（<see cref="WsMessage"/> 提供类型与掩码键；其他消息按二进制帧处理）</param>
-    /// <returns>整帧数据包，调用方负责 Dispose</returns>
+    /// <returns>整帧拥有句柄，调用方负责 Dispose</returns>
     /// <remarks>
-    /// <para>服务端方向不加掩码；客户端方向（<see cref="IsServer"/> 为 false）必须掩码——<see cref="WsMessage.MaskKey"/> 未指定时自动生成随机密钥，并对负载原地 XOR 编码（破坏性操作，链式负载逐段处理）。</para>
-    /// <para>拥有帧且前置空间足够时原地扩展头部（零拷贝）；否则新建头部包，负载作为后继链节点。</para>
+    /// <para><b>服务端方向</b>：已预留的负载零拷贝借位共享（帧头落在预留区）；其余以新头节点挂接负载链。两种策略都不改动消息负载。</para>
+    /// <para><b>客户端方向</b>：掩码是原地 XOR（破坏性），必须独占——新分配头部+负载，拷贝的同时掩码，源负载不受影响。</para>
+    /// <para><b>时效</b>：服务端结果可能引用消息负载缓冲，帧发送完成前不得复用或改写。</para>
     /// </remarks>
     /// <exception cref="InvalidOperationException">消息体为流式模式（请使用 BuildHeader + 流式发送）</exception>
-    public IPacket? Build(IMessage message)
+    public IOwnerPacket? Build(IMessage message)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (message.Body is { IsStreaming: true }) throw new InvalidOperationException("流式消息体无法整帧构建，请使用 BuildHeader + 流式发送");
 
         var ws = message as WsMessage;
+
         var body = message.Payload;
         var len = body?.Total ?? 0;
 
@@ -81,30 +83,27 @@ public class WebSocketCodec : IMessageCodec
         };
         if (masks != null) size += masks.Length;
 
-        // 前置空间足够时原地扩展头部（零拷贝），否则新建头部包并把负载作为后继链节点
-        var pk = body.ExpandHeader(size);
+        IOwnerPacket pk;
+        if (masks == null)
+        {
+            // 无掩码：已预留的拥有句柄零拷贝借位共享，其余新头节点挂接负载链
+            pk = body.PrepareHeader(size);
+        }
+        else
+        {
+            // 掩码是原地 XOR（破坏性），必须独占：新分配头部+负载，拷贝的同时掩码，源负载不受影响
+            pk = new OwnerPacket(size + len);
+            var span = pk.GetSpan();
+            if (len > 0)
+            {
+                body!.ReadBytes(span[size..]);
+                ApplyMask(span[size..], masks, 0);
+            }
+        }
 
         // 帧头由消息类写入（FIN/OPCODE/长度/掩码键；非 WsMessage 消息按二进制帧处理）
         var header = ws ?? new WsMessage { Type = WebSocketMessageType.Binary };
         header.WriteHeader(pk.GetSpan(), len, masks);
-
-        // 掩码混淆数据：直接在数据缓冲区修改，避免拷贝。
-        // 拥有帧可能在 ExpandHeader 时被原地接管而作废，因此统一从 pk 链上取数据，跳过头部区域
-        if (masks != null && len > 0)
-        {
-            var offset = 0;
-            for (var node = pk; node != null; node = node.Next)
-            {
-                var data = node.GetSpan();
-                var start = node == pk ? Math.Min(size, data.Length) : 0;
-
-                ApplyMask(data[start..], masks, offset);
-                offset += data.Length - start;
-            }
-        }
-
-        // 所有权随构建结果转移：消息不再持有体（ExpandHeader 可能已接管源句柄，或将其作为后继链节点）
-        message.SetBody((IPacket?)null);
 
         return pk;
     }
@@ -115,7 +114,7 @@ public class WebSocketCodec : IMessageCodec
     /// <returns>头部数据包，调用方负责 Dispose</returns>
     /// <exception cref="ArgumentOutOfRangeException">长度为负或超过 32 位协议上限</exception>
     /// <exception cref="NotSupportedException">客户端方向（带掩码的帧不支持流式发送，请使用整帧构建）</exception>
-    public IPacket BuildHeader(IMessage message, Int64 bodyLength)
+    public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Payload length must be non-negative.");

@@ -87,14 +87,17 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
         return new ParseResult { Message = message, HeaderSize = Offset + fieldLen, BodyLength = len };
     }
 
-    /// <summary>整帧构建（长度字段 + 负载）。构建成功后消息不再持有体</summary>
+    /// <summary>整帧构建（长度字段 + 负载）。构建不消费消息负载</summary>
     /// <param name="message">消息</param>
-    /// <returns>整帧数据包，调用方负责 Dispose</returns>
-    /// <remarks>拥有帧且前置空间足够时原地扩展头部（零拷贝）；否则新建头部包，负载作为后继链节点。</remarks>
+    /// <returns>整帧拥有句柄，调用方负责 Dispose</returns>
+    /// <remarks>
+    /// <para>已预留的负载零拷贝借位共享（帧头落在预留区）；其余以新头节点挂接负载链。两种策略都不改动消息负载。</para>
+    /// <para><b>时效</b>：结果可能引用消息负载缓冲，帧发送完成前不得复用或改写。</para>
+    /// </remarks>
     /// <exception cref="ArgumentNullException">消息为 null</exception>
     /// <exception cref="InvalidOperationException">消息体为流式模式（请使用 BuildHeader + 流式发送）</exception>
     /// <exception cref="ArgumentOutOfRangeException">负载长度超出长度字段表示范围</exception>
-    public IPacket? Build(IMessage message)
+    public IOwnerPacket? Build(IMessage message)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (message.Body is { IsStreaming: true }) throw new InvalidOperationException("流式消息体无法整帧构建，请使用 BuildHeader + 流式发送");
@@ -103,15 +106,12 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
         var len = body?.Total ?? 0;
         var fieldLen = Size == 0 ? GetVarintLength(len) : Math.Abs(Size);
 
-        // 前置空间足够时原地扩展头部（零拷贝），否则新建头部包并把负载作为后继链节点
-        var pk = body.ExpandHeader(Offset + fieldLen);
+        // 增加协议头：已预留的拥有句柄零拷贝借位共享，其余新头节点挂接负载链
+        var pk = body.PrepareHeader(Offset + fieldLen);
 
         var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = Size > 0 };
         if (Offset > 0) writer.Fill(0, Offset);
         WriteLength(ref writer, len);
-
-        // 所有权随构建结果转移：消息不再持有体（ExpandHeader 可能已接管源句柄，或将其作为后继链节点）
-        message.SetBody((IPacket?)null);
 
         return pk;
     }
@@ -122,7 +122,7 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
     /// <returns>头部数据包，调用方负责 Dispose</returns>
     /// <exception cref="ArgumentNullException">消息为 null</exception>
     /// <exception cref="ArgumentOutOfRangeException">长度为负或超出长度字段表示范围</exception>
-    public IPacket BuildHeader(IMessage message, Int64 bodyLength)
+    public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length must be non-negative.");

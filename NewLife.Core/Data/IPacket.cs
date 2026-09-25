@@ -23,6 +23,13 @@ public interface IPacket
     [EditorBrowsable(EditorBrowsableState.Never)]
     IPacket? Next { get; set; }
 
+    /// <summary>本视图之前的字节数（同一缓冲区内）。组装内容时若已预留头部，即为可零拷贝借位写入协议头的空间</summary>
+    /// <remarks>
+    /// <para>组装方分配时预留（如 <c>new OwnerPacket(size, reserve)</c>，参考 <see cref="Serialization.SpanSerializer.HeaderReserve"/>），或由预留区切片/借位派生。</para>
+    /// <para>组装帧头统一走 <see cref="PacketHelper.PrepareHeader"/>：拥有句柄且空间足够时借位共享，其余新头节点挂接负载链。</para>
+    /// </remarks>
+    Int32 FreeHeader { get; }
+
     /// <summary>总长度。包括 <see cref="Next"/> 链的长度</summary>
     Int32 Total { get; }
 
@@ -46,17 +53,6 @@ public interface IPacket
     /// <param name="offset">相对当前包起始偏移</param>
     /// <param name="count">个数。默认 -1 表示到末尾</param>
     IPacket Slice(Int32 offset, Int32 count = -1);
-
-    /// <summary>切片得到新数据包（兼容重载），共享底层缓冲区以减少分配</summary>
-    /// <remarks>
-    /// <para>为兼容基于三参签名编译的旧版库（历史版本的 Remoting/WebSocket 等）而保留，行为直接转发到两参重载。</para>
-    /// <para>引用计数共享模型下不再区分“转移”与“借用”，新代码请使用 <see cref="Slice(Int32, Int32)"/>。</para>
-    /// </remarks>
-    /// <param name="offset">相对当前包起始偏移</param>
-    /// <param name="count">个数。默认 -1 表示到末尾</param>
-    /// <param name="transferOwner">是否转移内存管理权。兼容参数，忽略</param>
-    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
-    IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner);
 
     /// <summary>尝试获取当前片段的 <see cref="ArraySegment{T}"/>（不含链式后续）</summary>
     Boolean TryGetArray(out ArraySegment<Byte> segment);

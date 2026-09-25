@@ -27,6 +27,9 @@ public class Packet : IPacket
     /// <summary>长度</summary>
     public Int32 Count { get; private set; }
 
+    /// <summary>头部可借位空间。本类型不预留头部，恒为 0</summary>
+    public Int32 FreeHeader => 0;
+
     Int32 IPacket.Length => Count;
 
     /// <summary>下一个链式包</summary>
@@ -210,14 +213,6 @@ public class Packet : IPacket
     }
 
     IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
-
-    /// <summary>切片得到新数据包（兼容重载）。无所有权，忽略转移参数</summary>
-    /// <param name="offset">相对偏移</param>
-    /// <param name="count">字节个数。默认 -1 表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。该实现忽略该参数</param>
-    /// <returns>新的数据包</returns>
-    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
-    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>查找目标数组</summary>
     /// <param name="data">目标数组</param>

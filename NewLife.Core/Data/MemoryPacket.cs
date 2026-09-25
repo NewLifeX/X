@@ -17,6 +17,9 @@ public struct MemoryPacket : IPacket
     /// <summary>数据长度</summary>
     public readonly Int32 Length => _length;
 
+    /// <summary>头部可借位空间。本类型不预留头部，恒为 0</summary>
+    public readonly Int32 FreeHeader => 0;
+
     // 缓存底层数组引用，Indexer 直接数组访问避免 Memory.Span 间接开销（1.66ns → ~0.24ns）
     private readonly Byte[]? _cachedArray;
     private readonly Int32 _cachedOffset;
@@ -107,13 +110,6 @@ public struct MemoryPacket : IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
 
-    /// <summary>切片得到新数据包（兼容重载），共用内存块。无所有权，忽略转移参数</summary>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。无所有权结构体忽略该参数</param>
-    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
-    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
-
     /// <summary>切片得到新数据包，共用内存块，无内存分配</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
@@ -130,14 +126,6 @@ public struct MemoryPacket : IPacket
             ? new MemoryPacket(_memory, count)
             : new MemoryPacket(_memory[offset..], count);
     }
-
-    /// <summary>切片得到新数据包（兼容重载），共用内存块。无所有权，忽略转移参数</summary>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。无所有权结构体忽略该参数</param>
-    /// <returns>新的数据包实例</returns>
-    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
-    public MemoryPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>尝试获取缓冲区（仅本段，不含 Next）</summary>
     /// <param name="segment"></param>

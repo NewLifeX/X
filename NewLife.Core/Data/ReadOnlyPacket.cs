@@ -25,6 +25,9 @@ public readonly record struct ReadOnlyPacket : IPacket
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
 
+    /// <summary>头部可借位空间。本类型不预留头部，恒为 0</summary>
+    public Int32 FreeHeader => 0;
+
     /// <summary>下一个链式包。只读包不支持链式结构，始终返回 null</summary>
     IPacket? IPacket.Next { get => null; set { } }
 
@@ -93,14 +96,6 @@ public readonly record struct ReadOnlyPacket : IPacket
     /// <param name="count">数据长度，-1 表示到末尾</param>
     /// <returns>新的只读数据包</returns>
     IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
-
-    /// <summary>切片得到新的只读数据包（兼容重载）。无所有权，忽略转移参数</summary>
-    /// <param name="offset">相对偏移</param>
-    /// <param name="count">数据长度，-1 表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。只读包忽略该参数</param>
-    /// <returns>新的只读数据包</returns>
-    [Obsolete("引用计数共享模型下切片自动共享所有权，请改用 Slice(Int32 offset, Int32 count)。")]
-    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>切片得到新的只读数据包，无内存分配</summary>
     /// <param name="offset">相对偏移</param>
