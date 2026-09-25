@@ -34,7 +34,7 @@ public enum WebSocketMessageType
 public class WsMessage : Message
 {
     #region 属性
-    /// <summary>消息是否结束（FIN）。当前实现仅支持单帧消息，恒为 true</summary>
+    /// <summary>消息是否结束（FIN）。接收侧反映帧的 FIN 位；发送路径当前恒置 1（不支持发送分片）</summary>
     public Boolean Fin { get; set; }
 
     /// <summary>消息类型（opcode）</summary>

@@ -62,7 +62,7 @@ public class SplitDataCodec : IMessageCodec
     public IOwnerPacket? Build(IMessage message)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
-        if (message.Body is { IsStreaming: true }) throw new InvalidOperationException("流式消息体无法整帧构建，请使用流式发送");
+        if (message.Body is { IsStreaming: true }) throw new InvalidOperationException("分隔符协议不支持流式消息体，请提供内存负载");
 
         // 分隔符包（尾部追加）
         var sep = SplitData;

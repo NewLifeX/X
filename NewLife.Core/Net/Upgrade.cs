@@ -127,6 +127,9 @@ public class Upgrade
             }
         }
 
+        // 所有地址都失败时至少留下一条日志，避免升级检查静默失效、无从排查
+        if (lastError != null) WriteLog("检查更新失败：{0}", lastError.Message);
+
         return false;
     }
 

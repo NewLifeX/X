@@ -658,17 +658,23 @@ public static class UdpHelper
         Int64 total = 0;
 
         var buffer = Pool.Shared.Rent(1472);
-        while (true)
+        try
         {
-            var n = stream.Read(buffer, 0, buffer.Length);
-            if (n <= 0) break;
+            while (true)
+            {
+                var n = stream.Read(buffer, 0, buffer.Length);
+                if (n <= 0) break;
 
-            udp.Send(buffer, n, remoteEP);
-            total += n;
+                udp.Send(buffer, n, remoteEP);
+                total += n;
 
-            if (n < buffer.Length) break;
+                if (n < buffer.Length) break;
+            }
         }
-        Pool.Shared.Return(buffer);
+        finally
+        {
+            Pool.Shared.Return(buffer);
+        }
 
         return udp;
     }
