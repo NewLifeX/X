@@ -224,4 +224,80 @@ public static class SequenceReaderHelper
         return true;
     }
     #endregion
+
+    #region 7 位压缩整数
+    /// <summary>尝试以 7 位压缩格式读取一个 32 位整数。数据不足或编码超长时返回 false 且不前进读取位置</summary>
+    /// <remarks>
+    /// 与 <see cref="SpanReader.ReadEncodedInt"/> 格式一致：低位在前，最高位为继续标志；负数按无符号位模式编码占 5 字节。
+    /// 在副本读取器上试探，失败时原读取器位置不变，适合帧解析“等更多数据”场景。
+    /// </remarks>
+    /// <param name="reader">序列读取器</param>
+    /// <param name="value">读取到的值</param>
+    /// <returns>是否读取成功</returns>
+    public static Boolean TryReadEncodedInt(ref this SequenceReader<Byte> reader, out Int32 value)
+    {
+        var copy = reader;
+        UInt32 rs = 0;
+        Byte n = 0;
+
+        while (true)
+        {
+            if (!copy.TryRead(out var b))
+            {
+                value = default;
+                return false;
+            }
+
+            // 必须先转 UInt32 再移位，否则 28 位处溢出 int 符号位
+            rs |= (UInt32)(b & 0x7F) << n;
+            if ((b & 0x80) == 0) break;
+
+            n += 7;
+            if (n >= 32)
+            {
+                value = default;
+                return false;
+            }
+        }
+
+        reader = copy;
+        value = (Int32)rs;
+        return true;
+    }
+
+    /// <summary>尝试以 7 位压缩格式读取一个 64 位整数。数据不足或编码超长时返回 false 且不前进读取位置</summary>
+    /// <remarks>与 <see cref="SpanReader.ReadEncodedInt64"/> 格式一致：低位在前，最高位为继续标志。</remarks>
+    /// <param name="reader">序列读取器</param>
+    /// <param name="value">读取到的值</param>
+    /// <returns>是否读取成功</returns>
+    public static Boolean TryReadEncodedInt64(ref this SequenceReader<Byte> reader, out Int64 value)
+    {
+        var copy = reader;
+        UInt64 rs = 0;
+        Byte n = 0;
+
+        while (true)
+        {
+            if (!copy.TryRead(out var b))
+            {
+                value = default;
+                return false;
+            }
+
+            rs |= (UInt64)(b & 0x7F) << n;
+            if ((b & 0x80) == 0) break;
+
+            n += 7;
+            if (n >= 64)
+            {
+                value = default;
+                return false;
+            }
+        }
+
+        reader = copy;
+        value = (Int64)rs;
+        return true;
+    }
+    #endregion
 }
