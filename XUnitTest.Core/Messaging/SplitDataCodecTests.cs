@@ -136,7 +136,7 @@ public class SplitDataCodecTests
         var pk = _codec.Build(msg);
         Assert.NotNull(pk);
         Assert.Equal(Encoding.UTF8.GetBytes("hello\r\n"), pk!.AsReadOnlySequence().ToArray());
-        Assert.Null(msg.Payload);
+        Assert.NotNull(msg.Payload);     // 构建不消费消息负载
         pk.TryDispose();
 
         // 空消息：仅分隔符

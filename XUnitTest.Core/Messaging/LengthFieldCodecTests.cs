@@ -111,7 +111,7 @@ public class LengthFieldCodecTests
 
         var pk = codec.Build(msg);
         Assert.NotNull(pk);
-        Assert.Null(msg.Payload);
+        Assert.NotNull(msg.Payload);     // 构建不消费消息负载
 
         // 帧字节：[0x05, 0x00][hello]
         Assert.Equal(new Byte[] { 0x05, 0x00, (Byte)'h', (Byte)'e', (Byte)'l', (Byte)'l', (Byte)'o' }, pk!.AsReadOnlySequence().ToArray());

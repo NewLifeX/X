@@ -75,9 +75,9 @@ public class MessagePumpTests
             return null;
         }
 
-        public IPacket? Build(IMessage message) => throw new NotSupportedException("测试协议仅验证接收路径");
+        public IOwnerPacket? Build(IMessage message) => throw new NotSupportedException("测试协议仅验证接收路径");
 
-        public IPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("测试协议仅验证接收路径");
+        public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("测试协议仅验证接收路径");
     }
     #endregion
 
@@ -432,7 +432,7 @@ public class MessagePumpTests
 
     #region 构建
     [Fact]
-    [DisplayName("消息编解码_整帧构建_所有权转移与往返")]
+    [DisplayName("消息编解码_整帧构建_不消费负载与往返")]
     public void Build_FrameRoundTrip()
     {
         var payload = new Byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -442,8 +442,8 @@ public class MessagePumpTests
         var frame = _codec.Build(msg);
         Assert.NotNull(frame);
 
-        // 构建后所有权转移：消息不再持有体
-        Assert.Null(msg.Payload);
+        // 构建不消费消息负载：消息仍持有原体
+        Assert.NotNull(msg.Payload);
 
         // 解析回读
         var rs = _codec.TryParse(frame!.AsReadOnlySequence());

@@ -49,15 +49,18 @@ public class IPacketTests
         Assert.Equal(7, segment.Offset);
         Assert.Equal(70, segment.Count);
 
-        // 扩展头部：接管切片引用（构造后切片句柄作废，源句柄不受影响）
+        // 扩展头部：共享借位（引用计数各自释放，源句柄不受影响）
         var pk3 = pk2.ExpandHeader(3) as OwnerPacket;
         Assert.NotNull(pk3);
         Assert.Equal(pk.Buffer, pk3.Buffer);
         Assert.Equal(7 - 3, pk3.Offset);
         Assert.Equal(70 + 3, pk3.Length);
+        Assert.Equal(3, pk.RefCount);       // pk 切片、pk2 切片、借位头各持一份引用
 
         pk3.TryDispose();
         Assert.NotNull(pk.GetValue("_owner"));
+        Assert.Equal(2, pk.RefCount);
+        Assert.Equal(70, pk2.Length);       // 源切片仍然有效
 
         pk.TryDispose();
     }
@@ -96,10 +99,12 @@ public class IPacketTests
 
         pk2.TryDispose();
 
-        // 扩展头部
-        var pk3 = (OwnerPacket)pk2.ExpandHeader(3);
-        //Assert.Equal(pk.Memory, pk3.Memory);
+        // 头部准备：MemoryPacket 为视图，新头节点挂接负载（零拷贝单段头 + 负载链）
+        var pk3 = (OwnerPacket)pk2.PrepareHeader(3);
+        Assert.Equal(3, pk3.Length);
+        Assert.NotNull(pk3.Next);
         Assert.Equal(70 + 3, pk3.Total);
+        pk3.TryDispose();
     }
 
     [Fact]
@@ -144,6 +149,92 @@ public class IPacketTests
         Assert.Equal(70 + 3, pk3.Length);
     }
 
+    [Fact(DisplayName = "ExpandHeader：未预留头部空间时抛异常")]
+    public void ExpandHeader_NoReserve_Throws()
+    {
+        using var op = new OwnerPacket(64);
+        op.GetSpan().Fill(0x51);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => op.ExpandHeader(8));
+        Assert.Contains("预留", ex.Message);
+    }
+
+    [Fact(DisplayName = "ExpandHeader：带链句柄切片后前移链头，源句柄与源链均不受影响")]
+    public void ExpandHeader_Chained_SharedSlice()
+    {
+        var part1 = new OwnerPacket(8, 8);
+        var part2 = new OwnerPacket(8);
+        part1.Next = part2;
+        part1.GetSpan().Fill(0x11);
+        part2.GetSpan().Fill(0x22);
+        var buffer1 = part1.GetValue("_buffer");
+        var buffer2 = part2.GetValue("_buffer");
+
+        // 带链：切片得到独占的共享节点链后前移链头
+        var pk = part1.ExpandHeader(4);
+        Assert.Same(buffer1, pk.Buffer);
+        Assert.Equal(8 - 4, pk.Offset);
+        Assert.Equal(4 + 8, pk.Length);
+        Assert.NotNull(pk.Next);
+        Assert.Same(buffer2, ((OwnerPacket)pk.Next!).Buffer);
+        Assert.Equal(0x11, pk[4]);
+        Assert.Equal(0x22, pk[12]);
+
+        // 源链完整可用，仅多出一份共享引用
+        Assert.Equal(0x11, part1[0]);
+        Assert.Equal(0x22, part2[0]);
+        Assert.Equal(16, part1.Total);
+        Assert.Equal(2, part1.RefCount);
+        Assert.Equal(2, part2.RefCount);
+
+        pk.TryDispose();
+        Assert.Equal(1, part1.RefCount);
+        Assert.Equal(1, part2.RefCount);
+        Assert.Equal(0x11, part1[0]);
+    }
+
+    [Fact(DisplayName = "PrepareHeader：预留借位共享零拷贝，未预留新头节点挂接负载链")]
+    public void PrepareHeader_BorrowOrChain()
+    {
+        // 预留 8 字节：借位共享零拷贝，共用同一缓冲（源句柄保持有效）
+        var op = new OwnerPacket(16, 8);
+        op.GetSpan().Fill(0x42);
+        var buffer = op.GetValue("_buffer");
+
+        var pk = op.PrepareHeader(4);
+        var head = Assert.IsType<OwnerPacket>(pk);
+        Assert.Same(buffer, head.GetValue("_buffer"));
+        Assert.Equal(4, head.Offset);
+        Assert.Equal(4 + 16, head.Length);
+        Assert.Null(head.Next);
+        Assert.Equal(0x42, head[4]);
+        Assert.Equal(2, op.RefCount);       // 源句柄与帧头各持一份
+
+        head.TryDispose();
+        Assert.Equal(1, op.RefCount);
+        Assert.Equal(0x42, op[0]);          // 源句柄始终可用
+        op.TryDispose();
+
+        // 未预留：新头节点挂接共享负载链（零拷贝），源句柄保持有效
+        using var raw = new OwnerPacket(16);
+        raw.GetSpan().Fill(0x42);
+
+        var pk2 = raw.PrepareHeader(4);
+        var head2 = Assert.IsType<OwnerPacket>(pk2);
+        Assert.Equal(0, head2.FreeHeader);                          // 新头节点无前置空间
+        Assert.Equal(4, head2.Length);
+        Assert.Same(raw.Buffer, ((OwnerPacket)head2.Next!).Buffer);  // 负载共享同一缓冲
+        Assert.Equal(4 + 16, head2.Total);
+        Assert.Equal(0x42, head2[4]);
+        Assert.Equal(0x42, head2[19]);
+        Assert.NotNull(raw.GetValue("_owner"));                      // 源句柄仍有效
+        Assert.Equal(2, raw.RefCount);
+
+        head2.TryDispose();
+        Assert.Equal(1, raw.RefCount);
+        Assert.Equal(0x42, raw[0]);
+    }
+
     [Fact]
     public void ReadBytesToSpan()
     {
@@ -175,44 +266,6 @@ public class IPacketTests
 
         // 空缓冲
         Assert.Equal(0, f1.ReadBytes(Span<Byte>.Empty));
-    }
-
-    [Fact]
-    public void SliceCompat_StructPackets_IgnoreTransferOwner()
-    {
-#pragma warning disable CS0618 // 三参重载为兼容旧版二进制保留，此处验证其转发行为
-        // 结构体无所有权，三参重载与两参行为一致（兼容旧版二进制接口调用）
-        var buf = Rand.NextBytes(64);
-
-        IPacket ap = new ArrayPacket(buf, 4, 32);
-        var a1 = ap.Slice(6, 10);
-        var a2 = ap.Slice(6, 10, true);
-        Assert.Equal(a1.Length, a2.Length);
-        Assert.Equal(a1.ToArray(), a2.ToArray());
-
-        IPacket mp = new MemoryPacket(buf, 32);
-        var m1 = mp.Slice(6, 10);
-        var m2 = mp.Slice(6, 10, false);
-        Assert.Equal(m1.ToArray(), m2.ToArray());
-
-        IPacket rp = new ReadOnlyPacket(buf, 4, 32);
-        var r1 = rp.Slice(6, 10);
-        var r2 = rp.Slice(6, 10, true);
-        Assert.Equal(r1.ToArray(), r2.ToArray());
-
-        // 链式 ArrayPacket：三参沿链转发
-        var f3 = new ArrayPacket(Rand.NextBytes(8), 0, 4);
-        var f2 = new ArrayPacket(Rand.NextBytes(8)) { Next = f3 };
-        var f1 = new ArrayPacket(Rand.NextBytes(8)) { Next = f2 };
-
-        var all = f1.ToArray();
-        var c1 = ((IPacket)f1).Slice(6, 10, true);
-        Assert.Equal(10, c1.Total);
-
-        var expected = new Byte[10];
-        Array.Copy(all, 6, expected, 0, 10);
-        Assert.Equal(expected, c1.ToArray());
-#pragma warning restore CS0618
     }
 
     [Fact(DisplayName = "IndexOf：单段、跨段、跨多段与空段查找均返回最早匹配的全局偏移")]

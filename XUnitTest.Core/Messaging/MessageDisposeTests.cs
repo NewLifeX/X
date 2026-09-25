@@ -304,9 +304,10 @@ public class MessageDisposeTests
         Assert.Null(owner.GetValue("_owner"));
     }
 
-    [Fact(DisplayName = "Build构建后所有权转移：消息Dispose不击穿结果包链")]
-    public void Build_TransfersOwnership_DisposeDoesNotBreakResult()
+    [Fact(DisplayName = "Build不消费消息负载：未预留时新头节点挂接负载链，消息仍可用")]
+    public void Build_NotReserved_ChainsPayload()
     {
+        // 未预留头部：新头节点挂接负载链（零拷贝），结果单段头 + 负载链
         var owner = new OwnerPacket(5);
         "hello".GetBytes().CopyTo(owner.GetSpan());
 
@@ -315,19 +316,59 @@ public class MessageDisposeTests
         var pk = new SrmpCodec().Build(msg);
         Assert.NotNull(pk);
         Assert.Equal(4 + 5, pk!.Total);
+        Assert.Equal(4, pk.Length);
+        Assert.NotNull(pk.Next);
 
-        // 转移：消息不再持有负载（构建结果包接管），Dispose 不得归还
-        msg.Dispose();
-        Assert.NotNull(owner.GetValue("_owner"));
-        Assert.Equal(4 + 5, pk.Total);
+        // 构建不改动消息：负载句柄仍有效，仅多出一份共享引用
+        Assert.Same(owner, msg.Payload);
+        Assert.Equal(2, owner.RefCount);
+        Assert.Equal("hello", msg.Payload!.ToStr());
 
+        // 帧内容正确（4 字节头 + 负载），切片用后释放
         var tail = pk.Slice(4, -1);
         Assert.Equal("hello", tail.ToStr());
         tail.TryDispose();
 
-        // 结果包释放时才级联归还链上缓冲
+        // 帧与消息各自释放
         pk.TryDispose();
+        Assert.Equal(1, owner.RefCount);
+        Assert.Equal("hello", msg.Payload!.ToStr());
+
+        msg.Dispose();
         Assert.Null(owner.GetValue("_owner"));
+    }
+
+    [Fact(DisplayName = "Build不消费消息负载：预留头部时共享借位，零拷贝单段头")]
+    public void Build_WithReservedHeader_SharedBorrow()
+    {
+        // 预留 8 字节（≥ SRMP 最大头）：向前借位共享，零拷贝，帧头连续
+        var owner = new OwnerPacket(5, 8);
+        "hello".GetBytes().CopyTo(owner.GetSpan());
+        var buffer = owner.GetValue("_buffer");
+
+        var msg = new DefaultMessage { Sequence = 3 };
+        msg.SetBody(owner);
+        var pk = new SrmpCodec().Build(msg);
+
+        var head = Assert.IsType<OwnerPacket>(pk);
+        Assert.Same(buffer, head.GetValue("_buffer"));     // 共用同一缓冲
+        Assert.Equal(8 - 4, head.Offset);                  // 头部区前移
+        Assert.Equal(4 + 5, head.Length);
+        Assert.Null(head.Next);
+
+        // 构建不改动消息：负载句柄仍有效，仅多出一份共享引用
+        Assert.Same(owner, msg.Payload);
+        Assert.Equal(2, owner.RefCount);
+        Assert.Equal("hello", msg.Payload!.ToStr());
+
+        // 帧内容正确（4 字节头 + 负载），切片用后释放
+        var tail = head.Slice(4, -1);
+        Assert.Equal("hello", tail.ToStr());
+        tail.TryDispose();
+
+        head.TryDispose();
+        Assert.Equal(1, owner.RefCount);
+        Assert.Equal("hello", msg.Payload!.ToStr());
     }
 
     [Fact(DisplayName = "CreateReply继承Flag/Sequence并置为响应；响应上创建回应返回 null")]

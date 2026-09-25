@@ -560,65 +560,6 @@ public class OwnerPacketTests
         Assert.Throws<ArgumentOutOfRangeException>(() => packet.Skip(91));
     }
 
-    /// <summary>兼容三参切片：直接转发到两参重载，true 与 false 行为一致（引用计数共享）</summary>
-    [Fact(DisplayName = "Slice：三参兼容转发到两参")]
-    public void SliceCompat_TransferOwner_ShouldForwardToShare()
-    {
-#pragma warning disable CS0618 // 三参重载为兼容旧版二进制保留，此处验证其转发行为
-        var packet = new OwnerPacket(100);
-        packet.GetSpan().Fill(0x42);
-
-        // 捕获引用计数对象用于观测
-        var owner = packet.GetValue("_owner");
-
-        // 经接口调用三参重载（旧版编译的库走的就是接口调用），行为与两参一致
-        var shared = ((IPacket)packet).Slice(8, 16, true);
-
-        Assert.Equal(16, shared.Length);
-        Assert.Equal(0x42, shared[0]);
-        Assert.Equal(0x42, shared[15]);
-        Assert.Equal(0x42, packet[10]);
-
-        // 共享模型：双方各自持有引用
-        Assert.Equal(2, (Int32)owner!.GetValue("_refCount")!);
-
-        // 双方独立释放，最后一个释放时归零归还
-        shared.TryDispose();
-        Assert.Equal(1, (Int32)owner.GetValue("_refCount")!);
-        Assert.Equal(0x42, packet[10]);
-        packet.TryDispose();
-        Assert.Equal(0, (Int32)owner.GetValue("_refCount")!);
-#pragma warning restore CS0618
-    }
-
-    /// <summary>兼容三参切片：转发到两参（共享），调用方遗漏释放也不悬空</summary>
-    [Fact(DisplayName = "Slice：三参兼容借用按共享处理")]
-    public void SliceCompat_Share_ShouldKeepBothHandles()
-    {
-#pragma warning disable CS0618 // 三参重载为兼容旧版二进制保留
-        var packet = new OwnerPacket(100);
-        packet.GetSpan().Fill(0x42);
-
-        // 旧版“借用视图”用法：调用方（如 HttpMessage）不会释放返回的切片
-        var header = ((IPacket)packet).Slice(0, 10, false);
-        var payload = ((IPacket)packet).Slice(10, -1, false);
-
-        var owner = packet.GetValue("_owner");
-        Assert.Equal(3, (Int32)owner!.GetValue("_refCount")!);
-        Assert.Equal(0x42, header[0]);
-        Assert.Equal(0x42, payload[0]);
-
-        // 即使调用方遗漏释放，原句柄释放后数据仍由切片引用撐住
-        packet.TryDispose();
-        Assert.Equal(2, (Int32)owner.GetValue("_refCount")!);
-        Assert.Equal(0x42, payload[5]);
-
-        header.TryDispose();
-        payload.TryDispose();
-        Assert.Equal(0, (Int32)owner.GetValue("_refCount")!);
-#pragma warning restore CS0618
-    }
-
     #endregion
 
     #region 属性测试
@@ -935,27 +876,6 @@ public class OwnerPacketTests
         view.Detach();
         Assert.NotNull(view.GetValue("_buffer"));
         view.TryDispose();
-    }
-
-    /// <summary>兼容 Free：转发到 Detach（放弃引用不归还，实例作废）</summary>
-    [Fact(DisplayName = "Free：兼容转发到 Detach")]
-    public void FreeCompat_ShouldForwardToDetach()
-    {
-#pragma warning disable CS0618 // 兼容旧版的 Free
-        var packet = new OwnerPacket(100);
-        packet.GetSpan().Fill(0x42);
-        var owner = packet.GetValue("_owner");
-
-        packet.Free();
-
-        // 脱手：本句柄不再持有引用（引用计数保持 1，缓冲保持已借出状态不归还）
-        Assert.Null(packet.GetValue("_owner"));
-        Assert.Equal(1, (Int32)owner!.GetValue("_refCount")!);
-
-        // 实例已作废：再次 Dispose 无操作
-        packet.TryDispose();
-        Assert.Equal(1, (Int32)owner.GetValue("_refCount")!);
-#pragma warning restore CS0618 // 兼容旧版的 Free
     }
 
     #endregion

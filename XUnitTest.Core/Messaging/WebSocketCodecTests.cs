@@ -115,7 +115,7 @@ public class WebSocketCodecTests
 
         var pk = _serverCodec.Build(msg);
         Assert.NotNull(pk);
-        Assert.Null(msg.Payload);
+        Assert.NotNull(msg.Payload);     // 构建不消费消息负载
 
         // 字节：[0x81, 0x05][hello]
         Assert.Equal(new Byte[] { 0x81, 0x05, (Byte)'h', (Byte)'e', (Byte)'l', (Byte)'l', (Byte)'o' }, pk!.AsReadOnlySequence().ToArray());
@@ -135,7 +135,6 @@ public class WebSocketCodecTests
     public void Build_Client_AutoMask()
     {
         var payload = MakePayload(37);
-        var expected = MakePayload(37);     // 期望基准（独立副本：掩码 XOR 会原地改写负载）
         var msg = new WsMessage { Type = WebSocketMessageType.Binary };
         msg.SetBody(new ArrayPacket(payload));
 
@@ -155,7 +154,11 @@ public class WebSocketCodecTests
         var ws = (WsMessage)bound!;
         Assert.NotNull(ws.MaskKey);
         Assert.True(ws.Demask());
-        Assert.Equal(expected, ws.Payload!.ToArray());
+        Assert.Equal(payload, ws.Payload!.ToArray());
+
+        // 掩码为独占拷贝：消息负载未被原位改写
+        Assert.Equal(payload, msg.Payload!.ToArray());
+
         ws.Dispose();
         pk.TryDispose();
     }
