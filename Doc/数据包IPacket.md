@@ -154,9 +154,9 @@ var payload = ((IPacket)pk).Slice(4);
 
 构造方式：
 
-- `OwnerPacket(Int32 length)`：从共享池租用缓冲区。
+- `OwnerPacket(Int32 length, Int32 reserve = 0)`：从共享池租用缓冲区，`reserve` 为前置预留头部字节数（见 5.8 头部扩展）。
 - `OwnerPacket(Byte[] buffer, Int32 offset, Int32 length, Boolean hasOwner)`：包装已有数组，可指定是否拥有释放权。
-- `OwnerPacket(OwnerPacket owner, Int32 expandSize)`：用于头部扩展，转移所有权（见 `PacketHelper.ExpandHeader`）。
+- `OwnerPacket(OwnerPacket owner, Int32 expandSize)`：原地向前借位扩展头部并**接管**源句柄（源作废）；专供序列化器 `SpanSerializer.ToFrame` 这类句柄独占场景，共享借位请用 `OwnerPacket.ExpandHeader`。
 
 释放与链释放：
 
@@ -300,21 +300,30 @@ IPacket message = head
 - `TryGetSpan(out Span<Byte> span)`
   - 仅当无 `Next` 时返回 `true`。
 
-### 5.8 头部扩展
+### 5.8 头部准备
 
-- `TryExpandHeader(...)`（已过时）：仅当原包有足够“前置空间”时返回新包。
-- `ExpandHeader(this IPacket? pk, Int32 size)`（推荐）：
-  - `ArrayPacket/OwnerPacket` 有前置空间时复用并向前扩展。
-  - 否则创建新的 `OwnerPacket(size)` 作为头节点，原包挂到 `Next`。
+- `FreeHeader`（`IPacket` 属性）：本视图之前的字节数（同一缓冲区内）。分配时预留（`new OwnerPacket(size, reserve)`）或由预留区切片/借位派生时，即为可零拷贝借位写入协议头的空间。
+- `ExpandHeader(this IPacket pk, Int32 size)`（借位原语）：要求已预留足够头部空间，向前借位共享（零拷贝）；未预留抛 `InvalidOperationException`。结果与原句柄共享缓冲（引用计数各自释放），**原句柄保持有效**；带链拥有句柄会先切片为独占共享链再前移链头。`ArrayPacket.ExpandHeader` 为结构体视图，本就无所有权。
+- `PrepareHeader(this IPacket? body, Int32 size)`（构建推荐）：为负载准备帧头空间，返回 `IOwnerPacket`。两种策略**都零拷贝、都不改动原负载句柄**：
+  - 拥有句柄且已预留（`OwnerPacket` 且 `FreeHeader >= size`）→ 向前借位共享，帧头落在原缓冲预留区；
+  - 其余（未预留、带链、视图）→ 新头节点挂接负载链——拥有句柄先 `Slice(0, -1)` 得到独占的共享链（引用计数各自持有），视图无所有权可直接挂接。
+- 消息构建（`IMessageCodec.Build` / `BuildHeader`）统一走上述原语，因此**构建不消费消息负载**，`message.Payload` 构建后依然可读。
 
-典型用法（协议头预留）：
+典型用法（上游预留、下游零拷贝写头）：
 
 ```csharp
-var body = new ArrayPacket(payload);
-var msg = body.ExpandHeader(4);
+// 上游：组装内容时预留头部（32 字节可容纳各类二进制协议头，见 SpanSerializer.HeaderReserve）
+var body = new OwnerPacket(payload.Length, 32);
+payload.CopyTo(body.GetSpan());
 
-// 此时 msg 的前 4 字节可填充头部，后续链为 body
+// 下游：借位写入协议头（零拷贝，帧头连续），body 仍然有效
+var frame = body.PrepareHeader(4);
+frame.GetSpan()[..4].CopyTo(headBytes);
 ```
+
+> **时效**：结果可能引用负载缓冲（借位共享或链式引用），帧发送完成前不得复用或改写该缓冲。
+>
+> **掩码例外**：客户端 WebSocket 掩码是原地 XOR（破坏性），必须独占，故 `WebSocketCodec` 客户端方向改为新分配 + 拷贝时掩码，消息负载同样不受影响。
 
 ### 5.9 序列桥接（ReadOnlySequence）
 
