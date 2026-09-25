@@ -211,18 +211,36 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <param name="headerLen">头部字节数</param>
     /// <param name="envelope">解码出的事件信封</param>
     /// <returns>是否解码成功</returns>
+    /// <remarks>
+    /// <para>当 <typeparamref name="TEvent"/> 本身是数据包时，负载切片所有权随之转移给订阅者（订阅者负责释放）；
+    /// 其它事件类型则切片仅供取值，本方法内部归还引用计数。</para>
+    /// </remarks>
     private Boolean DecodePayload(IPacket data, String topic, String clientId, Int32 headerLen, out EventEnvelope envelope)
     {
         envelope = default;
 
         var msg = data.Slice(headerLen);
-        if (msg.Length == 0) return false;
+        if (msg.Length == 0)
+        {
+            msg.TryDispose();
 
-        // TEvent 本身是 IPacket，直接零拷贝构造事件信封
+            return false;
+        }
+
+        // TEvent 本身是 IPacket，直接零拷贝构造事件信封（切片随信封交给订阅者释放）
         if (msg is TEvent evt) { envelope = EventEnvelope.ForEvent(topic, clientId, evt); return true; }
 
-        var msgStr = msg.ToStr();
-        return BuildEnvelopeFromString(topic, clientId, msgStr, out envelope);
+        // 其它事件类型：切片只用于取值，取值后立即归还引用计数（不归还则缓冲永远回不了池）
+        try
+        {
+            var msgStr = msg.ToStr();
+
+            return BuildEnvelopeFromString(topic, clientId, msgStr, out envelope);
+        }
+        finally
+        {
+            msg.TryDispose();
+        }
     }
 
     /// <summary>尝试从字符串解码事件信封。派生类可重写以替换协议实现</summary>

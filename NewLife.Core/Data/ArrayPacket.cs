@@ -30,7 +30,7 @@ public record struct ArrayPacket : IPacket
     public readonly Int32 Total => Length + (Next?.Total ?? 0);
 
     /// <summary>空数组</summary>
-    public static ArrayPacket Empty = new([]);
+    public static readonly ArrayPacket Empty = new([]);
     #endregion
 
     #region 索引
@@ -75,6 +75,7 @@ public record struct ArrayPacket : IPacket
     /// <param name="count"></param>
     public ArrayPacket(Byte[] buf, Int32 offset = 0, Int32 count = -1)
     {
+        if (buf == null) throw new ArgumentNullException(nameof(buf));
         if (count < 0) count = buf.Length - offset;
 
         _buffer = buf;
@@ -169,6 +170,9 @@ public record struct ArrayPacket : IPacket
     public ArrayPacket Slice(Int32 offset, Int32 count = -1)
     {
         if (count == 0) return Empty;
+
+        // 负偏移会向前多取字节（越窗读到本包之前的活数据）且不报错，必须显式拒绝；向前借位请用 ExpandHeader
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be negative.");
 
         var start = Offset + offset;
         var remain = _length - offset;

@@ -32,7 +32,7 @@ public class RingBuffer
 
     /// <summary>实例化环形缓冲区</summary>
     /// <param name="capacity">容量。合理的容量能够减少扩容</param>
-    public RingBuffer(Int32 capacity) => _data = new Byte[capacity];
+    public RingBuffer(Int32 capacity) => _data = new Byte[Math.Max(1, capacity)];
     #endregion
 
     #region 方法
@@ -79,9 +79,17 @@ public class RingBuffer
     {
         var len = _data.Length;
 
-        // 两倍增长策略
+        // 两倍增长策略；接近上限时直接取目标容量，避免翻倍溢出成负数后死循环
         while (len < capacity)
+        {
+            if (len > Int32.MaxValue / 2)
+            {
+                len = capacity;
+                break;
+            }
+
             len *= 2;
+        }
 
         EnsureCapacity(len);
     }

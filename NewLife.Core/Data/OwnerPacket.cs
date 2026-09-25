@@ -265,7 +265,8 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         var buffer = ArrayPool<Byte>.Shared.Rent(reserve + size);
         _buffer = buffer;
         var count = stream.Read(buffer, reserve, size);
-        _offset = 0;
+        // 数据从 reserve 处开始写入，窗口必须从 reserve 开始：否则对外前 reserve 字节是池化脏数据、真数据被截掉
+        _offset = reserve;
         _length = count;
         _owner = new ArrayOwner(buffer, true);
 
@@ -350,6 +351,9 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         if (owner.RefCount > 1)
             throw new InvalidOperationException($"Cannot detach while {owner.RefCount - 1} other handle(s) still hold the buffer.");
 
+        // 链式后续节点会在本句柄脱手时丢失引用（链上缓存的归还责任随之消失），调用方确认无链才可脱手
+        if (Next != null) throw new InvalidOperationException("Cannot detach while the packet has a Next segment; dispose the chain first.");
+
         // 抑制析构兜底，防止 GC 时误把仍在借用中的缓冲归还池
         GC.SuppressFinalize(this);
 
@@ -427,9 +431,11 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
 
         if (Next == null)
         {
-            if (size > Buffer.Length)
+            // 上限按“从当前偏移起可用容量”算：带偏移的视图若按整个缓冲区长度放行，
+            // 后续 GetSpan/GetMemory 会越窗（offset+length 超出数组长度）
+            if (size > Buffer.Length - _offset)
                 throw new ArgumentOutOfRangeException(nameof(size),
-                    $"Size {size} exceeds buffer capacity {Buffer.Length}");
+                    $"Size {size} exceeds available space {Buffer.Length - _offset}");
 
             _length = size;
         }

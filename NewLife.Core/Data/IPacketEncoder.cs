@@ -31,7 +31,13 @@ public static class PacketEncoderExtensions
     /// <param name="encoder">编码器实例</param>
     /// <param name="data">要解码的数据包</param>
     /// <returns>解码后的强类型对象</returns>
-    public static T? Decode<T>(this IPacketEncoder encoder, IPacket data) => (T?)encoder.Decode(data, typeof(T));
+    public static T? Decode<T>(this IPacketEncoder encoder, IPacket data)
+    {
+        var value = encoder.Decode(data, typeof(T));
+
+        // 解码失败（未开启 ThrowOnError）时返回 null，值类型不能直接强转：直接强转会变成空引用异常
+        return value is T t ? t : default;
+    }
 }
 
 /// <summary>默认数据包编码器</summary>

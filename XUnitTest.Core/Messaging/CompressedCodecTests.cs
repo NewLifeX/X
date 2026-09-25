@@ -15,6 +15,28 @@ public class CompressedCodecTests
     private static CompressedCodec NewCodec() => new(new SrmpCodec());
 
     [Fact]
+    [DisplayName("压缩编解码_构建_不改动消息负载")]
+    public void Build_KeepsMessagePayload()
+    {
+        var codec = NewCodec();
+        var msg = new DefaultMessage { Sequence = 9 };
+
+        using var owner = new OwnerPacket(32);
+        var expect = new Byte[32];
+        for (var i = 0; i < expect.Length; i++) expect[i] = (Byte)(i + 1);
+        expect.CopyTo(owner.GetSpan());
+        msg.SetBody(owner);
+
+        var origin = msg.Payload;
+        using var pk = codec.Build(msg);
+        Assert.NotNull(pk);
+
+        // 构建前后负载必须是同一个句柄且内容不变：构建不得归还调用方还在用的负载
+        Assert.Same(origin, msg.Payload);
+        Assert.Equal(expect, msg.Payload!.ToArray());
+    }
+
+    [Fact]
     [DisplayName("压缩编解码_往返_体完整还原")]
     public void RoundTrip()
     {

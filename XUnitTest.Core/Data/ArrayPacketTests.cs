@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,17 @@ namespace XUnitTest.Buffer;
 
 public class ArrayPacketTests
 {
+    [Fact]
+    [DisplayName("切片_负偏移_拒绝而不是向前扩窗")]
+    public void Slice_NegativeOffset_Throws()
+    {
+        var pk = new ArrayPacket("Stone".GetBytes(), 2, 3);
+
+        // 负偏移会向前多取字节（越窗读到本包之前的活数据）；向前借位请用 ExpandHeader
+        Assert.Throws<ArgumentOutOfRangeException>(() => pk.Slice(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => pk.Slice(-1, 1));
+    }
+
     [Fact]
     public void CtorTest()
     {

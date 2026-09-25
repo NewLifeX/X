@@ -83,6 +83,10 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
                 throw new NotSupportedException($"不支持的 Size 值：{Size}");
         }
 
+        // 变长编码可以编码出负数（如 FF FF FF FF 0F → -1）：帧长度必须 Int64 且负值拒收，
+        // 否则帧泵会把它当成“帧已到齐”去切帧，抛异常打断整条接收链
+        if (len < 0) return null;
+
         var message = new Message();
         return new ParseResult { Message = message, HeaderSize = Offset + fieldLen, BodyLength = len };
     }

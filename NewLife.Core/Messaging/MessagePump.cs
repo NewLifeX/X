@@ -107,9 +107,17 @@ public class MessagePump
                 return false;
             }
 
-            // 协议已预绑定体（如压缩协议解压后重绑）：直接消费整帧，不再二次绑定
+            // 协议已预绑定体（如压缩协议解压后重绑）：直接消费整帧，不再二次绑定。
+            // 预绑定体的协议自己保证整帧到齐，但这里仍要校验窗口：自定义协议若提前绑定体，
+            // 帧未到齐时推进窗口会越界抛异常，打断整条接收链
             if (msg.Payload != null)
             {
+                if (headerSize + bodyLength > buffer.Length)
+                {
+                    msg.Dispose();
+                    return false;
+                }
+
                 reader.AdvanceTo(headerSize + bodyLength, headerSize + bodyLength);
 
                 message = msg;

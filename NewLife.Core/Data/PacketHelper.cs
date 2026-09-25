@@ -546,6 +546,11 @@ public static class PacketHelper
         {
             if (count < 0) count = pk.Length - offset;
 
+            // 与本类的多包链分支保持一致：显式传入过大的 count 时夹紧到可用范围，避免越窗读
+            if (offset < 0) offset = 0;
+            if (count > pk.Length - offset) count = pk.Length - offset;
+            if (count <= 0) return [];
+
             if (pk.TryGetArray(out var segment))
             {
                 // 性能优化：读取全部且数组段完整时直接返回
@@ -807,6 +812,9 @@ public static class PacketHelper
     /// </remarks>
     public static IOwnerPacket PrepareHeader(this IPacket? body, Int32 size)
     {
+        // 负长度会让借位分支变成“缩小窗口”而非扩展，必须显式拒绝
+        if (size < 0) throw new ArgumentOutOfRangeException(nameof(size));
+
         if (body == null) return new OwnerPacket(size);
 
         // 拥有句柄且已预留：向前借位共享（零拷贝），原句柄保持有效

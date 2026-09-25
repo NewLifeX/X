@@ -52,16 +52,21 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec
         var body = message.Payload;
         if (body == null || body.Total == 0) return Inner.Build(message);
 
-        // 压缩体替换后交由内层整帧构建；构建完成后还原消息负载（构建不改动消息数据）
+        // 摘除原负载（放弃持有，不归还句柄），把压缩体交给内层构建，构建完成后把“原句柄”放回。
+        // 这样构建前后 message.Payload 始终是同一个句柄，不会释放调用方还在用的负载。
         var raw = body.ToArray();
-        message.SetBody(new ArrayPacket(raw.Compress()));
+        message.SetBody(null);
+
         try
         {
+            message.SetBody(new ArrayPacket(raw.Compress()));
+
             return Inner.Build(message);
         }
         finally
         {
-            message.SetBody(new ArrayPacket(raw));
+            // 还原原句柄；压缩体为非拥有视图，被替换时释放是空操作
+            message.SetBody(body);
         }
     }
 
