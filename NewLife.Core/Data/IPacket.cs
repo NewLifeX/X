@@ -27,6 +27,7 @@ public interface IPacket
     /// <remarks>
     /// <para>组装方分配时预留（如 <c>new OwnerPacket(size, reserve)</c>，参考 <see cref="Serialization.SpanSerializer.HeaderReserve"/>），或由预留区切片/借位派生。</para>
     /// <para>组装帧头统一走 <see cref="PacketHelper.PrepareHeader"/>：拥有句柄且空间足够时借位共享，其余新头节点挂接负载链。</para>
+    /// <para><b>前提</b>：借位会写入本视图之前的字节，仅当这些字节确实空闲（预留区，或解析所得帧头已消费）时才安全；从帧中间切片得到的负载不满足该前提。</para>
     /// </remarks>
     Int32 FreeHeader { get; }
 

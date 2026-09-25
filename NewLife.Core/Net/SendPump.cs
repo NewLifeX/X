@@ -50,9 +50,13 @@ internal sealed class SendPump
     #endregion
 
     #region 追加
-    /// <summary>追加数据包（拥有句柄所有权转移；借阅视图自动转自有拷贝）。返回已接收字节数</summary>
+    /// <summary>追加数据包（拥有句柄所有权转移；头节点为借阅视图时自动转自有拷贝）。返回已接收字节数</summary>
     /// <param name="pk">数据包</param>
     /// <returns>已接收字节数；管道已完成时返回 -1</returns>
+    /// <remarks>
+    /// <para>仅检查<b>头节点</b>是否拥有句柄：头节点为拥有句柄时零拷贝入管道，否则整链克隆为自有拷贝。</para>
+    /// <para><b>时效</b>：链中若含借阅视图节点（如帧头链 <c>new OwnerPacket(size) { Next = view }</c>），该视图不会被克隆——入管道后仍引用调用方缓冲，数据真正发出前不得复用或改写该缓冲。</para>
+    /// </remarks>
     public Int32 Append(IPacket pk)
     {
         var pipe = Pipe;
