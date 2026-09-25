@@ -149,7 +149,7 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
         {
             case 0:
                 if (length > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), $"负载长度 {length} 超出变长长度字段的 32 位表示范围");
-                WriteVarint(ref writer, length);
+                writer.WriteEncodedInt((Int32)length);
                 break;
             case 1:
             case -1:
@@ -185,20 +185,6 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
         }
 
         return count;
-    }
-
-    /// <summary>按 7 位压缩编码写入长度（低位在前，最高位为继续标志）</summary>
-    /// <param name="writer">目标写入器（须按引用传递，否则位置推进丢失）</param>
-    /// <param name="value">非负长度值</param>
-    private static void WriteVarint(ref SpanWriter writer, Int64 value)
-    {
-        var num = (UInt64)value;
-        while (num >= 0x80)
-        {
-            writer.WriteByte((Byte)(num | 0x80));
-            num >>= 7;
-        }
-        writer.WriteByte((Byte)num);
     }
     #endregion
 
