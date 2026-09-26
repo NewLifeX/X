@@ -6,6 +6,12 @@ using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using Xunit;
+#if NET6_0_OR_GREATER
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+#endif
 
 namespace XUnitTest.Http;
 
@@ -157,6 +163,107 @@ public class TinyHttpClientTest
 
         await server;
     }
+
+    [Fact(DisplayName = "证书校验_默认严格")]
+    public void IgnoreServerCertificate_DefaultFalse()
+    {
+        using var client = new TinyHttpClient();
+        Assert.False(client.IgnoreServerCertificate);
+    }
+
+#if NET6_0_OR_GREATER
+    /// <summary>生成自签服务器证书（含私钥）</summary>
+    private static X509Certificate2 CreateSelfSignedCert()
+    {
+        var rsa = RSA.Create(2048);
+        var req = new CertificateRequest("CN=localhost", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var cert = req.CreateSelfSigned(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddDays(1));
+
+        // Windows 的 Schannel 服务端需要可用的持久化私钥，CreateSelfSigned 的临时密钥不足以取凭据。
+        // 导出为 PFX 再以 UserKeySet 导入，得到 Schannel 可用的证书
+        var pfx = cert.Export(X509ContentType.Pfx);
+#if NET9_0_OR_GREATER
+        var loaded = X509CertificateLoader.LoadPkcs12(pfx, null, X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+#else
+        var loaded = new X509Certificate2(pfx, (String?)null, X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+#endif
+
+        Assert.True(loaded.HasPrivateKey, "自签证书应包含私钥");
+
+        return loaded;
+    }
+
+    /// <summary>启动一次性 TLS 服务器：接受一次连接，读掉请求后回一个 200 响应</summary>
+    /// <param name="cert">服务器证书</param>
+    /// <param name="expectSuccess">是否预期握手成功。false 时吞掉服务端握手异常（客户端证书校验失败属预期）</param>
+    private static (Int32 Port, Task Server) StartTlsServer(X509Certificate2 cert, Boolean expectSuccess = false)
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+        var task = Task.Run(async () =>
+        {
+            try
+            {
+                using var tc = await listener.AcceptTcpClientAsync();
+                tc.NoDelay = true;
+                using var ns = tc.GetStream();
+                using var ssl = new SslStream(ns, false);
+                await ssl.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+                {
+                    ServerCertificate = cert,
+                    EnabledSslProtocols = SslProtocols.None,
+                });
+
+                var buf = new Byte[1024];
+                await ssl.ReadAsync(buf);
+                await ssl.WriteAsync(Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok"));
+                await ssl.FlushAsync();
+            }
+            catch (Exception) when (!expectSuccess)
+            {
+                // 客户端证书校验失败时，服务端握手报错属预期
+            }
+            finally
+            {
+                listener.Stop();
+            }
+        });
+
+        return (port, task);
+    }
+
+    [Fact(DisplayName = "证书校验_自签默认被拒绝")]
+    public async Task SelfSigned_RejectedByDefault()
+    {
+        using var cert = CreateSelfSignedCert();
+        var (port, server) = StartTlsServer(cert);
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        await Assert.ThrowsAnyAsync<Exception>(() =>
+            client.SendAsync(new HttpRequest { RequestUri = new Uri($"https://127.0.0.1:{port}/") }));
+
+        await server;
+    }
+
+    [Fact(DisplayName = "证书校验_显式忽略后放行自签")]
+    public async Task SelfSigned_AcceptedWhenIgnored()
+    {
+        using var cert = CreateSelfSignedCert();
+        var (port, server) = StartTlsServer(cert, true);
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10), IgnoreServerCertificate = true };
+        var clientTask = client.SendAsync(new HttpRequest { RequestUri = new Uri($"https://127.0.0.1:{port}/") });
+
+        // 先等服务端任务：服务端若握手失败，这里会直接抛出真实异常，便于定位
+        await server;
+
+        var res = await clientTask;
+        Assert.NotNull(res);
+        Assert.Equal("ok", res!.Body!.ToStr());
+    }
+#endif
 
     //[Fact(DisplayName = "同步字符串")]
     //public void GetString()
