@@ -110,25 +110,41 @@ public static class SecurityHelper
     /// <param name="data"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Byte[] SHA1(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA1.Create().ComputeHash(data) : new HMACSHA1(key).ComputeHash(data);
+    public static Byte[] SHA1(this Byte[] data, Byte[]? key)
+    {
+        using HashAlgorithm alg = key == null ? System.Security.Cryptography.SHA1.Create() : new HMACSHA1(key);
+        return alg.ComputeHash(data);
+    }
 
     /// <summary>SHA256</summary>
     /// <param name="data"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Byte[] SHA256(this Byte[] data, Byte[]? key = null) => key == null ? System.Security.Cryptography.SHA256.Create().ComputeHash(data) : new HMACSHA256(key).ComputeHash(data);
+    public static Byte[] SHA256(this Byte[] data, Byte[]? key = null)
+    {
+        using HashAlgorithm alg = key == null ? System.Security.Cryptography.SHA256.Create() : new HMACSHA256(key);
+        return alg.ComputeHash(data);
+    }
 
     /// <summary>SHA384</summary>
     /// <param name="data"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Byte[] SHA384(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA384.Create().ComputeHash(data) : new HMACSHA384(key).ComputeHash(data);
+    public static Byte[] SHA384(this Byte[] data, Byte[]? key)
+    {
+        using HashAlgorithm alg = key == null ? System.Security.Cryptography.SHA384.Create() : new HMACSHA384(key);
+        return alg.ComputeHash(data);
+    }
 
     /// <summary>SHA512</summary>
     /// <param name="data"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Byte[] SHA512(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA512.Create().ComputeHash(data) : new HMACSHA512(key).ComputeHash(data);
+    public static Byte[] SHA512(this Byte[] data, Byte[]? key)
+    {
+        using HashAlgorithm alg = key == null ? System.Security.Cryptography.SHA512.Create() : new HMACSHA512(key);
+        return alg.ComputeHash(data);
+    }
 #endif
 
     /// <summary>Murmur128哈希</summary>
@@ -147,7 +163,9 @@ public static class SecurityHelper
     /// <returns></returns>
     public static SymmetricAlgorithm Encrypt(this SymmetricAlgorithm sa, Stream instream, Stream outstream)
     {
-        using (var stream = new CryptoStream(outstream, sa.CreateEncryptor(), CryptoStreamMode.Write))
+        // CryptoStream 不拥有传入的 ICryptoTransform，须单独释放（.NET Framework 上的实现持有 CSP 句柄）
+        using var transform = sa.CreateEncryptor();
+        using (var stream = new CryptoStream(outstream, transform, CryptoStreamMode.Write))
         {
             instream.CopyTo(stream);
             stream.FlushFinalBlock();
@@ -185,7 +203,8 @@ public static class SecurityHelper
         }
 
         var outstream = new MemoryStream();
-        using var stream = new CryptoStream(outstream, sa.CreateEncryptor(), CryptoStreamMode.Write);
+        using var transform = sa.CreateEncryptor();
+        using var stream = new CryptoStream(outstream, transform, CryptoStreamMode.Write);
         stream.Write(data, 0, data.Length);
 
         // 数据长度必须是8的倍数
@@ -213,7 +232,9 @@ public static class SecurityHelper
     /// <returns></returns>
     public static SymmetricAlgorithm Decrypt(this SymmetricAlgorithm sa, Stream instream, Stream outstream)
     {
-        using (var stream = new CryptoStream(instream, sa.CreateDecryptor(), CryptoStreamMode.Read))
+        // CryptoStream 不拥有传入的 ICryptoTransform，须单独释放（.NET Framework 上的实现持有 CSP 句柄）
+        using var transform = sa.CreateDecryptor();
+        using (var stream = new CryptoStream(instream, transform, CryptoStreamMode.Read))
         {
             stream.CopyTo(outstream);
         }
@@ -249,7 +270,8 @@ public static class SecurityHelper
             sa.Padding = padding;
         }
 
-        using var stream = new CryptoStream(new MemoryStream(data), sa.CreateDecryptor(), CryptoStreamMode.Read);
+        using var transform = sa.CreateDecryptor();
+        using var stream = new CryptoStream(new MemoryStream(data), transform, CryptoStreamMode.Read);
         return stream.ReadBytes(-1);
     }
 
