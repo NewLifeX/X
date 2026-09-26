@@ -185,10 +185,10 @@ public class LoggingConfig
 }
 ```
 
-### InIConfigProvider
+### IniConfigProvider
 
 ```csharp
-[Config("settings", Provider = typeof(InIConfigProvider))]
+[Config("settings", Provider = typeof(IniConfigProvider))]
 public class IniConfig : Config<IniConfig>
 {
     public String Server { get; set; }

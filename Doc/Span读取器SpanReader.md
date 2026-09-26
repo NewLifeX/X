@@ -48,7 +48,7 @@ reader.MaxCapacity = 1024 * 1024; // 限制最大读取 1MB
 | `Span` | `ReadOnlySpan<byte>` | 当前数据片段 |
 | `Position` | `int` | 已读取字节数 |
 | `Capacity` | `int` | 总容量 |
-| `FreeCapacity` | `int` | 尚未读取的剩余字节数 |
+| `Available` | `int` | 尚未读取的剩余字节数 |
 | `IsLittleEndian` | `bool` | 是否小端字节序（默认 true） |
 | `MaxCapacity` | `int` | 最大容量限制（0 表示不限制） |
 
@@ -222,7 +222,7 @@ public async Task<List<Record>> ParseStreamAsync(Stream stream)
     var reader = new SpanReader(stream, bufferSize: 4096);
     reader.MaxCapacity = 1024 * 1024; // 限制1MB
     
-    while (reader.FreeCapacity > 0)
+    while (reader.Available > 0)
     {
         try
         {
