@@ -46,14 +46,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         }
     }
 
-    /// <summary>加权轮询负载均衡。默认false只使用故障转移</summary>
-    [Obsolete("请使用 LoadBalanceMode 属性")]
-    public Boolean RoundRobin
-    {
-        get => LoadBalanceMode == LoadBalanceMode.RoundRobin;
-        set => LoadBalanceMode = value ? LoadBalanceMode.RoundRobin : LoadBalanceMode.Failover;
-    }
-
     /// <summary>不可用节点的屏蔽时间。默认60秒</summary>
     public Int32 ShieldingTime
     {

@@ -78,16 +78,8 @@ public class TimerX : ITimer, IDisposable
     /// <summary>平均耗时。毫秒</summary>
     public Int32 Cost { get; internal set; }
 
-    /// <summary>判断任务是否执行的委托。一般跟异步配合使用，避免频繁从线程池借出线程</summary>
-    [Obsolete("该委托容易造成内存泄漏，故取消", true)]
-    public Func<Boolean>? CanExecute { get; set; }
-
     /// <summary>Cron表达式集合。实现复杂的定时逻辑</summary>
     public Cron[]? Crons => _crons;
-
-    /// <summary>Cron表达式。实现复杂的定时逻辑</summary>
-    [Obsolete("=>Crons")]
-    public Cron? Cron => _crons?.FirstOrDefault();
 
     /// <summary>链路追踪器。追踪每一次定时事件</summary>
     public ITracer? Tracer { get; set; }

@@ -291,23 +291,6 @@ public class LoadBalancerTests
         Assert.Equal(LoadBalanceMode.Race, client.LoadBalanceMode);
     }
 
-    [Fact(DisplayName = "ApiHttpClient_兼容RoundRobin属性")]
-    public void ApiHttpClient_RoundRobinPropertyCompatibility()
-    {
-        var client = new ApiHttpClient("http://127.0.0.1:10001,http://127.0.0.1:10002");
-
-        // 测试设置
-#pragma warning disable CS0618
-        client.RoundRobin = true;
-        Assert.Equal(LoadBalanceMode.RoundRobin, client.LoadBalanceMode);
-        Assert.True(client.RoundRobin);
-
-        client.RoundRobin = false;
-        Assert.Equal(LoadBalanceMode.Failover, client.LoadBalanceMode);
-        Assert.False(client.RoundRobin);
-#pragma warning restore CS0618
-    }
-
     [Fact(DisplayName = "ApiHttpClient_屏蔽时间设置")]
     public void ApiHttpClient_ShieldingTimeSettings()
     {

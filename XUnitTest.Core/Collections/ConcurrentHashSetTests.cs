@@ -122,15 +122,4 @@ public class ConcurrentHashSetTests
         // 最终应该只有100-199
         Assert.Equal(100, set.Count);
     }
-
-#pragma warning disable CS0618
-    [Fact(DisplayName = "Contain旧接口兼容")]
-    public void Contain_Obsolete()
-    {
-        var set = new ConcurrentHashSet<String>();
-        set.TryAdd("key");
-
-        Assert.True(set.Contain("key"));
-    }
-#pragma warning restore CS0618
 }

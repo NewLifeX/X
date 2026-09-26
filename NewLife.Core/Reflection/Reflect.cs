@@ -66,21 +66,6 @@ public static class Reflect
         return Provider.GetType(typeName, false);
     }
 
-    /// <summary>根据名称获取类型。可搜索当前目录DLL，自动加载</summary>
-    /// <param name="typeName">类型名</param>
-    /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
-    /// <returns></returns>
-    [Obsolete("不再支持isLoadAssembly")]
-    public static Type? GetTypeEx(this String typeName, Boolean isLoadAssembly)
-    {
-        if (String.IsNullOrEmpty(typeName)) return null;
-
-        var type = Type.GetType(typeName);
-        if (type != null) return type;
-
-        return Provider.GetType(typeName, isLoadAssembly);
-    }
-
     /// <summary>获取方法</summary>
     /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
     /// <param name="type">类型</param>

@@ -259,24 +259,6 @@ public class Upgrade
 
     /// <summary>删除备份文件</summary>
     /// <param name="dest">目标目录</param>
-    [Obsolete("=>DeleteBackup", true)]
-    public static void DeleteBuckup(String dest)
-    {
-        // 删除备份
-        var di = dest.AsDirectory();
-        var fs = di.GetAllFiles("*.del", true);
-        foreach (var item in fs)
-        {
-            try
-            {
-                item.Delete();
-            }
-            catch { }
-        }
-    }
-
-    /// <summary>删除备份文件</summary>
-    /// <param name="dest">目标目录</param>
     public void DeleteBackup(String dest)
     {
         // 删除备份

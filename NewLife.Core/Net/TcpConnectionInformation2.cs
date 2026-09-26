@@ -103,11 +103,6 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
 
     /// <summary>获取所有Tcp连接</summary>
     /// <returns></returns>
-    [Obsolete("=>GetWindowsTcpConnections")]
-    public static TcpConnectionInformation2[] GetAllTcpConnections() => GetWindowsTcpConnections();
-
-    /// <summary>获取所有Tcp连接</summary>
-    /// <returns></returns>
     public static TcpConnectionInformation2[] GetWindowsTcpConnections()
     {
         //MIB_TCPROW_OWNER_PID[] tTable;

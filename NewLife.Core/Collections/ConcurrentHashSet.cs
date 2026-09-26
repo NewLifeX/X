@@ -18,12 +18,6 @@ public class ConcurrentHashSet<T> : IEnumerable<T> where T : notnull
     /// <summary>元素个数</summary>
     public Int32 Count => _dic.Count;
 
-    /// <summary>是否包含元素（旧命名，建议使用 <see cref="Contains"/>）。</summary>
-    /// <param name="item">元素</param>
-    /// <returns>是否存在</returns>
-    [Obsolete("Use Contains instead")]
-    public Boolean Contain(T item) => _dic.ContainsKey(item);
-
     /// <summary>是否包含元素</summary>
     /// <param name="item">元素</param>
     /// <returns>是否存在</returns>

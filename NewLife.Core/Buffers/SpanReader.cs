@@ -29,10 +29,6 @@ public ref struct SpanReader
     public readonly Int32 Capacity => _span.Length;
 
     /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
-    [Obsolete("=>Available")]
-    public readonly Int32 FreeCapacity => _span.Length - _index;
-
-    /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
     public readonly Int32 Available => _span.Length - _index;
 
     /// <summary>是否小端字节序。默认 true</summary>

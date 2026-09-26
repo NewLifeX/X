@@ -412,13 +412,4 @@ public static class ObjectContainerHelper
     public static TService? GetService<TService>(this IObjectContainer container) => (TService?)container.GetService(typeof(TService));
     #endregion
 
-    #region 旧版方法
-    /// <summary>解析类型的实例</summary>
-    /// <typeparam name="TService">接口类型</typeparam>
-    /// <param name="container">对象容器</param>
-    /// <returns></returns>
-    [Obsolete("=>GetService")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static TService? Resolve<TService>(this IObjectContainer container) => (TService?)container.GetService(typeof(TService));
-    #endregion
 }

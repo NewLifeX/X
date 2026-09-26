@@ -180,22 +180,6 @@ public class ApiHttpClientUnitTests
         client.LoadBalanceMode = LoadBalanceMode.RoundRobin;
         Assert.Equal(120, client.LoadBalancer.ShieldingTime);
     }
-
-    [Fact(DisplayName = "兼容RoundRobin属性测试")]
-    public void RoundRobinPropertyCompatibilityTest()
-    {
-#pragma warning disable CS0618
-        var client = new ApiHttpClient("http://127.0.0.1:8080");
-
-        client.RoundRobin = true;
-        Assert.Equal(LoadBalanceMode.RoundRobin, client.LoadBalanceMode);
-        Assert.True(client.RoundRobin);
-
-        client.RoundRobin = false;
-        Assert.Equal(LoadBalanceMode.Failover, client.LoadBalanceMode);
-        Assert.False(client.RoundRobin);
-#pragma warning restore CS0618
-    }
     #endregion
 
     #region 服务地址测试
