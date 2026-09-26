@@ -133,8 +133,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
         Stop(disposing ? "Dispose" : "GC");
 
+        // 只释放、不置空：迟到的并发任务在 finally 里经属性重新取信号量，
+        // 置空后 ??= 会新建“满额”信号量，其 Release 直接抛 SemaphoreFullException（基类同样只释放不置空）
         _concurrency?.Dispose();
-        _concurrency = null;
 
         //// 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
         //Server = null;
@@ -388,8 +389,10 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
                 break;
             }
 
-            // 内存体：数据报窗口内零拷贝切片（共享底层，消息释放时归还切片）
-            if (bodyLength > 0) message.SetBody(pk.Slice((Int32)pos + headerSize, (Int32)bodyLength));
+            // 体绑定：协议未预绑定体时才从数据报窗口切零拷贝共享切片。
+            // 预绑定体（如压缩协议解压后重绑）必须保留，否则会把解压结果替换成线上压缩字节（静默交出错误数据）——与帧泵分支保持一致
+            if (message.Payload == null && bodyLength > 0)
+                message.SetBody(pk.Slice((Int32)pos + headerSize, (Int32)bodyLength));
 
             // 并行模式：数据报体为零拷贝共享切片（天然独立），信号量约束后派发；处理顺序不定（SRMP 按序列号配对）
             if (MaxConcurrency > 1)
