@@ -162,6 +162,29 @@ public class HttpServerTests : IDisposable
         Assert.Equal(93917, rs.ReadBytes(-1).Length);
     }
 
+    [Fact(DisplayName = "静态文件_HEAD请求_只返回头部不发实体")]
+    public async Task HeadRequest_StaticFile_NoEntity()
+    {
+        _server.MapStaticFiles("/logos", "http/");
+
+        using var client = new HttpClient { BaseAddress = _baseUri };
+        using var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Head, "/logos/leaf.png");
+        using var rs = await client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.OK, rs.StatusCode);
+
+        // 需声明实体长度（与 GET 一致），但不得发送实体。
+        // 静态文件走 BodyStream：修复前 HEAD 分支只看内存体，会把整个实体一起发出去
+        Assert.Equal(93917, rs.Content.Headers.ContentLength);
+
+        var body = await rs.Content.ReadAsByteArrayAsync();
+        Assert.Empty(body);
+
+        // 同连接复用：协议对齐。若 HEAD 发了实体，后续 GET 会读到残留字节或长度不符
+        var txt = await client.GetStreamAsync("/logos/leaf.png");
+        Assert.Equal(93917, txt.ReadBytes(-1).Length);
+    }
+
     [Fact(DisplayName = "流式响应_可寻址流_按Content-Length完整到达")]
     public async Task StreamResponse_ContentLength()
     {
