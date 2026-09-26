@@ -347,6 +347,51 @@ public class MessageSessionTests
     }
 
     [Fact]
+    [DisplayName("协议模式_长度字段_大响应流式分片_不串包")]
+    public async Task LengthFieldCodec_LargeStreamingResponse_NoCorruption()
+    {
+        // 服务端：回一个大负载（大于单次接收缓冲 → 分片到达 → 流式体）
+        var payload = MakePayload(200_000);
+
+        using var server = new NetServer { Port = 0, Protocol = new LengthFieldCodec { Size = 4 } };
+        server.Start();
+
+        var serverGot = NewTcs<Int32>();
+        server.Received += (s, e) =>
+        {
+            if (e.Message == null) return;
+
+            var reply = new Message();
+            reply.SetBody(new ArrayPacket(payload));
+            serverGot.TrySetResult(((INetSession)s!).SendMessage(reply));
+        };
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}")
+        {
+            Protocol = new LengthFieldCodec { Size = 4 },
+            MatchTimeout = 10_000,
+        };
+        Assert.True(client.Open());
+
+        var req = new Message();
+        req.SetBody(new ArrayPacket(new Byte[] { 1, 2, 3 }));
+
+        var reqTask = client.SendMessageAsync(req).AsTask();
+
+        var sent = await WithTimeout(serverGot.Task, 5_000);
+        Assert.True(sent > 0, "服务端应答发送失败");
+
+        // 无方向位协议（LengthFieldCodec 的恒真 matcher）消息 Kind 恒为 Request：等待方必须拿到已物化的完整负载。
+        // 修复前物化门槛用 message.Reply，流式体不物化，等待方与帧泵争读同一读取器 → 抛单读者异常或把下一帧字节当成体
+        var resp = await WithTimeout(reqTask, 15_000);
+        Assert.False(resp.Body!.IsStreaming);
+        var body = await resp.Body.ReadAllAsync();
+        Assert.Equal(payload, body.AsReadOnlySequence().ToArray());
+        body.TryDispose();
+        resp.Dispose();
+    }
+
+    [Fact]
     [DisplayName("协议模式_请求响应_序列号超过255仍能配对")]
     public async Task RequestResponse_SequenceOver255_StillMatches()
     {

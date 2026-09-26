@@ -104,16 +104,30 @@ public class LengthFieldCodecTests
     }
 
     [Fact]
-    [DisplayName("长度字段编解码_非法长度_返回失败")]
+    [DisplayName("长度字段编解码_非法长度_标记损坏帧")]
     public void TryParse_Invalid()
     {
-        // 4 字节长度为负（最高位 1）：损坏帧
+        // 4 字节长度为负（最高位 1）：头部已完整但非法，应标记损坏帧（立即报错，而不是等到残余上限）
         var codec = new LengthFieldCodec { Size = 4 };
-        Assert.Null(codec.TryParse(new ArrayPacket(new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF }).AsReadOnlySequence()));
+        var r1 = codec.TryParse(new ArrayPacket(new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF }).AsReadOnlySequence());
+        Assert.NotNull(r1);
+        Assert.True(r1.Value.Invalid);
+
+        // 大端 4 字节同样处理
+        var codecBe = new LengthFieldCodec { Size = -4 };
+        var r2 = codecBe.TryParse(new ArrayPacket(new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF }).AsReadOnlySequence());
+        Assert.NotNull(r2);
+        Assert.True(r2.Value.Invalid);
 
         // 变长编码超过 32 位（5 字节仍未终止）：非法
         var codecVar = new LengthFieldCodec { Size = 0 };
-        Assert.Null(codecVar.TryParse(new ArrayPacket(new Byte[] { 0x80, 0x80, 0x80, 0x80, 0x80 }).AsReadOnlySequence()));
+        var r3 = codecVar.TryParse(new ArrayPacket(new Byte[] { 0x80, 0x80, 0x80, 0x80, 0x80 }).AsReadOnlySequence());
+        Assert.NotNull(r3);
+        Assert.True(r3.Value.Invalid);
+
+        // 变长数据不足（未终止但不足 5 字节）：等待更多数据，不能当成损坏
+        var r4 = codecVar.TryParse(new ArrayPacket(new Byte[] { 0x80, 0x80 }).AsReadOnlySequence());
+        Assert.Null(r4);
     }
 
     [Fact]
