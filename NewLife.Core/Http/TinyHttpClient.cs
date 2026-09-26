@@ -264,7 +264,8 @@ public class TinyHttpClient : DisposeBase
     /// <para>只借阅入参，不释放 <paramref name="body"/>；入参句柄由调用方负责释放。</para>
     /// <para>分块长度行与分块数据都可能跨接收包：未解析字节累积在连续缓冲中，凑满一个完整分块才消费。
     /// 旧实现假定长度行与分块数据同在单个数据包内，长度行落到下一个包时会把后续所有分块静默丢弃（仍返回“成功”）。</para>
-    /// <para>单块与总计长度分别由 <see cref="MaxChunkSize"/> 与 <see cref="MaxBodySize"/> 限制。</para>
+    /// <para>单块与总计长度分别由 <see cref="MaxChunkSize"/> 与 <see cref="MaxBodySize"/> 限制；未解析残留超限按协议异常报错。</para>
+    /// <para>末块后的 trailers 段会被消费（内容忽略），避免残留字节让复用连接上的下一个响应错位。</para>
     /// </remarks>
     /// <param name="body">待解析的数据包（调用方负责释放）</param>
     /// <returns></returns>
@@ -278,6 +279,7 @@ public class TinyHttpClient : DisposeBase
         var pos = 0;
         var total = 0L;
         var finished = false;
+        var trailer = false;
 
         // 首个数据包为借阅（调用方释放），后续读取的包由本方法释放
         IPacket? input = body;
@@ -308,11 +310,11 @@ public class TinyHttpClient : DisposeBase
                     if (MaxChunkSize > 0 && len > MaxChunkSize)
                         throw new InvalidDataException($"分块长度 {len} 超过上限 {MaxChunkSize}");
 
-                    // 末块：长度为 0
+                    // 末块：长度为 0。其后是 trailers 段，以空行结束
                     if (len == 0)
                     {
                         pos += p + 2;
-                        finished = true;
+                        trailer = true;
                         break;
                     }
 
@@ -327,6 +329,17 @@ public class TinyHttpClient : DisposeBase
                     pos += p + 2 + len + 2;
                 }
 
+                // 末块后的 trailers 段必须一并消费：残留在连接上会让下一个响应错位
+                if (trailer)
+                {
+                    var q = buf.AsSpan(pos, end - pos).IndexOf(NewLine);
+                    if (q >= 0)
+                    {
+                        pos += q + 2;
+                        finished = true;
+                    }
+                }
+
                 // 收缩已解析前缀
                 if (pos > 0)
                 {
@@ -339,6 +352,10 @@ public class TinyHttpClient : DisposeBase
                 }
 
                 if (finished) break;
+
+                // 长度行迟迟不完整（如对端持续发送不含 CRLF 的字节）时 pending 会无界增长，超限按协议异常处理
+                if (MaxChunkSize > 0 && pending.Length > MaxChunkSize)
+                    throw new InvalidDataException($"分块数据未按协议定界，已累积 {pending.Length} 字节");
 
                 // 读取下一批数据；读不到即结束，不完整分块按截断处理（与原行为一致）
                 var more = await SendDataAsync(null, null).ConfigureAwait(false);

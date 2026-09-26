@@ -180,5 +180,36 @@ public class TinyHttpClientTest
 
         await Assert.ThrowsAsync<InvalidDataException>(() => ReadChunkAsync(client, "3\r\nabc\r\n3\r\ndef\r\n0\r\n\r\n".GetBytes()));
     }
+
+    [Fact(DisplayName = "分块传输_末块后带trailers_一并消费不残留")]
+    public async Task Chunk_Trailers_Consumed()
+    {
+        var client = new ChunkFeedClient();
+
+        // 末块后的 trailers 段必须一并消费：残留在连接上会让复用连接的下一个响应错位
+        var body = await ReadChunkAsync(client, "3\r\nabc\r\n0\r\nX-Trace: 1\r\n\r\n".GetBytes());
+
+        Assert.Equal("abc", body.ToStr());
+    }
+
+    [Fact(DisplayName = "分块传输_trailers终止空行跨接收包_仍正确结束")]
+    public async Task Chunk_TrailerSplitAcrossPackets()
+    {
+        var client = new ChunkFeedClient();
+
+        var body = await ReadChunkAsync(client, "3\r\nabc\r\n0\r\n".GetBytes(), "\r\n".GetBytes());
+
+        Assert.Equal("abc", body.ToStr());
+    }
+
+    [Fact(DisplayName = "分块传输_长度行迟迟不到_残留超上限抛异常")]
+    public async Task Chunk_UnterminatedData_ExceedsCap_Throws()
+    {
+        var client = new ChunkFeedClient { MaxChunkSize = 8 };
+
+        // 对端持续发送不含 CRLF 的字节：未解析残留必须有上限，不能无界累积
+        await Assert.ThrowsAsync<InvalidDataException>(() => ReadChunkAsync(
+            client, "abcdefghij".GetBytes(), "abcdefghij".GetBytes(), "abcdefghij".GetBytes()));
+    }
     #endregion
 }
