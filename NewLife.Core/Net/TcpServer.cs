@@ -286,6 +286,9 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <summary>新会话时触发</summary>
     public event EventHandler<SessionEventArgs>? NewSession;
 
+    /// <summary>接受环同步递归深度。内核 accept 队列有积压时 AcceptAsync 会同步完成，直接递归处理会累积栈帧</summary>
+    private Int32 _acceptDepth;
+
     /// <summary>开启异步接受新连接</summary>
     /// <param name="se"></param>
     /// <param name="io">是否IO线程</param>
@@ -318,10 +321,19 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
         if (!rs)
         {
-            if (io)
-                ProcessAccept(se);
+            // 同步完成：内核 accept 队列已有积压。直接处理会形成 ProcessAccept → StartAccept → ProcessAccept 的递归，
+            // 连接洪峰（backlog 堆压）下可耗尽线程栈（StackOverflow 不可捕获，进程直接退出）。
+            // 用深度计数限制同步递归层数，超过即改投线程池，使栈深度有界
+            if (io && _acceptDepth < 10)
+            {
+                _acceptDepth++;
+                try { ProcessAccept(se); }
+                finally { _acceptDepth--; }
+            }
             else
+            {
                 Task.Factory.StartNew(() => ProcessAccept(se), TaskCreationOptions.LongRunning);
+            }
         }
 
         return true;
