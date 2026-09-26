@@ -426,16 +426,10 @@ public ref struct SpanWriter
         else
         {
             // 编码结果超过目标长度：先编码到临时缓冲，拷贝前 length 个字节
-            var buf = Pool.Shared.Rent(need);
-            try
-            {
-                var count = encoding.GetBytes(source, buf);
-                new ReadOnlySpan<Byte>(buf, 0, length).CopyTo(span);
-            }
-            finally
-            {
-                Pool.Shared.Return(buf);
-            }
+            using var buf = Pool.Rent(need);
+
+            var count = encoding.GetBytes(source, buf);
+            new ReadOnlySpan<Byte>(buf, 0, length).CopyTo(span);
         }
 
         _index += length;

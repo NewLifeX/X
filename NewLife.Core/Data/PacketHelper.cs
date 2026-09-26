@@ -365,38 +365,18 @@ public static class PacketHelper
 
         encoding ??= Encoding.UTF8;
 
-#if NETCOREAPP || NETSTANDARD2_1
-        // 栈缓冲区在循环外分配一次，避免每次迭代累积栈空间
-        const Int32 MaxStackAllocChars = 1024;
-        Span<Char> stackChars = stackalloc Char[MaxStackAllocChars];
-#endif
-
         for (var current = pk; current != null; current = current.Next)
         {
             var span = current.GetSpan();
             if (span.Length == 0) continue;
 
 #if NETCOREAPP || NETSTANDARD2_1
+            // 长度动态，统一走池化缓冲区
             var charCount = encoding.GetCharCount(span);
-            if (charCount <= MaxStackAllocChars)
-            {
-                var written = encoding.GetChars(span, stackChars);
-                writer.Write(stackChars[..written]);
-            }
-            else
-            {
-                // 大段使用池化缓冲区
-                var chars = ArrayPool<Char>.Shared.Rent(charCount);
-                try
-                {
-                    var written = encoding.GetChars(span, chars);
-                    writer.Write(chars, 0, written);
-                }
-                finally
-                {
-                    ArrayPool<Char>.Shared.Return(chars);
-                }
-            }
+            using var chars = Pool.Rent<Char>(charCount);
+
+            var written = encoding.GetChars(span, chars.Span);
+            writer.Write(chars.Span[..written]);
 #else
             // .NET Framework 回退路径
             if (current.TryGetArray(out var segment))

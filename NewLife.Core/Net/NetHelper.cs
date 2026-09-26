@@ -56,22 +56,16 @@ public static class NetHelper
 #endif
         {
             UInt32 dummy = 0;
-            var inOptionValues = Pool.Shared.Rent(Marshal.SizeOf(dummy) * 3);
-            try
-            {
-                // 是否启用Keep-Alive
-                BitConverter.GetBytes((UInt32)(isKeepAlive ? 1 : 0)).CopyTo(inOptionValues, 0);
-                // 第一次开始发送探测包时间间隔
-                BitConverter.GetBytes((UInt32)startTime * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
-                // 连续发送探测包时间间隔
-                BitConverter.GetBytes((UInt32)interval * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
+            using var inOptionValues = Pool.Rent(Marshal.SizeOf(dummy) * 3);
 
-                socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-            }
-            finally
-            {
-                Pool.Shared.Return(inOptionValues);
-            }
+            // 是否启用Keep-Alive
+            BitConverter.GetBytes((UInt32)(isKeepAlive ? 1 : 0)).CopyTo(inOptionValues, 0);
+            // 第一次开始发送探测包时间间隔
+            BitConverter.GetBytes((UInt32)startTime * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
+            // 连续发送探测包时间间隔
+            BitConverter.GetBytes((UInt32)interval * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
+
+            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
 
             return;
         }
@@ -564,34 +558,27 @@ public static class NetHelper
     private static void Wake(String mac)
     {
         mac = mac.Replace("-", null).Replace(":", null);
-        var buffer = Pool.Shared.Rent(mac.Length / 2);
-        var bts = Pool.Shared.Rent(6 + 16 * buffer.Length);
-        try
+        using var buffer = Pool.Rent(mac.Length / 2);
+        using var bts = Pool.Rent(6 + 16 * buffer.Length);
+
+        for (var i = 0; i < buffer.Length; i++)
+            buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
+
+        for (var i = 0; i < 6; i++)
+            bts[i] = 0xFF;
+        for (Int32 i = 6, k = 0; i < bts.Length; i++, k++)
         {
-            for (var i = 0; i < buffer.Length; i++)
-                buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
+            if (k >= buffer.Length) k = 0;
 
-            for (var i = 0; i < 6; i++)
-                bts[i] = 0xFF;
-            for (Int32 i = 6, k = 0; i < bts.Length; i++, k++)
-            {
-                if (k >= buffer.Length) k = 0;
-
-                bts[i] = buffer[k];
-            }
-
-            using var client = new UdpClient
-            {
-                EnableBroadcast = true
-            };
-            client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
-            //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+            bts[i] = buffer[k];
         }
-        finally
+
+        using var client = new UdpClient
         {
-            Pool.Shared.Return(bts);
-            Pool.Shared.Return(buffer);
-        }
+            EnableBroadcast = true
+        };
+        client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+        //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
     }
     #endregion
 

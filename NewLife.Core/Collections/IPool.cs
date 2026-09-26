@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Text;
+using NewLife.Buffers;
 
 namespace NewLife.Collections;
 
@@ -169,5 +170,38 @@ public static class Pool
 
     /// <summary>空数组</summary>
     public static Byte[] Empty { get; } = [];
+
+    /// <summary>从共享数组池借出缓冲区，返回的句柄在 using 作用域结束时自动归还</summary>
+    /// <remarks>
+    /// <para>等价于 <c>var buffer = Pool.Shared.Rent(size); try { ... } finally { Pool.Shared.Return(buffer); }</c>，但不产生堆分配，也不需要手写 finally。</para>
+    /// <para>返回的 <see cref="PoolBuffer{T}"/> 为栈上类型，不能跨 await 持有；async 方法内借出缓冲请继续使用 try/finally。</para>
+    /// <para><b>大小分界</b>：长度有界（几字节到几百字节）且全链路只用 Span 的临时缓冲直接 <c>stackalloc</c>，不必借池；
+    /// 长度动态/无界，或下游 API 只接受数组（旧框架的 Stream.Read/Write、Socket.SendTo/ReceiveFrom、IOControl、crypto 变换等）时才用本方法。</para>
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// using var buffer = Pool.Rent(1472);
+    /// var count = stream.Read(buffer, 0, buffer.Length);
+    /// </code>
+    /// </example>
+    /// <param name="size">请求的元素数量。池实际返回的数组可能更长，句柄的 Length/Span 只覆盖请求长度，Buffer 才是实际数组</param>
+    /// <returns>缓冲句柄，用 using 包裹即可</returns>
+    public static PoolBuffer<Byte> Rent(Int32 size)
+    {
+        var pool = Shared;
+
+        return new PoolBuffer<Byte>(pool, pool.Rent(size), size);
+    }
+
+    /// <summary>从数组池借出缓冲区。<see cref="ArrayPool{T}.Shared"/> 为池来源，供库内非 Byte 场景使用</summary>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="size">请求的元素数量</param>
+    /// <returns>缓冲句柄，用 using 包裹即可</returns>
+    internal static PoolBuffer<T> Rent<T>(Int32 size)
+    {
+        var pool = ArrayPool<T>.Shared;
+
+        return new PoolBuffer<T>(pool, pool.Rent(size), size);
+    }
     #endregion
 }

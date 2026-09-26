@@ -78,17 +78,11 @@ public sealed class ZerosPaddingTransform : ICryptoTransform
         {
             var paddingNeeded = InputBlockSize - (inputCount % InputBlockSize);
             var paddedLength = inputCount + paddingNeeded;
-            var padded = Pool.Shared.Rent(paddedLength);
-            try
-            {
-                inputBuffer.AsSpan(inputOffset, inputCount).CopyTo(padded);
-                padded.AsSpan(inputCount, paddingNeeded).Clear();
-                return _transform.TransformFinalBlock(padded, 0, paddedLength);
-            }
-            finally
-            {
-                Pool.Shared.Return(padded);
-            }
+            using var padded = Pool.Rent(paddedLength);
+
+            inputBuffer.AsSpan(inputOffset, inputCount).CopyTo(padded.Span);
+            padded.Span.Slice(inputCount, paddingNeeded).Clear();
+            return _transform.TransformFinalBlock(padded, 0, paddedLength);
         }
 
         return _transform.TransformFinalBlock(inputBuffer, inputOffset, inputCount);

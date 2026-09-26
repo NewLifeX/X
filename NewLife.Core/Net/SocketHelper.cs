@@ -51,23 +51,17 @@ public static class SocketHelper
         remoteEP ??= socket.RemoteEndPoint as IPEndPoint;
         if (remoteEP == null) throw new ArgumentNullException(nameof(remoteEP));
 
-        var buffer = Pool.Shared.Rent(1472);
-        try
-        {
-            while (true)
-            {
-                var n = stream.Read(buffer, 0, buffer.Length);
-                if (n <= 0) break;
+        using var buffer = Pool.Rent(1472);
 
-                socket.SendTo(buffer, 0, n, SocketFlags.None, remoteEP);
-                total += n;
-
-                if (n < buffer.Length) break;
-            }
-        }
-        finally
+        while (true)
         {
-            Pool.Shared.Return(buffer);
+            var n = stream.Read(buffer, 0, buffer.Length);
+            if (n <= 0) break;
+
+            socket.SendTo(buffer, 0, n, SocketFlags.None, remoteEP);
+            total += n;
+
+            if (n < buffer.Length) break;
         }
 
         return socket;
@@ -140,20 +134,14 @@ public static class SocketHelper
     {
         EndPoint ep = new IPEndPoint(IPAddress.Any, 0);
 
-        var buf = Pool.Shared.Rent(1460);
-        try
-        {
-            var len = socket.ReceiveFrom(buf, ref ep);
-            if (len <= 0) return String.Empty;
+        using var buf = Pool.Rent(1460);
 
-            encoding ??= Encoding.UTF8;
+        var len = socket.ReceiveFrom(buf, ref ep);
+        if (len <= 0) return String.Empty;
 
-            return encoding.GetString(buf, 0, len);
-        }
-        finally
-        {
-            Pool.Shared.Return(buf);
-        }
+        encoding ??= Encoding.UTF8;
+
+        return encoding.GetString(buf, 0, len);
     }
 
     /// <summary>检查并开启广播</summary>

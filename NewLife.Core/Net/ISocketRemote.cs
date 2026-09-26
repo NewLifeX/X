@@ -142,32 +142,25 @@ public static class SocketRemoteHelper
     public static Int32 Send(this ISocketRemote session, Stream stream, Int32 bufferSize = 64 * 1024)
     {
         var totalSent = 0;
-        var buffer = Pool.Shared.Rent(bufferSize);
+        using var buffer = Pool.Rent(bufferSize);
 
-        try
+        while (true)
         {
-            while (true)
+            var bytesRead = stream.Read(buffer, 0, buffer.Length);
+            if (bytesRead <= 0) break;
+
+            // 不能把“短读”当作流结束：网络流/压缩流随时可能返回部分数据，提前退出会截断
+            // 逐段发送：Send 可能只发出部分数据（TCP 窗口受限），剩余部分必须续发
+            var offset = 0;
+            while (offset < bytesRead)
             {
-                var bytesRead = stream.Read(buffer, 0, buffer.Length);
-                if (bytesRead <= 0) break;
+                var sent = session.Send(buffer, offset, bytesRead - offset);
+                if (sent <= 0) return totalSent + offset;
 
-                // 不能把“短读”当作流结束：网络流/压缩流随时可能返回部分数据，提前退出会截断
-                // 逐段发送：Send 可能只发出部分数据（TCP 窗口受限），剩余部分必须续发
-                var offset = 0;
-                while (offset < bytesRead)
-                {
-                    var sent = session.Send(buffer, offset, bytesRead - offset);
-                    if (sent <= 0) return totalSent + offset;
-
-                    offset += sent;
-                }
-
-                totalSent += bytesRead;
+                offset += sent;
             }
-        }
-        finally
-        {
-            Pool.Shared.Return(buffer);
+
+            totalSent += bytesRead;
         }
 
         return totalSent;

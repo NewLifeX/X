@@ -260,7 +260,8 @@ public static class IOHelper
     {
         if (length <= 0) return;
 
-        var buffer = ArrayPool<Byte>.Shared.Rent(bufferSize);
+        using var buffer = Pool.Rent(bufferSize);
+
         while (length > 0)
         {
             var bytesRead = source.Read(buffer, 0, (Int32)Math.Min(buffer.Length, length));
@@ -269,7 +270,6 @@ public static class IOHelper
             destination.Write(buffer, 0, bytesRead);
             length -= bytesRead;
         }
-        ArrayPool<Byte>.Shared.Return(buffer);
     }
     #endregion
 

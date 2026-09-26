@@ -196,17 +196,11 @@ public class Binary : FormatterBase, IBinary
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
         Stream.Write(buffer);
 #else
-        var array = ArrayPool<Byte>.Shared.Rent(buffer.Length);
-        try
-        {
-            buffer.CopyTo(array);
+        using var array = Pool.Rent(buffer.Length);
 
-            Stream.Write(array, 0, buffer.Length);
-        }
-        finally
-        {
-            ArrayPool<Byte>.Shared.Return(array);
-        }
+        buffer.CopyTo(array);
+
+        Stream.Write(array, 0, buffer.Length);
 #endif
         Total += buffer.Length;
     }
@@ -850,7 +844,8 @@ public class Binary : FormatterBase, IBinary
     /// <param name="max"></param>
     public void WriteBCD(String value, Int32 max)
     {
-        var buf = Pool.Shared.Rent(max);
+        using var buf = Pool.Rent(max);
+
         for (Int32 i = 0, j = 0; i < max && j + 1 < value.Length; i++, j += 2)
         {
             var a = (Byte)(value[j] - '0');
@@ -859,7 +854,6 @@ public class Binary : FormatterBase, IBinary
         }
 
         Write(buf, 0, max);
-        Pool.Shared.Return(buf);
     }
 
     /// <summary>写入定长字符串。多余截取，少则补零</summary>
@@ -868,15 +862,14 @@ public class Binary : FormatterBase, IBinary
     public void WriteFixedString(String? value, Int32 max)
     {
         var len = 0;
-        var buf = Pool.Shared.Rent(max);
+        using var buf = Pool.Rent(max);
+
         if (!value.IsNullOrEmpty()) len = Encoding.GetBytes(value, 0, value.Length, buf, 0);
 
         // 清空空白部分，避免出现脏数据
         if (len < max) Array.Clear(buf, len, max - len);
 
         Write(buf, 0, max);
-
-        Pool.Shared.Return(buf);
     }
 
     /// <summary>读取定长字符串。多余截取，少则补零</summary>

@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Net;
 using System.Web;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
@@ -234,33 +235,27 @@ public class HttpSession : INetHandler, IDisposable
             using var head = rs.BuildHeaderPacket(length);
             _session.Send(head);
 
-            var buffer = ArrayPool<Byte>.Shared.Rent(64 * 1024);
-            try
+            using var buffer = Pool.Rent(64 * 1024);
+
+            while (true)
             {
-                while (true)
+                var count = stream.Read(buffer, 0, buffer.Length);
+                if (count <= 0) break;
+
+                if (chunked)
                 {
-                    var count = stream.Read(buffer, 0, buffer.Length);
-                    if (count <= 0) break;
-
-                    if (chunked)
-                    {
-                        // 分块传输：十六进制长度 CRLF + 数据 + CRLF 组装为单包
-                        using var pk = BuildChunk(buffer, count);
-                        _session.Send(pk);
-                    }
-                    else
-                    {
-                        _session.Send(buffer, 0, count);
-                    }
+                    // 分块传输：十六进制长度 CRLF + 数据 + CRLF 组装为单包
+                    using var pk = BuildChunk(buffer, count);
+                    _session.Send(pk);
                 }
+                else
+                {
+                    _session.Send(buffer, 0, count);
+                }
+            }
 
-                // 终止块
-                if (chunked) _session.Send("0\r\n\r\n");
-            }
-            finally
-            {
-                ArrayPool<Byte>.Shared.Return(buffer);
-            }
+            // 终止块
+            if (chunked) _session.Send("0\r\n\r\n");
         }
         catch (Exception ex)
         {

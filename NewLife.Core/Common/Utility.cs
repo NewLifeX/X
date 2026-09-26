@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Buffers.Binary;
+using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
 
@@ -424,17 +425,11 @@ public class DefaultConvert
             if (buf.Length >= 8) return BitConverter.ToDouble(buf, 0);
 
             // 兼容不足 8 字节的场景（例如来自网络/存储的裁剪值），按小端补零
-            var tmp8 = Pool.Shared.Rent(8);
-            try
-            {
-                Array.Clear(tmp8, 0, 8);
-                Buffer.BlockCopy(buf, 0, tmp8, 0, buf.Length);
-                return BitConverter.ToDouble(tmp8, 0);
-            }
-            finally
-            {
-                Pool.Shared.Return(tmp8);
-            }
+            Span<Byte> tmp8 = stackalloc Byte[8];
+            tmp8.Clear();
+            buf.AsSpan().CopyTo(tmp8);
+
+            return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(tmp8));
         }
 
         try
@@ -514,11 +509,12 @@ public class DefaultConvert
                     // 凑够8字节，使用 Double 近似解析
                     if (buf.Length < 8)
                     {
-                        var bts = Pool.Shared.Rent(8);
-                        Buffer.BlockCopy(buf, 0, bts, 0, buf.Length);
-                        var dec = BitConverter.ToDouble(bts, 0).ToDecimal();
-                        Pool.Shared.Return(bts);
-                        return dec;
+                        // 不足 8 字节按小端补零，高位补 0
+                        Span<Byte> bts = stackalloc Byte[8];
+                        bts.Clear();
+                        buf.AsSpan().CopyTo(bts);
+
+                        return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(bts)).ToDecimal();
                     }
                     return BitConverter.ToDouble(buf, 0).ToDecimal();
             }
