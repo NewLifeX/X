@@ -81,8 +81,20 @@ public class WsMessage : Message
         if (!reader.TryRead(out var b0) || !reader.TryRead(out var b1)) return false;
 
         // 第1字节：FIN(1) RSV1-3(3) OPCODE(4)；第2字节：MASK(1) + 长度(7)
+        // RFC 6455 §5.2：未协商扩展时 RSV1-3 必须为 0；保留 opcode（3~7 / 11~15）必须导致连接失败
+        if ((b0 & 0x70) != 0)
+        {
+            invalid = true;
+            return false;
+        }
+
         var fin = (b0 & 0x80) != 0;
         var opcode = (Byte)(b0 & 0x0F);
+        if (opcode is not (0 or 1 or 2 or 8 or 9 or 10))
+        {
+            invalid = true;
+            return false;
+        }
         var masked = (b1 & 0x80) != 0;
         var len = (Int64)(b1 & 0x7F);
 

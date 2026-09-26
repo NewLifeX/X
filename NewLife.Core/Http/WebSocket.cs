@@ -167,6 +167,15 @@ public class WebSocket : IDisposable
             {
                 if (message is not WsMessage ws) continue;
 
+                // RFC 6455 §5.1：客户端发给服务端的每一帧都必须带掩码（防中间设备缓存投毒），未掩码帧按协议错误关闭连接
+                if (ws.MaskKey == null) throw new InvalidOperationException("客户端帧必须带掩码（RFC 6455 §5.1）");
+
+                // RFC 6455 §5.5：控制帧（Close/Ping/Pong）必须 FIN=1 且负载不超过 125 字节。
+                // 不校验会让对端用一个超大 Ping 触发等量 Pong 回显（反射放大）
+                if (ws.Type is WebSocketMessageType.Close or WebSocketMessageType.Ping or WebSocketMessageType.Pong
+                    && (!ws.Fin || ws.Payload?.Total > 125))
+                    throw new InvalidOperationException("控制帧必须 FIN=1 且负载不超过 125 字节（RFC 6455 §5.5）");
+
                 // 客户端帧带掩码：整帧路径对负载原地解码（帧内字节独享）
                 ws.Demask();
 
@@ -213,9 +222,13 @@ public class WebSocket : IDisposable
         {
             case WebSocketMessageType.Close:
                 {
-                    // RFC 6455 §5.5.1：关闭帧应回显收到的状态码，若无状态码则用 1005（无状态码）
-                    var status = message.CloseStatus > 0 ? message.CloseStatus : 1005;
-                    Close(status, message.StatusDescription ?? "Finished");
+                    // RFC 6455 §5.5.1/§7.4.1：有状态码则回显；无状态码时发空负载关闭帧。
+                    // 1005/1006/1015 是保留值，禁止出现在线上（客户端会判定为协议错误）
+                    if (message.CloseStatus > 0)
+                        Close(message.CloseStatus, message.StatusDescription ?? "Finished");
+                    else
+                        Close();
+
                     session?.Dispose();
                     socket?.Dispose();
                     Connected = false;
@@ -333,6 +346,20 @@ public class WebSocket : IDisposable
         try
         {
             ws.SetBody(WebSocketCodec.BuildClosePayload(closeStatus, statusDescription));
+            Send(ws);
+        }
+        finally
+        {
+            ws.TryDispose();
+        }
+    }
+
+    /// <summary>发送空负载的关闭帧（对端未带状态码时用）。RFC 6455 §7.4.1 禁止把 1005/1006 等保留值发到线上</summary>
+    public void Close()
+    {
+        var ws = new WsMessage { Type = WebSocketMessageType.Close };
+        try
+        {
             Send(ws);
         }
         finally
