@@ -300,12 +300,22 @@ public class HttpServer : NetServer, IHttpHost
     /// <summary>路径匹配缓存上限，默认 4096。超过后不再写入</summary>
     public Int32 MaxPathCacheSize { get; set; } = 4096;
 
+    /// <summary>路径缓存当前条目数。独立计数：ConcurrentDictionary.Count 会取全部桶锁，不能放在写入热路径上</summary>
+    private Int32 _pathCacheCount;
+
     /// <summary>写入路径缓存（容量受限）。达到上限后静默不写，后续请求走正常路由匹配</summary>
     /// <param name="path">请求路径</param>
     /// <param name="key">匹配到的路由键</param>
     private void CachePath(String path, String key)
     {
-        if (_pathCache.Count < MaxPathCacheSize) _pathCache[path] = key;
+        // 并发下计数可能略超上限（多写几个条目），换来热路径免锁判断
+        if (Interlocked.Increment(ref _pathCacheCount) > MaxPathCacheSize)
+        {
+            Interlocked.Decrement(ref _pathCacheCount);
+            return;
+        }
+
+        if (!_pathCache.TryAdd(path, key)) Interlocked.Decrement(ref _pathCacheCount);
     }
 
     /// <summary>匹配处理器（兼容 IHttpHost 接口）</summary>
