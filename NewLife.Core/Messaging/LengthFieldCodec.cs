@@ -31,7 +31,7 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
     #region 方法
     /// <summary>定界并构造消息。读取长度字段，构造纯负载消息</summary>
     /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
-    /// <returns>解析结果；头部不足或长度字段非法时返回 null（不消费、不产生对象）</returns>
+    /// <returns>解析结果；头部（含长度字段）不足时返回 null（不消费、不产生对象）；长度字段非法时返回 <see cref="ParseResult.Invalid"/></returns>
     /// <remarks>在只读序列上顺序读取，不拼读、不物化；4 字节长度最高位为 1（负数）或变长编码超过 32 位视为损坏帧。</remarks>
     public ParseResult? TryParse(ReadOnlySequence<Byte> buffer)
     {
@@ -47,7 +47,11 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
         {
             case 0:
                 // 7 位压缩变长：低位在前，最高位为继续标志；最多 5 字节（32 位表示范围）
-                if (!reader.TryReadEncodedInt(out var len32)) return null;
+                if (!reader.TryReadEncodedInt(out var len32))
+                {
+                    // 变长最多 5 字节即可解完；已满足长度仍失败说明编码超 32 位（损坏帧），否则只是数据不足等更多数据
+                    return buffer.Length - Offset >= 5 ? new ParseResult { Invalid = true } : null;
+                }
                 len = len32;
                 fieldLen = (Int32)reader.Consumed - Offset;
                 break;
@@ -69,13 +73,14 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
                 break;
             case 4:
                 if (!reader.TryReadLittleEndian(out Int32 v32)) return null;
-                if (v32 < 0) return null;
+                // 头部已完整但长度为负：损坏帧，立即上报（不能当成数据不足等下去，否则会僵死到残余上限）
+                if (v32 < 0) return new ParseResult { Invalid = true };
                 len = v32;
                 fieldLen = 4;
                 break;
             case -4:
                 if (!reader.TryReadBigEndian(out Int32 v32b)) return null;
-                if (v32b < 0) return null;
+                if (v32b < 0) return new ParseResult { Invalid = true };
                 len = v32b;
                 fieldLen = 4;
                 break;
