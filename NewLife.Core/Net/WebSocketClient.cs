@@ -403,22 +403,37 @@ public class WebSocketClient : TcpSession
     /// <summary>校验握手响应。解析失败返回 false；非 101 或校验头不匹配抛出异常</summary>
     /// <param name="response">响应数据包</param>
     /// <param name="key">客户端密钥</param>
+    /// <param name="remainder">响应头之后的剩余字节（服务器可能在同一 TCP 段内紧跟首帧）；所有权转移给调用方，无剩余时为 null</param>
     /// <returns>是否有效</returns>
-    private static Boolean ValidateHandshake(IPacket response, String key)
+    private static Boolean ValidateHandshake(IPacket response, String key, out IPacket? remainder)
     {
+        remainder = null;
+
         // 解析响应
-        using var res = new HttpResponse();
-        if (!res.Parse(response)) return false;
+        var res = new HttpResponse();
+        try
+        {
+            if (!res.Parse(response)) return false;
 
-        //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
-        if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception("WebSocket握手失败！" + res.StatusDescription);
+            //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
+            if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception("WebSocket握手失败！" + res.StatusDescription);
 
-        // 检查响应头
-        if (!res.Headers.TryGetValue("Sec-WebSocket-Accept", out var accept) ||
-            accept != SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes()).ToBase64())
-            throw new Exception("WebSocket握手失败！");
+            // 检查响应头
+            if (!res.Headers.TryGetValue("Sec-WebSocket-Accept", out var accept) ||
+                accept != SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes()).ToBase64())
+                throw new Exception("WebSocket握手失败！");
 
-        return true;
+            // 响应头之后的字节可能是服务器握手后立即推送的首帧：转移所有权给调用方，
+            // 否则会随响应对象一起释放（首帧静默丢失，表现为连上了但第一条消息没到）
+            remainder = res.Body;
+            res.Body = null;
+
+            return true;
+        }
+        finally
+        {
+            res.Dispose();
+        }
     }
 
     /// <summary>打开链路内的异步握手。经直读原语收发，不经过 Open 守卫与接收环；失败返回 false</summary>
@@ -451,7 +466,27 @@ public class WebSocketClient : TcpSession
 #endif
             if (rs == null || rs.Length == 0) return false;
 
-            return ValidateHandshake(rs, key);
+            if (!ValidateHandshake(rs, key, out var remainder)) return false;
+
+            // 首帧残片投递到入站管道：接收环随后从管道消费，消息泵按帧定界交付。
+            // 不能丢弃——服务器常把 101 响应与首个推送帧放在同一个 TCP 段
+            if (remainder != null)
+            {
+                try
+                {
+                    Pipe.Writer.Append(remainder);
+                }
+                catch (Exception ex)
+                {
+                    remainder.TryDispose();
+                    span?.SetError(ex, null);
+                    WriteLog("WebSocket 握手残片投递失败！" + ex.Message);
+
+                    return false;
+                }
+            }
+
+            return true;
         }
         catch (Exception ex)
         {
@@ -487,7 +522,9 @@ public class WebSocketClient : TcpSession
             using var rs = client.Receive();
             if (rs == null || rs.Length == 0) return false;
 
-            return ValidateHandshake(rs, key);
+            // 同步版无管道上下文，不做残片投递（剩余字节随响应释放）；
+            // 需保留服务器首帧的场景请用实例的异步握手（OnOpenAsync）
+            return ValidateHandshake(rs, key, out _);
         }
         catch (Exception ex)
         {
