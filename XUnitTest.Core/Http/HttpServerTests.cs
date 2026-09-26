@@ -693,6 +693,30 @@ Content-Type: application/octet-stream
 
         public String Path() => _ctx.Path;
     }
+
+    [Fact(DisplayName = "控制器_私有方法不可经URL调用")]
+    public async Task Controller_PrivateMethod_NotInvokable()
+    {
+        _server.MapController<PrivateMethodController>("/priv");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+
+        // 公开方法可正常调用
+        var txt = await client.GetStringAsync("/priv/PublicOp");
+        Assert.Equal("public-ok", txt);
+
+        // 私有方法应返回 404（找不到操作），绝不能被执行
+        // （旧实现方法查找带 BindingFlags.NonPublic，控制器私有方法可被任意 URL 调用）
+        var res = await client.GetAsync("/priv/SecretOp");
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+    }
+
+    class PrivateMethodController
+    {
+        public String PublicOp() => "public-ok";
+
+        private static String SecretOp() => "secret";
+    }
     #endregion
 
     #endregion
