@@ -15,6 +15,10 @@ public abstract class HttpBase : IDisposable
     /// <summary>内容长度</summary>
     public Int32 ContentLength { get; set; } = -1;
 
+    /// <summary>Content-Length 头存在但非法（无法解析、为负或超出 Int32 范围）</summary>
+    /// <remarks>此类报文应按协议错误拒绝（请求回 400），不能按“无体”继续处理，否则连接上请求边界失步</remarks>
+    public Boolean InvalidContentLength { get; protected set; }
+
     /// <summary>内容类型</summary>
     public String? ContentType { get; set; }
 
@@ -106,7 +110,19 @@ public abstract class HttpBase : IDisposable
         // 截取主体（跳过 CRLFCRLF 共4字节）：共享切片独立持有引用；入参句柄由调用方释放
         Body = pk.Slice(p + 4, -1);
 
-        ContentLength = Headers["Content-Length"].ToInt(-1);
+        // Content-Length 用 Int64 解析：无法解析、为负或超上限都视为非法，不能退化成“无体”。
+        // 旧实现用 ToInt(-1)，非法值直接变成 -1（无体），声明的那段主体会被当成后续请求字节（边界失步）
+        var cl = Headers["Content-Length"];
+        ContentLength = -1;
+        InvalidContentLength = false;
+        if (!cl.IsNullOrEmpty())
+        {
+            if (Int64.TryParse(cl, out var len) && len >= 0 && len <= Int32.MaxValue)
+                ContentLength = (Int32)len;
+            else
+                InvalidContentLength = true;
+        }
+
         ContentType = Headers["Content-Type"];
 
         // 分析第一行

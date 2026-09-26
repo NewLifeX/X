@@ -118,6 +118,19 @@ public class HttpSession : INetHandler, IDisposable
                 return;
             }
 
+            // Content-Length 非法（无法解析/为负/溢出）：按协议错误处理。
+            // 若按“无体”继续，声明的那段主体会被当成后续请求字节，连接边界失步（与前置代理共存时还有走私面）
+            if (request.InvalidContentLength)
+            {
+                var rs = new HttpResponse { StatusCode = HttpStatusCode.BadRequest };
+
+                using var res = rs.Build();
+                _session.Send(res);
+                _session.Dispose();
+
+                return;
+            }
+
             // 限制最大请求体
             if (req.ContentLength > MaxRequestLength)
             {
