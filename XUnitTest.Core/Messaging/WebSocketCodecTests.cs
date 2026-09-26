@@ -131,6 +131,27 @@ public class WebSocketCodecTests
         // 掩码位已置但密钥不齐：等待
         Assert.Null(_serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x81, 0x85, 0x11, 0x22 }).AsReadOnlySequence()));
     }
+
+    [Fact]
+    [DisplayName("WS编解码_RSV位非零或保留opcode_标记损坏")]
+    public void TryParse_ReservedBitsOrOpcode_MarksInvalid()
+    {
+        // RSV1 置位（0xC1 = FIN + RSV1 + opcode=1）：未协商扩展时必须为 0
+        var rsv = _serverCodec.TryParse(new ArrayPacket(new Byte[] { 0xC1, 0x00 }).AsReadOnlySequence());
+        Assert.NotNull(rsv);
+        Assert.True(rsv!.Value.Invalid);
+
+        // 保留 opcode 3（0x83 = FIN + opcode=3）
+        var op = _serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x83, 0x00 }).AsReadOnlySequence());
+        Assert.NotNull(op);
+        Assert.True(op!.Value.Invalid);
+
+        // 合法帧不受影响：空文本帧（0x81 + 长度 0）
+        var ok = _serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x81, 0x00 }).AsReadOnlySequence());
+        Assert.NotNull(ok);
+        Assert.False(ok!.Value.Invalid);
+        ok.Value.Message?.Dispose();
+    }
     #endregion
 
     #region 构建

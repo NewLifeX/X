@@ -645,6 +645,69 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         await ws.CloseAsync(1000, "done");
     }
 
+    [Fact(DisplayName = "15-未掩码客户端帧_服务端按协议错误关闭连接")]
+    public async Task Test15_UnmaskedClientFrame_ConnectionClosed()
+    {
+        var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws");
+        Assert.True(await ws.OpenAsync());
+
+        // 手工构造未掩码文本帧（违反 RFC 6455 §5.1：客户端发给服务端的每一帧都必须带掩码）
+        ws.Send(new ArrayPacket(new Byte[] { 0x81, 0x02, (Byte)'h', (Byte)'i' }));
+
+        // 服务端应判定协议错误并关闭连接
+        var sw = Stopwatch.StartNew();
+        while (ws.Active && sw.ElapsedMilliseconds < 5_000) await Task.Delay(50);
+
+        Assert.False(ws.Active, "未掩码帧应导致服务端关闭连接");
+        ws.Dispose();
+
+        Assert.True(fixture.Server.Active, "服务器应保持可用");
+    }
+
+    [Fact(DisplayName = "16-超长控制帧_服务端按协议错误关闭连接")]
+    public async Task Test16_OversizedControlFrame_ConnectionClosed()
+    {
+        var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws");
+        Assert.True(await ws.OpenAsync());
+
+        // 手工构造 200 字节负载的 Ping 帧（违反 RFC 6455 §5.5：控制帧负载不得超过 125 字节）。
+        // 不校验会让对端用超大 Ping 触发等量 Pong 回显（反射放大）
+        ws.Send(new ArrayPacket(MakeMaskedFrame(0x09, true, new Byte[200])));
+
+        var sw = Stopwatch.StartNew();
+        while (ws.Active && sw.ElapsedMilliseconds < 5_000) await Task.Delay(50);
+
+        Assert.False(ws.Active, "超长控制帧应导致服务端关闭连接");
+        ws.Dispose();
+
+        Assert.True(fixture.Server.Active, "服务器应保持可用");
+    }
+
+    /// <summary>构造客户端掩码原始帧（支持 126 扩展长度）</summary>
+    /// <param name="opcode">操作码（1=Text，2=Binary，8=Close，9=Ping，10=Pong）</param>
+    /// <param name="fin">是否末片</param>
+    /// <param name="payload">负载</param>
+    private static Byte[] MakeMaskedFrame(Byte opcode, Boolean fin, Byte[] payload)
+    {
+        var key = new Byte[] { 0x11, 0x22, 0x33, 0x44 };
+        var ext = payload.Length > 125 ? 2 : 0;
+        var buf = new Byte[2 + ext + 4 + payload.Length];
+        buf[0] = (Byte)((fin ? 0x80 : 0) | opcode);
+        if (ext == 0)
+            buf[1] = (Byte)(0x80 | payload.Length);
+        else
+        {
+            buf[1] = 0x80 | 126;
+            buf[2] = (Byte)(payload.Length >> 8);
+            buf[3] = (Byte)(payload.Length & 0xFF);
+        }
+
+        key.CopyTo(buf, 2 + ext);
+        for (var i = 0; i < payload.Length; i++) buf[2 + ext + 4 + i] = (Byte)(payload[i] ^ key[i & 3]);
+
+        return buf;
+    }
+
     /// <summary>构造分片原始帧（客户端方向：带固定掩码，短长度）</summary>
     /// <param name="opcode">操作码（1=Text 首片，0=续片）</param>
     /// <param name="fin">是否末片</param>
