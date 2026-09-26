@@ -17,6 +17,13 @@ public sealed class LimitedReader
     private readonly PipeReader? _reader;
     private readonly IPacket? _packet;
     private readonly ReadOnlySequence<Byte> _sequence;
+
+    /// <summary>内存模式起点偏移（用于复位）</summary>
+    private readonly Int64 _start;
+
+    /// <summary>内存模式初始预算（用于复位）</summary>
+    private readonly Int64 _initial;
+
     private Int64 _offset;
     private Int64 _remaining;
 
@@ -65,12 +72,25 @@ public sealed class LimitedReader
 
         _packet = packet;
         _sequence = packet.AsReadOnlySequence();
+        _start = offset;
+        _initial = length;
         _offset = offset;
         _remaining = length;
     }
     #endregion
 
     #region 方法
+    /// <summary>复位到起点，使内容可被重新读取。仅内存模式可用</summary>
+    /// <remarks>用于事件链（可观测）已消费消息体后、把消息交付给等待方前恢复其可读性。
+    /// 流式体的数据由管道承载、不可重放，调用将抛异常。</remarks>
+    /// <exception cref="InvalidOperationException">流式模式不可复位</exception>
+    internal void Reset()
+    {
+        if (_reader != null) throw new InvalidOperationException("流式模式不支持复位");
+
+        _offset = _start;
+        _remaining = _initial;
+    }
     /// <summary>读取数据。预算耗尽时返回已结束的空结果；其余语义与主读取器一致</summary>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>读取结果（窗口已裁剪到预算内）</returns>

@@ -64,12 +64,16 @@ public ref struct SpanReader
 
         // 如果有后续数据包，说明是链式数据包，必须通过流读取
         // 链式数据包：为了兼容跨段后续读取（读取原始 span 内部结构体/整数等可能需要更多字节），
-        // 这里仍然提供统一的流式补齐能力——通过把链式包聚合为内存流。
-        // 注意：仅当后续调用 EnsureSpace 时才会真正触发复制；仅做一次性“可选”降级。
+        // 这里把链式包聚合为内存流，后续读取统一走流。
+        // 注意：聚合是立即发生的（GetStream 遍历整链拷贝），不是延迟到 EnsureSpace 才触发。
         if (data.Next != null)
         {
             _stream = data.GetStream(false);
             _bufferSize = 8192;
+
+            // 链式包的字节数已经全部可用，计入 _total 供 MaxCapacity 记账；
+            // 旧实现漏赋值会让链式入参的容量上限判断失效
+            _total = data.Total;
         }
         else
         {

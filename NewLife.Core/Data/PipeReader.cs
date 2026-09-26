@@ -491,6 +491,9 @@ public sealed class PipeReader
     {
         _readerCompleted = false;
         _cancelPending = false;
+
+        // 已检查长度同样复位：残留的大值会让复用后的 TryRead 误判“无数据”（长度未超过旧检查量）
+        _examined = 0;
     }
 
     /// <summary>消费推进（调用方持锁）。返回是否需要触发恢复事件</summary>
@@ -610,6 +613,7 @@ public sealed class PipeReader
         _segLast = null;
         _skip = 0;
         _length = 0;
+        _examined = 0;
     }
 
     /// <summary>构建当前未消费窗口（调用方持有锁）</summary>

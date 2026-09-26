@@ -126,11 +126,8 @@ public readonly record struct ReadOnlyPacket : IPacket
     #region 转换
     /// <summary>转换为字节数组</summary>
     /// <returns>字节数组副本</returns>
-    public Byte[] ToArray()
-    {
-        if (_offset == 0 && _length == _buffer.Length) return _buffer;
-        return GetSpan().ToArray();
-    }
+    /// <remarks>总是复制：整段时直接返回内部缓冲区会让调用方绕过只读约束，改写共享的模板/协议常量块</remarks>
+    public Byte[] ToArray() => GetSpan().ToArray();
 
     /// <summary>从字节数组隐式转换</summary>
     /// <param name="buffer">字节数组</param>
