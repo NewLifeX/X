@@ -78,14 +78,14 @@ public class WebSocket : IDisposable
         if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return false;
 
         var upgrade = request.Headers["Upgrade"];
-        if (upgrade.IsNullOrEmpty() || !upgrade!.EqualIgnoreCase("websocket")) return false;
+        if (!HasToken(upgrade, "websocket")) return false;
 
-        // Connection 可能形如 “keep-alive, Upgrade”，按包含判断
+        // Connection 可能形如 “keep-alive, Upgrade”：按逗号拆分的令牌列表判断，不是子串匹配
         var connection = request.Headers["Connection"];
-        if (connection.IsNullOrEmpty() || connection!.IndexOf("Upgrade", StringComparison.OrdinalIgnoreCase) < 0) return false;
+        if (!HasToken(connection, "Upgrade")) return false;
 
-        // 仅支持 RFC 6455（版本 13）
-        if (request.Headers["Sec-WebSocket-Version"] != "13") return false;
+        // 仅支持 RFC 6455（版本 13）。客户端可能以列表形式声明多个版本，只要含 13 即接受
+        if (!HasToken(request.Headers["Sec-WebSocket-Version"], "13")) return false;
 
         var buf = SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes());
         key = buf.ToBase64();
@@ -109,6 +109,22 @@ public class WebSocket : IDisposable
         ActiveTime = DateTime.Now;
 
         return true;
+    }
+
+    /// <summary>头部值是否含指定令牌。头部可能是逗号分隔列表（如 “keep-alive, Upgrade”），逐项 Trim 后不区分大小写比较</summary>
+    /// <param name="header">头部值</param>
+    /// <param name="token">目标令牌</param>
+    /// <returns>是否含该令牌</returns>
+    private static Boolean HasToken(String header, String token)
+    {
+        if (header.IsNullOrEmpty()) return false;
+
+        foreach (var item in header.Split(','))
+        {
+            if (item.Trim().EqualIgnoreCase(token)) return true;
+        }
+
+        return false;
     }
 
     /// <summary>处理WebSocket数据包。数据进入数据管道，逐帧同步泵出完整帧交给消息处理，支持跨接收边界的粘包/分包</summary>

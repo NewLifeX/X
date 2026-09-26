@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Reflection;
@@ -36,6 +37,21 @@ public class HttpServerTests : IDisposable
     public void Dispose()
     {
         _server?.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("HTTP服务端_声明升级但握手不合法_回400而非404")]
+    public async Task WebSocketHandshake_Invalid_ReturnsBadRequest()
+    {
+        // 带 Sec-WebSocket-Key 但缺 Upgrade/Connection：既不能静默当 WebSocket 接管，
+        // 也不该落到普通路由报 404 掩盖真实原因
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, "/ws");
+        req.Headers.TryAddWithoutValidation("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==");
+
+        var res = await client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
     }
 
     [Fact]

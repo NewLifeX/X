@@ -46,6 +46,19 @@ public class WebSocketTests
     }
 
     [Fact]
+    [DisplayName("WS握手_版本以列表声明_仍接受13")]
+    public void Handshake_VersionList_AcceptsThirteen()
+    {
+        // 客户端可能以列表形式声明多个版本，只要含 13 即应接受（此前精确串比较会直接拒掉）
+        var ctx = NewContext();
+        ctx.Request.Headers["Upgrade"] = "websocket";
+        ctx.Request.Headers["Connection"] = "keep-alive, Upgrade";
+        ctx.Request.Headers["Sec-WebSocket-Version"] = "13, 8";
+
+        Assert.NotNull(WebSocket.Handshake(ctx));
+    }
+
+    [Fact]
     [DisplayName("WS握手_版本非13_返回空不接管连接")]
     public void Handshake_WrongVersion_ReturnsNull()
     {

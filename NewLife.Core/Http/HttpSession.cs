@@ -403,6 +403,10 @@ public class HttpSession : INetHandler, IDisposable
             // 处理 WebSocket 握手（只在第一次调用时尝试）
             _websocket ??= WebSocket.Handshake(context);
 
+            // 声明了 Sec-WebSocket-Key 却握手不通过：明确回 400，不要落入普通路由（会被当成 404 掩盖真实原因）
+            if (_websocket == null && !context.Request.Headers["Sec-WebSocket-Key"].IsNullOrEmpty())
+                return new HttpResponse { StatusCode = HttpStatusCode.BadRequest };
+
             if (handler != null)
             {
                 // 通过 HttpServer 的中间件管道执行处理器
