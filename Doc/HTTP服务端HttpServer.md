@@ -187,6 +187,10 @@ server.MapStaticFiles("/js", "./wwwroot/js");
 - 避免动态 URL（例如带多段 id 的路径）造成缓存无限膨胀；
 - 对常见短路径加速模糊匹配。
 
+缓存实现与上限：
+
+- `_pathCache` 为并发字典，写入走 `MaxPathCacheSize`（默认 4096）限容；达到上限后静默不写，请求走正常路由匹配。
+
 ---
 
 ## 7. 线程安全与并发注意事项
@@ -200,7 +204,7 @@ server.MapStaticFiles("/js", "./wwwroot/js");
 风险点：
 
 - 在运行期修改 `Routes` 并同时调用 `MatchHandler`，可能触发 `Dictionary` 枚举异常或产生不一致结果。
-- `_pathCache` 同样为 `Dictionary`，并发读写也不保证安全。
+- `_pathCache` 为并发字典且写入限容（`MaxPathCacheSize`），并发读写安全。
 
 建议：
 
@@ -248,5 +252,17 @@ server.Start();
 - `NewLife.Core/Http/HttpServer.cs`
 - `NewLife.Core/Http/HttpSession.cs`
 - `NewLife.Core/Http/Handlers/DelegateHandler.cs`（按项目实际路径为准）
+
+---
+
+## 11. v12 行为变更（升级须知）
+
+| 变更 | 说明 |
+|------|------|
+| 路由参数优先 | 路径参数（`{id}` 等）在 `PrepareRequest` 解析完之后合并，因此**优先于**查询串/表单同名字段。此前 `?id=999` 可覆盖路径参数，现在以路径参数为准 |
+| 响应体所有权随响应 | 处理器返回后 `HttpResponse.Body` 会被归还池化缓冲。处理器若在返回后仍持有该引用（审计、重试、日志），需先自行复制 |
+| `Content-Length` 规则 | 204/304 响应不再声明 `Content-Length`；`Build` 与 `BuildHeaderPacket`（HEAD/流式）两条路径同规则（RFC 7230 §3.3.2） |
+| `Transfer-Encoding: chunked` 请求 | 请求方向明确不支持分块解码，回 `411 Length Required` 并关闭连接 |
+| 路径缓存并发化 | `_pathCache` 改为并发字典并新增 `MaxPathCacheSize`（默认 4096），超限后静默不写 |
 - `NewLife.Core/Http/Handlers/ControllerHandler.cs`
 - `NewLife.Core/Http/Handlers/StaticFilesHandler.cs`

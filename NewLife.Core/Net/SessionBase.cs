@@ -875,6 +875,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     #region 消息泵
     private CancellationTokenSource? _pumpCts;
+
+    /// <summary>泵任务的观察续体。存的是 ContinueWith 续体而非泵本体：仅用于观察失败，以及标记“协议模式已启动”</summary>
     private Task? _pumpTask;
 
     /// <summary>启动消息泵。协议模式（<see cref="Protocol"/> 非空）下由打开流程与服务端会话启动流程调用</summary>

@@ -45,7 +45,7 @@ public class WebSocket : IDisposable
     private MessagePump? _pump;
 
     /// <summary>单帧长度上限，默认 16M。0 表示不限制</summary>
-    /// <remarks>整帧解析要求整个帧驻留内存，本上限是单连接的内存安全阀</remarks>
+    /// <remarks>整帧解析要求整个帧驻留内存，本上限是单连接的内存安全阀。首次帧泵启动时随配置定格，运行中修改不再生效</remarks>
     public Int32 MaxFrameSize { get; set; } = 16 * 1024 * 1024;
 
     /// <summary>分片重组器（RFC 6455 §5.4）。数据帧 FIN=0 累积，末片合并成完整消息后交付</summary>
