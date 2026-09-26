@@ -41,7 +41,12 @@ public class WebSocket : IDisposable
     private static readonly WebSocketCodec _codec = new() { IsServer = true };
 
     /// <summary>帧泵。整帧模式：同步泵只能消费整帧，帧未完整留待下一轮</summary>
-    private static readonly MessagePump _pump = new(_codec) { RequireFullFrame = true };
+    /// <remarks>每实例一份：整帧模式的帧长上限（<see cref="MaxFrameSize"/>）随会话配置，不能跨连接共享</remarks>
+    private MessagePump? _pump;
+
+    /// <summary>单帧长度上限，默认 16M。0 表示不限制</summary>
+    /// <remarks>整帧解析要求整个帧驻留内存，本上限是单连接的内存安全阀</remarks>
+    public Int32 MaxFrameSize { get; set; } = 16 * 1024 * 1024;
 
     /// <summary>分片重组器（RFC 6455 §5.4）。数据帧 FIN=0 累积，末片合并成完整消息后交付</summary>
     private readonly WebSocketFragment _fragment = new();
@@ -64,10 +69,21 @@ public class WebSocket : IDisposable
 
     /// <summary>处理 WebSocket 握手</summary>
     /// <param name="context"></param>
+    /// <remarks>按 RFC 6455 §4.2 校验握手四要素：只看 Sec-WebSocket-Key 会让任意路径的普通请求也被升级为 WebSocket</remarks>
     public Boolean ProcessRequest(IHttpContext context)
     {
         var request = context.Request;
         if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return false;
+
+        var upgrade = request.Headers["Upgrade"];
+        if (upgrade.IsNullOrEmpty() || !upgrade!.EqualIgnoreCase("websocket")) return false;
+
+        // Connection 可能形如 “keep-alive, Upgrade”，按包含判断
+        var connection = request.Headers["Connection"];
+        if (connection.IsNullOrEmpty() || connection!.IndexOf("Upgrade", StringComparison.OrdinalIgnoreCase) < 0) return false;
+
+        // 仅支持 RFC 6455（版本 13）
+        if (request.Headers["Sec-WebSocket-Version"] != "13") return false;
 
         var buf = SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes());
         key = buf.ToBase64();
@@ -106,7 +122,8 @@ public class WebSocket : IDisposable
         _pipe.Writer.Append(node);
 
         // 同步泵：当前缓冲内可成的整帧全部处理；头部不足或帧未完整则留给下一轮
-        while (_pump.TryRead(_pipe.Reader, out var message))
+        var pump = _pump ??= new MessagePump(_codec) { RequireFullFrame = true, MaxFrameSize = MaxFrameSize };
+        while (pump.TryRead(_pipe.Reader, out var message))
         {
             try
             {
@@ -171,14 +188,22 @@ public class WebSocket : IDisposable
                     // RFC 6455 §5.5.3：Pong 必须回传 Ping 的 Application Data。
                     // 共享切片（引用计数各自释放）：Pong 帧持有独立句柄，Ping 消息与其负载均不受影响
                     var pong = new WsMessage { Type = WebSocketMessageType.Pong };
-                    var payload = message.Payload;
-                    if (payload != null) pong.SetBody(payload is IOwnerPacket owner ? owner.Slice(0, -1) : payload);
-                    Send(pong);
+                    try
+                    {
+                        var payload = message.Payload;
+                        if (payload != null) pong.SetBody(payload is IOwnerPacket owner ? owner.Slice(0, -1) : payload);
+                        Send(pong);
+                    }
+                    finally
+                    {
+                        // 容器随发送结束释放：否则每收到一个 Ping 就多一份接收缓冲引用永不归还
+                        pong.TryDispose();
+                    }
                 }
                 break;
         }
 
-        // 负载不在此释放：所有权随消息容器（帧泵回调 using / 调用方负责）；Pong 为同步发送，容器释放前负载始终有效
+        // 负载不在此释放：所有权随消息容器（帧泵回调 using / 调用方负责）
     }
 
     private void Send(WsMessage msg)
@@ -196,13 +221,22 @@ public class WebSocket : IDisposable
     }
 
     /// <summary>发送消息</summary>
-    /// <param name="data"></param>
+    /// <param name="data">负载。借用语义：调用方保留句柄并自行释放</param>
     /// <param name="type"></param>
     public void Send(IPacket data, WebSocketMessageType type)
     {
         var ws = new WsMessage { Type = type };
-        ws.SetBody(data);
-        Send(ws);
+        try
+        {
+            // 借用：拥有句柄按引用计数共享给容器（零拷贝），其余视图转自有拷贝；调用方句柄始终有效
+            ws.SetBody(data is OwnerPacket op && op.RefCount > 0 ? op.Slice(0, -1) : data.Clone());
+            Send(ws);
+        }
+        finally
+        {
+            // 归还容器自己那份负载引用
+            ws.TryDispose();
+        }
     }
 
     /// <summary>发送消息</summary>
@@ -222,18 +256,27 @@ public class WebSocket : IDisposable
     public async Task<Int32> SendAllAsync(IPacket data, WebSocketMessageType type, Func<INetSession, Boolean>? predicate = null)
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
-        var ws = new WsMessage { Type = type };
-        ws.SetBody(data);
 
-        var data2 = _codec.Build(ws)!;
+        var ws = new WsMessage { Type = type };
         try
         {
-            // 经服务端对各会话并行送出，等待完成后再归还封包（封包持有负载引用，释放封包即归还整链）
-            return await session.Host.SendAllAsync(data2, predicate).ConfigureAwait(false);
+            // 借用：负载引用共享给容器，调用方句柄保持有效
+            ws.SetBody(data is OwnerPacket op && op.RefCount > 0 ? op.Slice(0, -1) : data.Clone());
+
+            var data2 = _codec.Build(ws)!;
+            try
+            {
+                // 经服务端对各会话并行送出，等待完成后再归还封包（封包持有负载引用，释放封包即归还整链）
+                return await session.Host.SendAllAsync(data2, predicate).ConfigureAwait(false);
+            }
+            finally
+            {
+                data2.TryDispose();
+            }
         }
         finally
         {
-            data2.TryDispose();
+            ws.TryDispose();
         }
     }
 
@@ -249,8 +292,15 @@ public class WebSocket : IDisposable
     public void Close(Int32 closeStatus, String statusDescription)
     {
         var ws = new WsMessage { Type = WebSocketMessageType.Close };
-        ws.SetBody(WebSocketCodec.BuildClosePayload(closeStatus, statusDescription));
-        Send(ws);
+        try
+        {
+            ws.SetBody(WebSocketCodec.BuildClosePayload(closeStatus, statusDescription));
+            Send(ws);
+        }
+        finally
+        {
+            ws.TryDispose();
+        }
     }
     #endregion
 

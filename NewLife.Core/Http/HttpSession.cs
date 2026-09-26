@@ -104,6 +104,20 @@ public class HttpSession : INetHandler, IDisposable
 
             (_session as NetSession)?.WriteLog("{0} {1}", request.Method, request.RequestUri);
 
+            // 分块请求体（Transfer-Encoding: chunked）暂不支持：ContentLength 会取到 -1，
+            // 内容被当作“已完整”，chunk 帧本身会被当成业务参数/JSON 解析（静默错误），与前置代理共存时还有请求走私面。
+            // 明确拒绝并告知客户端改用 Content-Length
+            if (request.Headers.TryGetValue("Transfer-Encoding", out var te) && te != null && te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                var rs = new HttpResponse { StatusCode = HttpStatusCode.LengthRequired };
+
+                using var res = rs.Build();
+                _session.Send(res);
+                _session.Dispose();
+
+                return;
+            }
+
             // 限制最大请求体
             if (req.ContentLength > MaxRequestLength)
             {
@@ -128,10 +142,9 @@ public class HttpSession : INetHandler, IDisposable
             }
             else
             {
-                // 预分配缓存流，用于持续接收后续主体分片
-                var len = req.ContentLength;
-                if (len <= 0) len = 0;
-                _cache = new MemoryStream(len > 0 ? len : 0);
+                // 缓存流按需增长：按 ContentLength 预分配会让“声明巨大长度但不发送”的请求直接占住等量内存
+                // （MaxRequestLength 默认 1GB，一条声明 1GB 的连接即可触发大对象分配）
+                _cache = new MemoryStream();
 
                 if (req.Body != null && req.Body.Length > 0)
                 {
@@ -189,12 +202,21 @@ public class HttpSession : INetHandler, IDisposable
                 if (server != null && !server.ServerName.IsNullOrEmpty() && !rs.Headers.ContainsKey("Server"))
                     rs.Headers["Server"] = server.ServerName;
 
-                var closing = !req.KeepAlive && _websocket == null;
+                // 响应版本跟随请求：HTTP/1.0 客户端若收到 HTTP/1.1 响应，会按 1.1 语义（默认 keep-alive）解析，导致连接失步
+                if (req != null && !req.Version.IsNullOrEmpty()) rs.Version = req.Version;
+
+                // 请求为空（理论上不会发生）按关闭处理，避免响应无主连接悬留
+                var closing = req == null || (!req.KeepAlive && _websocket == null);
                 if (closing && !rs.Headers.ContainsKey("Connection")) rs.Headers["Connection"] = "close";
 
+                // HEAD 请求：不得返回实体，但仍需声明实体长度，否则 keep-alive 连接上客户端会把后续响应当成本次实体（连接失步）
+                if (req != null && req.Method.EqualIgnoreCase("HEAD") && rs.BodyStream == null)
+                {
+                    using var res = rs.BuildHeaderPacket(rs.Body?.Total ?? 0);
+                    _session.Send(res);
+                }
                 // 流式响应体：先发头部，再流式发送主体（已知长度走 Content-Length，未知走分块传输）
-                var stream = rs.BodyStream;
-                if (stream != null)
+                else if (rs.BodyStream is { } stream)
                     SendStreamBody(rs, stream);
                 else
                 {
@@ -202,6 +224,10 @@ public class HttpSession : INetHandler, IDisposable
                     using var res = rs.Build();
                     _session.Send(res);
                 }
+
+                // 响应体所有权随响应：Build 已把体写入发送缓冲，此处归还其（可能池化的）引用
+                rs.Body.TryDispose();
+                rs.Body = null;
 
                 if (closing) _session.Dispose();
             }
@@ -345,11 +371,7 @@ public class HttpSession : INetHandler, IDisposable
             ServiceProvider = _session as IServiceProvider
         };
 
-        // 路由参数合并到上下文
-        foreach (var kv in parameters)
-        {
-            context.Parameters[kv.Key] = kv.Value;
-        }
+        // 路由参数在 PrepareRequest 之后再合并（见下方）：路径是本请求的身份，不应被 ?id= 或表单字段覆盖
 
         // 创建请求级作用域，注册 IHttpContext 使构造函数 DI 可获取；请求结束（finally）释放作用域
         IServiceScope? scope = null;
@@ -370,6 +392,13 @@ public class HttpSession : INetHandler, IDisposable
         try
         {
             PrepareRequest(context);
+
+            // 路由参数最后合并：路径参数优先于查询串/请求体参数。旧顺序下 /api/users/5?id=999 会让 id 变成 999，
+            // 既是语义错误（路径应优先），也是参数篡改面（下游按 id 取数/鉴权会被绕过）
+            foreach (var kv in parameters)
+            {
+                context.Parameters[kv.Key] = kv.Value;
+            }
 
             // 处理 WebSocket 握手（只在第一次调用时尝试）
             _websocket ??= WebSocket.Handshake(context);

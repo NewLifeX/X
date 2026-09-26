@@ -294,7 +294,19 @@ public class HttpServer : NetServer, IHttpHost
     private readonly HttpRouter _router = new();
 
     /// <summary>路径匹配缓存。Key 为请求路径，Value 为匹配到的路由键</summary>
+    /// <remarks>只缓存通配符/短路径的命中结果，且容量有上限，避开动态 URL 让缓存无界增长</remarks>
     private readonly IDictionary<String, String> _pathCache = new ConcurrentDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>路径匹配缓存上限，默认 4096。超过后不再写入</summary>
+    public Int32 MaxPathCacheSize { get; set; } = 4096;
+
+    /// <summary>写入路径缓存（容量受限）。达到上限后静默不写，后续请求走正常路由匹配</summary>
+    /// <param name="path">请求路径</param>
+    /// <param name="key">匹配到的路由键</param>
+    private void CachePath(String path, String key)
+    {
+        if (_pathCache.Count < MaxPathCacheSize) _pathCache[path] = key;
+    }
 
     /// <summary>匹配处理器（兼容 IHttpHost 接口）</summary>
     /// <param name="path">已规范化后的请求路径（不含查询字符串）</param>
@@ -326,8 +338,8 @@ public class HttpServer : NetServer, IHttpHost
         handler = _router.Match(path, parameters);
         if (handler != null)
         {
-            // 参数化路由结果也缓存
-            if (path.Split('/').Length <= 3) _pathCache[path] = path;
+            // 参数化路由不写缓存：命中依赖具体参数（缓存值只能是路径自身），
+            // 而 Routes 里没有该键，查缓存永远取不到处理器，只会随每个不同 URL 无界增长
             return handler;
         }
 
@@ -340,8 +352,8 @@ public class HttpServer : NetServer, IHttpHost
 
             if (Routes.TryGetValue(key, out handler))
             {
-                // 大于3段的路径不做缓存，避免动态Url引起缓存膨胀
-                if (handler is StaticFilesHandler || path.Split('/').Length <= 3) _pathCache[path] = key;
+                // 只缓存段数有限且非静态文件的路径：静态文件按每个具体 URL 缓存（如 /img/1.png、/img/2.png）同样会无界增长
+                if (handler is not StaticFilesHandler && path.Split('/').Length <= 3) CachePath(path, key);
                 return handler;
             }
         }

@@ -38,6 +38,12 @@ public class TinyHttpClient : DisposeBase
     /// <summary>缓冲区大小。接收缓冲区默认64*1024</summary>
     public Int32 BufferSize { get; set; } = 64 * 1024;
 
+    /// <summary>单个分块长度上限，默认 64M。0 表示不限制</summary>
+    public Int32 MaxChunkSize { get; set; } = 64 * 1024 * 1024;
+
+    /// <summary>响应体总长上限，默认 1G。0 表示不限制</summary>
+    public Int64 MaxBodySize { get; set; } = 1024L * 1024 * 1024;
+
     /// <summary>Json序列化</summary>
     public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
 
@@ -254,129 +260,143 @@ public class TinyHttpClient : DisposeBase
     }
 
     /// <summary>读取分片，返回链式 IPacket</summary>
-    /// <remarks>只借阅入参，不释放 <paramref name="body"/>；入参句柄由调用方负责释放。</remarks>
+    /// <remarks>
+    /// <para>只借阅入参，不释放 <paramref name="body"/>；入参句柄由调用方负责释放。</para>
+    /// <para>分块长度行与分块数据都可能跨接收包：未解析字节累积在连续缓冲中，凑满一个完整分块才消费。
+    /// 旧实现假定长度行与分块数据同在单个数据包内，长度行落到下一个包时会把后续所有分块静默丢弃（仍返回“成功”）。</para>
+    /// <para>单块与总计长度分别由 <see cref="MaxChunkSize"/> 与 <see cref="MaxBodySize"/> 限制。</para>
+    /// </remarks>
     /// <param name="body">待解析的数据包（调用方负责释放）</param>
     /// <returns></returns>
+    /// <exception cref="InvalidDataException">分块长度行非法，或单块/总计长度超过上限</exception>
     protected virtual async Task<IPacket> ReadChunkAsync(IPacket body)
     {
-        // 使用内存流拼接需要多次接收的数据包，降低逻辑复杂度
-        var ms = new MemoryStream(BufferSize);
+        var result = new MemoryStream(BufferSize);
 
-        // 本方法自有的工作窗口：后续释放的始终是自有句柄，不触碰调用方入参
-        var pk = body.Slice(0, -1);
-        while (true)
+        // 未解析字节的连续缓冲；随解析推进收缩前缀，避免随分块数量无限增长
+        var pending = new MemoryStream(BufferSize);
+        var pos = 0;
+        var total = 0L;
+        var finished = false;
+
+        // 首个数据包为借阅（调用方释放），后续读取的包由本方法释放
+        IPacket? input = body;
+        var owned = false;
+        try
         {
-            // 分析一个片段，如果该片段数据不足，则需要多次读取
-            var data = pk.GetSpan();
-            if (!ParseChunk(data, out var offset, out var len)) break;
-
-            // 最后一个片段的长度为0
-            if (len <= 0) break;
-
-            // chunk是否完整
-            var memory = pk.GetMemory();
-            if (offset + len <= memory.Length)
+            while (!finished)
             {
-                // 完整数据，截取需要的部分
-                memory = memory.Slice(offset, len);
-                ms.Write(memory);
+                if (input != null && input.Length > 0) input.CopyTo(pending);
+                if (owned) input?.TryDispose();
+                input = null;
 
-                // 更新pk，可能还有粘包数据。每一帧数据后面有\r\n
-                var next = offset + len + 2;
-                if (next < pk.Length)
+                var buf = pending.GetBuffer();
+                var end = (Int32)pending.Length;
+
+                // 尽可能多地解析完整分块
+                while (true)
                 {
-                    // 共享切出新窗口后释放旧句柄自身的引用（各自释放，最后一个归还）
-                    var np = pk.Slice(next, -1);
-                    pk.TryDispose();
-                    pk = np;
-                }
-                else
-                {
-                    pk.TryDispose();
-                    pk = null;
-                }
-            }
-            else
-            {
-                // 写入片段数据，数据不足
-                memory = memory[offset..];
-                ms.Write(memory);
+                    var window = buf.AsSpan(pos, end - pos);
 
-                pk.TryDispose();
-                pk = null;
+                    // 长度行需完整（含 CRLF），否则等下一批数据
+                    var p = window.IndexOf(NewLine);
+                    if (p <= 0) break;
 
-                // 如果该片段数据不足，则需要多次读取
-                var remain = len - memory.Length;
-                while (remain > 0)
-                {
-                    var pk2 = await SendDataAsync(null, null).ConfigureAwait(false);
-                    memory = pk2.GetMemory();
+                    if (!TryParseChunkLength(window[..p], out var len))
+                        throw new InvalidDataException($"非法的分块长度行 [{window[..p].ToStr()}]");
 
-                    // 结尾的间断符号（如换行或00）。这里有可能一个数据包里面同时返回多个分片
-                    if (remain <= memory.Length)
+                    if (MaxChunkSize > 0 && len > MaxChunkSize)
+                        throw new InvalidDataException($"分块长度 {len} 超过上限 {MaxChunkSize}");
+
+                    // 末块：长度为 0
+                    if (len == 0)
                     {
-                        ms.Write(memory[..remain]);
-
-                        // 如果还有剩余，作为下一个chunk
-                        if (remain + 2 < memory.Length)
-                        {
-                            var np = pk2.Slice(remain + 2, -1);
-                            pk2.TryDispose();
-                            pk = np;
-                        }
-                        else
-                            pk2?.Dispose();
-
-                        remain = 0;
+                        pos += p + 2;
+                        finished = true;
+                        break;
                     }
-                    else
-                    {
-                        ms.Write(memory);
-                        remain -= memory.Length;
 
-                        pk2?.Dispose();
-                    }
+                    // 分块数据与尾随 CRLF 必须完整
+                    if (window.Length < p + 2 + len + 2) break;
+
+                    if (MaxBodySize > 0 && total + len > MaxBodySize)
+                        throw new InvalidDataException($"响应体累计长度超过上限 {MaxBodySize}");
+
+                    result.Write(buf, pos + p + 2, len);
+                    total += len;
+                    pos += p + 2 + len + 2;
                 }
+
+                // 收缩已解析前缀
+                if (pos > 0)
+                {
+                    var rest = end - pos;
+                    if (rest > 0) Array.Copy(buf, pos, buf, 0, rest);
+
+                    pending.SetLength(rest);
+                    pending.Position = rest;
+                    pos = 0;
+                }
+
+                if (finished) break;
+
+                // 读取下一批数据；读不到即结束，不完整分块按截断处理（与原行为一致）
+                var more = await SendDataAsync(null, null).ConfigureAwait(false);
+                if (more == null || more.Length == 0)
+                {
+                    more?.TryDispose();
+                    break;
+                }
+
+                input = more;
+                owned = true;
             }
-
-            // 还有粘包数据，继续分析
-            if (pk != null && pk.Length > 0) continue;
-
-            // 读取新的数据片段，如果不存在则跳出
-            pk = await SendDataAsync(null, null).ConfigureAwait(false);
-            if (pk == null || pk.Length == 0) break;
+        }
+        finally
+        {
+            pending.Dispose();
         }
 
-        // 归还工作窗口自身引用（可能为剩余粘包窗口或刚读取的空包）
-        pk?.TryDispose();
-
-        ms.Position = 0;
-        return new ArrayPacket(ms);
+        result.Position = 0;
+        return new ArrayPacket(result);
     }
     #endregion
 
     #region 辅助
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
-    private Boolean ParseChunk(Span<Byte> data, out Int32 offset, out Int32 octets)
+    /// <summary>解析分块长度行。支持分块扩展（分号后内容忽略），非法字符返回 false</summary>
+    /// <remarks>只做字符校验的十六进制解析：旧实现直接 Int32.Parse，分块扩展或干扰字符会抛 FormatException 穿透到调用方</remarks>
+    /// <param name="data">长度行（不含 CRLF）</param>
+    /// <param name="length">解析出的长度</param>
+    /// <returns>是否解析成功</returns>
+    private static Boolean TryParseChunkLength(ReadOnlySpan<Byte> data, out Int32 length)
     {
-        // chunk编码
-        // 1 ba \r\n xxxx \r\n 0 \r\n\r\n
+        length = 0;
 
-        offset = 0;
-        octets = 0;
-        var p = data.IndexOf(NewLine);
-        if (p <= 0) return false;
+        // 分块扩展（如 1ba;ext=1）只取分号前的十六进制长度
+        var p = data.IndexOf((Byte)';');
+        if (p >= 0) data = data[..p];
+        if (data.IsEmpty || data.Length > 8) return false;
 
-        // 第一段长度
-#if NET8_0_OR_GREATER
-        octets = Int32.Parse(data[..p], NumberStyles.HexNumber);
-#else
-        var str = data[..p].ToStr();
-        octets = Int32.Parse(str, NumberStyles.HexNumber);
-#endif
+        var value = 0;
+        foreach (var b in data)
+        {
+            var d = b switch
+            {
+                >= (Byte)'0' and <= (Byte)'9' => b - (Byte)'0',
+                >= (Byte)'a' and <= (Byte)'f' => b - (Byte)'a' + 10,
+                >= (Byte)'A' and <= (Byte)'F' => b - (Byte)'A' + 10,
+                _ => -1,
+            };
+            if (d < 0) return false;
 
-        offset = p + 2;
+            value = (value << 4) + d;
 
+            // 左移溢出为负：超 31 位直接拒收
+            if (value < 0) return false;
+        }
+
+        length = value;
         return true;
     }
     #endregion

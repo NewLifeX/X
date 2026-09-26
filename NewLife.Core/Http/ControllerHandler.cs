@@ -64,7 +64,9 @@ public class ControllerHandler : IHttpHandler
         if (methodName != null && !_methods.TryGetValue(methodName, out method))
         {
             method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
-            _methods[methodName] = method;
+
+            // 只缓存命中项：把未找到的方法名（null）也缓存，任意随机方法名都能让字典无界增长
+            if (method != null) _methods[methodName] = method;
         }
         if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{type.FullName}]");
 

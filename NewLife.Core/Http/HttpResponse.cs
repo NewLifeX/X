@@ -84,10 +84,12 @@ public class HttpResponse : HttpBase
         //sb.AppendFormat("Access-Control-Allow-Methods:{0}\r\n", "POST, GET");
         //sb.AppendFormat("Access-Control-Allow-Headers:{0}\r\n", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-        // 内容长度：存在主体明确长度；否则除非 Transfer-Encoding/Upgrade 才可省略，默认发送 0
+        // 内容长度：存在主体明确长度；否则除非 Transfer-Encoding/Upgrade 才可省略，默认发送 0。
+        // 204/304 不得携带实体，也不应声明 Content-Length（RFC 7230 §3.3.2）
         if (length > 0)
             Headers["Content-Length"] = length + "";
-        else if (!Headers.ContainsKey("Content-Length") && !Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
+        else if (StatusCode != HttpStatusCode.NoContent && StatusCode != HttpStatusCode.NotModified &&
+                 !Headers.ContainsKey("Content-Length") && !Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
             Headers["Content-Length"] = "0";
 
         if (!ContentType.IsNullOrEmpty()) Headers["Content-Type"] = ContentType;
