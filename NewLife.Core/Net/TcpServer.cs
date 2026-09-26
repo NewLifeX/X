@@ -70,10 +70,6 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <remarks>默认0秒不启用。启用后可及时检测连接断开</remarks>
     public Int32 KeepAliveInterval { get; set; }
 
-    /// <summary>启用Http</summary>
-    /// <remarks>数据处理时截去请求响应头，默认false</remarks>
-    public Boolean EnableHttp { get; set; }
-
     /// <summary>协议编解码器。非空时启用协议模式（创建会话时下发），会话数据经数据管道定界，头部到齐即交付消息帧</summary>
     public IMessageCodec? Protocol { get; set; }
 
@@ -419,7 +415,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <returns></returns>
     protected virtual TcpSession CreateSession(Socket client)
     {
-        //var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
+        // 会话类型统一为 TcpSession；HTTP 由 HttpServer.CreateHandler 在处理管道处理，不在此分支
         var session = new TcpSession(this, client)
         {
             //// 服务端不支持掉线重连

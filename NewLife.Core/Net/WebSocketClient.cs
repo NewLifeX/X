@@ -95,7 +95,9 @@ public class WebSocketClient : TcpSession
             return false;
         }
 
-        // 订阅 Received 事件以跟踪 Pong 响应（仅事件模式有效）
+        // 订阅 Received 事件以跟踪 Pong 响应（仅事件模式有效）。
+        // 先退订再订阅：重连会再次执行本方法，重复订阅会让每个 Pong 触发多次回调
+        Received -= OnReceivedPong;
         Received += OnReceivedPong;
 
         var p = (Int32)KeepAlive.TotalMilliseconds;
@@ -113,6 +115,9 @@ public class WebSocketClient : TcpSession
     {
         _timer?.Dispose();
         _timer = null;
+
+        // 断开即退订，避免持有与重复累积
+        Received -= OnReceivedPong;
 
         // 唤醒接收等待者（连接关闭，ReceiveMessageAsync 返回 null）
         _receivedSignal?.TrySetResult(false);
@@ -180,6 +185,10 @@ public class WebSocketClient : TcpSession
 
     /// <summary>分片重组器（RFC 6455 §5.4）。数据帧 FIN=0 累积，末片合并成完整消息后入队</summary>
     private readonly WebSocketFragment _fragment = new();
+
+    /// <summary>消息泵要求整帧完整才产出。客户端接收事件在消息泵任务上同步读体（<see cref="OnReceivedMessage"/>），
+    /// 必须整帧交付，否则大帧会在事件内同步等待后续数据，占用线程池线程</summary>
+    protected override Boolean RequireFullFrame => true;
 
     /// <summary>待收消息队列（拉取 API）</summary>
     private readonly ConcurrentQueue<WsMessage> _received = new();

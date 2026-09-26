@@ -204,7 +204,8 @@ partial class TcpSession
         var pump = _sendPump;
         if (pump != null)
         {
-            if (Active) await pump.FlushAsync(Timeout > 0 ? Timeout : 3_000).ConfigureAwait(false);
+            // 批量停机（服务端 Stop/Dispose）跳过排空：逐会话限时等待会让停机时间随会话数线性放大
+            if (Active && !FastCloseOnShutdown) await pump.FlushAsync(Timeout > 0 ? Timeout : 3_000).ConfigureAwait(false);
             else pump.Abort(null);
         }
 

@@ -345,6 +345,14 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
             var client = CreateClient();
             if (await client.OpenAsync().ConfigureAwait(false))
             {
+                // 等待连接期间可能已被主动关闭/销毁：此时不得收纳这个迟到连接，
+                // 否则 _client 指向一个无人关闭的活连接（Active 为真、计数已清零），Socket 与对端资源双双泄露
+                if (Disposed || _userClosed)
+                {
+                    client.TryDispose();
+                    return;
+                }
+
                 SwitchClient(client);
                 // 重连成功：清零计数，下次断线后可重新累计
                 _reconnectCount = 0;

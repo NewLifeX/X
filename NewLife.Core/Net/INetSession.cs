@@ -93,13 +93,13 @@ public interface INetSession : IDisposable2
 
     #region 数据发送
     /// <summary>发送数据包</summary>
-    /// <remarks>直达网卡，不经过管道处理，适用于已编码的原始数据</remarks>
+    /// <remarks>借用语义：不接管入参句柄，发送后由调用方释放。已创建发送管道时数据入队由发送泵送出，否则同步直发</remarks>
     /// <param name="data">要发送的数据包</param>
     /// <returns>当前会话实例，支持链式调用</returns>
     INetSession Send(IPacket data);
 
     /// <summary>发送字节数组</summary>
-    /// <remarks>直达网卡，不经过管道处理，适用于已编码的原始数据</remarks>
+    /// <remarks>按副本入队（已创建发送管道时）或同步直发，调用方可立即复用入参缓冲</remarks>
     /// <param name="data">字节数组</param>
     /// <param name="offset">数据起始偏移量</param>
     /// <param name="count">发送字节数，-1表示发送从偏移量开始的所有数据</param>
@@ -107,7 +107,7 @@ public interface INetSession : IDisposable2
     INetSession Send(Byte[] data, Int32 offset = 0, Int32 count = -1);
 
     /// <summary>发送只读内存段</summary>
-    /// <remarks>直达网卡，高性能API，避免不必要的内存拷贝</remarks>
+    /// <remarks>按副本入队（已创建发送管道时）或同步直发，高性能API，避免不必要的内存拷贝</remarks>
     /// <param name="data">只读内存段</param>
     /// <returns>当前会话实例，支持链式调用</returns>
     INetSession Send(ReadOnlySpan<Byte> data);

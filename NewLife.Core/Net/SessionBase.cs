@@ -98,6 +98,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <remarks>残余达到上限说明对端数据与协议不匹配或已损坏，消息泵随即报错并关闭会话，避免连接僵死</remarks>
     public Int32 MaxCache { get; set; } = 1024 * 1024;
 
+    /// <summary>整帧模式下的单帧长度上限，默认 16M。0 表示不限制</summary>
+    /// <remarks>仅 <see cref="RequireFullFrame"/> 为 true 时生效：整帧解析要求整个帧驻留内存，本上限是单连接的内存安全阀</remarks>
+    public Int32 MaxFrameSize { get; set; } = 16 * 1024 * 1024;
+
+    /// <summary>消息泵是否要求整帧完整才产出。默认 false（头部到齐即交付，体可为流式）</summary>
+    /// <remarks>在消息泵任务上同步消费流式体的实现应重写为 true：否则大帧会在事件内同步等待后续数据，占用线程池线程</remarks>
+    protected virtual Boolean RequireFullFrame => false;
+
     /// <summary>请求-响应匹配队列。协议模式下等待响应时使用，首次等待时自动创建，可注入共享或自定义实现</summary>
     public IMatchQueue? MatchQueue
     {
@@ -149,8 +157,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             OnError("Dispose", ex);
         }
 
+        // 只释放、不置空：置空后并发任务的 ??= 会新建“满额”信号量，其 Release 直接抛 SemaphoreFullException。
+        // 保留已释放实例，迟到的 Release 得到 ObjectDisposedException，由收尾逻辑按正常时序忽略
         _concurrency?.Dispose();
-        _concurrency = null;
     }
 
     /// <summary>已重载。返回本地地址字符串</summary>
@@ -884,7 +893,20 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         _pumpCts = cts;
 
         WriteLog("启动消息泵：{0}", codec);
-        _pumpTask = PumpAsync(new MessagePump(codec) { MaxCache = MaxCache }, reader, cts.Token);
+
+        var task = PumpAsync(new MessagePump(codec) { MaxCache = MaxCache, RequireFullFrame = RequireFullFrame, MaxFrameSize = MaxFrameSize }, reader, cts.Token);
+
+        // 观察泵任务：泵内异常若无人观察会被静默吞掉，表现为“连接还在但再也收不到消息”，极难定位
+        _pumpTask = task.ContinueWith(
+            t =>
+            {
+                try
+                {
+                    if (t.IsFaulted) OnError("MessagePump", t.Exception!.GetBaseException());
+                }
+                catch { }
+            },
+            CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
     }
 
     /// <summary>停止消息泵。取消挂起读取，泵任务随后自行退出（数据管道完成同样唤醒读取）</summary>
@@ -968,6 +990,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                     message.TryDispose();
                     break;
                 }
+                catch (ObjectDisposedException)
+                {
+                    // 会话销毁：并发信号量已释放，消息无人处理
+                    message.TryDispose();
+                    break;
+                }
 
                 // Task.Run 派发：async 方法首段同步执行，须真正切换线程池，否则同步处理器会阻塞泵循环
                 _ = Task.Run(() => ProcessMessageAsync(message, cancellationToken, true));
@@ -995,6 +1023,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             try
             {
                 await OnMessageAsync(message).ConfigureAwait(false);
+
+                // 事件链（可观测）可能已在处理器内读空消息体；命中配对的等待方还要消费同一份体，
+                // 交付前把内存模式体复位到起点（流式体不参与配对交付，不可重放）
+                if (message.Body is { IsStreaming: false } body) body.Reset();
 
                 delivered = TryMatchResponse(message);
             }
@@ -1042,6 +1074,19 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>并发信号量。并行模式（<see cref="MaxConcurrency"/> 大于1）下约束同连接并发处理数，等待时形成背压</summary>
     private SemaphoreSlim Concurrency => _concurrency ??= new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
 
+    /// <summary>批量停机快速关闭。置位后本次关闭跳过发送队列排空，由 <see cref="SessionCollection.CloseAll"/> 在批量场景设置</summary>
+    internal Boolean FastCloseOnShutdown { get; set; }
+
+    /// <summary>取出协议的请求-响应配对能力。装饰协议（压缩/加密等）把配对能力留给内层，需逐层解包</summary>
+    /// <param name="codec">协议</param>
+    /// <returns>配对器；协议不支持配对时返回 null</returns>
+    private static IMessageMatcher? GetMatcher(IMessageCodec? codec) => codec switch
+    {
+        IMessageMatcher matcher => matcher,
+        IMessageCodecDecorator decorator => GetMatcher(decorator.Inner),
+        _ => null,
+    };
+
     /// <summary>尝试把响应消息匹配给等待中的请求（协议模式）。命中则交付等待方，跳过收尾</summary>
     /// <param name="message">收到的消息</param>
     /// <returns>是否已匹配交付</returns>
@@ -1055,7 +1100,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         var queue = MatchQueue;
         if (queue == null) return false;
-        if (Protocol is not IMessageMatcher matcher) return false;
+
+        // 装饰协议的配对能力在内层，逐层解包后再比对
+        var matcher = GetMatcher(Protocol);
+        if (matcher == null) return false;
 
         return queue.Match(this, message, message, (req, resp) =>
             req is IMessage rq && resp is IMessage rs && matcher.Match(rq, rs));
@@ -1149,7 +1197,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (request == null) throw new ArgumentNullException(nameof(request));
 
         var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
-        if (codec is not IMessageMatcher) throw new NotSupportedException($"协议 [{codec.GetType().Name}] 未实现请求-响应配对（IMessageMatcher），无法等待响应");
+        if (GetMatcher(codec) == null) throw new NotSupportedException($"协议 [{codec.GetType().Name}] 未实现请求-响应配对（IMessageMatcher），无法等待响应");
         if (this is not IStreamSession) throw new NotSupportedException($"会话类型 [{GetType().Name}] 不支持请求-响应等待（响应匹配依赖消息泵，仅流式会话可用）");
 
         var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", request);
@@ -1286,8 +1334,21 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     #region 扩展接口
     private ConcurrentDictionary<String, Object?>? _items;
-    /// <summary>数据项</summary>
-    public IDictionary<String, Object?> Items => _items ??= new();
+
+    /// <summary>数据项。首次访问时创建</summary>
+    /// <remarks>并发首用时以 CAS 保证只保留一份实例：旧实现用 ??= 可能各自新建，败者写入的数据会随之被丢弃</remarks>
+    public IDictionary<String, Object?> Items
+    {
+        get
+        {
+            var items = _items;
+            if (items != null) return items;
+
+            var created = new ConcurrentDictionary<String, Object?>();
+
+            return Interlocked.CompareExchange(ref _items, created, null) ?? created;
+        }
+    }
 
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key"></param>

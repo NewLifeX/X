@@ -59,16 +59,14 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     /// <returns>返回添加新会话是否成功</returns>
     public Boolean Add(ISocketSession session)
     {
+        // 已销毁的会话不再入集合：其 OnDisposed 已经触发过，移除回调不会再触发，条目只能等超时清理
+        if (session.Disposed) return false;
+
         var key = session.Remote.EndPoint + "";
 
-        if (!_dic.TryAdd(key, session)) return false;
-
-        _endPoints[session.Remote.EndPoint] = session;
-
-        var p = ClearPeriod * 1000;
-        _clearTimer ??= new TimerX(RemoveNotAlive, null, p, p) { Async = true, };
-
-        session.OnDisposed += (s, e) =>
+        // 先订阅销毁回调再入集合。反序存在“已入集合但尚未订阅”的窗口：
+        // 会话在该窗口内销毁则移除回调永不触发，端点标识永久残留，之后同端点的新连接被静默拒绝
+        EventHandler onDisposed = (s, e) =>
         {
             if (s is ISocketSession ss)
             {
@@ -76,6 +74,19 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
                 RemoveCache(ss);
             }
         };
+        session.OnDisposed += onDisposed;
+
+        if (!_dic.TryAdd(key, session))
+        {
+            // 端点重复等入集合失败：退订，避免回调挂在未被集合接管的会话上
+            session.OnDisposed -= onDisposed;
+            return false;
+        }
+
+        _endPoints[session.Remote.EndPoint] = session;
+
+        var p = ClearPeriod * 1000;
+        _clearTimer ??= new TimerX(RemoveNotAlive, null, p, p) { Async = true, };
 
         return true;
     }
@@ -112,6 +123,14 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         if (_endPoints.TryGetValue(ep, out var item) && ReferenceEquals(item, session)) _endPoints.TryRemove(ep, out _);
     }
 
+    /// <summary>停机时是否排空发送队列。默认 false</summary>
+    /// <remarks>
+    /// <para>会话关闭会限时等待发送队列排空（最长会话 Timeout）。批量停机逐个等待会让总耗时随会话数线性放大
+    /// （1000 会话 × 3 秒 ≈ 50 分钟），而停机场景对端往往已不可达，排队数据本就送不出去。</para>
+    /// <para>需要“停机前尽力发完”时置为 true。</para>
+    /// </remarks>
+    public Boolean DrainOnShutdown { get; set; }
+
     /// <summary>关闭所有会话</summary>
     /// <param name="reason">关闭原因</param>
     public void CloseAll(String reason)
@@ -122,6 +141,9 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         {
             if (item != null && !item.Disposed)
             {
+                // 批量停机直接中止发送队列，不做逐会话限时排空
+                if (!DrainOnShutdown && item is SessionBase sb) sb.FastCloseOnShutdown = true;
+
                 if (item is INetSession ss) ss.Close(reason);
 
                 item.TryDispose();
@@ -171,7 +193,9 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     #endregion
 
     #region 成员
-    /// <summary>清空会话集合</summary>
+    /// <summary>清空会话索引（不关闭会话）</summary>
+    /// <remarks>仅清空字典索引、不动会话本身；需要关闭会话请用 <see cref="CloseAll"/>。
+    /// 两者常在停机流程里先后调用：先 CloseAll 收尾，再 Clear 清索引。</remarks>
     public void Clear()
     {
         _dic.Clear();
@@ -181,8 +205,8 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     /// <summary>会话数量</summary>
     public Int32 Count => _dic.Count;
 
-    /// <summary>是否只读</summary>
-    public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>)?.IsReadOnly ?? false;
+    /// <summary>是否只读。本集合支持增删，恒为 false</summary>
+    public Boolean IsReadOnly => false;
 
     /// <summary>获取枚举器</summary>
     /// <returns>会话枚举器</returns>
@@ -193,7 +217,13 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     #region IDictionary<String,ISocketSession> 成员
 
-    void IDictionary<String, ISocketSession>.Add(String key, ISocketSession value) => Add(value);
+    void IDictionary<String, ISocketSession>.Add(String key, ISocketSession value)
+    {
+        // 显式 Add 语义要求键与会话端点一致且不得重复；旧实现忽略 key，传错键会静默按会话端点入集合
+        var actual = value.Remote.EndPoint + "";
+        if (key != null && key != actual) throw new ArgumentException($"键 [{key}] 与会话端点 [{actual}] 不一致", nameof(key));
+        if (!Add(value)) throw new ArgumentException($"已存在键 [{key}] 的会话", nameof(key));
+    }
 
     Boolean IDictionary<String, ISocketSession>.ContainsKey(String key) => _dic.ContainsKey(key);
 

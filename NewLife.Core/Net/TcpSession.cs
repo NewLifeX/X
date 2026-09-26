@@ -441,6 +441,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         if (sock == null) return -1;
 
         var gotLock = false;
+        Exception? error = null;
         try
         {
             // 修改发送缓冲区，读取SendBufferSize耗时很大
@@ -475,22 +476,29 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         }
         catch (Exception ex)
         {
-            // 发生异常时，全量数据写入埋点
-            span?.SetError(ex, pk);
+            error = ex;
+        }
+        finally
+        {
+            if (gotLock) _spinLock.Exit();
+        }
 
-            if (!ex.IsDisposed())
+        if (error != null)
+        {
+            // 发生异常时，全量数据写入埋点
+            span?.SetError(error, pk);
+
+            // 上报与关闭放到锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 将在同一线程二次进入
+            // 不可重入的 SpinLock（Enter 无超时），表现为 CPU 100% 静默挂死
+            if (!error.IsDisposed())
             {
-                OnError("Send", ex);
+                OnError("Send", error);
 
                 // 发送异常可能是连接出了问题，需要关闭
                 Close("SendError");
             }
 
             return -1;
-        }
-        finally
-        {
-            if (gotLock) _spinLock.Exit();
         }
 
         LastTime = DateTime.Now;
@@ -519,6 +527,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         if (sock == null) return -1;
 
         var gotLock = false;
+        Exception? error = null;
         try
         {
             // 修改发送缓冲区，读取SendBufferSize耗时很大
@@ -547,22 +556,29 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         }
         catch (Exception ex)
         {
-            // 发生异常时，全量数据写入埋点
-            span?.SetError(ex, data.Array.ToHex(data.Offset, data.Count));
+            error = ex;
+        }
+        finally
+        {
+            if (gotLock) _spinLock.Exit();
+        }
 
-            if (!ex.IsDisposed())
+        if (error != null)
+        {
+            // 发生异常时，全量数据写入埋点
+            span?.SetError(error, data.Array.ToHex(data.Offset, data.Count));
+
+            // 上报与关闭放到锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 将在同一线程二次进入
+            // 不可重入的 SpinLock（Enter 无超时），表现为 CPU 100% 静默挂死
+            if (!error.IsDisposed())
             {
-                OnError("Send", ex);
+                OnError("Send", error);
 
                 // 发送异常可能是连接出了问题，需要关闭
                 Close("SendError");
             }
 
             return -1;
-        }
-        finally
-        {
-            if (gotLock) _spinLock.Exit();
         }
 
         LastTime = DateTime.Now;
@@ -589,6 +605,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         if (sock == null) return -1;
 
         var gotLock = false;
+        Exception? error = null;
         try
         {
             // 修改发送缓冲区，读取SendBufferSize耗时很大
@@ -625,22 +642,29 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         }
         catch (Exception ex)
         {
-            // 发生异常时，全量数据写入埋点
-            span?.SetError(ex, data.ToHex());
+            error = ex;
+        }
+        finally
+        {
+            if (gotLock) _spinLock.Exit();
+        }
 
-            if (!ex.IsDisposed())
+        if (error != null)
+        {
+            // 发生异常时，全量数据写入埋点
+            span?.SetError(error, data.ToHex());
+
+            // 上报与关闭放到锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 将在同一线程二次进入
+            // 不可重入的 SpinLock（Enter 无超时），表现为 CPU 100% 静默挂死
+            if (!error.IsDisposed())
             {
-                OnError("Send", ex);
+                OnError("Send", error);
 
                 // 发送异常可能是连接出了问题，需要关闭
                 Close("SendError");
             }
 
             return -1;
-        }
-        finally
-        {
-            if (gotLock) _spinLock.Exit();
         }
 
         LastTime = DateTime.Now;

@@ -361,6 +361,10 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var rs = codec.TryParse(seq.Slice(pos));
             if (rs == null) break;
 
+            // 损坏帧：数据报内已无法继续定界，丢弃本报文等下一包；
+            // 不能按异常处理，否则一个坏报文就会下线整个 UDP 服务
+            if (rs.Value.Invalid) break;
+
             // 无消息帧（心跳/空行/分隔符）：跳过字节后继续解析
             if (rs.Value.Message == null)
             {
