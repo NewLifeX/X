@@ -4,10 +4,6 @@ using NewLife.Configuration;
 namespace NewLife.Net;
 
 /// <summary>网络设置</summary>
-[Obsolete("=>SocketSetting")]
-public class Setting : SocketSetting { }
-
-/// <summary>网络设置</summary>
 [DisplayName("网络设置")]
 [Config("Socket")]
 public class SocketSetting : Config<SocketSetting>
