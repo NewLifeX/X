@@ -35,9 +35,9 @@ var reader = new SpanReader(packet);
 ### 流扩展构造
 
 ```csharp
-// 支持从数据流读取更多数据
+// 支持从数据流读取更多数据；扩容会从数组池借缓冲，用完必须释放（using）
 var stream = new NetworkStream(socket);
-var reader = new SpanReader(stream, initialPacket, bufferSize: 8192);
+using var reader = new SpanReader(stream, initialPacket, bufferSize: 8192);
 reader.MaxCapacity = 1024 * 1024; // 限制最大读取 1MB
 ```
 
@@ -246,7 +246,7 @@ public async Task<List<Record>> ParseStreamAsync(Stream stream)
 
 - `SpanReader` 是 `ref struct`，只能在栈上分配，无 GC 压力
 - 所有数值读取都是直接内存访问，性能接近不安全代码
-- 支持从流扩展时，会使用 `OwnerPacket` 管理缓冲区生命周期
+- 支持从流扩展时，会从数组池借 `OwnerPacket` 承载已读数据；**用完必须 `Dispose`（如 `using var reader = ...`）**，否则这块池缓冲永远回不到池（每新建一个读取器漏一块）
 - 大端字节序读取会有轻微性能开销
 
 ## 限制与注意事项
@@ -255,6 +255,7 @@ public async Task<List<Record>> ParseStreamAsync(Stream stream)
 2. **生命周期**：依赖底层数据的生命周期，使用期间底层数据不能被释放
 3. **线程安全**：非线程安全，不能跨线程使用
 4. **流扩展模式**：与数据包切片模式不兼容，需要选择合适的构造方式
+5. **释放**：传 `Stream` 的构造会借池缓冲，需 `using`/`Dispose` 归还；无池借用的构造（span/数据包）调用 `Dispose` 为空操作。构造时传入的初始数据包不属于读取器，`Dispose` 不会动它
 
 ## 相关类型
 

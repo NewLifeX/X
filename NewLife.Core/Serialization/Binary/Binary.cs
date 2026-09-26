@@ -915,27 +915,43 @@ public class Binary : FormatterBase, IBinary
         {
             // 不支持Seek的流直接使用流模式。
             // 注意：SpanReader可能批量预读多余字节导致流位置超前，仅适用于整帧全部交由ISpanSerializable处理的场景
+            // 以 ref 传给 Read，不能用 using 变量声明，显式 try/finally 归还扩容借出的池缓冲
             var reader0 = new SpanReader(Stream)
             {
                 IsLittleEndian = IsLittleEndian,
                 EncodeInt = EncodeInt,
                 FullTime = FullTime,
             };
-            target.Read(ref reader0);
-            // 总消费量 = 已缓入span的总字节数 - 未消费剩余量；_total为私有，用 Available 间接推算
-            // reader0.Position 仅在未触发二次EnsureSpace时等于总消费量，此处以此为近似值
-            Total += reader0.Position;
+            try
+            {
+                target.Read(ref reader0);
+                // 总消费量 = 已缓入span的总字节数 - 未消费剩余量；_total为私有，用 Available 间接推算
+                // reader0.Position 仅在未触发二次EnsureSpace时等于总消费量，此处以此为近似值
+                Total += reader0.Position;
+            }
+            finally
+            {
+                reader0.Dispose();
+            }
+
             return;
         }
 
         var startPos = Stream.Position;
         var reader = new SpanReader(Stream) { IsLittleEndian = IsLittleEndian };
-        target.Read(ref reader);
+        try
+        {
+            target.Read(ref reader);
 
-        // SpanReader流模式可能预读了多余字节，需要回退未消费部分
-        var available = reader.Available;
-        if (available > 0) Stream.Seek(-available, SeekOrigin.Current);
-        Total += (Int32)(Stream.Position - startPos);
+            // SpanReader流模式可能预读了多余字节，需要回退未消费部分
+            var available = reader.Available;
+            if (available > 0) Stream.Seek(-available, SeekOrigin.Current);
+            Total += (Int32)(Stream.Position - startPos);
+        }
+        finally
+        {
+            reader.Dispose();
+        }
     }
     #endregion
 

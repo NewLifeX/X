@@ -94,6 +94,8 @@ public ref struct SpanReader
     private readonly Int32 _bufferSize;
     // 当前缓存（或原始）数据包，仅用于 ReadPacket 以及流扩容缓存承载
     private IPacket? _data;
+    // 是否自己从池里借出了承载缓冲（仅流式扩容路径置位）：释放只归还自己借的，不动调用方传入的数据包
+    private Boolean _ownsData;
     // 已成功读取/缓存的总字节数（用于 MaxCapacity 计算）
     private Int32 _total;
 
@@ -101,9 +103,10 @@ public ref struct SpanReader
     /// <remarks>
     /// 解析网络协议时，数据帧可能超过初始缓冲区大小。提供 <paramref name="stream"/> 后，
     /// 当剩余可读字节不足时，会自动从流中读取一批数据并扩充内部缓冲区。
+    /// <para><b>释放</b>：扩容会从数组池借缓冲，读取器用完必须调用 <see cref="Dispose"/>（如 <c>using var reader = new SpanReader(stream);</c>），否则该缓冲无法归还池。</para>
     /// </remarks>
     /// <param name="stream">底层数据流，一般为网络流</param>
-    /// <param name="data">初始数据包，可为空（例如已经到达的响应头）</param>
+    /// <param name="data">初始数据包，可为空（例如已经到达的响应头）。扩容替换缓冲时会被读取器释放，调用方不应再持有</param>
     /// <param name="bufferSize">每次追加读取建议大小（最小分块）</param>
     public SpanReader(Stream stream, IPacket? data = null, Int32 bufferSize = 8192)
     {
@@ -188,6 +191,7 @@ public ref struct SpanReader
 
             old.TryDispose();
             _data = pk;
+            _ownsData = true;
             _index = 0; // 重置索引，后续直接从新缓冲读取
 
             // 直接读取指定大小，必要时抛异常，防止阻塞等待不确定长度数据
@@ -674,5 +678,25 @@ public ref struct SpanReader
     /// <typeparam name="T">类型</typeparam>
     /// <returns>反序列化的值</returns>
     public T? ReadValue<T>() => (T?)ReadValue(typeof(T));
+    #endregion
+
+    #region 释放
+    /// <summary>释放流式扩容借出的池缓冲。走流式扩容（<see cref="EnsureSpace"/>）的读取器用完必须调用</summary>
+    /// <remarks>
+    /// <para>从流读取超出初始数据的字节时，读取器会从数组池借一块缓冲承载已读数据；读取器是 ref struct、没有析构，不显式释放就会让这块缓冲永远回不到池（每次新建读取器漏一块，池只能不断新建数组）。用法：<c>using var reader = new SpanReader(stream);</c></para>
+    /// <para>只归还读取器自己借的缓冲：构造时传入的数据包不属于读取器，本方法不动它（它在扩容替换缓冲时已由读取器释放）。</para>
+    /// <para>释放后不应再使用本读取器。</para>
+    /// </remarks>
+    public void Dispose()
+    {
+        var data = _data;
+        var owns = _ownsData;
+
+        _data = null;
+        _ownsData = false;
+        _span = default;
+
+        if (owns) data.TryDispose();
+    }
     #endregion
 }
