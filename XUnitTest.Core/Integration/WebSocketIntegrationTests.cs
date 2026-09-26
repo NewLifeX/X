@@ -683,6 +683,22 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         Assert.True(fixture.Server.Active, "服务器应保持可用");
     }
 
+    [Fact(DisplayName = "17-CloseAsync带状态码_发送关闭帧并关闭连接")]
+    public async Task Test17_CloseAsyncWithStatus_ClosesConnection()
+    {
+        var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws");
+        Assert.True(await ws.OpenAsync());
+        Assert.True(ws.Active);
+
+        await ws.CloseAsync(1000, "done");
+
+        // 旧实现只发 Close 帧就返回，会话仍 Active、心跳继续运行
+        Assert.False(ws.Active, "CloseAsync(状态码) 应关闭连接");
+        ws.Dispose();
+
+        Assert.True(fixture.Server.Active, "服务器应保持可用");
+    }
+
     /// <summary>构造客户端掩码原始帧（支持 126 扩展长度）</summary>
     /// <param name="opcode">操作码（1=Text，2=Binary，8=Close，9=Ping，10=Pong）</param>
     /// <param name="fin">是否末片</param>
