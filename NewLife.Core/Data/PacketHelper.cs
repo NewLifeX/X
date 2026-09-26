@@ -41,6 +41,9 @@ public static class PacketHelper
     #endregion
 
     #region 链式操作
+    /// <summary>链遍历步数上限。超过视为链已损坏（含环），放弃挂接，避免陷入死循环</summary>
+    private const Int32 MaxChainSteps = 1_000_000;
+
     /// <summary>将数据包追加到当前包链末尾</summary>
     /// <param name="pk">当前包链头节点</param>
     /// <param name="next">要追加的数据包（可包含自身链）</param>
@@ -48,7 +51,7 @@ public static class PacketHelper
     /// <remarks>
     /// <list type="bullet">
     /// <item>时间复杂度：O(n)，n 为当前链长度</item>
-    /// <item>防护机制：自引用检测、环路检测</item>
+    /// <item>防护机制：自引用检测；回指链首的环在链尾处切断；next 链包含 pk 时拒绝挂接（否则成环）；超长遍历放弃挂接</item>
     /// <item>若 next 已包含链，会整体挂接</item>
     /// </list>
     /// </remarks>
@@ -57,13 +60,23 @@ public static class PacketHelper
         if (next == null) return pk;
         if (ReferenceEquals(pk, next)) return pk; // 防止自连接
 
-        // 遍历到链尾
+        // 遍历到链尾。回指链首的环在链尾处切断（保留原行为）；超过步数上限视为链损坏，放弃挂接
+        var steps = 0;
         var current = pk;
         while (current.Next != null)
         {
-            // 环检测：避免形成循环链表
             if (ReferenceEquals(current.Next, pk)) break;
             current = current.Next;
+            if (++steps > MaxChainSteps) return pk;
+        }
+
+        // next 链若包含 pk，挂接后会形成环（如将链首挂到链中间节点之后）：拒绝。
+        // 同时限步，防止 next 链自身已损坏（含环）时陷入死循环
+        steps = 0;
+        for (var n = next; n != null; n = n.Next)
+        {
+            if (ReferenceEquals(n, pk)) return pk;
+            if (++steps > MaxChainSteps) return pk;
         }
 
         current.Next = next;
