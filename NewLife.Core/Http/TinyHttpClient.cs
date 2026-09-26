@@ -44,6 +44,11 @@ public class TinyHttpClient : DisposeBase
     /// <summary>响应体总长上限，默认 1G。0 表示不限制</summary>
     public Int64 MaxBodySize { get; set; } = 1024L * 1024 * 1024;
 
+    /// <summary>响应头最大长度，默认 64K。0 表示不限制</summary>
+    /// <remarks>响应头可能跨接收块到达（服务端头部稍慢时首块只有半截头），头未完整时会累积读取；
+    /// 超过上限视为无效响应，避免畸形数据无界累积。</remarks>
+    public Int32 MaxHeadLength { get; set; } = 64 * 1024;
+
     /// <summary>Json序列化</summary>
     public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
 
@@ -176,7 +181,33 @@ public class TinyHttpClient : DisposeBase
 
             // 解析响应。入参句柄由本层释放（主体等切片已取得独立引用）
             var parsed = res.Parse(rs2);
-            if (!parsed) return res;
+
+            // 响应头可能跨接收块：服务端头部稍慢时首个数据块只到达半截头，解析失败。
+            // 继续读取并累积到连续缓冲，直到拼出完整头部；否则会把半截头当成空的成功响应返回给调用方（静默错误）。
+            if (!parsed)
+            {
+                // 先清掉失败解析可能已设置的体切片（头部完整但首行非法时），避免重解析时泄漏
+                res.Body.TryDispose();
+                res.Body = null;
+
+                var ms = new MemoryStream(BufferSize);
+                rs2.CopyTo(ms);
+                while (MaxHeadLength <= 0 || ms.Length < MaxHeadLength)
+                {
+                    using var more = await SendDataAsync(null, null).ConfigureAwait(false);
+                    if (more == null || more.Length == 0) break;
+
+                    more.CopyTo(ms);
+                    if (res.Parse(new ArrayPacket(ms.GetBuffer(), 0, (Int32)ms.Length)))
+                    {
+                        parsed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!parsed) return null;
+
             rs = res.Body;
 
             // 跳转
@@ -211,7 +242,16 @@ public class TinyHttpClient : DisposeBase
         // 释放数据包，还给缓冲池
         req?.Dispose();
 
-        if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
+        // 4xx/5xx 才是错误响应；2xx 家族（含 201/204/206）均属正常成功
+        if ((Int32)res.StatusCode >= 400)
+        {
+            // 错误路径不返回响应对象，必须在此释放响应体句柄（池化接收缓冲），否则永不归还
+            var body = res.Body;
+            res.Body = null;
+            body.TryDispose();
+
+            throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
+        }
 
         // 如果没有收完数据包
         if (rs != null && res.ContentLength > 0 && rs.Length < res.ContentLength)
@@ -236,7 +276,9 @@ public class TinyHttpClient : DisposeBase
 
             // 从内存流获取缓冲区，打包为数据包返回，避免再次内存分配
             ms.Position = 0;
+            rs.TryDispose();          // 旧句柄（部分体）已拷入 ms，归还池化缓冲
             rs = new ArrayPacket(ms);
+            res.Body = rs;            // 写回响应：否则调用方通过 res.Body 拿到的仍是拼接前的旧（可能为空）句柄
         }
 
         // chunk编码
