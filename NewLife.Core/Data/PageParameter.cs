@@ -124,9 +124,10 @@ public class PageParameter
     {
         if (pm == null) return this;
 
-        // 排序相关
-        OrderBy = pm.OrderBy;
+        // 排序相关。先拷贝 Sort（其 setter 会无条件清空 OrderBy），再拷 OrderBy，
+        // 否则仅使用复杂排序语句（OrderBy 非空而 Sort 为空）的对象在拷贝后会静默丢失排序
         Sort = pm.Sort;
+        OrderBy = pm.OrderBy;
         Desc = pm.Desc;
 
         // 分页相关
