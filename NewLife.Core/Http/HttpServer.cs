@@ -295,7 +295,8 @@ public class HttpServer : NetServer, IHttpHost
 
     /// <summary>路径匹配缓存。Key 为请求路径，Value 为匹配到的路由键</summary>
     /// <remarks>只缓存通配符/短路径的命中结果，且容量有上限，避开动态 URL 让缓存无界增长</remarks>
-    private readonly IDictionary<String, String> _pathCache = new ConcurrentDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+    /// <remarks>声明为 ConcurrentDictionary 而非 IDictionary：TryAdd 是具体类型成员，低版本 TFM 下 IDictionary 没有该扩展方法</remarks>
+    private readonly ConcurrentDictionary<String, String> _pathCache = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>路径匹配缓存上限，默认 4096。超过后不再写入</summary>
     public Int32 MaxPathCacheSize { get; set; } = 4096;
