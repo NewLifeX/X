@@ -108,9 +108,9 @@ dotnet run
 |                  | ⚠️ 百度地图/高德地图 已提取到独立 NuGet 包。                                 |                                                  |
 | **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP/Unix域套接字服务端，封装了会话和数据处理。 |
 |                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP/Unix网络客户端，简化连接与收发。   |
-|                  | [消息IMessage](/core/message)                                                | 请求-响应消息接口，支持池化内存和释放链。        |
-|                  | [网络编解码器Handlers](/core/net_handlers)                                   | 粘包拆包、消息编解码与协议管道集成。             |
-|                  | [数据包编码器PacketCodec](https://newlifex.com/core/packet_codec)            | 用于网络粘包处理，支持多种消息分包解决方案。     |
+|                  | [消息IMessage](/core/message)                                                | 请求-响应消息契约，承载方向语义与帧读写。        |
+|                  | [消息协议栈MessagePump](/core/message_protocol)                              | 帧泵 + 无状态编解码器单栈，支持大帧流式体与背压。 |
+|                  | [数据管道Pipe](/core/packet_pipe)                                            | 零拷贝数据管道，对齐 System.IO.Pipelines 形态。  |
 |                  | [简易远程消息交换协议SRMP](https://newlifex.com/core/srmp)                   | 轻量级RPC协议，支持二进制序列化和UDP传输。       |
 |                  | [负载均衡与故障转移LoadBalancer](/core/load_balancer)                        | 提供Failover/轮询/竞速三种多节点调度策略。       |
 |                  | [RPC通信ApiServer](https://newlifex.com/core/api_server)                     | ⚠️ 已移至 [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting) |

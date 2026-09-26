@@ -7,7 +7,7 @@
     <Description>Core library of NewLife framework. Provides high-performance infrastructure for building scalable applications: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), network (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler, plugin framework, and more. Supports .NET Framework 4.5 to .NET 10. 核心组件库，为构建可扩展应用程序提供高性能基础设施。提供日志（文件/网络）、配置（XML/JSON/HTTP）、缓存（内存/分布式）、网络（TCP/UDP/HTTP/WebSocket）、序列化（Binary/XML/JSON）、APM性能追踪、对象容器、并行模型、定时调度、插件框架等。支持.NET Framework 4.5至.NET 10全版本。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
-    <VersionPrefix>11.19</VersionPrefix>
+    <VersionPrefix>12.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -32,7 +32,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>新增向量存储接口 IVectorStore/VectorRecord，支持 Top-K 相似度检索，为 AI 应用提供向量检索基础设施；增强 Murmur128 哈希与 GeoPoint 功能并补充单元测试；SysConfig 属性补充 Description 注解，日志文件命名统一为下划线分隔并移除 UTC 校正；修复 DSAHelper、Crc16/Crc32、PerfCounter、JwtBuilder、PinYin、CacheLock、MemoryCache、ProcessHelper、PKCS7、Asn1 等 20+ 处缺陷</PackageReleaseNotes>
+    <PackageReleaseNotes>v12 大版本：网络库重构——数据包引用计数所有权模型、MessagePump 帧泵 + 无状态 IMessageCodec 单栈（整删 PacketCodec/Handlers 族）、数据管道 Pipe/PipeReader/PipeWriter、WebSocket 分片重组、Unix 域套接字传输；以及 HTTP/WebSocket/协议栈/数据管道 40+ 处缺陷修复。详见 ChangeLog.md</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
