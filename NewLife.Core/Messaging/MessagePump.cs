@@ -47,9 +47,16 @@ public class MessagePump
     /// <summary>要求整帧完整才产出（整帧模式）。默认 false：头部到齐即交付（体可为流式）</summary>
     /// <remarks>
     /// 同步泵场景（如 WebSocket 服务端的同步帧循环）无法异步消费流式体：帧未完整时不产出、不消费，留待数据到齐后重新解析。
-    /// 超窗口大帧在该模式下会长期等待（配合 <see cref="MaxCache"/> 或业务层防护）。
+    /// 该模式下的单帧长度上限由 <see cref="MaxFrameSize"/> 约束。
     /// </remarks>
     public Boolean RequireFullFrame { get; set; }
+
+    /// <summary>整帧模式下的单帧长度上限，默认 16M。0 表示不限制</summary>
+    /// <remarks>
+    /// <para>整帧模式不消费未完整帧，仅凭对端声明一个超大帧长度即可让管道无限占用内存：<see cref="MaxCache"/> 只管“无法定界的残余”，
+    /// 管不到“已定界但永远到不齐”的帧。超过上限时抛出异常，由调用方按协议错误关闭连接。</para>
+    /// </remarks>
+    public Int32 MaxFrameSize { get; set; } = 16 * 1024 * 1024;
     #endregion
 
     #region 构造
@@ -84,6 +91,9 @@ public class MessagePump
             var rs = codec.TryParse(buffer);
             if (rs == null) return false;
 
+            // 损坏帧：立即报错（由会话层关闭连接），不进入等待——否则会僵死到残余上限才断开
+            if (rs.Value.Invalid) throw new InvalidOperationException($"协议帧损坏：头部已完整但帧长度字段非法（协议 {codec.GetType().Name}）");
+
             // 无消息帧（空行/心跳等）：消费该帧后继续解析下一帧
             if (rs.Value.Message == null)
             {
@@ -100,10 +110,15 @@ public class MessagePump
             var headerSize = rs.Value.HeaderSize;
             var bodyLength = rs.Value.BodyLength;
 
-            // 整帧模式：帧未完整时不产出、不消费（头部留待数据到齐后重新解析）
+            // 整帧模式：帧未完整时不产出、不消费（头部留待数据到齐后重新解析）。
+            // 单帧长度超上限立即报错：否则对端只需声明一个超大帧，就能让本连接的内存无限增长
             if (RequireFullFrame && headerSize + bodyLength > buffer.Length)
             {
                 msg.Dispose();
+
+                if (MaxFrameSize > 0 && headerSize + bodyLength > MaxFrameSize)
+                    throw new InvalidOperationException($"帧长度 {headerSize + bodyLength} 超过上限 {MaxFrameSize}，拒绝为超大帧无限缓冲");
+
                 return false;
             }
 

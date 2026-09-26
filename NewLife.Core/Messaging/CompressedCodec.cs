@@ -12,7 +12,7 @@ namespace NewLife.Messaging;
 /// <para><b>接收</b>：要求完整帧到齐后整载解压（压缩体无法流式解压），解压后经 <see cref="Message.SetBody"/> 预绑定，帧泵检测到已绑定体时直接消费整帧；坏数据抛出异常交由帧泵关闭会话。</para>
 /// <para><b>发送</b>：整帧构建时压缩内存体再交内层协议；空体不压缩。流式发送不支持（<see cref="BuildHeader"/> 抛异常）。</para>
 /// </remarks>
-public class CompressedCodec(IMessageCodec inner) : IMessageCodec
+public class CompressedCodec(IMessageCodec inner) : IMessageCodec, IMessageCodecDecorator
 {
     /// <summary>内层协议</summary>
     public IMessageCodec Inner { get; } = inner;

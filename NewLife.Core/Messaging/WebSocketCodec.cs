@@ -8,6 +8,9 @@ namespace NewLife.Messaging;
 /// <remarks>
 /// <para>无状态、可跨连接共享；<see cref="IsServer"/> 只决定<b>发送</b>方向的掩码（服务端不加掩码、客户端自动加随机掩码），解析侧对带掩码与不带掩码的帧都接受，由消费方依据 <see cref="WsMessage.MaskKey"/> 决定是否解码。</para>
 /// <para><b>掩码解码</b>：解析产出的 <see cref="WsMessage.MaskKey"/> 非空时，消费方须对负载按掩码解码（每字节 XOR 密钥，<c>data[i] ^= key[i % 4]</c>，链式负载跨段连续）。整帧路径可原地解码；流式路径建议物化后解码。</para>
+/// <para><b>不要直接用作 <c>SessionBase.Protocol</c></b>：本 codec 不做掩码解码，会话层也没有解码时机（负载可能还是流式的），
+/// 直接装配会把未解码的掩码负载静默交给业务。WebSocket 通道请走 <c>Http/WebSocket</c>（服务端）与 <c>WebSocketClient</c>（客户端），
+/// 两者在交付前完成解码与分片重组。</para>
 /// <para><b>分片</b>：FIN=0 的帧照常解析（Fin=false），分片重组由消费侧（WebSocket 服务端 / WebSocketClient）累积完成。</para>
 /// </remarks>
 /// <example>

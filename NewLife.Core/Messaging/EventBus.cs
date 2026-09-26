@@ -51,7 +51,7 @@ public class EventContext : IEventContext, IExtend
 /// 若需严格的事务性保证，可设置 <see cref="ThrowOnHandlerError"/> = true，任何订阅者异常都会立即中断分发。</para>
 /// <para>线程安全：订阅集合基于 <see cref="ConcurrentDictionary{TKey,TValue}"/>；分发期间的订阅变化不保证本轮可见。</para>
 /// </remarks>
-public class EventBus<TEvent> : DisposeBase, IEventBus, IEventBus<TEvent>, IAsyncEventBus<TEvent>, ILogFeature
+public class EventBus<TEvent> : DisposeBase, IEventBus, IEventBus<TEvent>, ILogFeature
 {
     #region 属性
     private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];

@@ -5,16 +5,23 @@ using NewLife.Log;
 namespace NewLife.Net;
 
 /// <summary>池化任务源的弱类型完成接口。供匹配队列等组件在不同结果类型（Object/Message）上统一设置结果或取消</summary>
+/// <remarks>完成方法均要求版本一致：匹配队列可能在等待方取消后才拿到迟到响应，
+/// 而本实例此时已被归还池并可能被新请求借出复用，版本不符即丢弃，避免误完成新请求。</remarks>
 interface IPooledSource
 {
-    /// <summary>尝试设置成功结果（仅首次调用生效）</summary>
-    /// <param name="result">结果值</param>
-    /// <returns>是否成功设置</returns>
-    Boolean TrySetResult(Object result);
+    /// <summary>当前版本号。匹配队列在入队时记录，完成时回传校验</summary>
+    Int16 Version { get; }
 
-    /// <summary>尝试设置取消（仅首次调用生效）</summary>
+    /// <summary>尝试设置成功结果（仅首次调用生效，且要求版本一致）</summary>
+    /// <param name="result">结果值</param>
+    /// <param name="version">入队时记录的版本号</param>
     /// <returns>是否成功设置</returns>
-    Boolean TrySetCanceled();
+    Boolean TrySetResult(Object result, Int16 version);
+
+    /// <summary>尝试设置取消（仅首次调用生效，且要求版本一致）</summary>
+    /// <param name="version">入队时记录的版本号</param>
+    /// <returns>是否成功设置</returns>
+    Boolean TrySetCanceled(Int16 version);
 }
 
 /// <summary>池化的异步完成源。基于 ManualResetValueTaskSourceCore 实现，避免每次 SendMessageAsync 分配 TaskCompletionSource</summary>
@@ -30,8 +37,14 @@ sealed class PooledValueTaskSource<T> : IValueTaskSource<T>, IPooledSource
 
     /// <summary>尝试设置成功结果（弱类型版，结果类型不符时失败）</summary>
     /// <param name="result">结果值</param>
+    /// <param name="version">入队时记录的版本号</param>
     /// <returns>是否成功设置</returns>
-    Boolean IPooledSource.TrySetResult(Object result) => result is T value && TrySetResult(value);
+    Boolean IPooledSource.TrySetResult(Object result, Int16 version) => version == _core.Version && result is T value && TrySetResult(value);
+
+    /// <summary>尝试设置取消（弱类型版）</summary>
+    /// <param name="version">入队时记录的版本号</param>
+    /// <returns>是否成功设置</returns>
+    Boolean IPooledSource.TrySetCanceled(Int16 version) => version == _core.Version && TrySetCanceled();
 
     /// <summary>关联的性能追踪 Span，在 GetResult 中自动释放</summary>
     private ISpan? _span;
@@ -45,7 +58,9 @@ sealed class PooledValueTaskSource<T> : IValueTaskSource<T>, IPooledSource
     public static PooledValueTaskSource<T> Rent()
     {
         var source = _pool.Get();
-        // 在借出时重置完成标志，而非 GetResult 中重置，避免匹配队列残留引用对已回收源重复操作
+        // 在借出时重置完成标志，而非 GetResult 中重置：本实例要能被下一次请求重新使用。
+        // 复位会一并“解除”上一轮的完成定案，所以完成方必须带版本号（见 IPooledSource），
+        // 残留的匹配队列项持有旧版本，无法完成后续借出的新请求
         source._completed = 0;
         // 对齐旧 TCS（TaskCreationOptions.RunContinuationsAsynchronously）行为，避免续体在接收线程同步执行
         source._core.RunContinuationsAsynchronously = true;
@@ -125,7 +140,8 @@ sealed class PooledValueTaskSource<T> : IValueTaskSource<T>, IPooledSource
             _span?.Dispose();
 
             // 重置状态并归还到池
-            // 不重置 _completed，保留为 1，防止匹配队列残留引用对已回收源重复调用 TrySetCanceled
+            // 不重置 _completed，保留为 1，防止匹配队列残留引用对已回收源重复调用 TrySetCanceled；
+            // Reset 会递增版本号，残留项因此彻底失效（版本不符）
             _span = null;
             _registration = default;
             _core.Reset();

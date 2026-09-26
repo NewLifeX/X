@@ -89,10 +89,10 @@ public interface IEventBus<TEvent>
     Task<Boolean> UnsubscribeAsync(String clientId = "", CancellationToken cancellationToken = default);
 }
 
-/// <summary>非泛型事件总线标记接口。仅为兼容旧版 <see cref="IEventContext.EventBus"/> 字段保留</summary>
+/// <summary>非泛型事件总线接口。仅为兼容旧版 <see cref="IEventContext.EventBus"/> 字段保留</summary>
 /// <remarks>
-/// <para>新代码请使用强类型 <see cref="IEventBus{TEvent}"/>。本接口在新架构中仅作类型标记，不再承载方法成员。</para>
-/// <para>历史上本接口提供 <c>PublishAsync(Object)</c>；该方法由具体实现 <see cref="EventBus{TEvent}"/> 通过显式接口实现继续提供。</para>
+/// <para>新代码请使用强类型 <see cref="IEventBus{TEvent}"/>。本接口只保留一个弱类型发布方法，订阅/取消订阅等一律走强类型接口。</para>
+/// <para><c>PublishAsync(Object)</c> 由具体实现 <see cref="EventBus{TEvent}"/> 显式接口实现，避免泛型接口的引用传递在编译期产生歧义。</para>
 /// </remarks>
 public interface IEventBus
 {
@@ -102,14 +102,4 @@ public interface IEventBus
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>成功处理该事件的处理器数量</returns>
     Task<Int32> PublishAsync(Object @event, IEventContext? context = null, CancellationToken cancellationToken = default);
-}
-
-/// <summary>异步事件总线。历史接口，等价于 <see cref="IEventBus{TEvent}"/></summary>
-/// <remarks>
-/// <para>在新架构中 <see cref="IEventBus{TEvent}"/> 已直接提供 <c>SubscribeAsync</c>/<c>UnsubscribeAsync</c>，
-/// 因此本接口退化为空别名。仅为兼容旧引用而保留。</para>
-/// </remarks>
-/// <typeparam name="TEvent">事件类型</typeparam>
-public interface IAsyncEventBus<TEvent> : IEventBus<TEvent>
-{
 }

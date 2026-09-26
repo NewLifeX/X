@@ -27,13 +27,18 @@ public class SrmpCodec : IMessageCodec, IMessageMatcher
     #region 方法
     /// <summary>定界并构造消息。解析头部（4 或 8 字节），构造头部字段就位的 <see cref="DefaultMessage"/></summary>
     /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
-    /// <returns>解析结果；头部不足返回 null（不消费、不产生对象）</returns>
-    /// <remarks>在只读序列上顺序读取，不拼读、不物化；扩展长度读出负数（协议上限 Int32.MaxValue）视为损坏帧返回 null。</remarks>
+    /// <returns>解析结果；头部不足返回 null（不消费、不产生对象）；损坏帧返回 <see cref="ParseResult.Invalid"/> 结果</returns>
+    /// <remarks>在只读序列上顺序读取，不拼读、不物化；扩展长度读出负数（协议上限 Int32.MaxValue）视为损坏帧。</remarks>
     public ParseResult? TryParse(ReadOnlySequence<Byte> buffer)
     {
         // 协议字段由消息类自行解析（消息定义即协议），帧层只负责装配
         var message = new DefaultMessage();
-        if (!message.TryParse(buffer, out var bodyLength, out var headerSize)) return null;
+        if (!message.TryParse(buffer, out var bodyLength, out var headerSize, out var invalid))
+        {
+            // 头部已完整但长度非法：损坏帧交由帧层按协议错误处置（流式关闭连接、数据报丢包）；
+            // 只有数据不足才返回 null 进入等待
+            return invalid ? new ParseResult { Invalid = true } : null;
+        }
 
         return new ParseResult { Message = message, HeaderSize = headerSize, BodyLength = bodyLength };
     }
@@ -90,10 +95,15 @@ public class SrmpCodec : IMessageCodec, IMessageMatcher
         return pk;
     }
 
-    /// <summary>判断响应是否匹配请求。标准消息按序列号配对（低8位）</summary>
+    /// <summary>判断响应是否匹配请求。标准消息按序列号较低8位配对</summary>
     /// <param name="request">挂起的请求消息</param>
     /// <param name="response">收到的响应消息</param>
     /// <returns>是否配对</returns>
+    /// <remarks>
+    /// <para>线格式的序列号只有 1 字节（见 <see cref="DefaultMessage.WriteHeader"/>），对端回显的也只是低 8 位；
+    /// 请求侧若用自增 Int32 计数器，比较完整 32 位会恒不相等，只能等配对超时。</para>
+    /// <para>同一连接上并发数超过 256 时，低 8 位会重复，此时从最近入队的请求开始配对，与队列的搜索方向一致。</para>
+    /// </remarks>
     public Boolean Match(IMessage request, IMessage response)
     {
         if (request is not DefaultMessage rq || response is not DefaultMessage rs) return false;
@@ -101,7 +111,7 @@ public class SrmpCodec : IMessageCodec, IMessageMatcher
         // 仅应答类消息参与配对（响应识别下放协议 matcher，无方向协议可用恒真 matcher）
         if (!rs.Reply) return false;
 
-        return rq.Sequence == rs.Sequence;
+        return (rq.Sequence & 0xFF) == (rs.Sequence & 0xFF);
     }
     #endregion
 }

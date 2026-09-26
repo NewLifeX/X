@@ -83,9 +83,9 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
                 throw new NotSupportedException($"不支持的 Size 值：{Size}");
         }
 
-        // 变长编码可以编码出负数（如 FF FF FF FF 0F → -1）：帧长度必须 Int64 且负值拒收，
-        // 否则帧泵会把它当成“帧已到齐”去切帧，抛异常打断整条接收链
-        if (len < 0) return null;
+        // 变长编码可以编码出负数（如 FF FF FF FF 0F → -1）：帧长度必须非负，负值按损坏帧上报，
+        // 不能当成“数据不足”默默等待，也不能当成“帧已到齐”去切帧
+        if (len < 0) return new ParseResult { Invalid = true };
 
         var message = new Message();
         return new ParseResult { Message = message, HeaderSize = Offset + fieldLen, BodyLength = len };
@@ -112,12 +112,20 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
 
         // 增加协议头：已预留的拥有句柄零拷贝借位共享，其余新头节点挂接负载链
         var pk = body.PrepareHeader(Offset + fieldLen);
+        try
+        {
+            var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = Size > 0 };
+            if (Offset > 0) writer.Fill(0, Offset);
+            WriteLength(ref writer, len);
 
-        var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = Size > 0 };
-        if (Offset > 0) writer.Fill(0, Offset);
-        WriteLength(ref writer, len);
-
-        return pk;
+            return pk;
+        }
+        catch
+        {
+            // 长度超出字段表示范围等异常：构建产物已持有借位/新头句柄，异常路径必须归还，否则池化缓冲泄漏
+            pk.TryDispose();
+            throw;
+        }
     }
 
     /// <summary>仅构建头部数据包，声明消息体长度（头 + 流式体发送）</summary>
@@ -133,12 +141,20 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
 
         var fieldLen = Size == 0 ? GetVarintLength(bodyLength) : Math.Abs(Size);
         var pk = new OwnerPacket(Offset + fieldLen);
+        try
+        {
+            var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = Size > 0 };
+            if (Offset > 0) writer.Fill(0, Offset);
+            WriteLength(ref writer, bodyLength);
 
-        var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = Size > 0 };
-        if (Offset > 0) writer.Fill(0, Offset);
-        WriteLength(ref writer, bodyLength);
-
-        return pk;
+            return pk;
+        }
+        catch
+        {
+            // 长度超出字段表示范围等异常：新建句柄必须归还，否则池化缓冲泄漏
+            pk.TryDispose();
+            throw;
+        }
     }
     #endregion
 

@@ -58,9 +58,20 @@ public class DefaultMessage : Message
     /// <param name="headerSize">头部字节数（4 或 8）</param>
     /// <returns>是否解析成功</returns>
     public Boolean TryParse(ReadOnlySequence<Byte> buffer, out Int64 bodyLength, out Int32 headerSize)
+        => TryParse(buffer, out bodyLength, out headerSize, out _);
+
+    /// <summary>解析 SRMP 头部并填充当前实例，同时区分“数据不足”与“帧已损坏”</summary>
+    /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
+    /// <param name="bodyLength">解析到的负载长度</param>
+    /// <param name="headerSize">头部字节数（4 或 8）</param>
+    /// <param name="invalid">是否为损坏帧（头部已完整但内容非法）。返回 false 且本值为 false 时表示数据不足</param>
+    /// <returns>是否解析成功</returns>
+    /// <remarks>帧层对“不足”是等待更多数据，对“损坏”必须立即报错，两者的处置完全不同，不能合为一个 false</remarks>
+    public Boolean TryParse(ReadOnlySequence<Byte> buffer, out Int64 bodyLength, out Int32 headerSize, out Boolean invalid)
     {
         bodyLength = 0;
         headerSize = 0;
+        invalid = false;
         if (buffer.Length < 4) return false;
 
         var reader = new SequenceReader<Byte>(buffer);
@@ -72,7 +83,14 @@ public class DefaultMessage : Message
         if (len == 0xFFFF)
         {
             if (reader.Remaining < 4) return false;
-            if (!reader.TryReadLittleEndian(out Int32 len32) || len32 < 0) return false;
+
+            // 头部已完整而长度仍非法（负数，超出协议上限）：损坏帧，不是数据不足
+            if (!reader.TryReadLittleEndian(out Int32 len32) || len32 < 0)
+            {
+                invalid = true;
+                return false;
+            }
+
             size = 8;
             payloadLen = len32;
         }

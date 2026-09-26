@@ -41,6 +41,10 @@ public class DefaultMatchQueue : IMatchQueue
         public Object? Request { get; set; }
         public Int64 EndTime { get; set; }
         public Object? Source { get; set; }
+
+        /// <summary>源版本号。池化源在归还池后会被新请求复用，完成时必须校验版本，避免迟到响应/超时取消误打到新请求上</summary>
+        public Int16 Version { get; set; }
+
         public ISpan? Span { get; set; }
     }
 
@@ -75,6 +79,7 @@ public class DefaultMatchQueue : IMatchQueue
             Request = request,
             EndTime = now + msTimeout,
             Source = source,
+            Version = (source as IPooledSource)?.Version ?? 0,
             Span = ext?["Span"] as ISpan,
         };
 
@@ -161,9 +166,11 @@ public class DefaultMatchQueue : IMatchQueue
 
                 Interlocked.Decrement(ref _Count);
 
-                // 设置完成结果，TaskCreationOptions.RunContinuationsAsynchronously确保不会阻塞当前线程
+                // 设置完成结果，TaskCreationOptions.RunContinuationsAsynchronously确保不会阻塞当前线程。
+                // 等待方已取消/已完成，或池化源已被回收复用（版本不符）时完成失败：
+                // 消息已无接管人，按未命中返回，由调用方丢弃负载并释放，避免消息与池化缓冲泄漏
                 var src = qi.Source;
-                if (src != null) SetResult(src, result);
+                if (src == null || !SetResult(src, result, qi.Version)) return false;
 
                 return true;
             }
@@ -198,7 +205,7 @@ public class DefaultMatchQueue : IMatchQueue
                 Interlocked.Decrement(ref _Count);
 
                 var src = qi.Source;
-                if (src != null) SetCanceled(src);
+                if (src != null) SetCanceled(src, qi.Version);
             }
         }
     }
@@ -215,44 +222,57 @@ public class DefaultMatchQueue : IMatchQueue
             Interlocked.Decrement(ref _Count);
 
             var src = qi.Source;
-            if (src != null) SetCanceled(src);
+            if (src != null) SetCanceled(src, qi.Version);
         }
-        _Count = 0;
+
+        // 不整体清零：循环内已逐项递减，整体赋值会与并发 Add 的 Interlocked.Increment 竞争，
+        // 把计数抹小后 Match 立即返回 false，已入队请求永远等不到响应
     }
 
     /// <summary>设置完成结果（兼容 TCS 和 PooledValueTaskSource）</summary>
-    private static void SetResult(Object source, Object result)
+    /// <param name="source">任务源</param>
+    /// <param name="result">结果</param>
+    /// <param name="version">入队时记录的源版本号</param>
+    /// <returns>是否完成成功。等待方已取消/已完成，或池化源已被复用（版本不符）时返回 false</returns>
+    private static Boolean SetResult(Object source, Object result, Int16 version)
     {
-        if (source is IPooledSource pvts)
-        {
-            pvts.TrySetResult(result);
-            return;
-        }
-        if (source is TaskCompletionSource<Object> tcs && !tcs.Task.IsCompleted)
+        if (source is IPooledSource pvts) return pvts.TrySetResult(result, version);
+
+        if (source is TaskCompletionSource<Object> tcs)
         {
 #if NET45
+            if (tcs.Task.IsCompleted) return false;
+
             Task.Factory.StartNew(() => tcs.TrySetResult(result));
+            return true;
 #else
-            tcs.TrySetResult(result);
+            return tcs.TrySetResult(result);
 #endif
         }
+
+        return false;
     }
 
     /// <summary>设置取消（兼容 TCS 和 PooledValueTaskSource）</summary>
-    private static void SetCanceled(Object source)
+    /// <param name="source">任务源</param>
+    /// <param name="version">入队时记录的源版本号</param>
+    /// <returns>是否取消成功</returns>
+    private static Boolean SetCanceled(Object source, Int16 version)
     {
-        if (source is IPooledSource pvts)
-        {
-            pvts.TrySetCanceled();
-            return;
-        }
-        if (source is TaskCompletionSource<Object> tcs && !tcs.Task.IsCompleted)
+        if (source is IPooledSource pvts) return pvts.TrySetCanceled(version);
+
+        if (source is TaskCompletionSource<Object> tcs)
         {
 #if NET45
+            if (tcs.Task.IsCompleted) return false;
+
             Task.Factory.StartNew(() => tcs.TrySetCanceled());
+            return true;
 #else
-            tcs.TrySetCanceled();
+            return tcs.TrySetCanceled();
 #endif
         }
+
+        return false;
     }
 }
