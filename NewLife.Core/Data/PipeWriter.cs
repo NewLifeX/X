@@ -230,7 +230,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
     }
 
     /// <summary>完成写入。挂起的读取与挂起的提交立即完成（IsCompleted=true）；此后追加的数据直接释放</summary>
-    /// <param name="error">结束原因（异常）。可为空</param>
+    /// <param name="error">结束原因（异常）。可为空；首个带异常的完成方胜出（读侧已带异常时不覆盖）</param>
     public void Complete(Exception? error = null)
     {
         TaskCompletionSource<ReadResult>? waiter;
@@ -244,7 +244,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
             if (_pipe.WriterCompleted) return;
 
             _pipe.WriterCompleted = true;
-            _pipe.Error = error;
+            if (error != null) _pipe.Error ??= error;
 
             // 未提交的写入数据丢弃（含池缓冲归还）
             ReleaseWriteLocked();

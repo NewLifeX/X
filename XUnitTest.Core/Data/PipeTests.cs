@@ -240,6 +240,37 @@ public class PipeTests
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await vt);
     }
+
+    [Fact]
+    [DisplayName("Pipe_读侧完成带异常_记录到管道错误且不被空异常覆盖")]
+    public void ReaderComplete_WithError_RecordsError()
+    {
+        using var pipe = new Pipe();
+        var ex = new InvalidOperationException("boom");
+
+        pipe.Reader.CompleteAsync(ex).GetAwaiter().GetResult();
+
+        Assert.Same(ex, pipe.Error);
+
+        // 首个带异常的完成方胜出：写侧随后的空异常完成不覆盖已有错误
+        pipe.Writer.Complete();
+        Assert.Same(ex, pipe.Error);
+    }
+
+    [Fact]
+    [DisplayName("Pipe_写侧完成带异常_读侧可查管道错误")]
+    public async Task WriterComplete_WithError_ExposedOnPipe()
+    {
+        using var pipe = new Pipe();
+        var ex = new InvalidOperationException("broken");
+
+        pipe.Writer.Complete(ex);
+
+        // 读侧只拿到“已结束”信号；故障原因从 Pipe.Error 取，调用方据此区分故障结束与优雅结束
+        var rr = await pipe.Reader.ReadAsync();
+        Assert.True(rr.IsCompleted);
+        Assert.Same(ex, pipe.Error);
+    }
     #endregion
 
     #region 背压
@@ -447,6 +478,24 @@ public class PipeTests
         // 排空后原挂起提交正常完成
         pipe.Reader.AdvanceTo(150);
         var fr = await vt;
+        Assert.False(fr.IsCanceled);
+    }
+
+    [Fact]
+    [DisplayName("Pipe_只检查不消费_写侧提交不被回压锁死")]
+    public async Task Backpressure_ExaminedWithoutConsumed_SubmitProceeds()
+    {
+        using var pipe = new Pipe { PauseThreshold = 1024, ResumeThreshold = 512 };
+        pipe.Writer.Append(new ArrayPacket(new Byte[2048]));
+        Assert.True(pipe.IsPaused);
+
+        // 只检查不消费：帧未凑齐时上层只看一眼就等更多数据（MessagePump 的文档化用法）
+        var rr = await pipe.Reader.ReadAsync();
+        pipe.Reader.AdvanceTo(0, rr.Buffer.Length);
+
+        // 已检查的字节不再计入背压，写侧提交立即完成（超时保护：锁死则失败的用例不会被挂死）
+        Assert.False(pipe.IsPaused);
+        var fr = await pipe.Writer.FlushAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.False(fr.IsCanceled);
     }
     #endregion
@@ -795,6 +844,25 @@ public class PipeTests
         var rr2 = await pipe.Reader.ReadAsync();
         Assert.False(rr2.IsCanceled);
         Assert.Equal(B(9), rr2.Buffer.ToArray());
+    }
+
+    [Fact]
+    [DisplayName("Pipe_令牌取消后再取消挂起_下一次读取仍立即取消")]
+    public async Task CancelPendingRead_AfterTokenCanceled_NextReadCanceled()
+    {
+        using var pipe = new Pipe();
+        using var cts = new CancellationTokenSource();
+
+        // 挂起读先被取消令牌定案
+        var task = pipe.Reader.ReadAsync(cts.Token).AsTask();
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+
+        // 残留等待者已被取消定案，取消信号不得就此丢失：下一次读取仍应立即返回取消结果
+        pipe.Reader.CancelPendingRead();
+
+        var rr = await pipe.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(rr.IsCanceled);
     }
     #endregion
 

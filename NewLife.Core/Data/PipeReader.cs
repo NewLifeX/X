@@ -318,11 +318,23 @@ public sealed class PipeReader
                 _cancelPending = true;
         }
 
-        NotifyWaiter(waiter, reg, result);
+        // 挂起可能已被取消令牌抢先定案（TrySetResult 失败）：此时取消未交付给任何一方，
+        // 补置标志让下一次读取立即返回取消结果，避免取消信号静默丢失
+        if (waiter != null && !NotifyWaiter(waiter, reg, result))
+        {
+            lock (_pipe.SyncRoot)
+            {
+                _cancelPending = true;
+            }
+        }
     }
 
     /// <summary>结束读取。释放全部未消费数据，此后追加的数据直接被释放</summary>
-    public void Complete()
+    public void Complete() => Complete(null);
+
+    /// <summary>结束读取，并记录结束原因。首个带异常的完成方胜出（写侧已带异常时不覆盖）</summary>
+    /// <param name="error">结束原因（异常）。可为空</param>
+    public void Complete(Exception? error)
     {
         TaskCompletionSource<ReadResult>? waiter;
         CancellationTokenRegistration reg;
@@ -337,6 +349,8 @@ public sealed class PipeReader
             _readerCompleted = true;
             _pipe.ReaderCompleted = true;
             _pipe.WriterCompleted = true;
+
+            if (error != null) _pipe.Error ??= error;
 
             ReleaseAllLocked();
             _pipe.ResetPauseLocked();
@@ -353,11 +367,11 @@ public sealed class PipeReader
         PipeWriter.NotifyFlushWaiter(flushWaiter, flushReg, new FlushResult(true, false));
     }
 
-    /// <summary>结束读取（异步形态，与 <see cref="Complete"/> 等价）</summary>
+    /// <summary>结束读取（异步形态，与 <see cref="Complete(Exception?)"/> 等价）</summary>
     /// <param name="error">结束原因（异常）。可为空</param>
     public ValueTask CompleteAsync(Exception? error = null)
     {
-        Complete();
+        Complete(error);
         return default;
     }
     #endregion
@@ -400,8 +414,9 @@ public sealed class PipeReader
             _segLast = segLast;
             _length += pk.Total;
 
-            // 维护暂停态（追加通常只会推高长度；动态调高恢复水位等极端配置下也可能在此解除）
-            resumed = _pipe.UpdatePauseLocked(_length);
+            // 维护暂停态（记账量为“未检查数据”，见 Pipe.PauseThreshold）：追加通常推高未检查量；
+            // 已检查但未消费的字节不计入，故只检查不消费不会把写侧锁死
+            resumed = _pipe.UpdatePauseLocked(_length - _examined);
 
             waiter = TakeWaiterLocked(out reg);
             if (waiter != null) result = new ReadResult(BuildWindowLocked(), false, false);
@@ -480,10 +495,11 @@ public sealed class PipeReader
     /// <param name="waiter">挂起的读取</param>
     /// <param name="reg">取消注册</param>
     /// <param name="result">读取结果</param>
-    internal static void NotifyWaiter(TaskCompletionSource<ReadResult>? waiter, CancellationTokenRegistration reg, ReadResult result)
+    /// <returns>结果是否真正交付；false 表示等待者已被取消令牌抢先定案</returns>
+    internal static Boolean NotifyWaiter(TaskCompletionSource<ReadResult>? waiter, CancellationTokenRegistration reg, ReadResult result)
     {
         reg.Dispose();
-        waiter?.TrySetResult(result);
+        return waiter?.TrySetResult(result) ?? false;
     }
 
     /// <summary>复位读侧状态供管道复用（帧层专用）。复位前管道须已完成</summary>
@@ -540,8 +556,8 @@ public sealed class PipeReader
             _examined = 0;
         }
 
-        // 背压状态：转入暂停/解除暂停（迟滞），解除时报告恢复
-        return _pipe.UpdatePauseLocked(_length);
+        // 背压状态：转入暂停/解除暂停（迟滞），解除时报告恢复。记账量为“未检查数据”（见 Pipe.PauseThreshold）
+        return _pipe.UpdatePauseLocked(_length - _examined);
     }
 
     /// <summary>切出窗口前 count 字节为拥有切片链（调用方持锁，不改变窗口）</summary>

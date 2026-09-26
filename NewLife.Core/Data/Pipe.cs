@@ -27,10 +27,14 @@ public sealed class Pipe : IDisposable
     /// <summary>写侧句柄。生产方从这里写入数据（对标 BCL 的 PipeWriter）</summary>
     public PipeWriter Writer { get; }
 
-    /// <summary>暂停水位（字节）。未消费数据达到该值时 <see cref="IsPaused"/> 为 true，接收方应暂停接收、写侧提交可挂起等待；0或负数不启用背压。默认1M</summary>
+    /// <summary>暂停水位（字节）。未检查数据达到该值时 <see cref="IsPaused"/> 为 true，接收方应暂停接收、写侧提交可挂起等待；0或负数不启用背压。默认1M</summary>
+    /// <remarks>记账量为“未检查数据 = <see cref="UnconsumedLength"/> − 已检查字节数”，口径对齐 System.IO.Pipelines：
+    /// 读侧 <see cref="PipeReader.AdvanceTo(Int64, Int64)"/> 声明为已检查的字节即解除计入，即使尚未消费——背压约束的是消费者还没看过的积压。
+    /// 单参 <see cref="PipeReader.AdvanceTo(Int64)"/> 等价 examined=consumed，故常规消费推进的暂停/恢复行为与“按未消费记账”完全一致。</remarks>
     public Int64 PauseThreshold { get; set; } = 1024 * 1024;
 
-    /// <summary>恢复水位（字节）。消费推进使未消费数据降到该值以下时触发 <see cref="Resumed"/>。默认512K</summary>
+    /// <summary>恢复水位（字节）。未检查数据降到该值以下时解除暂停并触发 <see cref="Resumed"/>。默认512K</summary>
+    /// <remarks>记账口径见 <see cref="PauseThreshold"/>。</remarks>
     public Int64 ResumeThreshold { get; set; } = 512 * 1024;
 
     /// <summary>未消费数据长度。来自读侧段链</summary>
@@ -42,7 +46,7 @@ public sealed class Pipe : IDisposable
     /// <summary>写侧是否已完成</summary>
     public Boolean IsCompleted => WriterCompleted;
 
-    /// <summary>完成时的异常。写侧 Complete(error) 时携带</summary>
+    /// <summary>完成时的异常。读写两侧的 Complete(error) 均可携带，先到先得（已有异常时不被空值覆盖）</summary>
     public Exception? Error { get; internal set; }
 
     /// <summary>消费推进使未消费数据降到恢复水位以下、或读侧挂起等待触发饥饿让位时触发，接收方可恢复接收</summary>
@@ -100,10 +104,10 @@ public sealed class Pipe : IDisposable
     }
 
     /// <summary>刷新暂停状态（调用方持锁）。返回本次是否需要触发恢复事件</summary>
-    /// <param name="length">当前未消费数据长度</param>
-    /// <remarks>迟滞：达到暂停水位转入暂停态后保持，直到长度降到恢复水位以下才解除。
+    /// <param name="pending">当前未检查数据长度（未消费 − 已检查）</param>
+    /// <remarks>迟滞：达到暂停水位转入暂停态后保持，直到降回恢复水位以下才解除。
     /// 不能按瞬时长度判断——多次小步消费时，跨过恢复水位的那一次推进的起始长度已低于暂停水位，瞬时判断会漏报恢复。</remarks>
-    internal Boolean UpdatePauseLocked(Int64 length)
+    internal Boolean UpdatePauseLocked(Int64 pending)
     {
         if (PauseThreshold <= 0)
         {
@@ -114,13 +118,13 @@ public sealed class Pipe : IDisposable
         if (_paused)
         {
             // 已暂停：降到恢复水位以下时解除并报告
-            if (length < ResumeThreshold)
+            if (pending < ResumeThreshold)
             {
                 _paused = false;
                 return true;
             }
         }
-        else if (length >= PauseThreshold)
+        else if (pending >= PauseThreshold)
         {
             _paused = true;
         }
@@ -134,7 +138,8 @@ public sealed class Pipe : IDisposable
     /// <summary>读饥饿让位（调用方持锁）。返回本次是否需要触发恢复事件</summary>
     /// <remarks>读侧在“无新数据可交付”时才会挂起等待：此时不会再有消费、暂停已不可能按常规路径（消费降压）解除，
     /// 若继续持有，接收方将停摆，读者永远等不到后续字节（整帧/最小长度读取死锁）。故挂起前解除暂停，由调用方触发 <see cref="Resumed"/> 放行接收。
-    /// 背压约束的是“已到达但未被检查/消费”的积压；读者正在等待的数据不计入该约束。</remarks>
+    /// 按“未检查”记账后，读者进入等待时未检查量必然不大于 0、暂停已自行解除，这里作为兜底保留：
+    /// 运行期调低 <see cref="PauseThreshold"/> 等配置使暂停在读者等待期间重新成立时，仍据此放行接收。</remarks>
     internal Boolean ReleasePauseForReaderLocked()
     {
         if (!_paused) return false;
