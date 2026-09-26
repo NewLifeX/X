@@ -60,8 +60,25 @@ public class MessageSessionTests
 
         var task = source.ValueTask.AsTask();
 
-        // 队列超时（定时器秒级精度）取消等待源
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => WithTimeout(task, 10_000));
+        // 超时取消由共享的 1 秒周期 TimerX 驱动，回调还要经线程池调度；并行跑测试时抖动可能远超 1 秒。
+        // 本用例只验证“到期必然取消”这一契约，故给足余量——曾因 10 秒上限在与网络用例同批跑时被拖超时
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => WithTimeout(task, 60_000));
+    }
+
+    [Fact]
+    [DisplayName("匹配队列_清空_取消池化等待源")]
+    public async Task MatchQueue_Clear_CancelsSource()
+    {
+        var queue = new DefaultMatchQueue();
+        var source = PooledValueTaskSource<Message>.Rent();
+        queue.Add(this, new DefaultMessage { Sequence = 1 }, 300, source);
+
+        var task = source.ValueTask.AsTask();
+
+        // 与超时路径共用同一套取消逻辑，但同步触发、不依赖定时器调度，因此不会因机器负载而飘
+        queue.Clear();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
     }
 
     [Fact]
