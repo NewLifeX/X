@@ -1013,5 +1013,48 @@ public class PipeTests
         Assert.Equal(2, rr2.Buffer.Length);
         pipe.Reader.AdvanceTo(2);
     }
+
+    [Fact]
+    [DisplayName("Pipe_复位_清空残留取消暂存")]
+    public async Task Reset_ClearsPendingCancel()
+    {
+        using var pipe = new Pipe();
+
+        // 无挂起读取时的取消暂存，随后两端结束并复位
+        pipe.Reader.CancelPendingRead();
+        pipe.Writer.Complete();
+        pipe.Reader.Complete();
+        pipe.Reset();
+
+        // 复位后第一次读取不得立即返回取消结果（否则复用管道会凭空取消一次读取）
+        var vt = pipe.Reader.ReadAsync();
+        Assert.False(vt.IsCompleted);
+
+        pipe.Writer.Append(new ArrayPacket(B(1, 2, 3)));
+        var rr = await vt;
+        Assert.False(rr.IsCanceled);
+        Assert.Equal(B(1, 2, 3), rr.Buffer.ToArray());
+    }
+
+    [Fact]
+    [DisplayName("Pipe_复位_清空已检查游标_新数据可被 TryRead 看到")]
+    public async Task Reset_ClearsExaminedCursor()
+    {
+        using var pipe = new Pipe();
+
+        // 制造大值已检查游标：只检查不消费
+        pipe.Writer.Append(new ArrayPacket(new Byte[150]));
+        var rr = await pipe.Reader.ReadAsync();
+        pipe.Reader.AdvanceTo(0, rr.Buffer.Length);
+
+        pipe.Writer.Complete();
+        pipe.Reader.Complete();
+        pipe.Reset();
+
+        // 复位后复用：新追加的数据必须能被 TryRead 看到（不得因复用的游标/窗口状态误判无数据）
+        pipe.Writer.Append(new ArrayPacket(B(7, 8)));
+        Assert.True(pipe.Reader.TryRead(out var tr));
+        Assert.Equal(B(7, 8), tr.Buffer.ToArray());
+    }
     #endregion
 }
