@@ -222,10 +222,29 @@ public class HttpSession : INetHandler, IDisposable
                 var closing = req == null || (!req.KeepAlive && _websocket == null);
                 if (closing && !rs.Headers.ContainsKey("Connection")) rs.Headers["Connection"] = "close";
 
-                // HEAD 请求：不得返回实体，但仍需声明实体长度，否则 keep-alive 连接上客户端会把后续响应当成本次实体（连接失步）
-                if (req != null && req.Method.EqualIgnoreCase("HEAD") && rs.BodyStream == null)
+                // HEAD 请求：不得返回实体，但仍需声明实体长度，否则 keep-alive 连接上客户端会把后续响应当成本次实体（连接失步）。
+                // 必须覆盖 BodyStream 形态（静态文件/嵌入资源均走流式）：旧判断只看内存体，HEAD 时会把实体一起发出去
+                if (req != null && req.Method.EqualIgnoreCase("HEAD"))
                 {
-                    using var res = rs.BuildHeaderPacket(rs.Body?.Total ?? 0);
+                    var length = -1L;
+                    if (rs.BodyStream is { } headStream)
+                    {
+                        // 长度可知（可寻址流）则声明 Content-Length，否则不声明（HEAD 允许省略）
+                        if (headStream.CanSeek)
+                        {
+                            try { length = headStream.Length - headStream.Position; } catch { length = -1; }
+                        }
+
+                        // 实体所有权随响应：HEAD 不发送实体，就地释放，避免残留文件/内存句柄
+                        rs.BodyStream = null;
+                        headStream.TryDispose();
+                    }
+                    else
+                    {
+                        length = rs.Body?.Total ?? 0;
+                    }
+
+                    using var res = rs.BuildHeaderPacket(length);
                     _session.Send(res);
                 }
                 // 流式响应体：先发头部，再流式发送主体（已知长度走 Content-Length，未知走分块传输）
@@ -251,6 +270,14 @@ public class HttpSession : INetHandler, IDisposable
         {
             req.Body.TryDispose();
             req.Body = null;
+
+            // multipart 文件数据是请求包上的共享切片（独立持有池缓冲引用），必须一并释放，
+            // 否则每上传一次就泄漏一块池缓冲（服务端会话可能存活到超时，缓冲长期不回池）
+            if (req.Files != null)
+            {
+                foreach (var file in req.Files) file.Data.TryDispose();
+                req.Files = null;
+            }
         }
     }
 
