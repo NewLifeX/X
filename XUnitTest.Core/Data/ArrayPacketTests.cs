@@ -23,6 +23,20 @@ public class ArrayPacketTests
     }
 
     [Fact]
+    [DisplayName("构造_偏移越界_抛参数异常而不是产生负长度")]
+    public void Ctor_OffsetBeyondBuffer_Throws()
+    {
+        var buf = "Stone".GetBytes();
+
+        // 越界偏移若放过，“到末尾”的长度推导会得到负值，形成 Length 为负的坏包
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, buf.Length + 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, -1));
+
+        // 偏移等于长度是合法的空窗口
+        Assert.Equal(0, new ArrayPacket(buf, buf.Length).Length);
+    }
+
+    [Fact]
     public void CtorTest()
     {
         var buf = "Stone".GetBytes();

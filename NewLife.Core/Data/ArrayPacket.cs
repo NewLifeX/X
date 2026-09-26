@@ -77,6 +77,9 @@ public record struct ArrayPacket : IPacket
     public ArrayPacket(Byte[] buf, Int32 offset = 0, Int32 count = -1)
     {
         if (buf == null) throw new ArgumentNullException(nameof(buf));
+
+        // 偏移越界时“到末尾”的长度推导会变成负数，得到 Length 为负的坏包；必须在这里拦住
+        if (offset < 0 || offset > buf.Length) throw new ArgumentOutOfRangeException(nameof(offset));
         if (count < 0) count = buf.Length - offset;
 
         _buffer = buf;
