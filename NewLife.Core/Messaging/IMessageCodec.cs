@@ -1,4 +1,4 @@
-﻿﻿using System.Buffers;
+﻿using System.Buffers;
 using NewLife.Data;
 
 namespace NewLife.Messaging;

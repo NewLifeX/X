@@ -1,4 +1,4 @@
-﻿﻿using NewLife.Data;
+﻿using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Messaging;
