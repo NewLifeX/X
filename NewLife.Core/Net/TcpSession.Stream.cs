@@ -215,8 +215,10 @@ partial class TcpSession
         }
         finally
         {
-            // 入站流：完成写侧，挂起读立即完成；释放暂存的接收，避免泄漏
-            _pipe?.Writer.Complete();
+            // 入站流：释放管道（等价于完成写侧唤醒挂起读 + 结束读侧归还残余池缓冲）。
+            // 只完成写侧会让读侧链上尚未消费的池缓冲一直挂到管道随对象不可达，由终结器兜底归还；
+            // 服务端会话还可能存活到 SessionTimeout，等于长期占用内存池。
+            _pipe?.Dispose();
             ReleaseParkedReceive();
         }
     }
