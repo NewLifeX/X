@@ -150,11 +150,72 @@ public class CompressedCodecTests
         p2.TryDispose();
     }
 
+    [Fact]
+    [DisplayName("压缩编解码_跨段序列_解压还原")]
+    public void CrossSegment_Decompress()
+    {
+        var codec = NewCodec();
+        var payload = Encoding.UTF8.GetBytes("hello compressed world");
+
+        var pk = codec.Build(NewMsg(5, "hello compressed world"))!;
+        var frame = pk.AsReadOnlySequence().ToArray();
+        pk.TryDispose();
+
+        // 在体首字节处拆成两段：压缩体跨段，解压须先拼出完整压缩数据
+        var first = new Segment(frame.AsMemory(0, 5));
+        var last = first.Append(frame.AsMemory(5));
+        var sequence = new ReadOnlySequence<Byte>(first, 0, last, frame.Length - 5);
+
+        var rs = codec.TryParse(sequence);
+        Assert.NotNull(rs);
+        var msg2 = (DefaultMessage)rs.Value.Message!;
+        Assert.Equal(5, msg2.Sequence);
+        Assert.Equal(payload, msg2.Payload!.ToArray());
+        msg2.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("压缩编解码_链式负载_压缩还原")]
+    public void ChainedPayload_RoundTrip()
+    {
+        var codec = NewCodec();
+
+        // 负载由两段链式挂接，压缩时须完整读出；构建不得改动原句柄
+        var body = new ArrayPacket(Encoding.UTF8.GetBytes("chained-")) { Next = new ArrayPacket(Encoding.UTF8.GetBytes("payload")) };
+        var msg = new DefaultMessage { Sequence = 6 };
+        msg.SetBody(body);
+
+        var pk = codec.Build(msg)!;
+
+        // 构建不得改动原负载（ArrayPacket 为值类型，按内容比对）
+        Assert.Equal("chained-payload", Encoding.UTF8.GetString(msg.Payload!.ToArray()));
+
+        var rs = codec.TryParse(pk.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var msg2 = (DefaultMessage)rs.Value.Message!;
+        Assert.Equal("chained-payload", Encoding.UTF8.GetString(msg2.Payload!.ToArray()));
+        msg2.Dispose();
+        pk.TryDispose();
+    }
+
     private static DefaultMessage NewMsg(Int32 seq, String text)
     {
         var msg = new DefaultMessage { Sequence = seq };
         msg.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes(text)));
 
         return msg;
+    }
+
+    /// <summary>最小跨段实现，用于构造多段只读序列</summary>
+    private sealed class Segment : ReadOnlySequenceSegment<Byte>
+    {
+        public Segment(ReadOnlyMemory<Byte> memory) => Memory = memory;
+
+        public Segment Append(ReadOnlyMemory<Byte> memory)
+        {
+            var segment = new Segment(memory) { RunningIndex = RunningIndex + Memory.Length };
+            Next = segment;
+            return segment;
+        }
     }
 }

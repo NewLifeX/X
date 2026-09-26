@@ -1,10 +1,11 @@
 using System.Buffers;
+using System.IO.Compression;
+using System.Runtime.InteropServices;
 using NewLife.Data;
-using NewLife.IO;
 
 namespace NewLife.Messaging;
 
-/// <summary>压缩消息编解码器。装饰内层协议，对消息体做 Deflate 压缩/解压</summary>
+/// <summary>压缩消息编解码器。装饰内层协议，只对消息负载做 Deflate 压缩/解压（帧头与帧定界仍由内层协议明文封装）</summary>
 /// <remarks>
 /// <para>组合示例：<c>server.Protocol = new CompressedCodec(new SrmpCodec());</c>——同一 <see cref="IMessageCodec"/> 接口可任意嵌套组合（压缩/加密等变换层）。</para>
 /// <para><b>连接级约定</b>：收发两端须同时配置本编码器，线格式不含压缩标志。</para>
@@ -37,8 +38,17 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec
 
         if (r.BodyLength > 0)
         {
-            var compressed = buffer.Slice(r.HeaderSize, r.BodyLength).ToArray();
-            msg.SetBody(new ArrayPacket(compressed.Decompress()));
+            // 压缩体整载取出：单段直接引用帧窗口（零拷贝），跨段才拼一份；解压结果窃取内存流缓冲
+            var body = buffer.Slice(r.HeaderSize, r.BodyLength);
+            using var input = body.IsSingleSegment && MemoryMarshal.TryGetArray(body.First, out var segment)
+                ? new MemoryStream(segment.Array!, segment.Offset, segment.Count, false)
+                : new MemoryStream(body.ToArray());
+
+            var ms = new MemoryStream();
+            using (var inflate = new DeflateStream(input, CompressionMode.Decompress, true)) inflate.CopyTo(ms);
+
+            ms.Position = 0;
+            msg.SetBody(new ArrayPacket(ms));
         }
 
         return r;
@@ -52,20 +62,22 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec
         var body = message.Payload;
         if (body == null || body.Total == 0) return Inner.Build(message);
 
-        // 摘除原负载（放弃持有，不归还句柄），把压缩体交给内层构建，构建完成后把“原句柄”放回。
-        // 这样构建前后 message.Payload 始终是同一个句柄，不会释放调用方还在用的负载。
-        var raw = body.ToArray();
+        // 逐段写入压缩流，链式负载不必先聚合；压缩结果窃取内存流缓冲
+        var ms = new MemoryStream();
+        using (var deflate = new DeflateStream(ms, CompressionLevel.Optimal, true)) body.CopyTo(deflate);
+
+        ms.Position = 0;
+
+        // 内层协议从 Payload 取体：先摘除原负载（放弃持有、不归还）再顶上压缩体，构建后原样换回
         message.SetBody(null);
+        message.SetBody(new ArrayPacket(ms));
 
         try
         {
-            message.SetBody(new ArrayPacket(raw.Compress()));
-
             return Inner.Build(message);
         }
         finally
         {
-            // 还原原句柄；压缩体为非拥有视图，被替换时释放是空操作
             message.SetBody(body);
         }
     }
