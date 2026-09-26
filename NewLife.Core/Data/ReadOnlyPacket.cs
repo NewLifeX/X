@@ -6,7 +6,7 @@ namespace NewLife.Data;
 /// <list type="bullet">
 /// <item>索引器为只读，禁止修改数据</item>
 /// <item>不支持 Next 链式结构（始终为 null）</item>
-/// <item>GetSpan 返回只读视图（通过 GetMemory().Span 获取）</item>
+/// <item>仅索引器受只读约束：GetSpan/GetMemory/Buffer 仍返回可写视图（接口所限），调用方须自律</item>
 /// </list>
 /// <para>适用场景：配置数据、协议模板、缓存数据等需要防止意外修改的场合</para>
 /// </remarks>

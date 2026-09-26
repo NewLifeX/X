@@ -20,7 +20,8 @@ public interface IMatchQueue
     /// <param name="response">响应消息</param>
     /// <param name="result">任务结果</param>
     /// <param name="callback">用于检查匹配的回调</param>
-    /// <returns></returns>
+    /// <returns>是否成功交付给等待方。**未命中，或命中但交付失败（等待方已取消、等待源已被复用），一律返回 false**；
+    /// 调用方据此认定消息无接管人，须自行丢弃负载并释放（响应匹配了就吞掉消息不改丢弃）</returns>
     Boolean Match(Object? owner, Object response, Object result, Func<Object?, Object?, Boolean> callback);
 
     /// <summary>清空队列</summary>

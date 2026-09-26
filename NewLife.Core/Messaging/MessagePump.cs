@@ -73,6 +73,7 @@ public class MessagePump
     /// <param name="reader">数据包读取器</param>
     /// <param name="message">解析出的消息（成功时有效；头部字段就位、体已绑定）</param>
     /// <returns>是否读取到消息；头部不足或窗口内仅有无消息帧时返回 false（窗口不动，等追加）</returns>
+    /// <exception cref="InvalidOperationException"><see cref="Codec"/> 未设置；或协议帧损坏（头部已完整但长度字段非法）；或整帧模式下单帧超过 <see cref="MaxFrameSize"/></exception>
     /// <remarks>协议返回无消息帧（<see cref="IMessageCodec.TryParse"/> 成功但消息为 null）时消费该帧并继续解析下一帧，直到产出消息或数据不足。</remarks>
     public Boolean TryRead(PipeReader reader, out IMessage? message)
     {

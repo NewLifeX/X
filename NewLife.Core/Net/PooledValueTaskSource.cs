@@ -10,6 +10,7 @@ namespace NewLife.Net;
 interface IPooledSource
 {
     /// <summary>当前版本号。匹配队列在入队时记录，完成时回传校验</summary>
+    /// <remarks>底层版本号为 16 位，归还再借出 65536 次后理论上会回绕；此时还需恰好命中残留队列项才会误判，窗口可忽略</remarks>
     Int16 Version { get; }
 
     /// <summary>尝试设置成功结果（仅首次调用生效，且要求版本一致）</summary>
