@@ -5,13 +5,6 @@ using System.Xml.Serialization;
 
 namespace NewLife.Remoting;
 
-public partial class ApiHttpClient
-{
-    /// <summary>服务项。向后兼容的类型别名</summary>
-    [Obsolete("请使用 HttpServiceNode")]
-    public class Service : ServiceEndpoint { }
-}
-
 /// <summary>端点类型。用于竞速时的优先级排序</summary>
 public enum EndpointCategory
 {

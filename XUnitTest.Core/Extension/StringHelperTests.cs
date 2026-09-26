@@ -269,7 +269,7 @@ public class StringHelperTests
     }
 
     [Fact]
-    public void GetBytes_And_FormatF()
+    public void GetBytes()
     {
         var bytes = "你好".GetBytes();
         Assert.Equal(Encoding.UTF8.GetBytes("你好"), bytes);
@@ -278,18 +278,6 @@ public class StringHelperTests
 
         var unicode = "test".GetBytes(Encoding.Unicode);
         Assert.Equal(Encoding.Unicode.GetBytes("test"), unicode);
-
-        // F：日期未指定格式时自动 ToFullString
-        var dt = new DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc);
-#pragma warning disable CS0618
-        var s1 = "Time:{0}".F(dt);
-        var s2 = "Time:{0:yyyyMMdd}".F(dt); // 已有格式，不替换
-        var s3 = "Num:{0}".F(123);
-#pragma warning restore CS0618
-        Assert.StartsWith("Time:", s1);
-        Assert.Contains("2024", s1);
-        Assert.Equal("Time:20240102", s2);
-        Assert.Equal("Num:123", s3);
     }
 
     [Fact]

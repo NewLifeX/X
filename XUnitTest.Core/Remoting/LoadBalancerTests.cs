@@ -300,24 +300,6 @@ public class LoadBalancerTests
 
         Assert.Equal(120, client.ShieldingTime);
     }
-
-    [Fact(DisplayName = "ApiHttpClient_Service类型别名兼容")]
-    public void ApiHttpClient_ServiceTypeAliasCompatibility()
-    {
-        // 测试旧的 ApiHttpClient.Service 类型别名仍然可用
-#pragma warning disable CS0618
-        var service = new ApiHttpClient.Service
-        {
-            Name = "test",
-            Weight = 2
-        };
-        service.SetAddress(new Uri("http://127.0.0.1:8080"));
-#pragma warning restore CS0618
-
-        Assert.Equal("test", service.Name);
-        Assert.Equal(2, service.Weight);
-        Assert.Equal("http://127.0.0.1:8080", service.UriName);
-    }
     #endregion
 
     #region HttpServiceNode测试
