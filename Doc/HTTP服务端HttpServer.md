@@ -265,5 +265,7 @@ server.Start();
 | `Transfer-Encoding: chunked` 请求 | 请求方向明确不支持分块解码，回 `411 Length Required` 并关闭连接 |
 | 路径缓存并发化 | `_pathCache` 改为并发字典并新增 `MaxPathCacheSize`（默认 4096），超限后静默不写 |
 | WebSocket 握手校验 | 带 `Sec-WebSocket-Key` 但握手四要素不合法时回 `400 Bad Request`（此前会落到普通路由报 404，掩盖真实原因）；`Upgrade`/`Connection`/`Sec-WebSocket-Version` 按逗号分隔的**令牌列表**解析，版本含 `13` 即接受 |
+| 非法 `Content-Length` | `Content-Length` 非数字、负数或超出范围时回 `400 Bad Request` 并关闭连接；此前解析失败静默当 0 处理，请求体边界随之错位 |
+| HEAD 不发实体 | HEAD 请求只发送响应头，实体流（静态文件/嵌入资源）就地释放；此前会把整个实体发出去 |
 - `NewLife.Core/Http/Handlers/ControllerHandler.cs`
 - `NewLife.Core/Http/Handlers/StaticFilesHandler.cs`

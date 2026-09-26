@@ -133,6 +133,9 @@ public class WebSocketClient : TcpSession
     /// <summary>发送二进制消息</summary>
     public Task SendBinaryAsync(IPacket data, CancellationToken cancellationToken = default);
 
+    /// <summary>发送关闭帧（可带状态码与描述）后关闭连接，会话转为断开状态</summary>
+    public Task CloseAsync(Int32 closeStatus, String? statusDescription = null, CancellationToken cancellationToken = default);
+
     /// <summary>握手（建立 WebSocket 升级请求），Open 阶段自动调用</summary>
     public static Boolean Handshake(ISocketClient client, Uri uri);
 }
@@ -254,4 +257,5 @@ server.Received += (sender, e) =>
 - **`KeepAlive` 默认 120 秒**：若服务器配置了更短的连接超时，应缩小 `KeepAlive` 以防断连。
 - **wss:// 需要 TLS 支持**：在 .NET Framework 上需要确保 TLS 可用（`SslStream`），且服务器证书有效。
 - **服务端会话隔离**：每条连接对应一个 `WebSocketSession` 实例，不要在多个 Session 之间共享状态，否则需加锁。
-- **消息分片**：当前实现中 `Fin=false` 的分片帧会被丢弃，仅处理完整帧（FIN=1）；应用层发送时无需分片。
+- **消息分片**：`Fin=false` 的数据帧按 RFC 6455 §5.4 累积，末片（FIN=1）合并为完整消息后交付；控制帧不可分片。应用层发送时无需自行分片。
+- **帧校验**：客户端帧必须带掩码，控制帧必须 `Fin=true` 且负载不超过 125 字节；RSV1~RSV3 非零或保留 opcode 视为损坏帧，连接以 1002 关闭。
