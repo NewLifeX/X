@@ -101,6 +101,8 @@ public class Upgrade
                     {
                         Link = link;
                         WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Version, Version);
+
+                        return true;
                     }
                     else
                         WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Version, Version);
@@ -114,12 +116,14 @@ public class Upgrade
                     {
                         Link = link;
                         WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Time, Time);
+
+                        return true;
                     }
                     else
                         WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Time, Time);
                 }
 
-                return Link != null;
+                // 本地址没有较新版本，继续检查下一个地址，多镜像之间互为备份
             }
             catch (Exception ex)
             {
