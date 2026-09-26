@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Security;
 
 namespace NewLife;
@@ -32,12 +33,13 @@ public static class SecurityHelper
         encoding ??= Encoding.UTF8;
 
 #if NETCOREAPP || NETSTANDARD2_1
-        Span<Byte> src = stackalloc Byte[data.Length * 3];
-        var len = encoding.GetBytes(data.AsSpan(), src);
+        // 长度由输入决定，交给池；仅 16 字节的散列结果用栈
+        using var src = Pool.Rent<Byte>(encoding.GetMaxByteCount(data.Length));
+        var len = encoding.GetBytes(data.AsSpan(), src.Span);
 
         Span<Byte> buf = stackalloc Byte[16];
         _md5 ??= System.Security.Cryptography.MD5.Create();
-        _md5.TryComputeHash(src[..len], buf, out len);
+        _md5.TryComputeHash(src.Span[..len], buf, out len);
 
         return buf.ToHex();
 #else

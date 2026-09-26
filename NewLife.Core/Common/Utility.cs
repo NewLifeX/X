@@ -242,8 +242,8 @@ public class DefaultConvert
         {
             if (Int32.TryParse(str, out var n)) return n;
 
-            // 拷贝而来的逗号分隔整数
-            Span<Char> tmp = stackalloc Char[str.Length];
+            // 拷贝而来的逗号分隔整数。数字文本长度有上限，栈上固定缓冲即可
+            Span<Char> tmp = stackalloc Char[MaxNumberLength];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
@@ -328,8 +328,8 @@ public class DefaultConvert
         {
             if (Int64.TryParse(str, out var n)) return n;
 
-            // 拷贝而来的逗号分隔整数
-            Span<Char> tmp = stackalloc Char[str.Length];
+            // 拷贝而来的逗号分隔整数。数字文本长度有上限，栈上固定缓冲即可
+            Span<Char> tmp = stackalloc Char[MaxNumberLength];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
@@ -407,7 +407,7 @@ public class DefaultConvert
         {
             if (Double.TryParse(str, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var n)) return n;
 
-            Span<Char> tmp = stackalloc Char[str.Length];
+            Span<Char> tmp = stackalloc Char[MaxNumberLength];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
@@ -469,7 +469,7 @@ public class DefaultConvert
         {
             if (Decimal.TryParse(str, NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var n)) return n;
 
-            Span<Char> tmp = stackalloc Char[str.Length];
+            Span<Char> tmp = stackalloc Char[MaxNumberLength];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
@@ -725,10 +725,13 @@ public class DefaultConvert
         }
     }
 
+    /// <summary>数字文本最大长度。Int64 最多 20 位、Decimal 最多 29 位，含符号/小数点/指数，256 字符足够</summary>
+    private const Int32 MaxNumberLength = 256;
+
     /// <summary>清理整数字符串，去掉常见分隔符，替换全角数字为半角数字</summary>
-    /// <param name="input"></param>
-    /// <param name="output"></param>
-    /// <returns></returns>
+    /// <param name="input">原始文本</param>
+    /// <param name="output">输出缓冲，容量不足时返回 0，不会越界写入</param>
+    /// <returns>清理后的字符数量；遇到非法字符或输出缓冲不足时返回 0</returns>
     private static Int32 TrimNumber(ReadOnlySpan<Char> input, Span<Char> output)
     {
         var idx = 0;
@@ -754,12 +757,18 @@ public class DefaultConvert
 
             // 数字和小数点 以外字符，认为非数字
             if (ch is '.' or '-' or not < '0' and not > '9')
+            {
+                if (idx >= output.Length) return 0;
+
                 output[idx++] = ch;
+            }
             else
             {
                 // 支持科学计数法：e/E 后可选正负号，之后至少跟一个数字
                 if (ch is 'e' or 'E' && idx > 0)
                 {
+                    if (idx + 2 > output.Length) return 0;
+
                     output[idx++] = ch;
                     if (i + 1 < input.Length && (input[i + 1] is '+' or '-'))
                     {
