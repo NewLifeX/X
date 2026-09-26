@@ -1152,5 +1152,34 @@ public class PipeTests
         Assert.True(pipe.Reader.TryRead(out var tr));
         Assert.Equal(B(7, 8), tr.Buffer.ToArray());
     }
+
+    [Fact]
+    [DisplayName("Pipe_复位_读侧结束标记与错误一并清除")]
+    public async Task Reset_ClearsReaderCompletedAndError()
+    {
+        using var pipe = new Pipe();
+
+        var error = new InvalidOperationException("boom");
+        pipe.Writer.Append(new ArrayPacket(B(1)));
+        var rr = await pipe.Reader.ReadAsync();
+        pipe.Reader.AdvanceTo(1);
+
+        pipe.Writer.Complete(error);
+        pipe.Reader.Complete();
+        Assert.True(pipe.Reader.IsReaderCompleted);
+        Assert.Same(error, pipe.Reader.Error);
+
+        pipe.Reset();
+
+        // 读侧结束标记必须清零：否则复用后的第一次读取会判定"读侧已结束"而抛出无效操作
+        Assert.False(pipe.Reader.IsReaderCompleted);
+        Assert.Null(pipe.Reader.Error);
+
+        // 复用管道照常工作，且不再受上一轮错误影响
+        pipe.Writer.Append(new ArrayPacket(B(4, 5)));
+        var rr2 = await pipe.Reader.ReadAsync();
+        Assert.Equal(B(4, 5), rr2.Buffer.ToArray());
+        pipe.Reader.AdvanceTo(2);
+    }
     #endregion
 }
