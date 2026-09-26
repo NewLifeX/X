@@ -52,6 +52,13 @@ public class TinyHttpClient : DisposeBase
     /// <summary>Json序列化</summary>
     public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
 
+    /// <summary>是否忽略服务器证书校验。默认 false（严格校验）</summary>
+    /// <remarks>
+    /// <para>默认按系统信任链校验服务器证书，防范中间人攻击。仅在连接自签证书的测试/内网服务时才置为 true。</para>
+    /// <para>该选项仅影响 https 连接，对 http 无影响。</para>
+    /// </remarks>
+    public Boolean IgnoreServerCertificate { get; set; }
+
     /// <summary>JSON序列化选项，影响复杂对象的编码和解码行为</summary>
     public JsonOptions? JsonOptions { get; set; }
 
@@ -126,8 +133,12 @@ public class TinyHttpClient : DisposeBase
             {
                 if (ns == null) throw new InvalidOperationException(nameof(NetworkStream));
 
-                var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
-                await sslStream.AuthenticateAsClientAsync(uri.Host, [], SslProtocols.Tls12, false).ConfigureAwait(false);
+                // 默认严格校验服务器证书（防中间人）；仅显式开启 IgnoreServerCertificate 才放行任意证书。
+                // 协议版本交给运行时协商（SslProtocols.None），不再固定 Tls12，以便用上 TLS1.3 与后续版本
+                var sslStream = IgnoreServerCertificate
+                    ? new SslStream(ns, false, (_, _, _, _) => true)
+                    : new SslStream(ns, false);
+                await sslStream.AuthenticateAsClientAsync(uri.Host, [], SslProtocols.None, false).ConfigureAwait(false);
                 ns = sslStream;
             }
 
