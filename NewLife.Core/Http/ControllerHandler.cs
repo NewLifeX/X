@@ -63,7 +63,10 @@ public class ControllerHandler : IHttpHandler
         MethodInfo? method = null;
         if (methodName != null && !_methods.TryGetValue(methodName, out method))
         {
-            method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            // 仅允许公开方法：旧实现含 NonPublic，private/internal 方法可被 URL 直接调用，绕过可见性保护。
+            // 同时排除继承自 Object 的通用方法（GetType/ToString 等），避免把框架方法当成业务操作
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            method = Array.Find(methods, m => m.Name.EqualIgnoreCase(methodName) && m.DeclaringType != typeof(Object));
 
             // 只缓存命中项：把未找到的方法名（null）也缓存，任意随机方法名都能让字典无界增长
             if (method != null) _methods[methodName] = method;
