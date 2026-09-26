@@ -193,6 +193,41 @@ public class IPacketTests
         Assert.Equal(0x11, part1[0]);
     }
 
+    [Fact(DisplayName = "ExpandHeader：空首节点带链时保留预留区前移，不产生负偏移")]
+    public void ExpandHeader_EmptyHeadChain_KeepsReserve()
+    {
+        // 首节点为空但持有预留区：切片会跳过长度 0 的节点，预留区随之丢失，必须改为保留首节点自身前移窗口
+        var part1 = new OwnerPacket(0, 8);
+        var part2 = new OwnerPacket(8);
+        part1.Next = part2;
+        part2.GetSpan().Fill(0x33);
+        var buffer1 = part1.GetValue("_buffer");
+        var buffer2 = part2.GetValue("_buffer");
+
+        var pk = part1.ExpandHeader(4);
+        Assert.Same(buffer1, pk.Buffer);
+        Assert.Equal(8 - 4, pk.Offset);
+        Assert.Equal(4, pk.Length);
+        Assert.NotNull(pk.Next);
+        Assert.Same(buffer2, ((OwnerPacket)pk.Next!).Buffer);
+
+        // 新头窗口落在原预留区（与负载同缓冲），负载从第 4 字节起可读
+        pk.GetSpan().Fill(0x44);
+        Assert.Equal(0x44, pk[0]);
+        Assert.Equal(0x33, pk[4]);
+
+        // 源句柄与源链保持有效，仅多出共享引用
+        Assert.Equal(0, part1.Length);
+        Assert.Equal(8, part1.Offset);
+        Assert.Equal(2, part1.RefCount);
+        Assert.Equal(2, part2.RefCount);
+
+        pk.TryDispose();
+        Assert.Equal(1, part1.RefCount);
+        Assert.Equal(1, part2.RefCount);
+        Assert.Equal(0x33, part2[0]);
+    }
+
     [Fact(DisplayName = "PrepareHeader：预留借位共享零拷贝，未预留新头节点挂接负载链")]
     public void PrepareHeader_BorrowOrChain()
     {

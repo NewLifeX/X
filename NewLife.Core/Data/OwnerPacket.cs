@@ -566,6 +566,16 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         // 带链：先切片成独占的共享节点链（引用计数各自持有），链头随即可安全前移；源句柄不受影响
         if (Next != null)
         {
+            // 首节点为空时切片会跳过它，预留区（挂在首节点上）随之丢失并让链头窗口错位前移，此处保留首节点自身前移窗口
+            if (_length == 0)
+            {
+                var chain = Slice(0, -1);
+                var own = _owner;
+                own?.AddRef();
+
+                return new OwnerPacket(_buffer, _offset - size, size, own) { Next = chain };
+            }
+
             var head = Slice(0, -1);
             head._offset -= size;
             head._length += size;
