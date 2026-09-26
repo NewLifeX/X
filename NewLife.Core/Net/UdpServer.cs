@@ -174,25 +174,28 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
             try
             {
-                // 以客户端模式工作时，发空包通知服务端结束会话
+                // 以客户端模式工作时，发空包通知服务端结束会话。
+                // 注意：本方法处于 Dispose 流程内（Disposed 已置位），不能用 Send——其守卫会直接抛 ObjectDisposedException，
+                // 而异常被本 catch 吞掉后，下面的收尾步骤全部跳过，套接字与本地端口泄漏。这里改走不带守卫的 OnSend。
                 var remote = Remote;
                 if (remote != null && !remote.Address.IsAny() && remote.Port != 0)
                 {
-                    Send(Pool.Empty);
+                    OnSend(Pool.Empty);
                 }
-
-                Client = null;
-
-                CloseAllSession();
-
-                sock.Shutdown();
             }
             catch (Exception ex)
             {
                 if (!ex.IsDisposed()) OnError("Close", ex);
                 //if (ThrowException) throw;
+            }
+            finally
+            {
+                // 收尾与发送成败无关：无论通知服务端是否成功，都必须释放套接字并清理会话
+                Client = null;
 
-                return Task.FromResult(false);
+                CloseAllSession();
+
+                sock.Shutdown();
             }
         }
 
