@@ -76,7 +76,9 @@ public class HttpSession : INetHandler, IDisposable
     public void Process(IData data)
     {
         var pk = data.Packet;
-        if (pk == null || pk.Length == 0) return;
+        // Length 是“本节点长度”，链式包的首节点可能为空：按 Total 判断整包是否为空，
+        // 否则首节点为空的链式包会被整包丢弃
+        if (pk == null || pk.Total == 0) return;
 
         // WebSocket 通道已建立，直接交给 WebSocket 处理
         if (_websocket != null)
@@ -268,6 +270,9 @@ public class HttpSession : INetHandler, IDisposable
         // 请求结束后释放主体（响应发送后即可释放）
         if (req != null)
         {
+            // data.Packet 引用同一句柄：先置空，避免交付完成后仍有环节通过 IData.Packet 读到已释放句柄
+            if (ReferenceEquals(data.Packet, req.Body)) data.Packet = null;
+
             req.Body.TryDispose();
             req.Body = null;
 
