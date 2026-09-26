@@ -23,16 +23,18 @@ public class LengthFieldCodecTests
     #endregion
 
     [Fact]
-    [DisplayName("长度字段编解码_变长负值_拒收")]
-    public void TryParse_VarintNegative_ReturnsNull()
+    [DisplayName("长度字段编解码_变长负值_标记损坏帧")]
+    public void TryParse_VarintNegative_ReturnsInvalid()
     {
         var codec = new LengthFieldCodec { Size = 0 };
 
-        // 5 字节变长编码 FF FF FF FF 0F 表示 -1：负长度必须拒收，
-        // 否则帧泵会把它当成“帧已到齐”去切帧，抛异常打断整条连接
+        // 5 字节变长编码 FF FF FF FF 0F 表示 -1：负长度按损坏帧上报，
+        // 既不能当作“数据不足”默默等待，也不能当作“帧已到齐”去切帧
         var frame = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x0F };
 
-        Assert.Null(codec.TryParse(new ArrayPacket(frame).AsReadOnlySequence()));
+        var rs = codec.TryParse(new ArrayPacket(frame).AsReadOnlySequence());
+        Assert.True(rs!.Value.Invalid);
+        Assert.Null(rs.Value.Message);
     }
 
     [Fact]

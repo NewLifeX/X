@@ -15,6 +15,31 @@ public class CompressedCodecTests
     private static CompressedCodec NewCodec() => new(new SrmpCodec());
 
     [Fact]
+    [DisplayName("压缩编解码_装饰器链_暴露内层编解码")]
+    public void Decorator_ExposesInner()
+    {
+        var inner = new SrmpCodec();
+        var codec = new CompressedCodec(inner);
+
+        // 会话层靠这个属性递归解包，找到真正的配对器
+        Assert.Same(inner, ((IMessageCodecDecorator)codec).Inner);
+    }
+
+    [Fact]
+    [DisplayName("压缩编解码_嵌套装饰_逐层解包到内层")]
+    public void Decorator_Nested_UnwrapsToInner()
+    {
+        var srmp = new SrmpCodec();
+        var outer = new CompressedCodec(new CompressedCodec(srmp));
+
+        var mid = ((IMessageCodecDecorator)outer).Inner;
+        Assert.IsType<CompressedCodec>(mid);
+
+        // 第二层仍可继续解包，递归到此为止
+        Assert.Same(srmp, ((IMessageCodecDecorator)mid!).Inner);
+    }
+
+    [Fact]
     [DisplayName("压缩编解码_构建_不改动消息负载")]
     public void Build_KeepsMessagePayload()
     {

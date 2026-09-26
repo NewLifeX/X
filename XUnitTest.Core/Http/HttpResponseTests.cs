@@ -72,6 +72,31 @@ public class HttpResponseTests
         Assert.EndsWith("hello world", text);
     }
 
+    [Theory(DisplayName = "Build 204/304 无实体响应：不声明 Content-Length")]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.NotModified)]
+    public void Build_NoEntityStatus_OmitsContentLength(HttpStatusCode code)
+    {
+        var resp = new HttpResponse { StatusCode = code };
+        var pk = resp.Build();
+        var text = pk.ToStr();
+
+        // RFC 7230 §3.3.2：无实体状态码不得带 Content-Length
+        Assert.DoesNotContain("Content-Length", text);
+        Assert.StartsWith($"HTTP/1.1 {(Int32)code} ", text);
+    }
+
+    [Fact(DisplayName = "Build 200 无体响应：仍声明 Content-Length 0")]
+    public void Build_OkWithoutBody_KeepsZeroContentLength()
+    {
+        // 回归护栏：204/304 的特例不得泛化到普通状态码
+        var resp = new HttpResponse();
+        var pk = resp.Build();
+        var text = pk.ToStr();
+
+        Assert.Contains("Content-Length: 0\r\n", text);
+    }
+
     [Fact]
     public void SetResult_VariousTypes()
     {

@@ -151,7 +151,7 @@ public class MessagePumpTests
     }
 
     [Fact]
-    [DisplayName("消息编解码_扩展长度负数_视为损坏帧拒收")]
+    [DisplayName("消息编解码_扩展长度负数_标记损坏帧")]
     public void TryParse_NegativeLength_Rejected()
     {
         var frame = new Byte[8 + 10];
@@ -165,7 +165,10 @@ public class MessagePumpTests
         frame[6] = 0x00;
         frame[7] = 0x80;
 
-        Assert.Null(_codec.TryParse(new ArrayPacket(frame).AsReadOnlySequence()));
+        // 头部已完整而长度非法：标记损坏帧（帧泵据此立即报错），不产生消息
+        var rs = _codec.TryParse(new ArrayPacket(frame).AsReadOnlySequence());
+        Assert.True(rs!.Value.Invalid);
+        Assert.Null(rs.Value.Message);
     }
 
     [Fact]
@@ -555,17 +558,41 @@ public class MessagePumpTests
 
     #region 防护
     [Fact]
+    [DisplayName("帧泵_损坏帧_立即报协议错误")]
+    public async Task ReadAsync_CorruptFrame_Throws()
+    {
+        using var pipe = new Pipe();
+        var pump = NewPump();
+
+        // 0xFF 序列：0xFFFF 扩展头声明负数长度，头部完整即判定损坏。
+        // 旧行为把它当作“无法定界”一直等待到残余上限，连接在此期间无法恢复
+        var garbage = new Byte[64];
+        for (var i = 0; i < garbage.Length; i++) garbage[i] = 0xFF;
+        pipe.Writer.Append(new ArrayPacket(garbage));
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => pump.ReadAsync(pipe.Reader).AsTask());
+        Assert.Contains("协议帧损坏", ex.Message);
+    }
+
+    /// <summary>永不定界的协议：用于验证残余上限防护（不依赖具体协议的损坏特例）</summary>
+    private sealed class NeverDelimitsCodec : IMessageCodec
+    {
+        public ParseResult? TryParse(ReadOnlySequence<Byte> buffer) => null;
+
+        public IOwnerPacket? Build(IMessage message) => null;
+
+        public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => new OwnerPacket(0);
+    }
+
+    [Fact]
     [DisplayName("帧泵_无法定界残余超限_报协议错误")]
     public async Task ReadAsync_ExceedsMaxCache_Throws()
     {
         using var pipe = new Pipe();
-        var pump = NewPump();
-        pump.MaxCache = 32;
+        var pump = new MessagePump(new NeverDelimitsCodec()) { MaxCache = 32 };
 
-        // 0xFF 序列：0xFFFF 扩展头声明负数长度，永远无法定界
-        var garbage = new Byte[64];
-        for (var i = 0; i < garbage.Length; i++) garbage[i] = 0xFF;
-        pipe.Writer.Append(new ArrayPacket(garbage));
+        // 残余达到上限（不依赖报文内容的特殊形式）
+        pipe.Writer.Append(new ArrayPacket(new Byte[64]));
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => pump.ReadAsync(pipe.Reader).AsTask());
         Assert.Contains("无法定界", ex.Message);
@@ -631,6 +658,29 @@ public class MessagePumpTests
         Assert.False(msg!.Body!.IsStreaming);
         Assert.Equal(10, msg.Payload!.Total);
         msg.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("帧泵_整帧模式_帧长超上限_抛异常")]
+    public void TryRead_RequireFullFrame_ExceedsMaxFrameSize_Throws()
+    {
+        using var pipe = new Pipe();
+        var pump = NewPump();
+        pump.RequireFullFrame = true;
+        pump.MaxFrameSize = 64;
+
+        // 声明 4 字节头 + 1000 字节体，实际只发头部：整帧模式不消费未完整帧，
+        // 若不设上限，对端仅凭这一条声明就能让本连接的内存无限增长
+        var frame = BuildFrame(new Byte[1000]);
+        pipe.Writer.Append(new ArrayPacket(frame[..4]));
+
+        var ex = Assert.Throws<InvalidOperationException>(() => pump.TryRead(pipe.Reader, out _));
+        Assert.Contains("超过上限", ex.Message);
+        Assert.Equal(4, pipe.UnconsumedLength);
+
+        // 上限之内的未完整帧仍按“等待后续分片”处理
+        pump.MaxFrameSize = 4096;
+        Assert.False(pump.TryRead(pipe.Reader, out _));
     }
     #endregion
 }

@@ -37,11 +37,15 @@ public class MessageContractTests
     [InlineData(Int32.MinValue)]
     public void TryParse_NegativeLength_Rejected(Int32 len)
     {
-        // 负值（最高位为 1）视为损坏帧：codec 返回 null，不产生对象
+        // 负值（最高位为 1）视为损坏帧：不产生消息对象，并向帧层标记 Invalid
+        // （帧层据此立即报协议错误，而不是默默等到残余上限）
         var buf = BuildExtendedFrame(len);
         var codec = new SrmpCodec();
 
-        Assert.Null(codec.TryParse(new ArrayPacket(buf).AsReadOnlySequence()));
+        var rs = codec.TryParse(new ArrayPacket(buf).AsReadOnlySequence());
+        Assert.NotNull(rs);
+        Assert.True(rs.Value.Invalid);
+        Assert.Null(rs.Value.Message);
     }
 
     [Fact(DisplayName = "损坏帧_0x7FFFFFFF长度_不消费不产出")]
@@ -63,11 +67,11 @@ public class MessageContractTests
         var buf = BuildExtendedFrame(-1);
         var codec = new SrmpCodec();
 
-        Assert.Null(codec.TryParse(new ArrayPacket(buf).AsReadOnlySequence()));
+        Assert.True(codec.TryParse(new ArrayPacket(buf).AsReadOnlySequence())!.Value.Invalid);
 
         var owner = new OwnerPacket(buf.Length);
         buf.CopyTo(owner.GetSpan());
-        Assert.Null(codec.TryParse(owner.AsReadOnlySequence()));
+        Assert.True(codec.TryParse(owner.AsReadOnlySequence())!.Value.Invalid);
 
         owner.Dispose();
     }
@@ -77,11 +81,11 @@ public class MessageContractTests
     [Fact(DisplayName = "损坏帧_扩展头负长度_拒收不产生对象")]
     public void TryParse_NegativeExtendedLength_Rejected()
     {
-        // 数据已齐 8 字节但长度字段非法（最高位为 1）：按无法定界处理，不消费、不产生对象
+        // 数据已齐 8 字节但长度字段非法（最高位为 1）：标记损坏帧，由帧层按协议错误处置
         var buf = BuildExtendedFrame(Int32.MinValue);
         var codec = new SrmpCodec();
 
-        Assert.Null(codec.TryParse(new ReadOnlySequence<Byte>(buf)));
+        Assert.True(codec.TryParse(new ReadOnlySequence<Byte>(buf))!.Value.Invalid);
     }
     #endregion
 

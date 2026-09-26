@@ -82,6 +82,77 @@ public class MessageSessionTests
         Assert.True(source.ValueTask.IsCompleted);
         Assert.Same(resp, source.ValueTask.Result);
     }
+
+    [Fact]
+    [DisplayName("协议匹配_序列号超过255_按低8位配对")]
+    public void SrmpMatch_LargeSequence_MatchesLowByte()
+    {
+        var matcher = new SrmpCodec();
+
+        var req = new DefaultMessage { Sequence = 300 };
+
+        // 线格式只带 1 字节序列号，对端回显的是低 8 位
+        var resp = new DefaultMessage { Sequence = 300 & 0xFF, Kind = MessageKinds.Response };
+
+        Assert.NotEqual(req.Sequence, resp.Sequence);
+        Assert.True(matcher.Match(req, resp));
+
+        // 低 8 位不同则不配对
+        resp.Sequence = (300 & 0xFF) + 1;
+        Assert.False(matcher.Match(req, resp));
+    }
+
+    [Fact]
+    [DisplayName("匹配队列_等待方已取消_完成失败按未命中返回")]
+    public void MatchQueue_WaiterCanceled_ReturnsFalse()
+    {
+        var queue = new DefaultMatchQueue();
+        var source = PooledValueTaskSource<Message>.Rent();
+        var matcher = new SrmpCodec();
+
+        var req = new DefaultMessage { Sequence = 8 };
+        queue.Add(this, req, 10_000, source);
+
+        // 等待方先行放弃（取消），而队列项仍在；此时迟到响应到达
+        Assert.True(source.TrySetCanceled());
+
+        var resp = new DefaultMessage { Sequence = 8, Kind = MessageKinds.Response };
+        var ok = queue.Match(this, resp, resp, (rq, rs) => rq is Message a && rs is Message b && matcher.Match(a, b));
+
+        // 完成失败必须按“未命中”返回：调用方据此丢弃负载并释放消息，否则消息与池化缓冲泄漏
+        Assert.False(ok);
+    }
+
+    [Fact]
+    [DisplayName("匹配队列_池化源回收复用_残留项不得完成新请求")]
+    public async Task MatchQueue_StaleItem_DoesNotCompleteReusedSource()
+    {
+        var queue = new DefaultMatchQueue();
+        var matcher = new SrmpCodec();
+
+        // 第一次等待：入队后取消，等待方结束并归还池
+        var first = PooledValueTaskSource<Message>.Rent();
+        var oldRequest = new DefaultMessage { Sequence = 0x21 };
+        queue.Add(this, oldRequest, 10_000, first);
+
+        var oldTask = first.ValueTask.AsTask();
+        Assert.True(first.TrySetCanceled());
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => oldTask);
+
+        // 同一实例被下一个请求借出复用（池为 LIFO），版本号随归还递增
+        var second = PooledValueTaskSource<Message>.Rent();
+        Assert.Same(first, second);
+
+        var newRequest = new DefaultMessage { Sequence = 0x22 };
+        queue.Add(this, newRequest, 10_000, second);
+
+        // 迟到响应只能匹配上残留的旧队列项：完成必须失败，且不得完成复用后的新请求
+        var lateResponse = new DefaultMessage { Sequence = 0x21, Kind = MessageKinds.Response };
+        var ok = queue.Match(this, lateResponse, lateResponse, (rq, rs) => rq is Message a && rs is Message b && matcher.Match(a, b));
+
+        Assert.False(ok);
+        Assert.False(second.ValueTask.IsCompleted);
+    }
     #endregion
 
     [Fact]
@@ -255,6 +326,53 @@ public class MessageSessionTests
         body.TryDispose();
 
         // 等待方负责释放响应消息
+        resp.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("协议模式_请求响应_序列号超过255仍能配对")]
+    public async Task RequestResponse_SequenceOver255_StillMatches()
+    {
+        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        server.Start();
+
+        var serverGot = NewTcs<Int32>();
+        server.Received += (s, e) =>
+        {
+            if (e.Message is not DefaultMessage req) return;
+
+            // 回显应答：物化请求负载作为响应体（所有权转移）
+            var all = req.Body!.ReadAllAsync().AsTask().GetAwaiter().GetResult();
+            var reply = (DefaultMessage)req.CreateReply();
+            reply.SetBody(all);
+            serverGot.TrySetResult(((INetSession)s!).SendMessage(reply));
+        };
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}")
+        {
+            Protocol = new SrmpCodec(),
+            MatchTimeout = 3_000,
+        };
+        Assert.True(client.Open());
+
+        // 客户端用自增计数器：序列号超过 255 时线格式只保留低 8 位。
+        // 若按完整 Int32 比较则恒不配对，只能等 MatchTimeout 超时取消
+        var req = new DefaultMessage { Sequence = 300 };
+        req.SetBody(new ArrayPacket(new Byte[] { 7, 8 }));
+
+        var reqTask = client.SendMessageAsync(req).AsTask();
+
+        var sent = await WithTimeout(serverGot.Task, 5_000);
+        Assert.True(sent > 0, "服务端应答发送失败");
+
+        // 配对超时内完成交付：修复前此处必然抛超时取消
+        var resp = (DefaultMessage)await WithTimeout(reqTask, 8_000);
+        Assert.Equal(MessageKinds.Response, resp.Kind);
+        Assert.Equal(300 & 0xFF, resp.Sequence);
+
+        var body = await resp.Body!.ReadAllAsync();
+        Assert.Equal(new Byte[] { 7, 8 }, body.AsReadOnlySequence().ToArray());
+        body.TryDispose();
         resp.Dispose();
     }
 

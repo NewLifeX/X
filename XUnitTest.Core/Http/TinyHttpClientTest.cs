@@ -95,4 +95,90 @@ public class TinyHttpClientTest
 
         Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
     }
+
+    #region 分块传输
+    /// <summary>分块解析测试替身：按队列供给后续数据包，每个元素模拟一次接收</summary>
+    private sealed class ChunkFeedClient : TinyHttpClient
+    {
+        public Queue<Byte[]> Packets { get; } = new();
+
+        public Task<IPacket> ReadChunk(IPacket body) => ReadChunkAsync(body);
+
+        protected override Task<IOwnerPacket> SendDataAsync(Uri? uri, IPacket? request)
+        {
+            var bytes = Packets.Count > 0 ? Packets.Dequeue() : null;
+            if (bytes == null) return Task.FromResult<IOwnerPacket>(new OwnerPacket(0));
+
+            var pk = new OwnerPacket(bytes.Length);
+            bytes.CopyTo(pk.GetSpan());
+
+            return Task.FromResult<IOwnerPacket>(pk);
+        }
+    }
+
+    private static async Task<IPacket> ReadChunkAsync(ChunkFeedClient client, Byte[] first, params Byte[][] more)
+    {
+        foreach (var item in more) client.Packets.Enqueue(item);
+
+        var pk = await client.ReadChunk(new ArrayPacket(first));
+
+        return pk;
+    }
+
+    [Fact(DisplayName = "分块传输_长度行跨接收包_后续分块不丢失")]
+    public async Task Chunk_LengthLineSplitAcrossPackets()
+    {
+        var client = new ChunkFeedClient();
+
+        // 长度行 "5\r\n" 被拆到两个接收包：旧实现 ParseChunk 找不到 CRLF 即整体跳出，后续分块全部丢失（仍返回“成功”）
+        var body = await ReadChunkAsync(client, "5".GetBytes(), "\r\nhello\r\n0\r\n\r\n".GetBytes());
+
+        Assert.Equal("hello", body.ToStr());
+    }
+
+    [Fact(DisplayName = "分块传输_多分块跨包_逐块还原")]
+    public async Task Chunk_MultipleChunksAcrossPackets()
+    {
+        var client = new ChunkFeedClient();
+
+        var body = await ReadChunkAsync(client, "3\r\nab".GetBytes(), "c\r\n".GetBytes(), "5\r\nhello\r\n0\r\n\r\n".GetBytes());
+
+        Assert.Equal("abchello", body.ToStr());
+    }
+
+    [Fact(DisplayName = "分块传输_分块扩展_忽略分号后内容")]
+    public async Task Chunk_Extension_Ignored()
+    {
+        var client = new ChunkFeedClient();
+
+        // 1ba;ext=1 这类分块扩展：旧实现直接 Int32.Parse 会抛 FormatException 穿透到调用方
+        var body = await ReadChunkAsync(client, "3;ext=1\r\nabc\r\n0\r\n\r\n".GetBytes());
+
+        Assert.Equal("abc", body.ToStr());
+    }
+
+    [Fact(DisplayName = "分块传输_非法长度行_抛异常")]
+    public async Task Chunk_InvalidLength_Throws()
+    {
+        var client = new ChunkFeedClient();
+
+        await Assert.ThrowsAsync<InvalidDataException>(() => ReadChunkAsync(client, "xyz\r\nabc\r\n0\r\n\r\n".GetBytes()));
+    }
+
+    [Fact(DisplayName = "分块传输_单块超上限_抛异常")]
+    public async Task Chunk_ExceedsMaxChunkSize_Throws()
+    {
+        var client = new ChunkFeedClient { MaxChunkSize = 4 };
+
+        await Assert.ThrowsAsync<InvalidDataException>(() => ReadChunkAsync(client, "5\r\nhello\r\n0\r\n\r\n".GetBytes()));
+    }
+
+    [Fact(DisplayName = "分块传输_总长超上限_抛异常")]
+    public async Task Chunk_ExceedsMaxBodySize_Throws()
+    {
+        var client = new ChunkFeedClient { MaxBodySize = 4 };
+
+        await Assert.ThrowsAsync<InvalidDataException>(() => ReadChunkAsync(client, "3\r\nabc\r\n3\r\ndef\r\n0\r\n\r\n".GetBytes()));
+    }
+    #endregion
 }
