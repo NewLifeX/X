@@ -535,7 +535,7 @@ public class UtilityTests
         Assert.Equal(0d, text.ToDouble());
     }
 
-    [Fact]
+    [Fact(DisplayName = "常见分隔符_清理后正确解析")]
     public void TrimNumber_Cleans_Common_Separators()
     {
         // 逗号 / 空格 / 下划线 会被清理
