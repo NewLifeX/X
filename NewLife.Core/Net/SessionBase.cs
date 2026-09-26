@@ -951,8 +951,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             // 数据管道完成（连接关闭）：退出
             if (message == null) break;
 
-            // 响应消息若可能有等待者，先物化流式体：事件链可观察读取，匹配交付后等待方可异步消费
-            if (MatchQueue != null && message.Reply && message.Body is { IsStreaming: true })
+            // 有匹配队列时，入站消息都可能被配对交付给等待方：等待方在事件链之后还要异步消费同一份体，
+            // 而流式体不能被二次读（泵会继续读同一 PipeReader，导致单读者冲突或把下一帧字节当成体），因此先物化为内存体。
+            // 不能依赖 message.Reply——无方向位协议（如 LengthFieldCodec 的恒真 matcher）恒为 false，会让等待方拿到流式体而串包
+            if (MatchQueue != null && message.Body is { IsStreaming: true })
             {
                 try
                 {
