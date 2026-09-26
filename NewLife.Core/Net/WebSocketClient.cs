@@ -303,19 +303,32 @@ public class WebSocketClient : TcpSession
         return TaskEx.CompletedTask;
     }
 
-    /// <summary>发送关闭</summary>
-    /// <param name="closeStatus"></param>
-    /// <param name="statusDescription"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public Task CloseAsync(Int32 closeStatus, String? statusDescription = null, CancellationToken cancellationToken = default)
+    /// <summary>发送关闭帧并关闭连接</summary>
+    /// <param name="closeStatus">关闭状态码</param>
+    /// <param name="statusDescription">关闭描述</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <remarks>与基类的 CloseAsync(String, CancellationToken) 语义一致：关闭帧发出后即关闭会话</remarks>
+    public async Task CloseAsync(Int32 closeStatus, String? statusDescription = null, CancellationToken cancellationToken = default)
     {
         var ws = new WsMessage { Type = WebSocketMessageType.Close };
-        ws.SetBody(WebSocketCodec.BuildClosePayload(closeStatus, statusDescription));
+        try
+        {
+            ws.SetBody(WebSocketCodec.BuildClosePayload(closeStatus, statusDescription));
 
-        SendMessage(ws);
+            SendMessage(ws);
+        }
+        catch (Exception ex)
+        {
+            WriteLog("发送 WebSocket 关闭帧失败：" + ex.Message);
+        }
+        finally
+        {
+            ws.TryDispose();
+        }
 
-        return TaskEx.CompletedTask;
+        // 关闭帧发出后关闭会话：旧实现只发帧就返回，会话保持 Active、心跳定时器继续运行，
+        // 调用方 await 读起来是“关闭连接”，实际只是发了一帧（与基类同名重载语义冲突）
+        await CloseAsync("WebSocketClose", cancellationToken).ConfigureAwait(false);
     }
     #endregion
 
