@@ -44,6 +44,9 @@ public static class PacketHelper
     /// <summary>链遍历步数上限。超过视为链已损坏（含环），放弃挂接，避免陷入死循环</summary>
     private const Int32 MaxChainSteps = 1_000_000;
 
+    /// <summary>空字节数组。冲掉解码器保留的半字符时用（低版本无 span 重载）</summary>
+    private static readonly Byte[] _emptyBytes = [];
+
     /// <summary>将数据包追加到当前包链末尾</summary>
     /// <param name="pk">当前包链头节点</param>
     /// <param name="next">要追加的数据包（可包含自身链）</param>
@@ -370,7 +373,8 @@ public static class PacketHelper
     /// <param name="encoding">字符编码，null 表示 UTF8</param>
     /// <remarks>
     /// <para>适用于大数据包的文本输出场景（如日志、调试），避免 ToStr 产生的大量临时 String 分配。</para>
-    /// <para>按段逐个解码写入，内存开销仅为单段大小而非总数据量。</para>
+    /// <para>按段逐个解码写入，内存开销仅为单段大小而非总数据量；跨段解码经 <see cref="Decoder"/> 保持状态，
+    /// 多字节字符被段边界切断也不会解成替换字符（序列本身非法时仍按编码规则产生替换字符）。</para>
     /// </remarks>
     public static void WriteTo(this IPacket pk, TextWriter writer, Encoding? encoding = null)
     {
@@ -378,27 +382,75 @@ public static class PacketHelper
 
         encoding ??= Encoding.UTF8;
 
+        // 跨段解码：多字节字符可能正好被段边界切断，必须用带状态的解码器逐段续接，
+        // 否则每段各自解码会把切断处的半个字符解成替换字符（中文/emoji 在分片接收时很常见）
+        var decoder = encoding.GetDecoder();
+
         for (var current = pk; current != null; current = current.Next)
         {
             var span = current.GetSpan();
             if (span.Length == 0) continue;
 
 #if NETCOREAPP || NETSTANDARD2_1
-            // 长度动态，统一走池化缓冲区
-            var charCount = encoding.GetCharCount(span);
-            using var chars = Pool.Rent<Char>(charCount);
+            // 长度动态，统一走池化缓冲区；charCount 为 0 说明本段只是半个字符的前缀，
+            // 这次调用仍会消费该段并把状态留在解码器里
+            var charCount = decoder.GetCharCount(span, false);
+            if (charCount > 0)
+            {
+                using var chars = Pool.Rent<Char>(charCount);
 
-            var written = encoding.GetChars(span, chars.Span);
-            writer.Write(chars.Span[..written]);
-#else
-            // .NET Framework 回退路径
-            if (current.TryGetArray(out var segment))
-                writer.Write(encoding.GetChars(segment.Array!, segment.Offset, segment.Count));
+                var written = decoder.GetChars(span, chars.Span, false);
+                writer.Write(chars.Span[..written]);
+            }
             else
-                writer.Write(encoding.GetString(span.ToArray()));
+            {
+                decoder.GetChars(span, Span<Char>.Empty, false);
+            }
+#else
+            // .NET Framework 回退路径：低版本无 span 重载，走数组 API
+            if (current.TryGetArray(out var segment) && segment.Array != null)
+                WriteDecoded(decoder, writer, segment.Array, segment.Offset, segment.Count);
+            else
+            {
+                var data = span.ToArray();
+                WriteDecoded(decoder, writer, data, 0, data.Length);
+            }
 #endif
         }
+
+        // 收尾：冲掉解码器保留的半字符（序列不完整时按编码规则产生替换字符）
+#if NETCOREAPP || NETSTANDARD2_1
+        var tailCount = decoder.GetCharCount(ReadOnlySpan<Byte>.Empty, true);
+        if (tailCount > 0)
+        {
+            using var tail = Pool.Rent<Char>(tailCount);
+
+            var written = decoder.GetChars(ReadOnlySpan<Byte>.Empty, tail.Span, true);
+            writer.Write(tail.Span[..written]);
+        }
+#else
+        var tailCount = decoder.GetCharCount(_emptyBytes, 0, 0, true);
+        if (tailCount > 0)
+        {
+            var tail = new Char[tailCount];
+            var written = decoder.GetChars(_emptyBytes, 0, 0, tail, 0, true);
+            writer.Write(tail, 0, written);
+        }
+#endif
     }
+
+#if !(NETCOREAPP || NETSTANDARD2_1)
+    /// <summary>低版本回退：按数组段解码一段内容并写入（解码器状态跨段保持）</summary>
+    private static void WriteDecoded(Decoder decoder, TextWriter writer, Byte[] buffer, Int32 offset, Int32 count)
+    {
+        // charCount 为 0 说明本段只是半个字符的前缀：仍要调用以消费该段
+        var charCount = decoder.GetCharCount(buffer, offset, count, false);
+        var chars = new Char[charCount];
+        var written = decoder.GetChars(buffer, offset, count, chars, 0, false);
+
+        if (written > 0) writer.Write(chars, 0, written);
+    }
+#endif
     #endregion
 
     #region 流操作

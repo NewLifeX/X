@@ -243,5 +243,37 @@ public class PacketHelperChainTests
         PacketHelper.WriteTo(null!, empty);
         Assert.Equal(String.Empty, empty.ToString());
     }
+
+    [Fact]
+    [DisplayName("写文本_跨段切断多字节字符_不产生替换字符")]
+    public void WriteTo_Chain_SplitMultiByteChar()
+    {
+        // “新生命”UTF-8 每字 3 字节，在第 2 字节处切断：半个字符落在第一段末尾
+        var bytes = "新生命".GetBytes();
+        IPacket pk = new ArrayPacket(bytes[..2]).Append(bytes[2..]);
+
+        var writer = new StringWriter();
+        pk.WriteTo(writer);
+
+        // 逐段解码必须经解码器保持状态，否则切断处会解成替换字符
+        Assert.Equal("新生命", writer.ToString());
+
+        // 对照：逐段各自解码（无状态）确实会解错——说明本断言对“是否保持解码状态”有辨别力
+        var perSegment = Encoding.UTF8.GetString(bytes[..2]) + Encoding.UTF8.GetString(bytes[2..]);
+        Assert.NotEqual("新生命", perSegment);
+    }
+
+    [Fact]
+    [DisplayName("写文本_截断序列_按编码规则产生替换字符")]
+    public void WriteTo_TruncatedSequence_Replacement()
+    {
+        // 只有半个字符（序列本身不完整）：收尾时按编码规则解成替换字符，不抛异常
+        var bytes = "新".GetBytes()[..2];
+
+        var writer = new StringWriter();
+        new ArrayPacket(bytes).WriteTo(writer);
+
+        Assert.Equal("\uFFFD", writer.ToString());
+    }
     #endregion
 }
