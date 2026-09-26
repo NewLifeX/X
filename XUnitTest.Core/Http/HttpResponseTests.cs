@@ -97,6 +97,20 @@ public class HttpResponseTests
         Assert.Contains("Content-Length: 0\r\n", text);
     }
 
+    [Theory(DisplayName = "BuildHeaderPacket 204/304 响应：不声明 Content-Length")]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.NotModified)]
+    public void BuildHeaderPacket_NoEntityStatus_OmitsContentLength(HttpStatusCode code)
+    {
+        // HEAD 与流式响应走 BuildHeaderPacket 而非 Build，两条路径必须同规则
+        var resp = new HttpResponse { StatusCode = code };
+
+        using var pk = resp.BuildHeaderPacket(resp.Body?.Total ?? 0);
+        var text = pk.ToStr();
+
+        Assert.DoesNotContain("Content-Length", text);
+    }
+
     [Fact]
     public void SetResult_VariousTypes()
     {

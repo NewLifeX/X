@@ -73,6 +73,9 @@ public class HttpResponse : HttpBase
     /// <summary>创建头部</summary>
     /// <param name="length"></param>
     /// <returns></returns>
+    /// <summary>是否为无实体响应。204/304 不得携带实体，也不应声明 Content-Length（RFC 7230 §3.3.2）</summary>
+    protected override Boolean HasNoEntity => StatusCode is HttpStatusCode.NoContent or HttpStatusCode.NotModified;
+
     protected override String BuildHeader(Int32 length)
     {
         // 构建头部
@@ -88,7 +91,7 @@ public class HttpResponse : HttpBase
         // 204/304 不得携带实体，也不应声明 Content-Length（RFC 7230 §3.3.2）
         if (length > 0)
             Headers["Content-Length"] = length + "";
-        else if (StatusCode != HttpStatusCode.NoContent && StatusCode != HttpStatusCode.NotModified &&
+        else if (!HasNoEntity &&
                  !Headers.ContainsKey("Content-Length") && !Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
             Headers["Content-Length"] = "0";
 
