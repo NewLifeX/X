@@ -101,6 +101,9 @@ public sealed class LimitedReader
         // 内存模式：数据已在内存，读取立即完成
         if (_reader == null) return new ReadResult(Buffer, true, false);
 
+        // 主读取器已随管道结束完成：按“体结束”语义返回，不再读取（结束后再读会抛异常）
+        if (_reader.IsReaderCompleted) return new ReadResult(ReadOnlySequence<Byte>.Empty, true, false);
+
         var rr = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
         if (rr.IsCanceled) return rr;
 
@@ -126,6 +129,13 @@ public sealed class LimitedReader
         if (_reader == null)
         {
             result = new ReadResult(Buffer, true, false);
+            return true;
+        }
+
+        // 主读取器已随管道结束完成：按“体结束”语义返回，不再读取（结束后再读会抛异常）
+        if (_reader.IsReaderCompleted)
+        {
+            result = new ReadResult(ReadOnlySequence<Byte>.Empty, true, false);
             return true;
         }
 

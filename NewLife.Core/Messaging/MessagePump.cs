@@ -183,8 +183,14 @@ public class MessagePump
             // 头部到齐：直接产出消息（帧完整/未完整在核心内部分流）
             if (TryReadCore(reader, out var message, out var frameLength)) return message;
 
-            // 无法定界：流已结束则丢弃残余，否则标记已检查到窗口末尾等待追加
-            if (rr.IsCompleted) return null;
+            // 无法定界：流已结束则丢弃残余，否则标记已检查到窗口末尾等待追加。
+            // 带异常结束时不伪装成优雅关闭（BCL 的 IsCompletedOrThrow 同义）：把故障抛给调用方按错误处理
+            if (rr.IsCompleted)
+            {
+                if (reader.Error is { } error) throw error;
+
+                return null;
+            }
 
             var buffer = reader.Buffer;
 

@@ -6,7 +6,7 @@ namespace NewLife.Data;
 /// <remarks>
 /// <para><b>对齐 BCL</b>：命名与形态对齐 System.IO.Pipelines 的 <c>PipeWriter</c>（同名不同命名空间；两者需同时引用时用别名，如 <c>using NlPipeWriter = NewLife.Data.PipeWriter;</c>）。BCL 为抽象类 + 内部实现，本库为具体类；实现 <see cref="IBufferWriter{T}"/> 全部成员，提交结果 <see cref="FlushResult"/> 对应 BCL 的 FlushResult。</para>
 /// <para><b>职责</b>：写缓冲（GetSpan/GetMemory 租借、Advance 推进、WriteAsync/FlushAsync 提交）由本类持有；包级 <see cref="Append(IPacket)"/> 直接投递到读侧未消费窗口（所有权转移、零拷贝），跨度写入则先进入池化写缓冲、<see cref="WriteAsync(ReadOnlyMemory{Byte}, CancellationToken)"/><see cref="FlushAsync(CancellationToken)"/> 之前对读取方不可见。</para>
-/// <para>未提交数据在 <see cref="Complete"/> 或管道释放时丢弃（池缓冲归还）。单写：写侧操作同一时刻只允许一个线程。</para>
+/// <para>完成语义：<see cref="Complete"/> 会先把已推进未提交的数据提交给读侧再结束（对齐 BCL）；未推进的写入缓冲在 <see cref="Complete"/> 或管道释放时丢弃（池缓冲归还）。读侧结束后仍可取窗口写入，由提交结果告知停止；写侧自己结束后再写抛异常。单写：写侧操作同一时刻只允许一个线程。</para>
 /// </remarks>
 public sealed class PipeWriter : IBufferWriter<Byte>
 {
@@ -44,6 +44,9 @@ public sealed class PipeWriter : IBufferWriter<Byte>
 
     /// <summary>挂起提交的取消注册，完成时释放避免长期令牌累积</summary>
     private CancellationTokenRegistration _flushReg;
+
+    /// <summary>取消暂存：无挂起提交时调用 CancelPendingFlush，由下一次提交消费（对齐 BCL，只生效一次）</summary>
+    private Boolean _cancelPendingFlush;
     #endregion
 
     #region 构造
@@ -59,14 +62,18 @@ public sealed class PipeWriter : IBufferWriter<Byte>
     /// <summary>获取可写入内存窗口（至少 sizeHint 字节）。推进用 <see cref="Advance"/>，提交用 <see cref="FlushAsync(CancellationToken)"/></summary>
     /// <param name="sizeHint">期望最小字节数，0 表示任意（至少 1）</param>
     /// <returns>可写入内存；FlushAsync 之前对读取方不可见</returns>
-    /// <exception cref="InvalidOperationException">管道已结束</exception>
+    /// <exception cref="InvalidOperationException">写侧已结束</exception>
+    /// <remarks>读侧已结束时不再抛异常（对齐 BCL）：仍需调用 <see cref="FlushAsync(CancellationToken)"/> 取回 <c>IsCompleted</c> 以停止写入。</remarks>
     public Memory<Byte> GetMemory(Int32 sizeHint = 0)
     {
         if (sizeHint < 0) throw new ArgumentOutOfRangeException(nameof(sizeHint));
 
         lock (_pipe.SyncRoot)
         {
-            if (_pipe.WriterCompleted || _pipe.ReaderCompleted) throw new InvalidOperationException("Pipe has been completed.");
+            // 只在“写侧自己已结束且读侧仍在”时拒绝：读侧结束（对端关闭／接收侧收尾）后按 BCL 习惯仍允许取窗口，
+            // 数据在提交时直接释放，调用方据 FlushAsync 返回的 IsCompleted 停止写入。
+            // 读侧结束后 ReaderCompleted 为真（它同时把 WriterCompleted 也置真），故不能用 WriterCompleted 单独判读侧状态
+            if (_pipe.WriterCompleted && !_pipe.ReaderCompleted) throw new InvalidOperationException("Pipe has been completed.");
 
             EnsureWriteSpaceLocked(sizeHint);
 
@@ -103,7 +110,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
     /// <param name="data">待写入数据</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>提交结果；管道已结束时 IsCompleted 为 true（写入方应停止）</returns>
-    /// <remarks>形态对齐 System.IO.Pipelines 的 PipeWriter.WriteAsync：写入即提交（等价 GetSpan + 拷贝 + Advance + FlushAsync 的组合）；已提交数据来自管道缓冲副本，调用方可立即复用入参缓冲。管道已结束时抛出 InvalidOperationException。</remarks>
+    /// <remarks>形态对齐 System.IO.Pipelines 的 PipeWriter.WriteAsync：写入即提交（等价 GetSpan + 拷贝 + Advance + FlushAsync 的组合）；已提交数据来自管道缓冲副本，调用方可立即复用入参缓冲。写侧自己结束时抛 <see cref="InvalidOperationException"/>（对齐 BCL）；仅读侧结束时不再抛，由返回的 <c>IsCompleted</c> 告知停止写入。</remarks>
     public ValueTask<FlushResult> WriteAsync(ReadOnlyMemory<Byte> data, CancellationToken cancellationToken = default)
     {
         if (!data.IsEmpty)
@@ -134,6 +141,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
         cancellationToken.ThrowIfCancellationRequested();
 
         IPacket? head;
+        Boolean canceled;
         lock (_pipe.SyncRoot)
         {
             // 封口当前缓冲并入待提交链
@@ -150,12 +158,16 @@ public sealed class PipeWriter : IBufferWriter<Byte>
                 head.TryDispose();
                 head = null;
             }
+
+            // 取消暂存只生效一次：数据照常提交（对齐 BCL），只是不再等待水位
+            canceled = _cancelPendingFlush;
+            _cancelPendingFlush = false;
         }
 
         if (head != null) _pipe.Reader.AppendInternal(head);
 
-        // 默认不挂起：立即完成
-        if (!waitForResume) return new ValueTask<FlushResult>(new FlushResult(_pipe.IsCompleted, false));
+        // 默认不挂起，或本次提交已被取消：立即完成
+        if (!waitForResume || canceled) return new ValueTask<FlushResult>(new FlushResult(_pipe.IsCompleted, canceled));
 
         TaskCompletionSource<FlushResult> tcs;
         lock (_pipe.SyncRoot)
@@ -190,7 +202,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
         return new ValueTask<FlushResult>(tcs.Task);
     }
 
-    /// <summary>取消挂起的提交。仅当提交因写侧回压挂起时有效；无挂起提交时无效果</summary>
+    /// <summary>取消挂起的提交。有挂起提交时立即以 IsCanceled 唤醒；无挂起提交时暂存，由下一次提交标记取消一次（数据照常提交）</summary>
     public void CancelPendingFlush()
     {
         TaskCompletionSource<FlushResult>? waiter;
@@ -199,11 +211,21 @@ public sealed class PipeWriter : IBufferWriter<Byte>
         lock (_pipe.SyncRoot)
         {
             waiter = TakeFlushWaiterLocked(out reg);
+
+            // 无挂起提交：暂存取消，由下一次提交消费（对齐 BCL，只生效一次）
+            if (waiter == null) _cancelPendingFlush = true;
         }
 
         if (waiter == null) return;
 
-        NotifyFlushWaiter(waiter, reg, new FlushResult(_pipe.IsCompleted, true));
+        // 挂起可能已被取消令牌抢先定案：取消未交付给任何一方，补置暂存让下一次提交生效
+        if (!NotifyFlushWaiter(waiter, reg, new FlushResult(_pipe.IsCompleted, true)))
+        {
+            lock (_pipe.SyncRoot)
+            {
+                _cancelPendingFlush = true;
+            }
+        }
     }
 
     /// <summary>取出挂起的提交句柄（调用方持锁），供锁外唤醒</summary>
@@ -219,25 +241,52 @@ public sealed class PipeWriter : IBufferWriter<Byte>
         return waiter;
     }
 
+    /// <summary>复位写侧状态供管道复用（调用方持锁，复位前管道须已完成）</summary>
+    internal void ResetForReuse()
+    {
+        // 残留的取消暂存会让复用后的第一次提交凭空标记取消，必须清掉
+        _cancelPendingFlush = false;
+    }
+
     /// <summary>锁外唤醒：释放取消注册并完成任务</summary>
     /// <param name="waiter">挂起的提交</param>
     /// <param name="reg">取消注册</param>
     /// <param name="result">提交结果</param>
-    internal static void NotifyFlushWaiter(TaskCompletionSource<FlushResult>? waiter, CancellationTokenRegistration reg, FlushResult result)
+    /// <returns>结果是否真正交付；false 表示等待者已被取消令牌抢先定案</returns>
+    internal static Boolean NotifyFlushWaiter(TaskCompletionSource<FlushResult>? waiter, CancellationTokenRegistration reg, FlushResult result)
     {
         reg.Dispose();
-        waiter?.TrySetResult(result);
+        return waiter?.TrySetResult(result) ?? false;
     }
 
-    /// <summary>完成写入。挂起的读取与挂起的提交立即完成（IsCompleted=true）；此后追加的数据直接释放</summary>
+    /// <summary>完成写入。未提交的已推进数据先提交给读侧（对齐 BCL），再唤醒挂起读取与提交；此后追加的数据直接释放</summary>
     /// <param name="error">结束原因（异常）。可为空；首个带异常的完成方胜出（读侧已带异常时不覆盖）</param>
     public void Complete(Exception? error = null)
     {
+        IPacket? head;
         TaskCompletionSource<ReadResult>? waiter;
         CancellationTokenRegistration reg;
         ReadResult result = default;
         TaskCompletionSource<FlushResult>? flushWaiter;
         CancellationTokenRegistration flushReg;
+
+        // 先提交后完成：Complete 不得静默丢弃已 Advance 的数据（对齐 BCL）。
+        // 投递必须在标记完成之前——否则 AppendInternal 会把数据当“已关闭”直接释放
+        lock (_pipe.SyncRoot)
+        {
+            if (_pipe.WriterCompleted) return;
+
+            SealWriteLocked();
+            head = _writeHead;
+            _writeHead = null;
+            _writeTail = null;
+            _writeSealed = 0;
+
+            // 归还写缓冲（已取走的待提交链不在此内）
+            ReleaseWriteLocked();
+        }
+
+        if (head != null) _pipe.Reader.AppendInternal(head);
 
         lock (_pipe.SyncRoot)
         {
@@ -245,9 +294,6 @@ public sealed class PipeWriter : IBufferWriter<Byte>
 
             _pipe.WriterCompleted = true;
             if (error != null) _pipe.Error ??= error;
-
-            // 未提交的写入数据丢弃（含池缓冲归还）
-            ReleaseWriteLocked();
 
             // 唤醒读侧挂起读取（唤醒句柄由读侧构建）
             waiter = _pipe.Reader.OnWriterCompletedLocked(out reg, out result);
@@ -363,6 +409,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
     }
 
     /// <summary>释放写入缓冲与待提交链，未提交数据丢弃（调用方持锁；本侧完成与读侧结束均会触发）</summary>
+    /// <remarks>调用前应先用 <see cref="SealWriteLocked"/> 取走已推进数据（若需提交），本方法只负责归还池缓冲与丢弃残余。</remarks>
     internal void ReleaseWriteLocked()
     {
         if (_writeBuffer != null)

@@ -197,6 +197,9 @@ internal sealed class SendPump
         {
             while (true)
             {
+                // 读取器已被完成（中止/关闭与发送竞态）：正常收尾，结束后再读会抛异常
+                if (reader.IsReaderCompleted) return;
+
                 var rr = await reader.ReadAsync().ConfigureAwait(false);
                 if (rr.IsCanceled) continue;
 

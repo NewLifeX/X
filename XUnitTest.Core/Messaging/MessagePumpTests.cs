@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.ComponentModel;
+using System.IO;
 using NewLife;
 using NewLife.Data;
 using NewLife.Messaging;
@@ -40,6 +41,37 @@ public class MessagePumpTests
     private static readonly SrmpCodec _codec = new();
 
     private static MessagePump NewPump() => new(_codec);
+
+    #region 管道结束语义
+    [Fact(DisplayName = "帧泵_写侧带异常完成_读取抛出该异常")]
+    public async Task ReadAsync_WriterCompletedWithError_Throws()
+    {
+        var pipe = new Pipe();
+        var pump = NewPump();
+        var ex = new IOException("连接被重置");
+
+        // 管道带异常结束：故障不得伪装成优雅关闭，读侧必须拿到它
+        pipe.Writer.Complete(ex);
+
+        var thrown = await Assert.ThrowsAsync<IOException>(async () => await pump.ReadAsync(pipe.Reader));
+
+        Assert.Same(ex, thrown);
+        Assert.True(pipe.Reader.IsCompleted);
+        Assert.Same(ex, pipe.Reader.Error);
+    }
+
+    [Fact(DisplayName = "帧泵_写侧优雅完成_读取返回null")]
+    public async Task ReadAsync_WriterCompletedGracefully_ReturnsNull()
+    {
+        var pipe = new Pipe();
+        var pump = NewPump();
+
+        pipe.Writer.Complete();
+
+        // 优雅结束仍返回 null（异常只用于故障结束）
+        Assert.Null(await pump.ReadAsync(pipe.Reader));
+    }
+    #endregion
 
     /// <summary>测试用行协议：CRLF 分隔；空行与 # 注释行为“无消息帧”（跳过），数据行以内容为体，分隔符留给下一帧跳过</summary>
     private sealed class LineCodec : IMessageCodec

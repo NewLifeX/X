@@ -37,18 +37,22 @@
 
 窗口类型仍是 BCL 的 `ReadOnlySequence<Byte>`：`IPacket` 链经 `PacketHelper.AsReadOnlySequence()` 零拷贝桥接（单段快路径零分配）。
 
-### 行为差异清单（2026-09-26 实测）
+### 行为差异清单（2026-09-26 实测，2026-09-27 对齐）
 
-上表三条是**设计取舍**，下表是**行为差异**：BCL 侧全部以 net10.0 运行时实测为准，本库侧为当前实现。这些差异属公开契约，当前**保留现状**，建议随 v12 窗口统一决策——逐条改会让下游反复适配。
+上表三条是**设计取舍**，下表是**行为差异**：BCL 侧全部以 net10.0 运行时实测为准。**2026-09-27 已按建议逐条对齐**（"现状"列为对齐后的实现），仅余两条有意保留的偏差单列在表后。
 
-| 行为 | 本库 | BCL（实测） | 建议 |
-|------|------|-------------|------|
-| 读侧结束后继续 `ReadAsync`/`TryRead` | 返回 `IsCompleted` 空结果 | 抛 `InvalidOperationException` | 对齐：读取器误用（并发读、复用已结束的读取器）现被静默降级成“流结束”，排障成本高 |
-| 写侧 `Complete(error)` 后的读侧读取 | 返回 `IsCompleted`；异常只在 `Pipe.Error` | 抛该异常 | 对齐：需 `ReadResult` 携带异常或读侧抛出。现状已有测试固化（`Pipe_写侧完成带异常_读侧可查管道错误`） |
-| 读侧 `Complete(error)` 后的写侧提交 | 返回 `FlushResult(IsCompleted: true)` | 抛该异常 | 与上一条一并决策（错误传播链只有一半） |
-| 读侧结束后的写侧 `GetSpan`/`WriteAsync`/`Advance` | 抛 `InvalidOperationException`（空数据 `WriteAsync` 例外：不写、只提交并返回 `IsCompleted`） | 正常返回（不抛） | 对齐 BCL：对端关闭后按 BCL 习惯继续写应得到 `IsCompleted`，且本库空/非空数据行为应统一 |
-| `Complete()` 时“已 Advance 未 Flush”的数据 | 丢弃（类注释已声明） | **先提交再结束**（实测：`Complete` 后读侧仍可读到该字节） | 对齐（`Complete` 先封口投递），或维持丢弃但迁移文档显著标注 |
-| `CancelPendingFlush()` 无挂起提交时 | 无效果 | **下一次提交标记取消**（实测：数据照常提交、读侧可读，且只生效一次） | 对齐：与 `CancelPendingRead` 的一次性暂存语义对称 |
+| 行为 | 对齐前 | BCL（实测） | 现状（2026-09-27） |
+|------|--------|-------------|--------------------|
+| 读侧结束后继续 `ReadAsync`/`TryRead` | 返回 `IsCompleted` 空结果 | 抛 `InvalidOperationException` | **已对齐**：抛 `InvalidOperationException`（静默降级会把"复用已结束读取器/并发读"掩盖成流结束）。内部消费端（`SendPump`/`WebSocket.ReadFrames`/`LimitedReader`）已加完成判定，正常关闭路径不受影响 |
+| 写侧 `Complete(error)` 后的读侧读取 | 返回 `IsCompleted`，异常只在 `Pipe.Error` | 抛该异常 | **已对齐（最小版）**：新增 `PipeReader.Error`，`MessagePump.ReadAsync` 在完成且带异常时抛出该异常；不再把连接故障当优雅关闭。`ReadResult` 携带异常留作 v12 可选增强 |
+| 读侧 `Complete(error)` 后的写侧提交 | 返回 `FlushResult(IsCompleted: true)` | 抛该异常 | **已对齐（最小版）**：`Reader.Complete(error)` 把异常记入 `Pipe.Error`，"两侧先完成方胜出"；写侧据 `Pipe.Error` 判断，而非依赖抛出 |
+| 读侧结束后的写侧 `GetSpan`/`WriteAsync` | 抛 `InvalidOperationException`（空数据例外） | 正常返回（不抛） | **已对齐**：读侧结束后可取窗口写入，由 `FlushAsync` 的 `IsCompleted` 告知停止；**写侧自己结束**后再写仍抛异常（两种状态已区分） |
+| `Complete()` 时"已 Advance 未 Flush"的数据 | 丢弃 | **先提交再结束**（实测：`Complete` 后读侧仍可读到该字节） | **已对齐**：`Complete` 先提交再标记完成（未推进的写缓冲仍丢弃） |
+| `CancelPendingFlush()` 无挂起提交时 | 无效果 | **下一次提交标记取消**（实测：数据照常提交、读侧可读，且只生效一次） | **已对齐**：无挂起提交时暂存，由下一次提交标记取消一次（与 `CancelPendingRead` 对称） |
+
+> **有意保留的两条偏差**：①`AdvanceTo` 在读侧结束后仍宽松（不抛）——内部中止竞态下"发送已完成、推进落空"属良性，且推进本身无副作用；②`MessagePump.TryRead`（同步形态）不抛错误，调用方按返回 false + `PipeReader.Error` 判断（同步形态不引入异常控制流）。
+>
+> 实测确认**已一致**、无需改的两项：①背压按"未检查数据"记账（见上文背压节，`AdvanceTo` 的 examined 会解除计入）；②`CancelPendingRead` 无挂起读取时，下一次读取立即返回取消结果且只生效一次。
 
 > 实测确认**已一致**、无需改的两项：①背压按“未检查数据”记账（见上文背压节，`AdvanceTo` 的 examined 会解除计入）；②`CancelPendingRead` 无挂起读取时，下一次读取立即返回取消结果且只生效一次。
 
@@ -94,7 +98,9 @@ var body = msg.Body;   // LimitedReader：预算内窗口裁剪，读满恰好�
 | `TakeFrame(count)` | 零拷贝切出窗口前 count 字节为**拥有句柄**并推进窗口，同一锁内完成；帧可跨轮持有 |
 | `Limit(count)` | 返回 `LimitedReader`，按帧长读取负载（AsPacket 视图 / ReadAllAsync 物化 / DrainAsync 丢弃余量） |
 | `CancelPendingRead()` | 取消挂起读取；无挂起时下一次读取立即返回取消结果 |
-| `Complete()` / `CompleteAsync(error?)` | 结束读取并释放全部未消费数据 |
+| `Complete()` / `CompleteAsync(error?)` | 结束读取并释放全部未消费数据；带异常结束时记录到 `Error`（两侧先到先得）|
+| `IsReaderCompleted` | 读取器自身是否已结束（结束后再读会抛 `InvalidOperationException`，对齐 BCL）；消费循环据此收尾 |
+| `IsCompleted` / `Error` | 写侧是否已完成 / 管道结束时的异常。优雅结束应当“读到完成标记”，带异常结束应当“读到异常”，据此区分故障与优雅关闭 |
 
 ## 写入缓冲（Pipelines 形态）
 
@@ -109,7 +115,7 @@ var body = msg.Body;   // LimitedReader：预算内窗口裁剪，读满恰好�
 | `FlushAsync(waitForResume, ct)` | 显式形态：true 同默认（挂起等待水位恢复）；false 仅提交不等待 |
 | `AsStream(leaveOpen)` | 以只写流形态写入（写入即提交；对齐 BCL PipeWriter.AsStream） |
 | `UnflushedBytes` | 尚未提交的字节数 |
-| `CancelPendingFlush()` / `CompleteAsync(error?)` | 取消挂起的提交（结果 IsCanceled=true；无挂起提交时无效果）/ 等价 `Complete` |
+| `CancelPendingFlush()` | 取消提交（结果 IsCanceled=true）：有挂起提交时立即唤醒；**无挂起提交时暂存，由下一次提交标记取消一次**（数据照常提交，对齐 BCL） |
 
 ```csharp
 var span = pipe.Writer.GetSpan(4);
@@ -118,7 +124,7 @@ pipe.Writer.Advance(4);
 await pipe.Writer.FlushAsync();      // 提交，读取方立即可见
 ```
 
-> 未提交的数据在 `Complete`/`Dispose` 时丢弃（池缓冲归还）。**命名说明**：类型与 BCL 同名（`Pipe`/`PipeReader`/`PipeWriter`/`ReadResult`/`FlushResult`，命名空间 `NewLife.Data`），心智直接复用 Pipelines 知识；同文件同时引用两个命名空间时用别名（见上文"同名不同命名空间"）。
+> **完成语义**：`Complete()` 会**先把已推进未提交的数据提交给读侧**再结束（对齐 BCL，不静默丢数据）；未推进的写入缓冲在 `Complete`/`Dispose` 时丢弃（池缓冲归还）。读侧结束后仍可取窗口写入，由 `FlushAsync` 返回的 `IsCompleted` 告知停止；写侧自己结束后再写抛 `InvalidOperationException`。**命名说明**：类型与 BCL 同名（`Pipe`/`PipeReader`/`PipeWriter`/`ReadResult`/`FlushResult`，命名空间 `NewLife.Data`），心智直接复用 Pipelines 知识；同文件同时引用两个命名空间时用别名（见上文“同名不同命名空间”）。
 
 ## 背压（迟滞状态机）
 

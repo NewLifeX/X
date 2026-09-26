@@ -18,6 +18,13 @@ public sealed class PipeReader
     /// <summary>写侧是否已完成</summary>
     public Boolean IsCompleted => _pipe.WriterCompleted;
 
+    /// <summary>读取器自身是否已结束（<see cref="Complete(Exception?)"/> 之后为 true）。结束后不能再读取，消费循环据此收尾</summary>
+    /// <remarks>结束读取会同时把写侧标记为已完成，故 <see cref="IsCompleted"/> 为 true 时本属性不一定为 true（写侧正常结束仍需把余量读完）。</remarks>
+    public Boolean IsReaderCompleted => _readerCompleted;
+
+    /// <summary>管道结束时的异常。任一侧带异常完成时携带，读侧据此区分"故障结束"与"优雅结束"</summary>
+    public Exception? Error => _pipe.Error;
+
     /// <summary>未消费数据长度。管道级视图见 <see cref="Pipe.UnconsumedLength"/></summary>
     internal Int64 UnconsumedLength { get { lock (_pipe.SyncRoot) return _length; } }
     #endregion
@@ -454,11 +461,9 @@ public sealed class PipeReader
             return true;
         }
 
-        if (_readerCompleted)
-        {
-            result = new ReadResult(ReadOnlySequence<Byte>.Empty, true, false);
-            return true;
-        }
+        // 结束读取后再读属误用（BCL 同样抛异常）：静默返回“已结束”会把复用已结束读取器、
+        // 并发读这类误用掩盖成流结束，排障时极难区分
+        if (_readerCompleted) throw new InvalidOperationException("The PipeReader has been completed; no further reads are allowed.");
 
         // 已完成：返回残余窗口，让消费方处理收尾
         if (_pipe.WriterCompleted)

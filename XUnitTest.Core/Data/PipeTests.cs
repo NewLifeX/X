@@ -208,6 +208,64 @@ public class PipeTests
     }
 
     [Fact]
+    [DisplayName("Pipe_完成前已推进未提交_数据仍交付读侧")]
+    public async Task Complete_CommitsAdvancedData()
+    {
+        using var pipe = new Pipe();
+
+        // 只走 GetSpan/Advance，不 Flush
+        var span = pipe.Writer.GetSpan(4);
+        span[0] = 0x2A;
+        pipe.Writer.Advance(1);
+
+        pipe.Writer.Complete();
+
+        // 对齐 BCL：Complete 先提交再结束，已 Advance 的数据不得静默丢弃
+        var rr = await pipe.Reader.ReadAsync();
+        Assert.True(rr.IsCompleted);
+        Assert.Equal(1, rr.Buffer.Length);
+        Assert.Equal(0x2A, rr.Buffer.First.Span[0]);
+        pipe.Reader.AdvanceTo(rr.Buffer.Length);
+    }
+
+    [Fact]
+    [DisplayName("Pipe_读侧结束后写入_返回已完成而不抛异常")]
+    public async Task ReaderCompleted_WriteAsync_ReturnsCompleted()
+    {
+        using var pipe = new Pipe();
+
+        // 读侧先结束（对端关闭／接收侧收尾）
+        pipe.Reader.Complete();
+
+        // 对齐 BCL：取窗口与写入不再抛异常，由返回结果告知已完成，调用方据此停止写入
+        var span = pipe.Writer.GetSpan(4);
+        Assert.True(span.Length >= 4);
+
+        var fr = await pipe.Writer.WriteAsync(new Byte[] { 1, 2 });
+        Assert.True(fr.IsCompleted);
+
+        // 无人消费的数据直接释放
+        Assert.Equal(0, pipe.UnconsumedLength);
+    }
+
+    [Fact]
+    [DisplayName("Pipe_读侧结束后再读_抛无效操作异常")]
+    public async Task ReaderCompleted_Read_Throws()
+    {
+        using var pipe = new Pipe();
+
+        Assert.False(pipe.Reader.IsReaderCompleted);
+        Assert.Null(pipe.Reader.Error);
+
+        pipe.Reader.Complete();
+
+        // 对齐 BCL：结束读取后再读是误用，不能静默降级成"流结束"
+        Assert.True(pipe.Reader.IsReaderCompleted);
+        Assert.Throws<InvalidOperationException>(() => pipe.Reader.TryRead(out _));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await pipe.Reader.ReadAsync());
+    }
+
+    [Fact]
     [DisplayName("Pipe_取消挂起读取_返回取消结果")]
     public async Task CancelPendingRead_ReturnsCanceled()
     {
@@ -391,9 +449,6 @@ public class PipeTests
     {
         using var pipe = new Pipe { PauseThreshold = 100, ResumeThreshold = 50 };
 
-        // 无挂起提交时取消：无效果
-        pipe.Writer.CancelPendingFlush();
-
         pipe.Writer.Append(new ArrayPacket(new Byte[150]));
         var vt = pipe.Writer.FlushAsync(true);
         Assert.False(vt.IsCompleted);
@@ -411,6 +466,31 @@ public class PipeTests
         pipe.Reader.AdvanceTo(150);
         var fr2 = await pipe.Writer.FlushAsync(true);
         Assert.False(fr2.IsCanceled);
+    }
+
+    [Fact]
+    [DisplayName("Pipe_写侧回压_无挂起提交时取消_下一次提交标记取消一次")]
+    public async Task CancelPendingFlush_NoPending_NextSubmitCanceledOnce()
+    {
+        using var pipe = new Pipe { PauseThreshold = 100, ResumeThreshold = 50 };
+
+        // 无挂起提交时取消：暂存，由下一次提交消费（对齐 BCL）
+        pipe.Writer.CancelPendingFlush();
+
+        pipe.Writer.Append(new ArrayPacket(new Byte[150]));
+        var fr = await pipe.Writer.FlushAsync(true).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.True(fr.IsCanceled);
+
+        // 数据照常提交（只是不再等待水位）
+        Assert.Equal(150, pipe.UnconsumedLength);
+        pipe.Reader.AdvanceTo(150);
+
+        // 只生效一次：下一次提交不再被取消
+        pipe.Writer.Append(new ArrayPacket(new Byte[10]));
+        var fr2 = await pipe.Writer.FlushAsync(true).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.False(fr2.IsCanceled);
+        Assert.Equal(10, pipe.UnconsumedLength);
     }
 
     [Fact]
@@ -561,14 +641,30 @@ public class PipeTests
     }
 
     [Fact]
-    [DisplayName("Pipe_写入缓冲_管道结束后提交已完成_写入抛错")]
+    [DisplayName("Pipe_写入缓冲_读侧结束_提交已完成且写入不再抛错")]
     public async Task Writer_CompletedPipe()
     {
         using var pipe = new Pipe();
+
+        // 读侧结束（对端关闭／接收侧收尾）
         pipe.Reader.Complete();
 
         var fr = await pipe.Writer.FlushAsync();
         Assert.True(fr.IsCompleted);
+
+        // 对齐 BCL：读侧结束后仍允许取窗口写入，由提交结果告知已完成，调用方据此停止写入
+        Assert.True(pipe.Writer.GetSpan(4).Length >= 4);
+        Assert.True((await pipe.Writer.WriteAsync(new Byte[] { 1 })).IsCompleted);
+    }
+
+    [Fact]
+    [DisplayName("Pipe_写入缓冲_写侧自己结束后写入抛错")]
+    public void Writer_OwnCompleted_WriteThrows()
+    {
+        using var pipe = new Pipe();
+
+        // 写侧自己结束（读侧仍活着）：再取窗口属误用，抛异常（对齐 BCL）
+        pipe.Writer.Complete();
 
         Assert.Throws<InvalidOperationException>(() => pipe.Writer.GetSpan(4));
     }

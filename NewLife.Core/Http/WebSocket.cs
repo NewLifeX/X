@@ -161,7 +161,10 @@ public class WebSocket : IDisposable
     /// <param name="pump">帧泵</param>
     private void ReadFrames(MessagePump pump)
     {
-        while (pump.TryRead(_pipe!.Reader, out var message))
+        var reader = _pipe!.Reader;
+
+        // 读取器已随连接关闭完成时直接收尾：结束后再读会抛异常，不应当成“帧损坏”去关连接
+        while (!reader.IsReaderCompleted && pump.TryRead(reader, out var message))
         {
             try
             {

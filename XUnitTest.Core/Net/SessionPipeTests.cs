@@ -182,9 +182,11 @@ public class SessionPipeTests
         Assert.True(wait.Wait(3_000));
         Assert.NotNull(pipe);
 
-        // 低水位（64K 暂停 / 32K 恢复）；单帧声明 256K，远超暂停水位
-        pipe!.PauseThreshold = 64 * 1024;
-        pipe.ResumeThreshold = 32 * 1024;
+        // 低水位（4K 暂停 / 2K 恢复）；单帧声明 256K，远超暂停水位。
+        // 注意：按"未检查"记账后，泵每轮标记 examined 就会先解除暂停，恢复事件本身不再依赖读饥饿让位；
+        // 水位取小于单次接收量（默认 8K）可让"追加→暂停→放行"确定性发生，避免断言变成时序竞速
+        pipe!.PauseThreshold = 4 * 1024;
+        pipe.ResumeThreshold = 2 * 1024;
 
         var resumed = 0;
         pipe.Resumed += (s, e) => Interlocked.Increment(ref resumed);

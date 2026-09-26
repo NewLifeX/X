@@ -100,6 +100,7 @@ public sealed class Pipe : IDisposable
             Error = null;
 
             Reader.ResetForReuse();
+            Writer.ResetForReuse();
         }
     }
 
