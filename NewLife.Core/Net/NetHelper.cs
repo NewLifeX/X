@@ -15,7 +15,9 @@ namespace NewLife;
 public static class NetHelper
 {
     #region 属性
-    private static readonly ICache _Cache = MemoryCache.Instance;
+    // 私有缓存实例：网络变化时只清自己的 DNS/IP 缓存，不用全局 MemoryCache.Instance。
+    // 否则插拔网线/VPN 切换会清空整个应用的业务缓存，引发缓存击穿甚至雪崩
+    private static readonly MemoryCache _Cache = new();
     #endregion
 
     #region 构造
