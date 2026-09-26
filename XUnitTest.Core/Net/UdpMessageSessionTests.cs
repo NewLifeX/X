@@ -162,4 +162,34 @@ public class UdpMessageSessionTests
 
         await Assert.ThrowsAsync<NotSupportedException>(() => client.SendMessageAsync(msg).AsTask());
     }
+
+    [Fact]
+    [DisplayName("UDP协议_压缩协议_解压结果不被线上压缩字节覆盖")]
+    public async Task CompressedCodec_BodyNotOverwritten()
+    {
+        // 压缩协议要求整帧（UDP 数据报自带完整帧），可验证“协议预绑定体不被二次绑定覆盖”
+        using var server = new UdpMessageServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Udp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Protocol = new CompressedCodec(new SrmpCodec());
+        server.Start();
+
+        using var client = new NetClient($"udp://127.0.0.1:{server.Port}")
+        {
+            Protocol = new CompressedCodec(new SrmpCodec()),
+            AutoReconnect = false,
+        };
+        client.Open();
+
+        var msg = new DefaultMessage { Sequence = 1 };
+        msg.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes("compressed-body")));
+        client.SendMessage(msg);
+
+        // 服务端应读到解压后的原文；
+        // 修复前会被线上压缩字节覆盖（乱码），Contains 永不成立
+        Assert.True(await WaitUntilAsync(() => server.ReceivedLines.Contains("compressed-body")));
+    }
 }
