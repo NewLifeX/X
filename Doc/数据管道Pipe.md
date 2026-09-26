@@ -37,6 +37,21 @@
 
 窗口类型仍是 BCL 的 `ReadOnlySequence<Byte>`：`IPacket` 链经 `PacketHelper.AsReadOnlySequence()` 零拷贝桥接（单段快路径零分配）。
 
+### 行为差异清单（2026-09-26 实测）
+
+上表三条是**设计取舍**，下表是**行为差异**：BCL 侧全部以 net10.0 运行时实测为准，本库侧为当前实现。这些差异属公开契约，当前**保留现状**，建议随 v12 窗口统一决策——逐条改会让下游反复适配。
+
+| 行为 | 本库 | BCL（实测） | 建议 |
+|------|------|-------------|------|
+| 读侧结束后继续 `ReadAsync`/`TryRead` | 返回 `IsCompleted` 空结果 | 抛 `InvalidOperationException` | 对齐：读取器误用（并发读、复用已结束的读取器）现被静默降级成“流结束”，排障成本高 |
+| 写侧 `Complete(error)` 后的读侧读取 | 返回 `IsCompleted`；异常只在 `Pipe.Error` | 抛该异常 | 对齐：需 `ReadResult` 携带异常或读侧抛出。现状已有测试固化（`Pipe_写侧完成带异常_读侧可查管道错误`） |
+| 读侧 `Complete(error)` 后的写侧提交 | 返回 `FlushResult(IsCompleted: true)` | 抛该异常 | 与上一条一并决策（错误传播链只有一半） |
+| 读侧结束后的写侧 `GetSpan`/`WriteAsync`/`Advance` | 抛 `InvalidOperationException`（空数据 `WriteAsync` 例外：不写、只提交并返回 `IsCompleted`） | 正常返回（不抛） | 对齐 BCL：对端关闭后按 BCL 习惯继续写应得到 `IsCompleted`，且本库空/非空数据行为应统一 |
+| `Complete()` 时“已 Advance 未 Flush”的数据 | 丢弃（类注释已声明） | **先提交再结束**（实测：`Complete` 后读侧仍可读到该字节） | 对齐（`Complete` 先封口投递），或维持丢弃但迁移文档显著标注 |
+| `CancelPendingFlush()` 无挂起提交时 | 无效果 | **下一次提交标记取消**（实测：数据照常提交、读侧可读，且只生效一次） | 对齐：与 `CancelPendingRead` 的一次性暂存语义对称 |
+
+> 实测确认**已一致**、无需改的两项：①背压按“未检查数据”记账（见上文背压节，`AdvanceTo` 的 examined 会解除计入）；②`CancelPendingRead` 无挂起读取时，下一次读取立即返回取消结果且只生效一次。
+
 ## 快速开始
 
 ```csharp
