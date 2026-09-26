@@ -31,13 +31,14 @@ public class WebSocketCodec : IMessageCodec
     #region 方法
     /// <summary>定界并构造消息。解析帧头（FIN/OPCODE/长度/掩码键），构造 <see cref="WsMessage"/></summary>
     /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
-    /// <returns>解析结果；头部不足或长度非法时返回 null（不消费、不产生对象）。FIN=0 的分片帧照常产出，Fin 字段标识</returns>
+    /// <returns>头部不足返回 null（不消费、不产生对象）；长度非法返回 <see cref="ParseResult.Invalid"/>（帧损坏须立即报错）。FIN=0 的分片帧照常产出，Fin 字段标识</returns>
     /// <remarks>在只读序列上顺序读取，不拼读、不物化；掩码键挂在消息上，负载由消费方解码。</remarks>
     public ParseResult? TryParse(ReadOnlySequence<Byte> buffer)
     {
         // 帧字段由消息类自行解析（消息定义即协议），帧层只负责装配
         var message = new WsMessage();
-        if (!message.TryParse(buffer, out var bodyLength, out var headerSize)) return null;
+        if (!message.TryParse(buffer, out var bodyLength, out var headerSize, out var invalid))
+            return invalid ? new ParseResult { Invalid = true } : null;
 
         return new ParseResult { Message = message, HeaderSize = headerSize, BodyLength = bodyLength };
     }

@@ -62,7 +62,9 @@ public class WebSocket : IDisposable
         if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return null;
 
         var manager = new WebSocket();
-        manager.ProcessRequest(context);
+        // 校验不通过必须返回 null：否则调用方（HttpSession）会把普通请求长期当 WebSocket 接管，
+        // 既不给客户端任何握手响应，也让该连接永远脱离 HTTP 解析
+        if (!manager.ProcessRequest(context)) return null;
 
         return manager;
     }
@@ -123,7 +125,27 @@ public class WebSocket : IDisposable
 
         // 同步泵：当前缓冲内可成的整帧全部处理；头部不足或帧未完整则留给下一轮
         var pump = _pump ??= new MessagePump(_codec) { RequireFullFrame = true, MaxFrameSize = MaxFrameSize };
-        while (pump.TryRead(_pipe.Reader, out var message))
+        try
+        {
+            ReadFrames(pump);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // 协议帧损坏：残片无法恢复，留在管道会让后续每个包重复解析同一坏帧，直接关闭连接
+            NewLife.Log.XTrace.WriteLine("WebSocket 帧损坏，关闭连接：{0}", ex.Message);
+            try { Close(1002, "protocol error"); } catch { }
+
+            Context?.Connection?.TryDispose();
+            Context?.Socket?.TryDispose();
+            Connected = false;
+        }
+    }
+
+    /// <summary>同步泵出并向业务交付管道内已经可成的整帧；帧未完整则留在管道等下一轮</summary>
+    /// <param name="pump">帧泵</param>
+    private void ReadFrames(MessagePump pump)
+    {
+        while (pump.TryRead(_pipe!.Reader, out var message))
         {
             try
             {

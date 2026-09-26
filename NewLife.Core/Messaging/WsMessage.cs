@@ -51,14 +51,28 @@ public class WsMessage : Message
     #endregion
 
     #region 方法
-    /// <summary>解析 WebSocket 帧头并填充当前实例。数据不足或长度非法返回 false，失败路径不产生副作用</summary>
+    /// <summary>解析 WebSocket 帧头并填充当前实例。数据不足返回 false，失败路径不产生副作用</summary>
     /// <remarks>帧字段的读写属于消息类；掩码解码由消费方（<see cref="Demask"/>）执行。</remarks>
     /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
     /// <param name="bodyLength">解析到的负载长度</param>
     /// <param name="headerSize">帧头字节数（含掩码键）</param>
     /// <returns>是否解析成功</returns>
-    public Boolean TryParse(ReadOnlySequence<Byte> buffer, out Int64 bodyLength, out Int32 headerSize)
+    public Boolean TryParse(ReadOnlySequence<Byte> buffer, out Int64 bodyLength, out Int32 headerSize) => TryParse(buffer, out bodyLength, out headerSize, out _);
+
+    /// <summary>解析 WebSocket 帧头并填充当前实例</summary>
+    /// <remarks>
+    /// <para>帧字段的读写属于消息类；掩码解码由消费方（<see cref="Demask"/>）执行。</para>
+    /// <para>返回 false 时用 <paramref name="invalid"/> 区分“数据不足”与“帧损坏”：前者等待更多数据，后者必须立即报错，
+    /// 否则连接会一直等待一个永远不会完整的帧。</para>
+    /// </remarks>
+    /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
+    /// <param name="bodyLength">解析到的负载长度</param>
+    /// <param name="headerSize">帧头字节数（含掩码键）</param>
+    /// <param name="invalid">是否为损坏帧（长度非法）</param>
+    /// <returns>是否解析成功</returns>
+    public Boolean TryParse(ReadOnlySequence<Byte> buffer, out Int64 bodyLength, out Int32 headerSize, out Boolean invalid)
     {
+        invalid = false;
         bodyLength = 0;
         headerSize = 0;
         if (buffer.Length < 2) return false;
@@ -89,8 +103,12 @@ public class WsMessage : Message
             fieldLen += 8;
         }
 
-        // 长度最高位为 1（负数）：损坏帧
-        if (len < 0) return false;
+        // 长度最高位为 1（负数）：损坏帧，必须与“数据不足”区分开
+        if (len < 0)
+        {
+            invalid = true;
+            return false;
+        }
 
         // 掩码键（4 字节），随头部一并消费
         Byte[]? masks = null;

@@ -27,6 +27,32 @@ public class WebSocketCodecTests
 
     #region 解析
     [Fact]
+    [DisplayName("WS编解码_帧长度非法_标记损坏而非等待更多数据")]
+    public void TryParse_NegativeLength_MarksInvalid()
+    {
+        // 0x81 = FIN + 文本帧；0xFF = 掩码位 + 长度127，随后 8 字节大端长度最高位为 1 ⇒ 负数
+        var frame = new Byte[] { 0x81, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+        var rs = _serverCodec.TryParse(new ReadOnlySequence<Byte>(frame));
+
+        // 必须标记损坏：当作“数据不足”会让连接永久等待一个永远不会完整的帧
+        Assert.NotNull(rs);
+        Assert.True(rs!.Value.Invalid);
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_头部未到齐_返回空等待更多数据")]
+    public void TryParse_IncompleteHeader_ReturnsNull()
+    {
+        // 0xFE = 掩码位 + 长度126，还需 2 字节扩展长度
+        var frame = new Byte[] { 0x81, 0xFE };
+
+        var rs = _serverCodec.TryParse(new ReadOnlySequence<Byte>(frame));
+
+        Assert.Null(rs);
+    }
+
+    [Fact]
     [DisplayName("WS编解码_文本帧无掩码_定界")]
     public void TryParse_TextFrame()
     {
@@ -96,9 +122,11 @@ public class WebSocketCodecTests
         Assert.Equal(WebSocketMessageType.Text, fragMsg.Type);
         fragMsg.Dispose();
 
-        // 8 字节长度最高位为 1（负数）
+        // 8 字节长度最高位为 1（负数）：损坏帧，须标记 Invalid 而不是当作"数据不足"继续等
         var neg = new Byte[] { 0x82, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-        Assert.Null(_serverCodec.TryParse(new ArrayPacket(neg).AsReadOnlySequence()));
+        var negRs = _serverCodec.TryParse(new ArrayPacket(neg).AsReadOnlySequence());
+        Assert.NotNull(negRs);
+        Assert.True(negRs!.Value.Invalid);
 
         // 掩码位已置但密钥不齐：等待
         Assert.Null(_serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x81, 0x85, 0x11, 0x22 }).AsReadOnlySequence()));
