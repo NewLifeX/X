@@ -139,9 +139,9 @@ public class MessageSessionTests
         Assert.True(first.TrySetCanceled());
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => oldTask);
 
-        // 同一实例被下一个请求借出复用（池为 LIFO），版本号随归还递增
+        // 归还后同一实例通常被下一个请求借出复用（池为 LIFO）。不硬断言 Same：xUnit 并行下
+        // 可能被其它用例抢走，断言失败会变成与产品缺陷无关的假红；两种情形都必须“不得完成新等待源”
         var second = PooledValueTaskSource<Message>.Rent();
-        Assert.Same(first, second);
 
         var newRequest = new DefaultMessage { Sequence = 0x22 };
         queue.Add(this, newRequest, 10_000, second);
