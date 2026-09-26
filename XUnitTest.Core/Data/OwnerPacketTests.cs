@@ -879,4 +879,42 @@ public class OwnerPacketTests
     }
 
     #endregion
+
+    #region 接收环复用
+    [Fact(DisplayName = "Rebind：独占句柄重绑到新窗口，缓冲与引用计数保持")]
+    public void Rebind_ExclusiveHandle_ShouldRetarget()
+    {
+        var buffer = new Byte[16];
+        var packet = new OwnerPacket(buffer, 0, 4, true);
+
+        packet.Rebind(buffer, 2, 8);
+
+        Assert.Same(buffer, packet.Buffer);
+        Assert.Equal(2, packet.Offset);
+        Assert.Equal(8, packet.Length);
+        Assert.Equal(1, packet.RefCount);
+
+        // 重绑后仍按新窗口读写
+        packet[0] = 42;
+        Assert.Equal(42, buffer[2]);
+
+        packet.Dispose();
+    }
+
+    [Fact(DisplayName = "Rebind：仍有其它持有者时抛异常且不改变窗口")]
+    public void Rebind_WithOtherHandles_ShouldThrow()
+    {
+        var packet = new OwnerPacket(new Byte[16], 0, 4, true);
+        using var extra = packet.Slice(0, 2);
+
+        Assert.Throws<InvalidOperationException>(() => packet.Rebind(packet.Buffer, 2, 8));
+
+        // 异常不改变任何状态：其它持有者还在读这块缓冲，重绑会让接收数据把它覆盖掉
+        Assert.Equal(0, packet.Offset);
+        Assert.Equal(4, packet.Length);
+        Assert.Equal(2, packet.RefCount);
+
+        packet.Dispose();
+    }
+    #endregion
 }
