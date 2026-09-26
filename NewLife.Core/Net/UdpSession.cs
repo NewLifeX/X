@@ -365,6 +365,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             // 不能按异常处理，否则一个坏报文就会下线整个 UDP 服务
             if (rs.Value.Invalid) break;
 
+            // 已定界但需整帧（装饰协议，如压缩）：数据报是原子单位，无法在包内补齐，丢弃本报文等下一包
+            if (rs.Value.NeedFullFrame) break;
+
             // 无消息帧（心跳/空行/分隔符）：跳过字节后继续解析
             if (rs.Value.Message == null)
             {

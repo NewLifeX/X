@@ -86,4 +86,12 @@ public readonly struct ParseResult
     /// 对损坏应立即报错——流式传输关闭连接、数据报丢弃该包；一律当作不足会让连接僵死到残余上限才断开。</para>
     /// </remarks>
     public Boolean Invalid { get; init; }
+
+    /// <summary>帧已定界但整帧未到齐（等更多数据后才能交付）</summary>
+    /// <remarks>
+    /// <para>用于装饰协议（如 <see cref="CompressedCodec"/>）表达“长度已确定，但需要整帧到齐才能解压”；
+    /// 帧泵会把它与“头部不足”区分对待：保留窗口等待追加，而不当作无法定界的残余。</para>
+    /// <para>当该位置位时，<see cref="Message"/> 应为 null，尺寸字段仍为已定界的头长与体长，消费方据此判断单帧上限。</para>
+    /// </remarks>
+    public Boolean NeedFullFrame { get; init; }
 }

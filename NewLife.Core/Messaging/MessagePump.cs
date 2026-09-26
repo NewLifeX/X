@@ -75,11 +75,15 @@ public class MessagePump
     /// <returns>是否读取到消息；头部不足或窗口内仅有无消息帧时返回 false（窗口不动，等追加）</returns>
     /// <exception cref="InvalidOperationException"><see cref="Codec"/> 未设置；或协议帧损坏（头部已完整但长度字段非法）；或整帧模式下单帧超过 <see cref="MaxFrameSize"/></exception>
     /// <remarks>协议返回无消息帧（<see cref="IMessageCodec.TryParse"/> 成功但消息为 null）时消费该帧并继续解析下一帧，直到产出消息或数据不足。</remarks>
-    public Boolean TryRead(PipeReader reader, out IMessage? message)
+    public Boolean TryRead(PipeReader reader, out IMessage? message) => TryReadCore(reader, out message, out _);
+
+    /// <summary>尝试读取一帧（核心）。frameLength 返回“已定界但整帧未到齐”的帧长，0 表示无进展（头部不足）</summary>
+    private Boolean TryReadCore(PipeReader reader, out IMessage? message, out Int64 frameLength)
     {
         if (reader == null) throw new ArgumentNullException(nameof(reader));
 
         message = null;
+        frameLength = 0;
 
         var codec = Codec ?? throw new InvalidOperationException("MessagePump.Codec not set.");
 
@@ -95,10 +99,27 @@ public class MessagePump
             // 损坏帧：立即报错（由会话层关闭连接），不进入等待——否则会僵死到残余上限才断开
             if (rs.Value.Invalid) throw new InvalidOperationException($"协议帧损坏：头部已完整但帧长度字段非法（协议 {codec.GetType().Name}）");
 
+            var headerSize = rs.Value.HeaderSize;
+            var bodyLength = rs.Value.BodyLength;
+
+            // 已定界但需整帧（装饰协议声明，或本泵整帧模式）：不产出、不消费，等数据到齐后重新解析。
+            // 必须与“头部不足”区分——否则上层会把正在正常累积的大帧当成无法定界的残余而误断连接
+            if ((rs.Value.NeedFullFrame || (RequireFullFrame && rs.Value.Message != null)) && headerSize + bodyLength > buffer.Length)
+            {
+                rs.Value.Message?.Dispose();
+                frameLength = headerSize + bodyLength;
+
+                // 单帧长度超上限立即报错：否则对端只需声明一个超大帧，就能让本连接的内存无限增长
+                if (MaxFrameSize > 0 && frameLength > MaxFrameSize)
+                    throw new InvalidOperationException($"帧长度 {frameLength} 超过上限 {MaxFrameSize}，拒绝为超大帧无限缓冲");
+
+                return false;
+            }
+
             // 无消息帧（空行/心跳等）：消费该帧后继续解析下一帧
             if (rs.Value.Message == null)
             {
-                var skip = rs.Value.HeaderSize;
+                var skip = headerSize;
 
                 // 协议错误防护：既不产出消息又不消费字节会死循环，也不得消费超出窗口
                 if (skip <= 0 || skip > buffer.Length) return false;
@@ -108,20 +129,6 @@ public class MessagePump
             }
 
             var msg = rs.Value.Message;
-            var headerSize = rs.Value.HeaderSize;
-            var bodyLength = rs.Value.BodyLength;
-
-            // 整帧模式：帧未完整时不产出、不消费（头部留待数据到齐后重新解析）。
-            // 单帧长度超上限立即报错：否则对端只需声明一个超大帧，就能让本连接的内存无限增长
-            if (RequireFullFrame && headerSize + bodyLength > buffer.Length)
-            {
-                msg.Dispose();
-
-                if (MaxFrameSize > 0 && headerSize + bodyLength > MaxFrameSize)
-                    throw new InvalidOperationException($"帧长度 {headerSize + bodyLength} 超过上限 {MaxFrameSize}，拒绝为超大帧无限缓冲");
-
-                return false;
-            }
 
             // 协议已预绑定体（如压缩协议解压后重绑）：直接消费整帧，不再二次绑定。
             // 预绑定体的协议自己保证整帧到齐，但这里仍要校验窗口：自定义协议若提前绑定体，
@@ -173,16 +180,17 @@ public class MessagePump
             var rr = await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
             if (rr.IsCanceled) return null;
 
-            // 头部到齐：直接产出消息（帧完整/未完整在 TryRead 内部分流）
-            if (TryRead(reader, out var message)) return message;
+            // 头部到齐：直接产出消息（帧完整/未完整在核心内部分流）
+            if (TryReadCore(reader, out var message, out var frameLength)) return message;
 
             // 无法定界：流已结束则丢弃残余，否则标记已检查到窗口末尾等待追加
             if (rr.IsCompleted) return null;
 
             var buffer = reader.Buffer;
 
-            // 协议错误防护：残余无法定界且持续增长，达到上限即快速失败，避免连接僵死
-            if (MaxCache > 0 && buffer.Length >= MaxCache)
+            // 协议错误防护：残余无法定界且持续增长，达到上限即快速失败，避免连接僵死。
+            // 已定界但整帧未到齐（frameLength > 0）不属于“无法定界的残余”，其上限由 MaxFrameSize 把关
+            if (frameLength <= 0 && MaxCache > 0 && buffer.Length >= MaxCache)
                 throw new InvalidOperationException($"无法定界的残余数据 {buffer.Length} 字节达到上限 {MaxCache}，对端数据与协议不匹配或已损坏");
 
             reader.AdvanceTo(0, buffer.Length);

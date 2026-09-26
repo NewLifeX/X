@@ -17,6 +17,14 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec, IMessageCodec
     /// <summary>内层协议</summary>
     public IMessageCodec Inner { get; } = inner;
 
+    /// <summary>解压后最大字节数，默认 16M。0 表示不限制</summary>
+    /// <remarks>
+    /// <para>线上帧长上限（如 <see cref="MessagePump.MaxFrameSize"/>）约束的是压缩后大小，解压后大小完全由对端控制（Deflate 可达 1000:1）。
+    /// 无上限时对端只需发一个 1KB 的帧，即可让接收方分配 GB 级内存（压缩炸弹），且解压发生在接收路径同步执行。</para>
+    /// <para>超过上限时抛出异常，与坏帧同样交由帧泵关闭会话。</para>
+    /// </remarks>
+    public Int32 MaxDecompressedSize { get; set; } = 16 * 1024 * 1024;
+
     /// <summary>定界并构造消息。内层定界后，完整帧解压消息体并预绑定；帧未完整返回 null 等更多数据</summary>
     /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
     /// <returns>解析结果；头部不足或帧未完整返回 null</returns>
@@ -29,11 +37,11 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec, IMessageCodec
         var msg = r.Message;
         if (msg == null) return rs;   // 无消息帧直通
 
-        // 压缩体必须整载解压：帧未完整时丢弃暂建消息，等更多数据（不消费）
+        // 压缩体必须整载解压：帧未完整时声明“已定界待整帧”，让帧泵保留窗口等更多数据（不消费、也不当成无法定界的残余）
         if (r.HeaderSize + r.BodyLength > buffer.Length)
         {
             msg.Dispose();
-            return null;
+            return new ParseResult { NeedFullFrame = true, HeaderSize = r.HeaderSize, BodyLength = r.BodyLength };
         }
 
         if (r.BodyLength > 0)
@@ -45,13 +53,49 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec, IMessageCodec
                 : new MemoryStream(body.ToArray());
 
             var ms = new MemoryStream();
-            using (var inflate = new DeflateStream(input, CompressionMode.Decompress, true)) inflate.CopyTo(ms);
+            try
+            {
+                using (var inflate = new DeflateStream(input, CompressionMode.Decompress, true)) CopyToBounded(inflate, ms, MaxDecompressedSize);
+            }
+            catch
+            {
+                // 解压失败（含超限）：释放已构造的消息，避免泄漏
+                msg.Dispose();
+                throw;
+            }
 
             ms.Position = 0;
             msg.SetBody(new ArrayPacket(ms));
         }
 
         return r;
+    }
+
+    /// <summary>带长度上限的流拷贝。超过上限抛异常，防御解压炸弹</summary>
+    /// <param name="source">源流</param>
+    /// <param name="destination">目标流</param>
+    /// <param name="maxSize">最大字节数，0 表示不限制</param>
+    private static void CopyToBounded(Stream source, Stream destination, Int32 maxSize)
+    {
+        var buf = ArrayPool<Byte>.Shared.Rent(8192);
+        try
+        {
+            var total = 0;
+            while (true)
+            {
+                var n = source.Read(buf, 0, buf.Length);
+                if (n <= 0) break;
+
+                total += n;
+                if (maxSize > 0 && total > maxSize) throw new InvalidDataException($"解压后长度超过上限 {maxSize}，拒绝继续解压（疑似压缩炸弹）");
+
+                destination.Write(buf, 0, n);
+            }
+        }
+        finally
+        {
+            ArrayPool<Byte>.Shared.Return(buf);
+        }
     }
 
     /// <summary>整帧构建。压缩消息体后交内层协议构建，构建后还原消息负载</summary>
