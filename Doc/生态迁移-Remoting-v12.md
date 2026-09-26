@@ -59,7 +59,10 @@ v12 只有**单一 `SessionBase.Protocol`**（`IMessageCodec`），没有链、�
 
 | 方案 | 做法 | 优点 | 代价 |
 |------|------|------|------|
-| **A（推荐）** | Remoting 只保留 SRMP 作为 `Protocol`；HTTP/WS 交给 Core 的 `HttpServer` + `Http/WebSocket`（同端口监听 + 升级） | 与 v12 单栈化方向一致，删除自研 WS codec 与握手逻辑，长期维护成本最低 | 需确认 Core 能在**同一监听**上做 HTTP + WS 升级；`WebSocketClientCodec`/`WebSocketServerCodec`/`HttpCodec` 三个公开类删除（破坏性） |
+| **A（推荐）** | Remoting 只保留 SRMP 作为 `Protocol`；HTTP/WS 交给 Core 的 `HttpServer` + `WebSocketHandler`（同端口监听 + 101 升级） | 与 v12 单栈化方向一致，删除自研 WS codec 与握手逻辑，长期维护成本最低 | `WebSocketClientCodec`/`WebSocketServerCodec`/`HttpCodec` 三个公开类删除（破坏性） |
+
+> **A 的可行性已核实（2026-09-27）**：Core 自带 `Http/HttpServer.cs`（`HttpServer : NetServer, IHttpHost`）与 `Http/WebSocketHandler.cs`（`WebSocketHandler : IHttpHandler`），握手在 `Http/WebSocket.cs` 内完成（校验 `Upgrade`/`Connection` 令牌 → 回 `101 SwitchingProtocols`）——**同一监听上 HTTP 与 WS 升级是 Core 原生能力**，无需 Remoting 自研。
+> 仍需回答的一点：同端口上的**裸 SRMP 帧**是否必须保留（Core 的 `HttpServer` 按 HTTP 解析，非 HTTP 首字节不会自动落回 SRMP）。若"一个端口三协议"必须保留，A 需要 Core 侧给一个"非 HTTP 首字节回落"的钩子，或退到方案 C。
 | B | Remoting 自研 `ApiProtocolCodec : IMessageCodec`：首帧嗅探 WS 升级 / HTTP 请求 / SRMP，命中后自行切换会话协议 | 保住"一端口三协议"与现有公开类型 | 与 v12"握手进打开链路"的设计相悖，等于把刚删掉的协商逻辑再写一遍；codec 需要会话引用（不再无状态可共享） |
 | C | 拆分端口：SRMP 走 `ApiNetServer`（`Protocol = SrmpCodec`），HTTP/WS 走 Core 的 `ApiHttpServer`/`HttpServer` | 改动最小、语义最清晰 | 产品行为变化（同一端口不再三种协议），需文档与用户告知 |
 
