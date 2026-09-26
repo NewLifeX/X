@@ -506,9 +506,12 @@ public sealed class PipeReader
     internal void ResetForReuse()
     {
         _readerCompleted = false;
+
+        // 残留的取消暂存会让复用后的第一次读取凭空取消，必须清掉
         _cancelPending = false;
 
-        // 已检查长度同样复位：残留的大值会让复用后的 TryRead 误判“无数据”（长度未超过旧检查量）
+        // 已检查长度兜底复位：复位前要求两端已完成，而结束读取的 ReleaseAllLocked 已把它清零，
+        // 这里显式再清一次，防止日后放宽复位前置条件时残留旧游标
         _examined = 0;
     }
 
