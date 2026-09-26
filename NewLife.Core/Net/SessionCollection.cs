@@ -76,6 +76,14 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         };
         session.OnDisposed += onDisposed;
 
+        // 订阅与入集合之间仍有窗口：会话此刻销毁则移除回调空转（集合里还没它），随后 TryAdd 成功就永久残留。
+        // 入集合前再复查一次，把窗口压到“复查-入集合”的指令级
+        if (session.Disposed)
+        {
+            session.OnDisposed -= onDisposed;
+            return false;
+        }
+
         if (!_dic.TryAdd(key, session))
         {
             // 端点重复等入集合失败：退订，避免回调挂在未被集合接管的会话上
