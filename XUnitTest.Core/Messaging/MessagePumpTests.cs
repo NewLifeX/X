@@ -682,5 +682,33 @@ public class MessagePumpTests
         pump.MaxFrameSize = 4096;
         Assert.False(pump.TryRead(pipe.Reader, out _));
     }
+
+    [Fact]
+    [DisplayName("帧泵_整帧模式_大帧分批到达_不受最大缓存误报")]
+    public async Task ReadAsync_RequireFullFrame_LargeFrame_NoMaxCacheFalsePositive()
+    {
+        using var pipe = new Pipe();
+        var pump = NewPump();
+        pump.RequireFullFrame = true;
+        pump.MaxCache = 256;                 // 远小于帧长
+        pump.MaxFrameSize = 1024 * 1024;
+
+        var frame = BuildFrame(new Byte[200_000], 0x6C);
+
+        // 先写入不足整帧的一大段（已超过 MaxCache）：已定界但未完整
+        pipe.Writer.Append(new ArrayPacket(frame[..(frame.Length - 1)]));
+
+        var task = pump.ReadAsync(pipe.Reader).AsTask();
+        Assert.False(task.IsCompleted);
+
+        // 补上最后一字节：整帧到齐。旧实现把“已定界待整帧”当成无法定界的残余而误报
+        pipe.Writer.Append(new ArrayPacket(frame[(frame.Length - 1)..]));
+
+        var msg = await task;
+        Assert.NotNull(msg);
+        Assert.Equal(0x6C, ((DefaultMessage)msg!).Sequence);
+        Assert.Equal(200_000, msg.Payload!.Total);
+        msg.Dispose();
+    }
     #endregion
 }

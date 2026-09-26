@@ -45,6 +45,24 @@ public class NetClientTests
         Assert.Same(uri, client.Remote);
     }
 
+    [Fact(DisplayName = "UDP服务端_客户端模式销毁_释放套接字与端口")]
+    public void UdpServer_ClientMode_Dispose_ReleasesSocket()
+    {
+        // Remote 非通配：关闭流程会先向服务端发空包通知
+        var udp = new UdpServer { Remote = new NetUri("udp://127.0.0.1:9") };
+        udp.Open();
+        Assert.True(udp.Active);
+
+        // 旧实现：Dispose 流程内 Disposed 已置位，OnCloseAsync 里的 Send(Pool.Empty) 抛
+        // ObjectDisposedException 并被吞掉，收尾（Client=null / 关会话 / Shutdown）全部跳过，
+        // 套接字与本地端口一直泄漏到 GC
+        udp.Dispose();
+
+        Assert.True(udp.Disposed);
+        Assert.False(udp.Active);
+        Assert.Null(udp.Client);
+    }
+
     [Fact]
     public void Server_SetNull_ClearsRemote()
     {

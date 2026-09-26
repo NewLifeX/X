@@ -121,7 +121,7 @@ public class CompressedCodecTests
     }
 
     [Fact]
-    [DisplayName("压缩编解码_帧未完整_等待不消费")]
+    [DisplayName("压缩编解码_帧未完整_声明需整帧不消费")]
     public void PartialFrame_Waits()
     {
         var codec = NewCodec();
@@ -130,9 +130,14 @@ public class CompressedCodecTests
         var pk = codec.Build(msg)!;
 
         var full = pk.AsReadOnlySequence();
-        // 只给一半：返回 null（不消费、不产出）
+        // 只给一半：帧已定界但需整帧，声明 NeedFullFrame 等补齐（不消费、不产出消息，
+        // 也不能当成“无法定界的残余”，否则帧泵会误断连接）
         var half = full.Slice(0, full.Length / 2);
-        Assert.Null(codec.TryParse(half));
+        var rs = codec.TryParse(half);
+        Assert.NotNull(rs);
+        Assert.True(rs.Value.NeedFullFrame);
+        Assert.Null(rs.Value.Message);
+        Assert.Equal(full.Length, rs.Value.HeaderSize + rs.Value.BodyLength);
         pk.TryDispose();
     }
 
@@ -220,6 +225,41 @@ public class CompressedCodecTests
         var msg2 = (DefaultMessage)rs.Value.Message!;
         Assert.Equal("chained-payload", Encoding.UTF8.GetString(msg2.Payload!.ToArray()));
         msg2.Dispose();
+        pk.TryDispose();
+    }
+
+    [Fact]
+    [DisplayName("压缩编解码_帧泵_大帧分批到达_不受最大缓存误报")]
+    public async Task Pump_LargeFrame_InChunks_NoMaxCacheFalsePositive()
+    {
+        var codec = NewCodec();
+        var pump = new MessagePump(codec) { MaxCache = 512 };    // 远小于帧长
+        using var pipe = new Pipe();
+
+        // 随机负载：压缩后仍显著大于 MaxCache
+        var payload = new Byte[64 * 1024];
+        new Random(2026).NextBytes(payload);
+
+        var msg = new DefaultMessage { Sequence = 0x21 };
+        msg.SetBody(new ArrayPacket(payload));
+        var pk = codec.Build(msg)!;
+        var frame = pk.AsReadOnlySequence().ToArray();
+        Assert.True(frame.Length > 512);
+
+        // 先写入不足整帧的一大段（已超过 MaxCache）：已定界但未完整，帧泵应等待而不误报残余超限
+        pipe.Writer.Append(new ArrayPacket(frame[..(frame.Length - 1)]));
+
+        var task = pump.ReadAsync(pipe.Reader).AsTask();
+        Assert.False(task.IsCompleted);
+
+        // 补上最后一字节：整帧到齐，解压交付
+        pipe.Writer.Append(new ArrayPacket(frame[(frame.Length - 1)..]));
+
+        var recv = await task;
+        Assert.NotNull(recv);
+        Assert.Equal(0x21, ((DefaultMessage)recv!).Sequence);
+        Assert.Equal(payload, recv.Payload!.ToArray());
+        recv.Dispose();
         pk.TryDispose();
     }
 

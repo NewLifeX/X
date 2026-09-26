@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using NewLife;
 using NewLife.Data;
 using NewLife.Http;
@@ -58,6 +60,102 @@ public class TinyHttpClientTest
 
         Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
         Assert.Equal(uri, client.BaseAddress);
+    }
+
+    /// <summary>启动本地一次性 HTTP 服务器，返回端口与完成任务</summary>
+    private static (Int32 Port, Task Server) StartLocalServer(Func<NetworkStream, Task> handler)
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+        var task = Task.Run(async () =>
+        {
+            try
+            {
+                using var client = await listener.AcceptTcpClientAsync();
+                client.NoDelay = true;
+                using var ns = client.GetStream();
+
+                // 读掉请求
+                var buf = new Byte[1024];
+                await ns.ReadAsync(buf);
+
+                await handler(ns);
+            }
+            finally
+            {
+                listener.Stop();
+            }
+        });
+
+        return (port, task);
+    }
+
+    [Fact(DisplayName = "异步请求_响应头跨接收块_累积读取成功")]
+    public async Task SendAsync_SplitResponseHead()
+    {
+        var head = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\n");
+
+        // 先发半截头，停顿后再发余下头与体：模拟服务端头部稍慢，首个数据块拿不到完整头
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(head.AsMemory(0, 10));
+            await ns.FlushAsync();
+            await Task.Delay(50);
+            await ns.WriteAsync(head.AsMemory(10));
+            await ns.WriteAsync(Encoding.ASCII.GetBytes("hello"));
+            await ns.FlushAsync();
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") });
+
+        Assert.NotNull(res);
+        Assert.Equal(5, res!.BodyLength);
+        Assert.Equal("hello", res.Body!.ToStr());
+
+        await server;
+    }
+
+    [Fact(DisplayName = "异步请求_错误状态码_抛异常")]
+    public async Task SendAsync_ErrorStatus_Throws()
+    {
+        var resp = Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n");
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(resp);
+            await ns.FlushAsync();
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        var ex = await Assert.ThrowsAsync<Exception>(() =>
+            client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") }));
+
+        Assert.Contains("404", ex.Message);
+
+        await server;
+    }
+
+    [Fact(DisplayName = "异步请求_204无内容_按成功返回")]
+    public async Task SendAsync_NoContent_Succeeds()
+    {
+        var resp = Encoding.ASCII.GetBytes("HTTP/1.1 204 No Content\r\nContent-Length: 0\r\n\r\n");
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(resp);
+            await ns.FlushAsync();
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") });
+
+        Assert.NotNull(res);
+        Assert.Equal(HttpStatusCode.NoContent, res!.StatusCode);
+
+        await server;
     }
 
     //[Fact(DisplayName = "同步字符串")]

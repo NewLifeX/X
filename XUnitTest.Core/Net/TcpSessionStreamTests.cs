@@ -135,6 +135,28 @@ public class TcpSessionStreamTests
             Assert.Throws<ObjectDisposedException>(() => session.Send(new ArrayPacket(new Byte[] { 6 })));
         }
     }
+
+    [Fact]
+    [DisplayName("流式会话_销毁_入站管道残余归还")]
+    public async Task InboundPipe_Close_ReleasesResidue()
+    {
+        var (server, client, session) = await ConnectAsync();
+        using (server)
+        using (client)
+        {
+            // 触发入站管道创建：此后接收数据同时投递到管道（共享切片）
+            var pipe = session.Pipe;
+
+            await client.GetStream().WriteAsync(new Byte[512]);
+            await WaitUntilAsync(() => pipe.UnconsumedLength > 0);
+
+            // 关闭并销毁会话：入站管道残余必须归还。
+            // 旧实现只 _pipe.Writer.Complete()，读侧链上的池缓冲一挂到会话对象不可达，由终结器兜底
+            session.Close("test");
+
+            Assert.Equal(0, pipe.UnconsumedLength);
+        }
+    }
     #endregion
 
     #region 回环
