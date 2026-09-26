@@ -46,12 +46,14 @@
 - 相同 `clientId` 重复订阅会覆盖旧订阅（幂等）。
 - 在某些实现里可用于“消费组/分组”语义。
 
-### 2.3 `IAsyncEventBus<TEvent>`（异步订阅/取消）
+### 2.3 异步订阅/取消
 
-适用于订阅需要网络往返或其它异步动作的场景。
+异步订阅能力（订阅需网络往返或其它异步动作）直接由 `IEventBus<TEvent>` 提供：
 
 - `Task<Boolean> SubscribeAsync(IEventHandler<TEvent> handler, String clientId = "", CancellationToken cancellationToken = default)`
 - `Task<Boolean> UnsubscribeAsync(String clientId = "", CancellationToken cancellationToken = default)`
+
+> 历史别名 `IAsyncEventBus<TEvent>` 已删除（内容与 `IEventBus<TEvent>` 等价，生态源码零引用）。
 
 ### 2.4 `IEventHandler<TEvent>`（事件处理器）
 
@@ -181,7 +183,12 @@
 
 ### 4.5 上下文写入
 
-在 `DispatchAsync(topic, clientId, ...)` 中：
+在 `PublishAsync(topic, event, context, ...)` 中：
+
+- 若 `context` 是 `EventContext` 且 `Topic` 为空：自动写入 `Topic`。
+- `ClientId`（发送方标识，用于排除回环）由调用方自行设置，不会再被自动注入。
+
+兼容层 `DispatchAsync(topic, clientId, ...)`（已废弃）额外承担了 `clientId` 的写入：
 
 - 如果 `context` 是 `EventContext`：写入 `Topic` / `ClientId`。
 - 否则若 `context` 支持 `IExtend`：写入 `ext["Topic"]` / `ext["ClientId"]`。

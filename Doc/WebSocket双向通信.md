@@ -1,6 +1,6 @@
 # WebSocket双向通信
 
-> ⚠️ **部分过时（v12）**：文中“管道（Pipeline）”机制已整删；`WebSocketClient` 现以 `Protocol = new WebSocketCodec()` 协议模式运行（见《消息协议栈》《WebSocket迁移设计》）。收发 API（`SendText/SendBinary/ReceiveMessageAsync` 等）与握手细节仍然有效。
+> ⚠️ **部分过时（v12）**：文中“管道（Pipeline）”机制已整删；`WebSocketMessage` 已改为 `WsMessage`（`Messaging/WsMessage`，帧模型语义延续）；`WebSocketClient` 现以 `Protocol = new WebSocketCodec()` 协议模式运行（见《消息协议栈》《WebSocket迁移设计》）。收发 API（`SendText/SendBinary/ReceiveMessageAsync` 等）与握手细节仍然有效。
 
 ## 概述
 
