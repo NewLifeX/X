@@ -492,29 +492,29 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         return true;
     }
 
-    /// <summary>收到异常时如何处理。Tcp/Udp客户端默认关闭会话，但是Udp服务端不能关闭服务器，仅关闭会话</summary>
+    /// <summary>收到异常时如何处理。Udp服务端不能关闭服务器，仅关闭出问题的会话</summary>
     /// <param name="se"></param>
-    /// <returns>是否当作异常处理并结束会话</returns>
+    /// <returns>是否当作异常处理并结束会话。恒为 false：让接收环重投本槽继续收</returns>
     internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
     {
         // 缓冲区不足时，加大
         if (se.SocketError == SocketError.MessageSize && BufferSize < 1024 * 1024) BufferSize *= 2;
 
-        // Udp服务器不能关闭自己，但是要关闭会话
-        // Udp客户端一般不关闭自己
-        if (se.SocketError is not SocketError.ConnectionReset and
-            not SocketError.ConnectionAborted
-            ) return true;
-
-        // 关闭相应会话
-        var sessions = _Sessions;
-        if (sessions != null)
+        // 关闭出问题的会话（Reset/Aborted 一般来自 ICMP 端口不可达），服务器本身不关闭
+        if (se.SocketError is SocketError.ConnectionReset or SocketError.ConnectionAborted)
         {
-            var ep = se.RemoteEndPoint as IPEndPoint;
-            var ss = ep != null ? sessions.Get(ep) : null;
-            ss?.Dispose();
+            var sessions = _Sessions;
+            if (sessions != null)
+            {
+                var ep = se.RemoteEndPoint as IPEndPoint;
+                var ss = ep != null ? sessions.Get(ep) : null;
+                ss?.Dispose();
+            }
         }
-        // 无论如何，Udp都不关闭自己
+
+        // 一律返回 false，让接收环重投本槽继续收。返回 true 会让 ProcessEvent 释放本槽，
+        // 而接收槽只在启动时按 MaxAsync 创建一次、销毁后不重建，累计耗尽（默认 CPU*1.6 个）后
+        // 整台服务器会静默停收所有数据报。单个数据报出错（含 MessageSize）不代表远端不可达
         return false;
     }
     #endregion
