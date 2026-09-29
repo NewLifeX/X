@@ -862,13 +862,20 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>收到异常时如何处理。默认关闭会话</summary>
     /// <param name="se"></param>
-    /// <returns>是否当作异常处理并结束会话</returns>
+    /// <returns>是否当作异常处理并结束会话。true 会让 ProcessEvent 释放本接收槽并结束该槽的接收环，false 则重投本槽继续收</returns>
     internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)
     {
         //if (se.SocketError == SocketError.ConnectionReset) Dispose();
-        if (se.SocketError == SocketError.ConnectionReset) Close("ConnectionReset");
+        // 面向连接的会话（TCP/Unix 域）任何接收错误都说明连接不可用，必须关闭会话让上层收到 Closed。
+        // 只对 ConnectionReset 关闭会让会话半死：Active 仍为 true、不再收数据、也不触发 Closed，
+        // 上层（如 NetClient 的自动重连）永远等不到断线信号。
+        // 数据报（UDP）不适用：单个数据报出错不代表远端不可达，由 UdpServer 重投接收槽继续收
+        if (Client is { SocketType: SocketType.Stream } && !Disposed)
+            Close(se.SocketError == SocketError.ConnectionReset ? "ConnectionReset" : "ReceiveError " + se.SocketError);
 
-        return true;
+        // 返回值必须与“会话是否真的结束”一致：接收槽在启动时按 MaxAsync 创建一次、销毁后不重建，
+        // 对没关掉的会话返回 true 会变成“连接没关、接收槽没了”（数据报会话、Client 缺失、Close 失败）
+        return Disposed || !Active;
     }
 
     #endregion 接收
