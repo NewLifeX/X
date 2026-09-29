@@ -61,8 +61,8 @@ public class HttpResponse : HttpBase
             stream.Dispose();
         }
 
-        // 如果响应异常，则使用响应描述作为内容
-        if (StatusCode > HttpStatusCode.OK && Body == null && !StatusDescription.IsNullOrEmpty())
+        // 如果响应异常，则使用响应描述作为内容。无实体响应（204/304）除外：这类响应不得携带实体
+        if (!HasNoEntity && StatusCode > HttpStatusCode.OK && Body == null && !StatusDescription.IsNullOrEmpty())
         {
             Body = (ArrayPacket)StatusDescription.GetBytes();
         }
@@ -70,12 +70,12 @@ public class HttpResponse : HttpBase
         return base.Build();
     }
 
-    /// <summary>创建头部</summary>
-    /// <param name="length"></param>
-    /// <returns></returns>
     /// <summary>是否为无实体响应。204/304 不得携带实体，也不应声明 Content-Length（RFC 7230 §3.3.2）</summary>
     protected override Boolean HasNoEntity => StatusCode is HttpStatusCode.NoContent or HttpStatusCode.NotModified;
 
+    /// <summary>创建头部</summary>
+    /// <param name="length"></param>
+    /// <returns></returns>
     protected override String BuildHeader(Int32 length)
     {
         // 构建头部
@@ -88,11 +88,13 @@ public class HttpResponse : HttpBase
         //sb.AppendFormat("Access-Control-Allow-Headers:{0}\r\n", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
         // 内容长度：存在主体明确长度；否则除非 Transfer-Encoding/Upgrade 才可省略，默认发送 0。
-        // 204/304 不得携带实体，也不应声明 Content-Length（RFC 7230 §3.3.2）
-        if (length > 0)
+        // 204/304 不得携带实体，也不应声明 Content-Length（RFC 7230 §3.3.2）：
+        // 这里显式删除而非仅不写入，避免调用方自行设置的 Content-Length 漏出
+        if (HasNoEntity)
+            Headers.Remove("Content-Length");
+        else if (length > 0)
             Headers["Content-Length"] = length + "";
-        else if (!HasNoEntity &&
-                 !Headers.ContainsKey("Content-Length") && !Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
+        else if (!Headers.ContainsKey("Content-Length") && !Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
             Headers["Content-Length"] = "0";
 
         if (!ContentType.IsNullOrEmpty()) Headers["Content-Type"] = ContentType;

@@ -148,7 +148,8 @@ public abstract class HttpBase : IDisposable
     /// <returns></returns>
     public virtual IOwnerPacket Build()
     {
-        var body = Body;
+        // 无实体响应（204/304）不得携带实体：既不写入主体字节，也不计入长度
+        var body = HasNoEntity ? null : Body;
         var len = body != null ? body.Total : 0;
 
         var header = BuildHeader(len);

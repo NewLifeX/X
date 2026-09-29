@@ -86,6 +86,41 @@ public class HttpResponseTests
         Assert.StartsWith($"HTTP/1.1 {(Int32)code} ", text);
     }
 
+    [Fact(DisplayName = "Build 204带主体：实体不写入报文")]
+    public void Build_NoEntityStatus_IgnoresBody()
+    {
+        // 无实体状态码即使被赋了 Body 也不得把实体写进报文：头部省略了 Content-Length，
+        // 实体字节会让头部与实体自相矛盾（严格解析的客户端会把这些字节当作下一个响应的开头）
+        var resp = new HttpResponse
+        {
+            StatusCode = HttpStatusCode.NoContent,
+            Body = new ArrayPacket("ignored".GetBytes()),
+        };
+
+        using var pk = resp.Build();
+        var text = pk.ToStr();
+
+        Assert.DoesNotContain("ignored", text);
+        Assert.DoesNotContain("Content-Length", text);
+        Assert.EndsWith("\r\n\r\n", text);
+    }
+
+    [Theory(DisplayName = "Build 204/304带状态描述：不把描述当实体")]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.NotModified)]
+    public void Build_NoEntityStatus_DoesNotUseStatusDescriptionAsBody(HttpStatusCode code)
+    {
+        // 非成功状态码会用状态描述补齐实体，但 204/304 不得携带实体
+        var resp = new HttpResponse { StatusCode = code, StatusDescription = "Not Modified" };
+
+        using var pk = resp.Build();
+        var text = pk.ToStr();
+
+        Assert.StartsWith($"HTTP/1.1 {(Int32)code} Not Modified\r\n", text);
+        Assert.EndsWith("\r\n\r\n", text);
+        Assert.DoesNotContain("Content-Length", text);
+    }
+
     [Fact(DisplayName = "Build 200 无体响应：仍声明 Content-Length 0")]
     public void Build_OkWithoutBody_KeepsZeroContentLength()
     {
