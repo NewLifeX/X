@@ -59,15 +59,11 @@ public class HttpRouter
         var segments = new List<RouteSegment>();
         var parts = pattern.Split('/');
 
+        // 模式与请求路径都按 '/' 切分、都带前导空段（Match 里 path.Split('/') 不裁剪），
+        // 这里同样保留，两侧段数才能对齐；裁掉会让模式段数恒比请求少 1，所有参数化路由匹配不上
         foreach (var part in parts)
         {
-            if (part.Length == 0)
-            {
-                // 可能是开头的 / 产生的空段，跳过
-                if (segments.Count == 0) continue;
-                segments.Add(RouteSegment.Literal(part));
-            }
-            else if (part.StartsWith("{*"))
+            if (part.StartsWith("{*"))
             {
                 // 通配参数 {*path}
                 var name = part[2..].TrimEnd('}');
