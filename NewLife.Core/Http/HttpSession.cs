@@ -106,12 +106,19 @@ public class HttpSession : INetHandler, IDisposable
 
             (_session as NetSession)?.WriteLog("{0} {1}", request.Method, request.RequestUri);
 
-            // 分块请求体（Transfer-Encoding: chunked）暂不支持：ContentLength 会取到 -1，
-            // 内容被当作“已完整”，chunk 帧本身会被当成业务参数/JSON 解析（静默错误），与前置代理共存时还有请求走私面。
-            // 明确拒绝并告知客户端改用 Content-Length
-            if (request.Headers.TryGetValue("Transfer-Encoding", out var te) && te != null && te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0)
+            // Transfer-Encoding 只认 chunked，且 chunked 暂不支持：ContentLength 取到 -1，内容被当作“已完整”，
+            // chunk 帧本身会被当成业务参数/JSON 解析（静默错误），故回 411 请客户端改用 Content-Length。
+            // 其余取值（gzip/identity/未知）更危险：会退化成“无体”，声明的主体被当成后续请求字节（连接失步），
+            // 按 RFC 9112 §6.1 回 400
+            var te = request.Headers["Transfer-Encoding"];
+            if (!te.IsNullOrEmpty())
             {
-                var rs = new HttpResponse { StatusCode = HttpStatusCode.LengthRequired };
+                var rs = new HttpResponse
+                {
+                    StatusCode = te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0
+                        ? HttpStatusCode.LengthRequired
+                        : HttpStatusCode.BadRequest,
+                };
 
                 using var res = rs.Build();
                 _session.Send(res);

@@ -78,6 +78,28 @@ public class HttpServerTests : IDisposable
         Assert.Equal("data", body);
     }
 
+    [Theory(DisplayName = "HTTP服务端_Transfer-Encoding非chunked_回400；chunked暂不支持回411")]
+    [InlineData("gzip", 400)]
+    [InlineData("identity", 400)]
+    [InlineData("chunked", 411)]
+    public async Task TransferEncoding_Unsupported_Rejected(String te, Int32 status)
+    {
+        // chunked 暂不支持，回 411 引导改用 Content-Length；
+        // 其它取值会退化成“无体”，声明的主体被当成后续请求字节（连接失步），回 400
+        _server.Map("/te", () => "OK");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync($"POST /te HTTP/1.1\r\nHost: 127.0.0.1\r\nTransfer-Encoding: {te}\r\n\r\n".GetBytes());
+        await ns.FlushAsync();
+
+        var buf = new Byte[4096];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.StartsWith($"HTTP/1.1 {status}", buf.AsSpan(0, n).ToStr());
+    }
+
     [Fact]
     public async Task MapDelegate()
     {
