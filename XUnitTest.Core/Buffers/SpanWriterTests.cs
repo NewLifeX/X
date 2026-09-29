@@ -7,6 +7,38 @@ namespace XUnitTest.Buffers;
 
 public class SpanWriterTests
 {
+    [Fact(DisplayName = "长度前缀写入_空间不足_不留孤立长度前缀")]
+    public void WriteLengthString_NoSpace_NoOrphanPrefix()
+    {
+        var buf = new Byte[4];
+        var writer = new SpanWriter(buf);
+        writer.Write("abc"u8);
+
+        // 只剩 1 字节：长度前缀(1) + 内容(4) 放不下。必须先备足空间再落笔，
+        // 否则先写下的长度前缀会留在缓冲里（声明长度与内容自相矛盾）
+        var pos = writer.Position;
+        var threw = false;
+        try { writer.WriteLengthString("abcd", 1); } catch { threw = true; }
+
+        Assert.True(threw, "空间不足时必须抛异常");
+        Assert.Equal(pos, writer.Position);
+        Assert.Equal((Byte)0, buf[3]);
+    }
+
+    [Fact(DisplayName = "长度前缀写入_可容纳_前缀与内容正确")]
+    public void WriteLengthString_Fits_PrefixAndContent()
+    {
+        var buf = new Byte[8];
+        var writer = new SpanWriter(buf);
+
+        var n = writer.WriteLengthString("abcd", 1);
+
+        Assert.Equal(5, n);
+        Assert.Equal(5, writer.Position);
+        Assert.Equal((Byte)4, buf[0]);
+        Assert.Equal("abcd", Encoding.UTF8.GetString(buf, 1, 4));
+    }
+
     [Fact]
     public void CtorTest()
     {
