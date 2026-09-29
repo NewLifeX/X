@@ -21,6 +21,35 @@ public class PacketHelperChainTests
 
     private static IPacket Chain(String first, String second) => new ArrayPacket(first.GetBytes()).Append(second.GetBytes());
 
+    [Fact(DisplayName = "链式文本_多字节字符被段边界切断_不产生替换字符")]
+    public void ToStr_ChainedMultiByte_NoReplacement()
+    {
+        // 多字节字符可能正好被段边界切断，按段各自解码会把切断处的半个字符解成替换字符（U+FFFD）
+        const String text = "中文abc😀测试";
+        var bytes = text.GetBytes();
+
+        // 逐个位置切一刀，全链解码结果都必须与整体解码一致
+        for (var cut = 1; cut < bytes.Length; cut++)
+        {
+            IPacket chain = new ArrayPacket(bytes[..cut]).Append(bytes[cut..]);
+
+            Assert.Equal(text, chain.ToStr());
+        }
+    }
+
+    [Fact(DisplayName = "链式文本_带偏移与长度_同样跨段续接解码")]
+    public void ToStr_ChainedMultiByte_WithOffsetAndCount()
+    {
+        const String text = "A中文😀B";
+        const String inner = "中文😀";
+
+        // 第二段从多字节字符中间开始：偏移跳过首字节后，解码结果应仍是完整字符串
+        var bytes = text.GetBytes();
+        IPacket chain = new ArrayPacket(bytes[..2]).Append(bytes[2..]);
+
+        Assert.Equal(inner, chain.ToStr(null, 1, inner.GetBytes().Length));
+    }
+
     #region TryGetSpan
     [Fact]
     [DisplayName("获取跨度_单段成功_链式失败")]

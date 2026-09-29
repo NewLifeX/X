@@ -268,15 +268,22 @@ public static class PacketHelper
     }
 
     /// <summary>处理多包链的字符串转换</summary>
+    /// <remarks>先按 offset/count 聚合出目标字节再整体解码：多字节字符可能正好被段边界切断，
+    /// 按段各自解码会把切断处的半个字符解成替换字符（中文/emoji 在分片接收时很常见）</remarks>
+    /// <param name="pk">数据包（可含链式后续段）</param>
+    /// <param name="offset">跳过的字节数</param>
+    /// <param name="count">读取的字节数</param>
+    /// <param name="encoding">编码，默认 UTF-8</param>
+    /// <returns>解码所得字符串</returns>
     private static String ProcessMultiPacketString(IPacket pk, Int32 offset, Int32 count, Encoding? encoding)
     {
-        var skip = offset;
-        var remain = count;
-        // 预分配容量：UTF-8 平均每字节约 1 个字符，避免 StringBuilder 扩容
-        var sb = Pool.StringBuilder.Get();
-        sb.EnsureCapacity(count);
+        encoding ??= Encoding.UTF8;
 
-        for (var current = pk; current != null && remain > 0; current = current.Next)
+        var buffer = new Byte[count];
+        var skip = offset;
+        var written = 0;
+
+        for (var current = pk; current != null && written < count; current = current.Next)
         {
             var span = current.GetSpan();
 
@@ -295,14 +302,14 @@ public static class PacketHelper
             }
 
             // 限制读取长度
-            if (span.Length > remain)
-                span = span[..remain];
+            var remain = count - written;
+            if (span.Length > remain) span = span[..remain];
 
-            sb.Append(span.ToStr(encoding));
-            remain -= span.Length;
+            span.CopyTo(buffer.AsSpan(written));
+            written += span.Length;
         }
 
-        return sb.Return(true);
+        return written <= 0 ? String.Empty : encoding.GetString(buffer, 0, written);
     }
 
     /// <summary>转换为十六进制字符串</summary>
