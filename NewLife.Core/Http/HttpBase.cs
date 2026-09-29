@@ -107,9 +107,6 @@ public abstract class HttpBase : IDisposable
             header = header[(p2 + 2)..];
         }
 
-        // 截取主体（跳过 CRLFCRLF 共4字节）：共享切片独立持有引用；入参句柄由调用方释放
-        Body = pk.Slice(p + 4, -1);
-
         // Content-Length 用 Int64 解析：无法解析、为负或超上限都视为非法，不能退化成“无体”。
         // 旧实现用 ToInt(-1)，非法值直接变成 -1（无体），声明的那段主体会被当成后续请求字节（边界失步）
         var cl = Headers["Content-Length"];
@@ -124,6 +121,15 @@ public abstract class HttpBase : IDisposable
         }
 
         ContentType = Headers["Content-Type"];
+
+        // 截取主体（跳过 CRLFCRLF 共4字节）：共享切片独立持有引用；入参句柄由调用方释放。
+        // 声明了 Content-Length 时按它截断：同一轮数据里其后紧跟的字节（客户端多发、或同连接的下一请求）
+        // 不属于本请求，否则会被当业务参数/JSON 解析，并写进链路追踪
+        var bodyStart = p + 4;
+        var available = pk.Total - bodyStart;
+        Body = ContentLength >= 0 && ContentLength < available
+            ? pk.Slice(bodyStart, ContentLength)
+            : pk.Slice(bodyStart, -1);
 
         // 分析第一行
         if (!OnParse(firstLine)) return false;

@@ -175,12 +175,12 @@ public class HttpSession : INetHandler, IDisposable
             // 已有正在接收的请求，继续拼接主体
             pk.CopyTo(_cache);
 
-            // 防御：主体量达到声明长度视为完成；若本轮数据超出声明长度，超出部分会一并进入主体缓存
-            // （已知局限：不支持 HTTP 流水线请求，超出字节不会拆给下一请求）
+            // 防御：主体量达到声明长度视为完成。本分支恒有 ContentLength >= 0，否则上面 IsCompleted 已为真
+            // 超出声明长度的字节（同连接的下一个请求）不属于本请求，必须截断，不能一并当主体交给业务
             if (_cache.Length >= req.ContentLength)
             {
                 _cache.Position = 0;
-                req.Body = new ArrayPacket(_cache);
+                req.Body = new ArrayPacket(_cache.GetBuffer(), 0, req.ContentLength);
                 _cache = null;
             }
         }

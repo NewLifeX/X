@@ -54,6 +54,30 @@ public class HttpServerTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
     }
 
+    [Fact(DisplayName = "HTTP服务端_主体分两轮到达且其后跟随其它字节_按Content-Length截断")]
+    public async Task BodyTruncated_ByContentLength()
+    {
+        var tcs = new TaskCompletionSource<String>();
+        _server.MapPost("/trunc", ctx => tcs.TrySetResult(ctx.Request.Body?.ToStr() ?? ""));
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 头部与一半主体先到，服务端进入缓存等待后续分片
+        await ns.WriteAsync("POST /trunc HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 4\r\n\r\n"u8.ToArray());
+        await ns.WriteAsync("da"u8.ToArray());
+        await ns.FlushAsync();
+        await Task.Delay(100);
+
+        // 剩余主体与其后紧跟的其它字节同轮到达，后者不属于本请求
+        await ns.WriteAsync("taXXXX"u8.ToArray());
+        await ns.FlushAsync();
+
+        var body = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal("data", body);
+    }
+
     [Fact]
     public async Task MapDelegate()
     {

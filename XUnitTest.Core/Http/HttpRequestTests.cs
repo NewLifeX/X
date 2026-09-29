@@ -42,6 +42,23 @@ public class HttpRequestTests
         Assert.Equal("Value-1", req.Headers["Custom"]);
     }
 
+    [Fact(DisplayName = "解析_同一轮含后续请求_主体按Content-Length截断")]
+    public void Parse_BodyTruncatedByContentLength()
+    {
+        // Content-Length 之后紧跟的字节（同一轮的后续请求）不属于本请求，
+        // 并入主体会造成参数污染，并可能写进链路追踪
+        var body = """{"name":"Stone"}""";
+        var text = "POST /api HTTP/1.1\r\nHost: test.com\r\nContent-Length: " + body.Length + "\r\n\r\n" + body
+                 + "GET /next HTTP/1.1\r\nHost: test.com\r\n\r\n";
+
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket(text.GetBytes())));
+
+        Assert.Equal(body.Length, req.ContentLength);
+        Assert.Equal(body.Length, req.BodyLength);
+        Assert.Equal(body, req.Body!.ToStr());
+    }
+
     [Fact]
     public void Parse_Request_Post_NoContentLength()
     {
