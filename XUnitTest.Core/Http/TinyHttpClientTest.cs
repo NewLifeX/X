@@ -149,6 +149,32 @@ public class TinyHttpClientTest
         await server;
     }
 
+    [Fact(DisplayName = "HTTP客户端_慢滴漏服务端_整次请求超时生效不被无限挂住")]
+    public async Task SendAsync_SlowDrip_TotalTimeout()
+    {
+        // 服务端每隔 50ms 只回 1 个字节，响应头永不补全。
+        // 超时若按“单次读取”计，每轮读取都在预算内拿到字节，调用方被无限挂住
+        var (port, _) = StartLocalServer(async ns =>
+        {
+            var one = new Byte[] { (Byte)'X' };
+            try
+            {
+                for (var i = 0; i < 300; i++)
+                {
+                    await ns.WriteAsync(one);
+                    await Task.Delay(50);
+                }
+            }
+            catch { }
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromMilliseconds(200) };
+
+        // 整次预算耗尽即取消；旧实现每轮重新计时，永远读不完，只会撞上外层 10s 兜底（TimeoutException）
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") }).WaitAsync(TimeSpan.FromSeconds(10)));
+    }
+
     [Fact(DisplayName = "异步请求_错误状态码_抛异常")]
     public async Task SendAsync_ErrorStatus_Throws()
     {

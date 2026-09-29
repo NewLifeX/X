@@ -32,7 +32,8 @@ public class TinyHttpClient : DisposeBase
     /// <summary>保持连接</summary>
     public Boolean KeepAlive { get; set; }
 
-    /// <summary>超时时间。默认15s</summary>
+    /// <summary>整次请求的超时时间。默认15s。重定向与响应补读共用同一份预算</summary>
+    /// <remarks>直接调用 SendDataAsync 时按单次读取预算计。截止时刻存于实例字段，故同一实例不可并发发请求</remarks>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
     /// <summary>缓冲区大小。接收缓冲区默认64*1024</summary>
@@ -66,6 +67,9 @@ public class TinyHttpClient : DisposeBase
     public ITracer? Tracer { get; set; } = HttpHelper.Tracer;
 
     private Stream? _stream;
+
+    /// <summary>本次请求的截止时刻（UTC）。由 <see cref="SendAsync"/> 入口设定，SendDataAsync 按剩余时间建取消令牌</summary>
+    private DateTime _deadline;
     #endregion
 
     #region 构造
@@ -161,7 +165,14 @@ public class TinyHttpClient : DisposeBase
 
         // 接收
         var pk = new OwnerPacket(BufferSize);
-        using var source = new CancellationTokenSource(Timeout);
+
+        // 只花剩余时间：若每轮读取都给完整 Timeout，服务端每隔 Timeout-1ms 滴漏一个字节，
+        // 每轮读取都能在预算内拿到数据，调用方就被无限挂住（半截头补读循环同样每轮重新计时）
+        var deadline = _deadline;
+        var remain = deadline > DateTime.MinValue ? deadline - DateTime.UtcNow : Timeout;
+        if (remain < TimeSpan.Zero) remain = TimeSpan.Zero;
+
+        using var source = new CancellationTokenSource(remain);
 
 #if NETCOREAPP || NETSTANDARD2_1
         var count = await ns.ReadAsync(pk.GetMemory(), source.Token).ConfigureAwait(false);
@@ -177,6 +188,10 @@ public class TinyHttpClient : DisposeBase
     /// <returns></returns>
     public virtual async Task<HttpResponse?> SendAsync(HttpRequest request)
     {
+        // 整次请求共用一个截止时刻：重定向、半截头补读、响应体补读都在同一份预算内完成，
+        // 超时不会随“又读了一轮”而无限顺延
+        _deadline = DateTime.UtcNow + Timeout;
+
         // 构造请求
         var uri = request.RequestUri ?? throw new ArgumentNullException(nameof(request.RequestUri));
         var req = request.Build();
