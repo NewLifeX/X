@@ -42,6 +42,9 @@ public record struct ArrayPacket : IPacket
     {
         get
         {
+            // 负索引会直接做 _offset + index 的数组下标运算，越窗读到本包之前的活数据（需向前取字节请用 ExpandHeader 借位）
+            if (index < 0) throw new IndexOutOfRangeException(nameof(index));
+
             var p = index - _length;
             if (p >= 0)
             {
@@ -54,6 +57,8 @@ public record struct ArrayPacket : IPacket
         }
         set
         {
+            if (index < 0) throw new IndexOutOfRangeException(nameof(index));
+
             var p = index - _length;
             if (p >= 0)
             {

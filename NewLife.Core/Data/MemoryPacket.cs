@@ -31,6 +31,9 @@ public struct MemoryPacket : IPacket
     {
         get
         {
+            // 负索引会直接落到 _cachedOffset + index 的数组下标运算上，越窗读到本包之前的活数据
+            if (index < 0) throw new IndexOutOfRangeException(nameof(index));
+
             var p = index - _length;
             if (p >= 0)
             {
@@ -44,6 +47,8 @@ public struct MemoryPacket : IPacket
         }
         set
         {
+            if (index < 0) throw new IndexOutOfRangeException(nameof(index));
+
             var p = index - _length;
             if (p >= 0)
             {

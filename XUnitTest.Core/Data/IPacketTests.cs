@@ -8,6 +8,28 @@ namespace XUnitTest.Data;
 
 public class IPacketTests
 {
+    [Fact(DisplayName = "索引器_负索引_各实现一致拒绝越窗访问")]
+    public void Indexer_Negative_Throws()
+    {
+        // 负索引在“本段”分支会直接做数组下标运算（_offset + index），越窗读到本包之前的活数据；
+        // 写操作更会踩坏共享/池化缓冲里的相邻数据，各实现必须口径一致地拒绝
+        var bytes = new Byte[] { 1, 2, 3, 4, 5, 6 };
+
+        var arr = new ArrayPacket(bytes, 2, 4);
+        Assert.Throws<IndexOutOfRangeException>(() => { var _ = arr[-1]; });
+        Assert.Throws<IndexOutOfRangeException>(() => { arr[-1] = 0; });
+
+        var mem = new MemoryPacket(new Memory<Byte>(bytes, 2, 4), 4);
+        Assert.Throws<IndexOutOfRangeException>(() => { var _ = mem[-1]; });
+        Assert.Throws<IndexOutOfRangeException>(() => { mem[-1] = 0; });
+
+        var owner = new OwnerPacket(bytes, 2, 4, false);
+        Assert.Throws<IndexOutOfRangeException>(() => { var _ = owner[-1]; });
+
+        var readOnly = new ReadOnlyPacket(bytes, 2, 4);
+        Assert.Throws<IndexOutOfRangeException>(() => { var _ = readOnly[-1]; });
+    }
+
     [Fact]
     public void OwnerPacketTest()
     {
