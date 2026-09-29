@@ -63,6 +63,22 @@ public class TcpSessionTests
         server6.Start();
     }
 
+    [Fact(DisplayName = "发送_大数据包_内核发送缓冲按发送量调优")]
+    public void DirectSend_TunesSendBufferSize()
+    {
+        using var server = new TcpServer { Port = 0 };
+        server.Start();
+
+        using var client = new TcpSession { Remote = new NetUri($"tcp://127.0.0.1:{server.Port}") };
+        client.Open();
+
+        // 超过默认内核发送缓冲的一次发送：调优在锁内执行后，SendBufferSize 应被上调到本次发送量
+        var payload = new Byte[256 * 1024];
+        Assert.Equal(payload.Length, client.Send(payload));
+
+        Assert.True(client.Client!.SendBufferSize >= payload.Length);
+    }
+
     [Fact]
     public void BindTest()
     {

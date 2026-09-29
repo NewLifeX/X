@@ -422,6 +422,19 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     private Int32 _bsize;
     private SpinLock _spinLock = new();
 
+    /// <summary>按本次发送量调优内核发送缓冲（_bsize 缓存，读取 SendBufferSize 耗时很大）</summary>
+    /// <remarks>
+    /// <para>调用方须已持有 <see cref="_spinLock"/>：套接字参数调整不能与锁内的 Send/Write 并发。</para>
+    /// <para>_bsize 只增不减，仅同步直发路径使用；发送泵路径不调整内核缓冲。</para>
+    /// </remarks>
+    /// <param name="sock">目标套接字</param>
+    /// <param name="count">本次发送字节数</param>
+    private void TuneSendBufferSize(Socket sock, Int32 count)
+    {
+        if (_bsize == 0) _bsize = sock.SendBufferSize;
+        if (_bsize < count) sock.SendBufferSize = _bsize = count;
+    }
+
     /// <summary>直接发送数据。无发送队列时走此路径；发送泵的发送委托同样指向本方法</summary>
     /// <remarks>
     /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
@@ -444,12 +457,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         Exception? error = null;
         try
         {
-            // 修改发送缓冲区，读取SendBufferSize耗时很大
-            if (_bsize == 0) _bsize = sock.SendBufferSize;
-            if (_bsize < count) sock.SendBufferSize = _bsize = count;
-
             // 加锁发送
             _spinLock.Enter(ref gotLock);
+
+            TuneSendBufferSize(sock, count);
 
             if (_Stream is not { } stream)
             {
@@ -530,12 +541,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         Exception? error = null;
         try
         {
-            // 修改发送缓冲区，读取SendBufferSize耗时很大
-            if (_bsize == 0) _bsize = sock.SendBufferSize;
-            if (_bsize < count) sock.SendBufferSize = _bsize = count;
-
             // 加锁发送
             _spinLock.Enter(ref gotLock);
+
+            TuneSendBufferSize(sock, count);
 
             if (_Stream is not { } stream)
             {
@@ -608,12 +617,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         Exception? error = null;
         try
         {
-            // 修改发送缓冲区，读取SendBufferSize耗时很大
-            if (_bsize == 0) _bsize = sock.SendBufferSize;
-            if (_bsize < count) sock.SendBufferSize = _bsize = count;
-
             // 加锁发送
             _spinLock.Enter(ref gotLock);
+
+            TuneSendBufferSize(sock, count);
 
             if (_Stream is not { } stream)
             {
