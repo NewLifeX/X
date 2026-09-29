@@ -113,16 +113,9 @@ public class HttpSession : INetHandler, IDisposable
             var te = request.Headers["Transfer-Encoding"];
             if (!te.IsNullOrEmpty())
             {
-                var rs = new HttpResponse
-                {
-                    StatusCode = te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0
-                        ? HttpStatusCode.LengthRequired
-                        : HttpStatusCode.BadRequest,
-                };
-
-                using var res = rs.Build();
-                _session.Send(res);
-                _session.Dispose();
+                Reject(te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0
+                    ? HttpStatusCode.LengthRequired
+                    : HttpStatusCode.BadRequest);
 
                 return;
             }
@@ -131,11 +124,7 @@ public class HttpSession : INetHandler, IDisposable
             // 若按“无体”继续，声明的那段主体会被当成后续请求字节，连接边界失步（与前置代理共存时还有走私面）
             if (request.InvalidContentLength)
             {
-                var rs = new HttpResponse { StatusCode = HttpStatusCode.BadRequest };
-
-                using var res = rs.Build();
-                _session.Send(res);
-                _session.Dispose();
+                Reject(HttpStatusCode.BadRequest);
 
                 return;
             }
@@ -143,12 +132,7 @@ public class HttpSession : INetHandler, IDisposable
             // 限制最大请求体
             if (req.ContentLength > MaxRequestLength)
             {
-                var rs = new HttpResponse { StatusCode = HttpStatusCode.RequestEntityTooLarge };
-
-                // 发送响应。用完后释放数据包，还给缓冲池
-                using var res = rs.Build();
-                _session.Send(res);
-                _session.Dispose();
+                Reject(HttpStatusCode.RequestEntityTooLarge);
 
                 return;
             }
@@ -291,6 +275,17 @@ public class HttpSession : INetHandler, IDisposable
                 req.Files = null;
             }
         }
+    }
+
+    /// <summary>回指定状态码并关闭会话。用于请求进入业务处理前的拒绝（聘形请求、超限、实体无法定界）</summary>
+    /// <param name="code">HTTP 状态码</param>
+    private void Reject(HttpStatusCode code)
+    {
+        var rs = new HttpResponse { StatusCode = code };
+
+        using var res = rs.Build();
+        _session.Send(res);
+        _session.Dispose();
     }
 
     /// <summary>发送流式响应体。先发头部，再分块读取并发送主体</summary>
