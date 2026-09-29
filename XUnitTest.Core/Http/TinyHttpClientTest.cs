@@ -53,6 +53,31 @@ public class TinyHttpClientTest
     //    Assert.Equal(uri, client.BaseAddress);
     //}
 
+    [Theory(DisplayName = "HTTP客户端_跟随303/307/308重定向与相对Location")]
+    [InlineData(303)]
+    [InlineData(307)]
+    [InlineData(308)]
+    public async Task Redirect_303_307_308_Followed(Int32 code)
+    {
+        // 只认 301/302 时，303/307/308 会被当成成功响应原样返回（调用方拿到重定向页面却以为成功）
+        using var server = new HttpServer { Port = 0 };
+        server.Map("/a", ctx =>
+        {
+            ctx.Response.StatusCode = (HttpStatusCode)code;
+            // 相对 Location：真实服务器常见写法
+            ctx.Response.Headers["Location"] = "/b";
+        });
+        server.Map("/b", () => "B");
+        server.Start();
+
+        var client = new TinyHttpClient();
+        var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{server.Port}/a") });
+
+        Assert.NotNull(res);
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        Assert.Equal("B", res.Body?.ToStr());
+    }
+
     [Fact(DisplayName = "异步请求")]
     public async Task SendAsyncTest()
     {

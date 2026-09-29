@@ -221,13 +221,16 @@ public class TinyHttpClient : DisposeBase
 
             rs = res.Body;
 
-            // 跳转
-            if (res.StatusCode is HttpStatusCode.Moved or HttpStatusCode.Redirect)
+            // 跳转。301/302/303/307/308 都是重定向，此前只认 301/302，其余会被当成成功响应原样返回
+            // （调用方拿到重定向页面的 HTML 却以为成功）。
+            // 注意 HttpStatusCode.PermanentRedirect（308）在 net45/netstandard2.0 不存在，故按状态码数值判断
+            if ((Int32)res.StatusCode is 301 or 302 or 303 or 307 or 308)
             {
                 if (res.Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
                 {
-                    // 再次请求
-                    var uri2 = new Uri(location);
+                    // 再次请求。Location 可能是相对路径（真实服务器常见），按当前请求 URI 解析；
+                    // 直接 new Uri(location) 会在相对路径上抛 UriFormatException
+                    var uri2 = Uri.TryCreate(location, UriKind.Absolute, out var abs) ? abs : new Uri(uri, location);
 
                     if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
 
