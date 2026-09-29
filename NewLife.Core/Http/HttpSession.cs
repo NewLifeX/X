@@ -177,14 +177,29 @@ public class HttpSession : INetHandler, IDisposable
         }
         else if (_headCache != null)
         {
-            // 缓存的头部片加本轮数据仍不能成头：含完整空行仍解析失败（无效请求头）或超限，均丢弃；否则继续等后续分片
-            if (_headCache.Length > MaxHeadLength || headPk.IndexOf(NewLine2) >= 0) _headCache = null;
+            // 缓存的头部片加本轮数据仍不能成头：超限，或含完整空行仍解析失败（无效请求头）——都按 400 拒绝并关闭
+            if (_headCache.Length > MaxHeadLength || headPk.IndexOf(NewLine2) >= 0)
+            {
+                _headCache = null;
+
+                Reject(HttpStatusCode.BadRequest);
+
+                return;
+            }
         }
         else if (IsIncompleteHead(pk))
         {
             // 无活动请求，本轮数据像 HTTP 开头但头部不含空行（不完整）：缓存等待后续分片（请求头跨轮）
             _headCache = new MemoryStream();
             pk.CopyTo(_headCache);
+        }
+        else if (pk.IndexOf(NewLine2) >= 0)
+        {
+            // 头部已完整（含空行）却解析失败：聘形请求行或无效头部。
+            // 按 400 拒绝并关闭；此前既不回响应也不关连接，客户端只能等到超时
+            Reject(HttpStatusCode.BadRequest);
+
+            return;
         }
 
         if (req != null)

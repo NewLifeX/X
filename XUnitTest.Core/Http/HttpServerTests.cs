@@ -100,6 +100,25 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith($"HTTP/1.1 {status}", buf.AsSpan(0, n).ToStr());
     }
 
+    [Fact(DisplayName = "HTTP服务端_聘形请求行_回400而非静默挂起")]
+    public async Task MalformedRequestLine_ReturnsBadRequest()
+    {
+        _server.MapGet("/mf", () => "OK");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 头部完整（含空行）但请求行第三段不是 HTTP/：必须显式回 400 并关闭，不能既不回响应也不关连接
+        var head = "GET /mf FOO/1.1\r\nHost: 127.0.0.1\r\n\r\n";
+        await ns.WriteAsync(head.GetBytes());
+        await ns.FlushAsync();
+
+        var buf = new Byte[4096];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
+    }
+
     [Fact]
     public async Task MapDelegate()
     {
