@@ -565,35 +565,64 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         return true;
     }
 
-    /// <summary>释放一个事件参数。递减接收计数、归还池化缓冲并销毁</summary>
+    /// <summary>释放一个事件参数。递减接收计数、归还池化缓冲并销毁。幂等：同一个事件参数重复调用只生效一次</summary>
     /// <param name="se">接收事件参数</param>
     /// <param name="reason">释放原因。便于日志分析</param>
     protected void ReleaseRecv(SocketAsyncEventArgs se, String reason)
     {
-        var idx = (se.UserToken as RecvSlot)?.Index ?? -1;
+        // 幂等：同一个事件参数只释放一次。重复释放会少计 _RecvCount（IsReceiving 失真，拉取直读的互斥判定失效），
+        // 并对同一个 se 二次 Dispose。StartReceive 发现会话已销毁时会先释放再抛，异常冒泡回 ProcessEvent
+        // 自己的 catch 会再次调本方法，这是已知会重复进入的路径
+        var slot = se.UserToken as RecvSlot;
+        if (slot != null)
+        {
+            if (slot.Released) return;
+            slot.Released = true;
+        }
 
-        if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", idx, reason);
+        if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", slot?.Index ?? -1, reason);
 
         if (_RecvCount > 0) Interlocked.Decrement(ref _RecvCount);
+
+        // 缓冲归属：句柄仍被共享切片持有（RefCount 大于 1）或挂着链式后续段时，本句柄不能脱手（Detach 会抛），
+        // 也不能把仍被使用的缓冲归还池（回池后会被立即借给别的会话）——只释放本句柄自己的引用，
+        // 缓冲留给最后一个共享句柄归还
+        var skipReturn = false;
         try
         {
-            // 接收槽回挂的复用句柄先脱手（不归还），抑制析构兜底，避免与本次归还将同一缓冲二次放回池
-            if (se.UserToken is RecvSlot slot && slot.Packet != null)
+            if (slot?.Packet is { } cached)
             {
-                var cached = slot.Packet;
                 slot.Packet = null;
-                cached.Detach();
+
+                if (cached.RefCount > 1 || cached.Next != null)
+                {
+                    cached.TryDispose();
+                    skipReturn = true;
+                }
+                else
+                {
+                    // 独占缓冲：先脱手（抑制析构兜底，避免与本次归还将同一缓冲二次放回池）
+                    cached.Detach();
+                }
             }
 
-            // 归还池化接收缓冲。缓冲要么无人带出（轮末已回挂复用，仍在 se.Buffer 上），
-            // 要么本轮被消费/带出时已解绑并换了新缓冲；因此这里归还的一定是本会话独有、
-            // 无外部持有者的缓冲，恰好一次；被带出的缓冲由最后释放的共享句柄归还。
-            var buffer = se.Buffer;
-            se.SetBuffer(null, 0, 0);
-            if (buffer != null) ArrayPool<Byte>.Shared.Return(buffer);
+            if (!skipReturn)
+            {
+                var buffer = se.Buffer;
+                se.SetBuffer(null, 0, 0);
+                if (buffer != null) ArrayPool<Byte>.Shared.Return(buffer);
+            }
         }
-        catch { }
-        se.Dispose();
+        catch (Exception ex)
+        {
+            // 释放路径出错说明缓冲所有权契约已被破坏：记日志后继续收尾，不向外抛
+            // （本方法在 ProcessEvent 的 catch 与背压恢复路径上被调用，外抛会替换掉原始异常）
+            WriteLog("释放RecvSA {0} 异常：{1}", slot?.Index ?? -1, ex.Message);
+        }
+        finally
+        {
+            se.Dispose();
+        }
     }
 
     /// <summary>当前进入线程递归数量，超过10就另外起线程</summary>
@@ -1405,4 +1434,7 @@ internal sealed class RecvSlot(Int32 index)
 
     /// <summary>轮末回挂的数据包句柄，下一轮重绑复用；无外部持有者时非空</summary>
     public OwnerPacket? Packet { get; set; }
+
+    /// <summary>是否已释放。用于释放幂等：同一个接收事件参数只释放一次</summary>
+    public Boolean Released { get; set; }
 }

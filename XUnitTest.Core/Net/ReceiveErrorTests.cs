@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using NewLife;
+using NewLife.Data;
 using NewLife.Net;
 using Xunit;
 
@@ -10,6 +11,11 @@ namespace XUnitTest.Net;
 [Collection("Integration")]
 public class ReceiveErrorTests
 {
+    /// <summary>探针服务器：暴露 protected 的接收槽释放入口</summary>
+    private sealed class ProbeUdpServer : UdpServer
+    {
+        public void Release(SocketAsyncEventArgs se, String reason) => ReleaseRecv(se, reason);
+    }
     [Fact(DisplayName = "接收错误_连接型会话非ConnectionReset错误_也关闭会话并通知")]
     public void ReceiveError_StreamSession_ClosesOnAnyError()
     {
@@ -102,5 +108,41 @@ public class ReceiveErrorTests
 
         var result = await client.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(payload, result.Buffer);
+    }
+
+    [Fact(DisplayName = "接收槽释放_同一事件参数重复释放_只生效一次")]
+    public void ReleaseRecv_IsIdempotent()
+    {
+        using var server = new ProbeUdpServer { Port = 0, MaxAsync = 2 };
+        server.Open();
+        Assert.True(server.IsReceiving);
+
+        // 模拟 StartReceive 抛 ObjectDisposedException 冒泡回 ProcessEvent 的 catch 再次释放的路径
+        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(100) };
+        server.Release(se, "first");
+        server.Release(se, "second");
+
+        // 只递减一次：另一个接收槽仍在收。重复释放两次会让计数归零，拉取直读的互斥判定随之失效
+        Assert.True(server.IsReceiving);
+    }
+
+    [Fact(DisplayName = "接收槽释放_缓冲仍被共享切片持有_只释放自身引用不归还")]
+    public void ReleaseRecv_SharedSlice_DoesNotReturnBuffer()
+    {
+        using var server = new ProbeUdpServer { Port = 0 };
+
+        var owner = new OwnerPacket(64);
+        var view = owner.Slice(0, 16);
+        Assert.Equal(2, view.RefCount);
+
+        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(0) { Packet = owner } };
+        server.Release(se, "shared");
+
+        // 缓冲仍在被共享切片使用：本句柄只释放自己的引用，缓冲留给最后一个句柄归还。
+        // 旧实现在该分支 Detach 抛异常被静默吞掉，本句柄的引用从未释放，池缓冲永久漏出
+        Assert.Equal(1, view.RefCount);
+        Assert.Equal(16, view.Length);
+
+        view.Dispose();
     }
 }
