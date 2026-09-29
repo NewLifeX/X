@@ -33,13 +33,13 @@ public class HttpRequest : HttpBase
         var ss = firstLine.Split(' ');
         if (ss.Length < 3) return false;
 
-        // 分析请求方法 GET / HTTP/1.1
-        if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
-        {
-            Method = ss[0];
-            RequestUri = new Uri(ss[1], UriKind.RelativeOrAbsolute);
-            Version = ss[2].TrimPrefix("HTTP/");
-        }
+        // 分析请求方法 GET / HTTP/1.1。第三段必须以 HTTP/ 开头：
+        // 畸形请求行（如 GET /x FOO/1.1）此前会被当成解析成功，Method 与 Version 留空后仍进入业务处理
+        if (!ss[2].StartsWithIgnoreCase("HTTP/")) return false;
+
+        Method = ss[0];
+        RequestUri = new Uri(ss[1], UriKind.RelativeOrAbsolute);
+        Version = ss[2].TrimPrefix("HTTP/");
 
         Host = Headers["Host"];
 

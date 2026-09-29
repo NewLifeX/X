@@ -84,6 +84,18 @@ public class HttpRequestTests
         Assert.True(req.IsCompleted); // 未指定长度视为完成
     }
 
+    [Theory(DisplayName = "解析_畸形请求行_不再判为成功")]
+    [InlineData("GET /api FOO/1.1", false)]
+    [InlineData("GET /api", false)]
+    [InlineData("GET /api HTTP/1.1", true)]
+    public void Parse_MalformedRequestLine(String line, Boolean ok)
+    {
+        var text = line + "\r\nHost: test.com\r\n\r\n";
+
+        var req = new HttpRequest();
+        Assert.Equal(ok, req.Parse(new ArrayPacket(text.GetBytes())));
+    }
+
     [Fact]
     public void FastParse_Request_OnlyFirstLine()
     {
