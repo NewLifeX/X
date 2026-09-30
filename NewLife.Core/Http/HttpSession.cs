@@ -188,6 +188,18 @@ public class HttpSession : INetHandler, IDisposable
                     break;
                 }
 
+                // Expect: 100-continue：curl、.NET ExpectContinue 等客户端发完请求头后等待临时响应才发实体，
+                // 不应答会让每个此类请求白等一次客户端超时，个别实现直接失败。实体已随头部一并到达时无需应答。
+                // HTTP/1.0 不支持临时响应（RFC 7231 §5.1.1 要求忽略其 Expect），按其协议版本原样处理
+                var expect = request.Headers["Expect"];
+                if (!request.IsCompleted && !expect.IsNullOrEmpty() && !request.Version.EqualIgnoreCase("1.0") &&
+                    expect.IndexOf("100-continue", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    // 临时响应不含实体，也不得声明 Content-Length（RFC 7230 §3.3.2），故直接发送响应行
+                    var version = request.Version.IsNullOrEmpty() ? "1.1" : request.Version;
+                    _session.Send($"HTTP/{version} 100 Continue\r\n\r\n");
+                }
+
                 _websocket = null; // 新请求到来，清空 websocket 握手状态
                 OnNewRequest(request, data);
 

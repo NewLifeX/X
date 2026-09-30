@@ -236,6 +236,32 @@ public class HttpServerTests : IDisposable
         Assert.Contains("B2OK", resp);
     }
 
+    [Fact(DisplayName = "HTTP服务端_Expect100continue_先回临时响应再收实体")]
+    public async Task Expect100Continue_InterimResponse()
+    {
+        _server.MapPost<IHttpContext, String>("/cont", ctx => "GOT:" + (ctx.Request.Body?.ToStr() ?? ""));
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 客户端先只发请求头，等 100 Continue 才发实体（curl、.NET ExpectContinue 的默认行为）
+        await ns.WriteAsync("POST /cont HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 4\r\nExpect: 100-continue\r\n\r\n".GetBytes());
+        await ns.FlushAsync();
+
+        // 不应答临时响应时，客户端会白等到超时才发实体；1xx 不得携带实体与 Content-Length
+        var interim = await ReadUntilAsync(ns, s => s.Contains("\r\n\r\n"));
+        Assert.StartsWith("HTTP/1.1 100", interim);
+        Assert.Contains("Continue", interim);
+
+        // 收到临时响应后再发实体，最终响应正常返回
+        await ns.WriteAsync("data".GetBytes());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("GOT:data"));
+        Assert.StartsWith("HTTP/1.1 200", resp);
+    }
+
     [Fact]
     public async Task MapDelegate()
     {
