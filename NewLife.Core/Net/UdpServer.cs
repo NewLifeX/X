@@ -631,6 +631,15 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                     };
                 }
             }
+            else
+            {
+                // 会话集合拒绝（端点重复，或会话已被业务在 NewSession 中释放）。新建的会话没能入集合，
+                // 就没有任何持有者，必须当场释放：它不会随集合的超时清理被回收，也不该当作“集合里的会话”返回给调用方。
+                // 释放后回退到集合里已有的会话，调用方拿到的仍是该端点的有效会话（与 TcpServer.OnAccept 的失败分支同型）
+                session.TryDispose();
+
+                session = sessions.Get(remoteEP) ?? session;
+            }
         }
 
         return session;
