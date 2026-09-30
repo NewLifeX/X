@@ -110,6 +110,7 @@ partial class TcpSession
     /// <summary>数据发送管道（出站）。按需创建：首次访问后，Send 系列方法把数据追加进管道，由发送泵统一顺序送出</summary>
     /// <remarks>
     /// <para><b>单出口</b>：管道创建后 <see cref="SessionBase.Send(IPacket)"/> 等发送方法全部改为追加进管道（字节数组/跨度输入按副本，借阅视图自动转自有拷贝），与管道内排队数据天然无交错；发送在发送泵上异步完成。</para>
+    /// <para><b>与直发互斥</b>：首次访问本属性时若恰有直发在途，会等它写完再发布泵；泵发布之后的直发一律改为入队，不会出现直发与泵并发写同一 Socket/SslStream 的情况。</para>
     /// <para><b>背压</b>：未发送数据达到 <see cref="Pipe.PauseThreshold"/> 后 <see cref="Pipe.IsPaused"/> 为 true，生产方的 <see cref="PipeWriter.FlushAsync(CancellationToken)"/> 默认挂起等待（对齐 BCL）；泵推进降到 <see cref="Pipe.ResumeThreshold"/> 以下时唤醒。水位感知发送可用 <see cref="TrySend(IPacket)"/>（暂停时拒绝）或 <see cref="SendAsync(IPacket, CancellationToken)"/>（挂起等待）。</para>
     /// <para><b>生命周期</b>：关闭时完成写入并限时等待泵发完已排队数据；发送失败中止管道（错误随 <see cref="Pipe.Error"/>，后续追加的数据由管道直接释放）。</para>
     /// <para>读侧 <see cref="Pipe.Reader"/> 为发送泵独占，请勿另作它用。</para>
@@ -136,6 +137,11 @@ partial class TcpSession
 
     /// <summary>获取或创建发送泵（管道唯一消费方，构造时启动）</summary>
     /// <returns>发送泵</returns>
+    /// <remarks>
+    /// <para>发布点持 <see cref="_spinLock"/>：直发路径在锁内复查 <c>_sendPump</c>，拿到本锁即证明此刻没有直发正在写套接字，
+    /// 而发布之后进入锁的直发必然看到泵并改走队列，因此泵线程与直发线程不可能并发写同一 Socket/SslStream。</para>
+    /// <para>代价：恰有直发在途时本方法要等它写完（同一次会话至多发生一次）。锁序固定为 <c>_sendPumpLock → _spinLock</c>，单向无环。</para>
+    /// </remarks>
     private SendPump GetOrCreatePump()
     {
         var pump = _sendPump;
@@ -147,16 +153,31 @@ partial class TcpSession
             {
                 var created = CreateSendPipe();
 
-                // 发送泵（管道唯一消费方），构造时启动；发送委托指向泵专用发送核心，避免再次进入队列分流
-                _sendPump = new SendPump(created, DirectSendAsync, OnError, WriteLog);
+                // 发送泵（管道唯一消费方），构造时启动；发送委托指向泵专用发送核心，避免再次进入队列分流。
+                // 泵只消费管道、不会主动写套接字，此时尚未发布故不会与直发交汇，发布点再与直发互斥
+                var newPump = new SendPump(created, DirectSendAsync, OnError, WriteLog);
+
+                var gotLock = false;
+                try
+                {
+                    _spinLock.Enter(ref gotLock);
+
+                    _sendPump = newPump;
+                }
+                finally
+                {
+                    if (gotLock) _spinLock.Exit();
+                }
             }
 
-            return _sendPump;
+            return _sendPump!;
         }
     }
     #endregion
 
     #region 发送核心
+    // 无锁快照 _sendPump 只是快速路径：管道发布点持发送锁，三个直发重载在锁内复查并让位（见 DirectSend 备注），
+    // 因此“快照读到无泵”与“泵已发布”之间的窗口不会让两条路径并发写同一 Socket
     /// <summary>发送核心：发送管道创建后队列优先（单出口），否则直发</summary>
     /// <param name="data">数据包</param>
     /// <returns>已发送或已接收字节数</returns>

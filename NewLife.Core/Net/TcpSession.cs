@@ -435,9 +435,11 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         if (_bsize < count) sock.SendBufferSize = _bsize = count;
     }
 
-    /// <summary>直接发送数据。无发送队列时走此路径；发送泵的发送委托同样指向本方法</summary>
+    /// <summary>直接发送数据。无发送队列时走此路径</summary>
     /// <remarks>
-    /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
+    /// <para>目标地址由<seealso cref="SessionBase.Remote"/>决定。</para>
+    /// <para>锁内会复查发送泵是否已接管出口：发布点持同一把锁，若泵已发布则本方法改为把数据交给泵，
+    /// 避免与泵线程并发写同一 Socket/SslStream（“读快照”与“写套接字”本不是原子的，只能靠同一把锁互斥）。</para>
     /// </remarks>
     /// <param name="pk">数据包</param>
     /// <returns>已发送字节数；失败返回 -1</returns>
@@ -459,6 +461,17 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         {
             // 加锁发送
             _spinLock.Enter(ref gotLock);
+
+            // 双检：泵的发布点持同一把锁。本线程是在读到“无泵”快照之后才走到这里的，
+            // 若此刻泵已接管出口，必须改走队列，否则会与泵线程并发写同一 Socket/SslStream。
+            // 持锁读到泵即证明发布已完成（发布需持本锁），两条写入路径不可能同时进行；锁内不入队，出锁后再追加
+            if (_sendPump is { } pump)
+            {
+                _spinLock.Exit();
+                gotLock = false;
+
+                return pump.Append(pk);
+            }
 
             TuneSendBufferSize(sock, count);
 
@@ -544,6 +557,15 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             // 加锁发送
             _spinLock.Enter(ref gotLock);
 
+            // 双检泵（同 IPacket 重载）：泵已接管出口则改走队列，不与泵线程并发写
+            if (_sendPump is { } pump)
+            {
+                _spinLock.Exit();
+                gotLock = false;
+
+                return data.Array == null ? 0 : pump.Append(new ReadOnlySpan<Byte>(data.Array, data.Offset, data.Count));
+            }
+
             TuneSendBufferSize(sock, count);
 
             if (_Stream is not { } stream)
@@ -619,6 +641,15 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         {
             // 加锁发送
             _spinLock.Enter(ref gotLock);
+
+            // 双检泵（同 IPacket 重载）：泵已接管出口则改走队列，不与泵线程并发写
+            if (_sendPump is { } pump)
+            {
+                _spinLock.Exit();
+                gotLock = false;
+
+                return pump.Append(data);
+            }
 
             TuneSendBufferSize(sock, count);
 
