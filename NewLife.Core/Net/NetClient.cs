@@ -195,10 +195,16 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     /// <returns>是否成功</returns>
     public Boolean Close(String reason)
     {
-        _userClosed = true;
-        StopReconnect();
+        // 置位用户关闭标记与摘除内部客户端必须在同一把重连锁内完成，
+        // 否则重连流程可能恰好穿过这两步之间的空隙，把迟到的活连接重新写回 _client
+        ISocketClient? client;
+        lock (_reconnectLock)
+        {
+            _userClosed = true;
+            client = Interlocked.Exchange(ref _client, null);
+        }
 
-        var client = Interlocked.Exchange(ref _client, null);
+        StopReconnect();
         if (client == null) return true;
 
         Detach(client);
@@ -216,10 +222,15 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     /// <returns>是否成功</returns>
     public async Task<Boolean> CloseAsync(String reason, CancellationToken cancellationToken = default)
     {
-        _userClosed = true;
-        StopReconnect();
+        // 同 Close：置位与摘除必须原子，避免重连接管迟到的活连接
+        ISocketClient? client;
+        lock (_reconnectLock)
+        {
+            _userClosed = true;
+            client = Interlocked.Exchange(ref _client, null);
+        }
 
-        var client = Interlocked.Exchange(ref _client, null);
+        StopReconnect();
         if (client == null) return true;
 
         Detach(client);
@@ -276,14 +287,22 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
 
     /// <summary>替换内部Socket客户端。摘除旧实例的事件订阅并释放，避免旧连接继续转发事件或泄漏资源</summary>
     /// <param name="client">新的客户端实例</param>
-    private void SwitchClient(ISocketClient client)
+    private void SwitchClient(ISocketClient client) => RetireClient(SwapClient(client), client);
+
+    /// <summary>原子替换内部Socket客户端，返回被替换下来的旧实例</summary>
+    /// <param name="client">新的客户端实例</param>
+    private ISocketClient? SwapClient(ISocketClient client) => Interlocked.Exchange(ref _client, client);
+
+    /// <summary>摘除旧客户端的事件订阅并释放</summary>
+    /// <remarks>应在锁外调用，避免持锁期间触发旧连接的关闭回调</remarks>
+    /// <param name="old">被替换下来的旧实例</param>
+    /// <param name="current">新实例，与旧实例相同则不做处理</param>
+    private void RetireClient(ISocketClient? old, ISocketClient? current)
     {
-        var old = Interlocked.Exchange(ref _client, client);
-        if (old != null && !ReferenceEquals(old, client))
-        {
-            Detach(old);
-            old.TryDispose();
-        }
+        if (old == null || ReferenceEquals(old, current)) return;
+
+        Detach(old);
+        old.TryDispose();
     }
 
     #endregion
@@ -346,16 +365,30 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
             if (await client.OpenAsync().ConfigureAwait(false))
             {
                 // 等待连接期间可能已被主动关闭/销毁：此时不得收纳这个迟到连接，
-                // 否则 _client 指向一个无人关闭的活连接（Active 为真、计数已清零），Socket 与对端资源双双泄露
-                if (Disposed || _userClosed)
+                // 否则 _client 指向一个无人关闭的活连接（Active 为真、计数已清零），Socket 与对端资源双双泄露。
+                // 复查与接管必须在同一把重连锁内完成：Close/CloseAsync 也在该锁内置位 _userClosed 并摘除 _client，
+                // 二者互斥后才能排除“复查通过后、接管之前被 Close 插入”的窗口
+                var adopted = false;
+                ISocketClient? old = null;
+                lock (_reconnectLock)
+                {
+                    if (!Disposed && !_userClosed)
+                    {
+                        old = SwapClient(client);
+                        // 重连成功：清零计数，下次断线后可重新累计
+                        _reconnectCount = 0;
+                        adopted = true;
+                    }
+                }
+
+                if (!adopted)
                 {
                     client.TryDispose();
                     return;
                 }
 
-                SwitchClient(client);
-                // 重连成功：清零计数，下次断线后可重新累计
-                _reconnectCount = 0;
+                // 锁外释放被替换的旧客户端，避免在持锁期间触发其关闭回调
+                RetireClient(old, client);
                 WriteLog("重连成功 {0}", Remote);
             }
             else

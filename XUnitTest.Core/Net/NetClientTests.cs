@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using System.Reflection;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
@@ -717,6 +718,76 @@ public class NetClientTests
     private static Int32 CountReconnect(List<String> logs)
     {
         lock (logs) return logs.Count(m => m.Contains("正在重连"));
+    }
+
+    [Fact(DisplayName = "重连_与用户关闭竞争_不得接管迟到的连接")]
+    public async Task Close_RacingWithReconnect_DoesNotAdoptLateClient()
+    {
+        using var server = CreateEchoServer();
+
+        // 复查与接管处在同一临界区，窗口极窄。这里用多轮错开的时点反复与重连竞争：
+        // 关闭一旦完成，_client 必须保持为 null。任何迟到被接管的连接都会一直活到 Dispose，
+        // 期间 Active 谎报为真，Socket 与对端连接双份残留
+        for (var round = 0; round < 12; round++)
+        {
+            using var client = CreateTcpClient(server.Port);
+            client.AutoReconnect = true;
+            client.ReconnectDelay = 1;
+
+            Assert.True(client.Open());
+            Assert.NotNull(client.Client);
+
+            // 模拟网络断开：直接关闭内部客户端，触发自动重连
+            client.Client!.Close("simulate");
+
+            // 在重连流程的不同阶段关闭，与其竞争
+            await Task.Delay(round % 4);
+            client.Close("user close");
+
+            // 关闭后的观察窗口：不允许再出现被接管的内部客户端
+            for (var i = 0; i < 10; i++)
+            {
+                await Task.Delay(20);
+                Assert.Null(client.Client);
+                Assert.False(client.Active);
+            }
+        }
+    }
+
+    [Fact(DisplayName = "关闭_置位与摘除必须原子_不得抢在重连锁外执行")]
+    public void Close_SetsUserClosedInsideReconnectLock()
+    {
+        using var client = new NetClient("tcp://127.0.0.1:1");
+
+        // 白盒：Close 必须在重连锁内一并完成“置位 _userClosed + 摘除 _client”。
+        // 若先置位再取锁，置位与摘除之间就出现空隙，重连流程可穿过该空隙接管迟到的活连接
+        var lockField = typeof(NetClient).GetField("_reconnectLock", BindingFlags.Instance | BindingFlags.NonPublic);
+        var closedField = typeof(NetClient).GetField("_userClosed", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(lockField);
+        Assert.NotNull(closedField);
+
+        var gate = lockField!.GetValue(client)!;
+        var done = new ManualResetEventSlim();
+
+        Monitor.Enter(gate);
+        try
+        {
+            _ = Task.Run(() =>
+            {
+                client.Close("user close");
+                done.Set();
+            });
+
+            // 占用重连锁期间，Close 不得抢先置位 _userClosed
+            Assert.False(done.Wait(200), "重连锁被占用时 Close 不应完成");
+            Assert.False((Boolean)closedField!.GetValue(client)!, "_userClosed 必须与摘除 _client 同处临界区");
+        }
+        finally
+        {
+            Monitor.Exit(gate);
+        }
+
+        Assert.True(done.Wait(3_000), "释放重连锁后 Close 应能完成");
     }
 
     #endregion
