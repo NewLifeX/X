@@ -297,6 +297,50 @@ public class SessionPipeTests
         client.Close("test");
     }
 
+    [Fact]
+    [DisplayName("会话管道_流式体短读_丢弃消息并关闭会话")]
+    public async Task SessionPipe_StreamingBodyTruncated_Discards()
+    {
+        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec(), MaxConcurrency = 2 };
+        server.Start();
+
+        var wait = new ManualResetEventSlim();
+        Pipe? pipe = null;
+        var closed = new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
+        server.NewSession += (s, e) =>
+        {
+            pipe = (e.Session.Session as IStreamSession)?.Pipe;
+            if (e.Session.Session is SessionBase session) session.Closed += (x, y) => closed.TrySetResult(true);
+            wait.Set();
+        };
+
+        var delivered = 0;
+        server.Received += (s, e) => Interlocked.Increment(ref delivered);
+
+        using var client = new NetUri($"tcp://127.0.0.1:{server.Port}").CreateRemote();
+        client.Open();
+
+        Assert.True(wait.Wait(3_000));
+        Assert.NotNull(pipe);
+
+        // 声明 300 字节体却只发 100 字节：泵定界到流式体后会把已到的体字节读进缓冲并等待剩余部分，
+        // 管道窗口随之稳定归零（字节确实已到达且已被泵持有）；字节未到达时窗口保持非零，断言会响亮失败
+        var frame = BuildFrame(Fill(300, 2));
+        _ = client.Send(frame, 0, 104);
+
+        await Task.Delay(500);
+        Assert.Equal(0, pipe!.UnconsumedLength);
+        Assert.Equal(0, Volatile.Read(ref delivered));
+
+        // 管道带错误结束（模拟传输故障）：短读必须丢弃消息、上报错误并关闭会话，而不是把半截体派发出去
+        pipe.Writer.Complete(new InvalidOperationException("模拟传输故障"));
+
+        Assert.True(await closed.Task.WaitAsync(TimeSpan.FromSeconds(5)), "会话应在超时内关闭");
+
+        await Task.Delay(200);
+        Assert.Equal(0, delivered);
+    }
+
     #region 工具
     private static Byte[] Fill(Int32 count, Byte value)
     {

@@ -1002,6 +1002,15 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                     message.TryDispose();
                     continue;
                 }
+                catch (Exception ex)
+                {
+                    // 流式体读满失败（对端半途断开/管道故障）：数据流已不可恢复，与帧层读失败同口径关闭会话。
+                    // 异常若向上逃出泵任务，续体只记日志不关会话，表现为“连接还在、消息不再到达、也不触发关闭”的半死态
+                    message.TryDispose();
+                    OnError("MessagePump", ex);
+                    Close("MessagePumpError");
+                    break;
+                }
             }
 
             // 并行模式：先物化流式体（一次拷贝换并行安全），信号量约束并发后派发；处理顺序不定（SRMP 按序列号配对）
@@ -1018,6 +1027,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                     {
                         message.TryDispose();
                         continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        // 同匹配队列分支：流式体读满失败即数据流不可恢复，丢弃消息并关闭会话
+                        message.TryDispose();
+                        OnError("MessagePump", ex);
+                        Close("MessagePumpError");
+                        break;
                     }
                 }
 

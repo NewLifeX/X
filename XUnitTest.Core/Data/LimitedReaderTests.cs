@@ -177,6 +177,104 @@ public class LimitedReaderTests
         Assert.Throws<InvalidOperationException>(() => body.Reset());
     }
 
+    #region 流式短读
+    [Fact]
+    [DisplayName("限长读取_流式模式_读满返回完整数据")]
+    public async Task StreamingMode_ReadAllFull()
+    {
+        using var pipe = new Pipe();
+        pipe.Writer.Append(new ArrayPacket(B(1, 2, 3, 4)));
+
+        var body = pipe.Reader.Limit(4);
+        var all = await body.ReadAllAsync();
+
+        Assert.Equal(B(1, 2, 3, 4), all.ToArray());
+        Assert.Equal(0, body.Remaining);
+    }
+
+    [Fact]
+    [DisplayName("限长读取_流式模式_跨轮补齐后读满")]
+    public async Task StreamingMode_ReadAllAcrossRounds()
+    {
+        using var pipe = new Pipe();
+        pipe.Writer.Append(new ArrayPacket(B(1, 2)));
+
+        var body = pipe.Reader.Limit(4);
+
+        // 首轮只有 2 字节：读取挂起等待后续数据
+        var task = body.ReadAllAsync().AsTask();
+        Assert.False(task.IsCompleted);
+
+        pipe.Writer.Append(new ArrayPacket(B(3, 4)));
+        var all = await task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal(B(1, 2, 3, 4), all.ToArray());
+        Assert.Equal(0, body.Remaining);
+    }
+
+    [Fact]
+    [DisplayName("限长读取_流式模式_对端关闭未读满_抛流结束异常")]
+    public async Task StreamingMode_Truncated_ThrowsEndOfStream()
+    {
+        using var pipe = new Pipe();
+        pipe.Writer.Append(new ArrayPacket(B(1, 2, 3)));
+        pipe.Writer.Complete();
+
+        var body = pipe.Reader.Limit(5);
+        var ex = await Assert.ThrowsAsync<EndOfStreamException>(() => body.ReadAllAsync().AsTask());
+
+        Assert.Contains("未读满", ex.Message);
+        Assert.Equal(2, body.Remaining);
+    }
+
+    [Fact]
+    [DisplayName("限长读取_流式模式_管道带错误结束_透传原异常")]
+    public async Task StreamingMode_PipeError_Propagates()
+    {
+        using var pipe = new Pipe();
+        pipe.Writer.Append(new ArrayPacket(B(1, 2)));
+        pipe.Writer.Complete(new InvalidOperationException("管道故障"));
+
+        var body = pipe.Reader.Limit(4);
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => body.ReadAllAsync().AsTask());
+
+        Assert.Equal("管道故障", ex.Message);
+    }
+
+    [Fact]
+    [DisplayName("限长读取_流式模式_读取被取消_抛取消异常")]
+    public async Task StreamingMode_CancelPendingRead_Throws()
+    {
+        using var pipe = new Pipe();
+        var body = pipe.Reader.Limit(4);
+
+        var task = body.ReadAllAsync().AsTask();
+        Assert.False(task.IsCompleted);
+
+        // 取消被静默吞掉会让“取消即失败”的调用方拿到半截体的假成功
+        pipe.Reader.CancelPendingRead();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.WaitAsync(TimeSpan.FromSeconds(5)));
+        Assert.Equal(4, body.Remaining);
+    }
+
+    [Fact]
+    [DisplayName("限长读取_流式模式_取消令牌取消挂起读_抛取消异常")]
+    public async Task StreamingMode_TokenCanceled_Throws()
+    {
+        using var pipe = new Pipe();
+        using var cts = new CancellationTokenSource();
+        var body = pipe.Reader.Limit(4);
+
+        var task = body.ReadAllAsync(cts.Token).AsTask();
+        Assert.False(task.IsCompleted);
+
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+    #endregion
+
     [Fact]
     [DisplayName("限长读取_构造函数_非法参数被拒绝")]
     public void Ctor_InvalidArguments_Throws()

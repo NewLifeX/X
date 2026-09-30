@@ -6,6 +6,7 @@ namespace NewLife.Data;
 /// <remarks>
 /// <para><b>两种模式</b>：流式模式由 <see cref="PipeReader.Limit(Int64)"/> 创建，数据随管道到达；内存模式由消息整帧解析创建，数据已在内存（读取立即完成）。</para>
 /// <para><b>视图与消费</b>：<see cref="AsPacket"/> 取剩余体视图（不消费）；<see cref="ReadAllAsync"/> 读满并推进预算（消费）；需要长驻内容时请使用 ReadAllAsync。</para>
+/// <para><b>短读不静默</b>：流式模式 <see cref="ReadAllAsync"/> 未读满就遇到取消或流结束（对端关闭、管道故障）时抛异常，不返回半截消息体——半截体除了长度对不上之外没有任何可判定的信号，静默返回等于把截断伪装成正常消息。</para>
 /// <para>读取窗口裁剪到预算内；<see cref="AdvanceTo(Int64, Int64)"/> 透传主读取器并扣减预算。</para>
 /// <para><see cref="DrainAsync"/> 丢弃未读余量（等待数据到达逐步跳过），使主读取器对齐到帧尾；未读满就进入下一帧前必须 Drain，否则窗口错位。</para>
 /// <para>预算耗尽后的读取返回 <c>IsCompleted=true</c> 的空结果（体结束语义）。</para>
@@ -226,6 +227,9 @@ public sealed class LimitedReader
     /// <summary>读满剩余数据（读取完成语义）</summary>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>剩余体的数据包；内存模式为立即完成的视图，流式模式为读满后的池化包</returns>
+    /// <remarks>流式模式未读满就遇取消或流结束时抛异常，不返回半截消息体；内存模式数据已在内存，不会短读。</remarks>
+    /// <exception cref="OperationCanceledException">流式模式读取被取消，消息体未读满</exception>
+    /// <exception cref="EndOfStreamException">流式模式数据流提前结束，消息体未读满</exception>
     public async ValueTask<IPacket> ReadAllAsync(CancellationToken cancellationToken = default)
     {
         if (_remaining <= 0) return new OwnerPacket(0);
@@ -243,25 +247,51 @@ public sealed class LimitedReader
         if (_remaining > Int32.MaxValue) throw new NotSupportedException($"消息体过大（{_remaining} 字节），无法一次性物化");
 
         var buffer = new OwnerPacket((Int32)_remaining);
-        var memory = buffer.GetMemory();
-        var offset = 0;
-        while (_remaining > 0)
+        try
         {
-            var rr = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
-            if (rr.IsCanceled) break;
-
-            var data = rr.Buffer;
-            if (!data.IsEmpty)
+            var total = _remaining;
+            var memory = buffer.GetMemory();
+            var offset = 0;
+            var canceled = false;
+            while (_remaining > 0)
             {
-                var take = (Int32)Math.Min(data.Length, _remaining);
-                data.Slice(0, take).CopyTo(memory.Span[offset..]);
-                offset += take;
-                AdvanceTo(take);
-            }
-            else if (rr.IsCompleted) break;
-        }
+                var rr = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+                if (rr.IsCanceled)
+                {
+                    canceled = true;
+                    break;
+                }
 
-        return buffer.Resize(offset);
+                var data = rr.Buffer;
+                if (!data.IsEmpty)
+                {
+                    var take = (Int32)Math.Min(data.Length, _remaining);
+                    data.Slice(0, take).CopyTo(memory.Span[offset..]);
+                    offset += take;
+                    AdvanceTo(take);
+                }
+                else if (rr.IsCompleted) break;
+            }
+
+            // 未读满就退出：半截消息体比异常危险得多（上层只能从长度对不上猜出问题），按原因抛给调用方
+            if (_remaining > 0)
+            {
+                if (canceled) throw new OperationCanceledException($"消息体读取被取消，期望 {total} 字节，实读 {offset} 字节");
+
+                // 管道带异常结束时透传原始故障（与帧泵的口径一致），否则说明对端提前关闭
+                if (_reader.Error is { } error) throw error;
+
+                throw new EndOfStreamException($"消息体未读满：期望 {total} 字节，实读 {offset} 字节");
+            }
+
+            return buffer.Resize(offset);
+        }
+        catch
+        {
+            // 失败路径必须归还池缓冲：留着只能靠析构兜底（打漏释放警告，且归还时机不定）
+            buffer.TryDispose();
+            throw;
+        }
     }
     #endregion
 }

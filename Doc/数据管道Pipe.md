@@ -184,7 +184,7 @@ await session.SendAsync(bodyStream, len);             // 体流式跟随，单�
 | `Writer.Append(pk)` 入参 | 无条件转移给管道；调用后不得再使用或释放；管道已关闭时由管道负责释放 |
 | 读取窗口 `Buffer` | 管道持有；仅对应数据被消费前有效，禁止跨轮缓存（跨轮请 `TakeFrame` 或 `Slice`） |
 | `TakeFrame` 帧 | 拥有句柄（引用计数），与其他句柄各自释放，最后一个归还内存池 |
-| `LimitedReader` | 限长视图；预算耗尽读取返回 IsCompleted；`DrainAsync`/释放对齐到帧尾 |
+| `LimitedReader` | 限长视图；预算耗尽读取返回 IsCompleted；`DrainAsync`/释放对齐到帧尾；流式模式未读满就结束或取消时 `ReadAllAsync` 抛异常（取消 → `OperationCanceledException`；管道带错误结束 → 透传 `Pipe.Error`；否则 → `EndOfStreamException`），不返回半截体 |
 
 ## 边界与事实
 
