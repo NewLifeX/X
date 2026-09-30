@@ -69,6 +69,34 @@ public class DefaultMessage : Message
     /// <remarks>帧层对“不足”是等待更多数据，对“损坏”必须立即报错，两者的处置完全不同，不能合为一个 false</remarks>
     public Boolean TryParse(ReadOnlySequence<Byte> buffer, out Int64 bodyLength, out Int32 headerSize, out Boolean invalid)
     {
+        if (!TryReadHeader(buffer, out var flag, out var sequence, out var kind, out bodyLength, out headerSize, out invalid)) return false;
+
+        // 全部校验通过后才写入实例字段，失败路径不产生副作用
+        Flag = flag;
+        Sequence = sequence;
+        Kind = kind;
+        return true;
+    }
+
+    /// <summary>读取 SRMP 头部字段（不写入实例、不产生对象）。供帧层在构造消息之前探测头部是否已就绪</summary>
+    /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
+    /// <param name="flag">标记位（高 2 位已被种类占用，本值只含低 6 位数据类型）</param>
+    /// <param name="sequence">序列号</param>
+    /// <param name="kind">消息种类（头部高 2 位）</param>
+    /// <param name="bodyLength">解析到的负载长度</param>
+    /// <param name="headerSize">头部字节数（4 或 8）</param>
+    /// <param name="invalid">是否为损坏帧（头部已完整但内容非法）。返回 false 且本值为 false 时表示数据不足</param>
+    /// <returns>是否解析成功</returns>
+    /// <remarks>
+    /// 与实例版 <see cref="TryParse(ReadOnlySequence{Byte}, out Int64, out Int32, out Boolean)"/> 共用同一套校验，只是不落到任何实例上。
+    /// 分开的原因：帧层在半包（头部未到齐）时也会调用解析，每次都会构造一个随即被丢弃的消息对象；
+    /// 逐字节到达的长连接上这笔分配纯属浪费，故先探测、确认头部就绪后再构造消息。
+    /// </remarks>
+    internal static Boolean TryReadHeader(ReadOnlySequence<Byte> buffer, out Byte flag, out Int32 sequence, out MessageKinds kind, out Int64 bodyLength, out Int32 headerSize, out Boolean invalid)
+    {
+        flag = 0;
+        sequence = 0;
+        kind = MessageKinds.Request;
         bodyLength = 0;
         headerSize = 0;
         invalid = false;
@@ -95,10 +123,9 @@ public class DefaultMessage : Message
             payloadLen = len32;
         }
 
-        // 全部校验通过后才写入实例字段，失败路径不产生副作用
-        Flag = (Byte)(b0 & 0b0011_1111);
-        Sequence = b1;
-        Kind = (MessageKinds)(b0 >> 6);
+        flag = (Byte)(b0 & 0b0011_1111);
+        sequence = b1;
+        kind = (MessageKinds)(b0 >> 6);
         bodyLength = payloadLen;
         headerSize = size;
         return true;

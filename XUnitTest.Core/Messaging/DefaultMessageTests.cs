@@ -85,6 +85,65 @@ public class DefaultMessageTests
         pk.TryDispose();
     }
 
+    [Fact]
+    [DisplayName("标准编解码_头部未到齐_返回空且不产生对象")]
+    public void TryParse_IncompleteHeader_NoAllocation()
+    {
+        var codec = new SrmpCodec();
+
+        // 4 字节定长头只到 3 字节
+        var partial = new ReadOnlySequence<Byte>(new Byte[] { 0x01, 0x01, 0x04 });
+        Assert.Null(codec.TryParse(partial));
+
+        var memory = GC.GetAllocatedBytesForCurrentThread();
+        var rs = codec.TryParse(partial);
+        var used = GC.GetAllocatedBytesForCurrentThread() - memory;
+
+        Assert.Null(rs);
+        Assert.True(used == 0, $"头部未到齐时不应产生对象，本次分配 {used} 字节");
+
+        // 8 字节扩展头：0xFFFF 标记已到，但 4 字节正式长度未到齐
+        var ext = new ReadOnlySequence<Byte>(new Byte[] { 0x01, 0x01, 0xFF, 0xFF, 0x00, 0x00 });
+        Assert.Null(codec.TryParse(ext));
+
+        var memory2 = GC.GetAllocatedBytesForCurrentThread();
+        var rs2 = codec.TryParse(ext);
+        var used2 = GC.GetAllocatedBytesForCurrentThread() - memory2;
+
+        Assert.Null(rs2);
+        Assert.True(used2 == 0, $"扩展头未到齐时不应产生对象，本次分配 {used2} 字节");
+    }
+
+    [Fact]
+    [DisplayName("标准消息_实例解析_字段就位且失败路径无副作用")]
+    public void TryParse_Instance_FillsFields()
+    {
+        // 4 字节头：Flag=3 Sequence=0x07 len=4
+        var frame = new ReadOnlySequence<Byte>(new Byte[] { 0x03, 0x07, 0x04, 0x00, 0x41, 0x42, 0x43, 0x44 });
+        var msg = new DefaultMessage();
+        Assert.True(msg.TryParse(frame, out var bodyLength, out var headerSize, out var invalid));
+        Assert.False(invalid);
+        Assert.Equal(4, headerSize);
+        Assert.Equal(4L, bodyLength);
+        Assert.Equal(0x03, msg.Flag);
+        Assert.Equal(0x07, msg.Sequence);
+        Assert.Equal(MessageKinds.Request, msg.Kind);
+
+        // 数据不足：不写入实例
+        var keep = new DefaultMessage { Flag = 0x22, Sequence = 0x55, Kind = MessageKinds.Response };
+        Assert.False(keep.TryParse(new ReadOnlySequence<Byte>(new Byte[] { 0x01, 0x02 }), out _, out _, out var invalid1));
+        Assert.False(invalid1);
+        Assert.Equal(0x22, keep.Flag);
+        Assert.Equal(0x55, keep.Sequence);
+        Assert.Equal(MessageKinds.Response, keep.Kind);
+
+        // 扩展长度非法（负数）：标记损坏，同样不写入实例
+        var bad = new ReadOnlySequence<Byte>(new Byte[] { 0x81, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
+        Assert.False(keep.TryParse(bad, out _, out _, out var invalid2));
+        Assert.True(invalid2);
+        Assert.Equal(0x55, keep.Sequence);
+    }
+
     //[Fact]
     //public void StringEncode()
     //{

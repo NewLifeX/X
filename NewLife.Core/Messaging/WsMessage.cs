@@ -72,6 +72,34 @@ public class WsMessage : Message
     /// <returns>是否解析成功</returns>
     public Boolean TryParse(ReadOnlySequence<Byte> buffer, out Int64 bodyLength, out Int32 headerSize, out Boolean invalid)
     {
+        if (!TryReadHeader(buffer, out var fin, out var type, out var maskKey, out bodyLength, out headerSize, out invalid)) return false;
+
+        // 全部校验通过后才写入实例字段，失败路径不产生副作用
+        Fin = fin;
+        Type = type;
+        MaskKey = maskKey;
+        return true;
+    }
+
+    /// <summary>读取 WebSocket 帧头字段（不写入实例、不产生对象）。供帧层在构造消息之前探测帧头是否已就绪</summary>
+    /// <param name="buffer">帧首窗口（只读序列，可跨段）</param>
+    /// <param name="fin">是否消息结束（FIN）</param>
+    /// <param name="type">消息类型（opcode）</param>
+    /// <param name="maskKey">掩码键（无掩码帧为 null）</param>
+    /// <param name="bodyLength">解析到的负载长度</param>
+    /// <param name="headerSize">帧头字节数（含掩码键）</param>
+    /// <param name="invalid">是否为损坏帧（长度非法）</param>
+    /// <returns>是否解析成功</returns>
+    /// <remarks>
+    /// 与实例版 <see cref="TryParse(ReadOnlySequence{Byte}, out Int64, out Int32, out Boolean)"/> 共用同一套校验，只是不落到任何实例上。
+    /// 分开的原因：帧层在半包（帧头未到齐）时也会调用解析，每次都会构造一个随即被丢弃的消息对象；
+    /// 逐字节到达的长连接上这笔分配纯属浪费，故先探测、确认帧头就绪后再构造消息。
+    /// </remarks>
+    internal static Boolean TryReadHeader(ReadOnlySequence<Byte> buffer, out Boolean fin, out WebSocketMessageType type, out Byte[]? maskKey, out Int64 bodyLength, out Int32 headerSize, out Boolean invalid)
+    {
+        fin = false;
+        type = WebSocketMessageType.Binary;
+        maskKey = null;
         invalid = false;
         bodyLength = 0;
         headerSize = 0;
@@ -88,7 +116,6 @@ public class WsMessage : Message
             return false;
         }
 
-        var fin = (b0 & 0x80) != 0;
         var opcode = (Byte)(b0 & 0x0F);
         if (opcode is not (0 or 1 or 2 or 8 or 9 or 10))
         {
@@ -136,10 +163,9 @@ public class WsMessage : Message
             fieldLen += 4;
         }
 
-        // 全部校验通过后才写入实例字段，失败路径不产生副作用
-        Fin = fin;
-        Type = (WebSocketMessageType)opcode;
-        MaskKey = masks;
+        fin = (b0 & 0x80) != 0;
+        type = (WebSocketMessageType)opcode;
+        maskKey = masks;
         bodyLength = len;
         headerSize = fieldLen;
         return true;

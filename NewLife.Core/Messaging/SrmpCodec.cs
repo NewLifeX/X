@@ -31,14 +31,16 @@ public class SrmpCodec : IMessageCodec, IMessageMatcher
     /// <remarks>在只读序列上顺序读取，不拼读、不物化；扩展长度读出负数（协议上限 Int32.MaxValue）视为损坏帧。</remarks>
     public ParseResult? TryParse(ReadOnlySequence<Byte> buffer)
     {
-        // 协议字段由消息类自行解析（消息定义即协议），帧层只负责装配
-        var message = new DefaultMessage();
-        if (!message.TryParse(buffer, out var bodyLength, out var headerSize, out var invalid))
+        // 协议字段由消息类自行解析（消息定义即协议），帧层只负责装配。
+        // 先做无副作用的头部探测：头部未到齐时直接返回，不构造随即被丢弃的消息对象
+        if (!DefaultMessage.TryReadHeader(buffer, out var flag, out var sequence, out var kind, out var bodyLength, out var headerSize, out var invalid))
         {
             // 头部已完整但长度非法：损坏帧交由帧层按协议错误处置（流式关闭连接、数据报丢包）；
             // 只有数据不足才返回 null 进入等待
             return invalid ? new ParseResult { Invalid = true } : null;
         }
+
+        var message = new DefaultMessage { Flag = flag, Sequence = sequence, Kind = kind };
 
         return new ParseResult { Message = message, HeaderSize = headerSize, BodyLength = bodyLength };
     }

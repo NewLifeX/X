@@ -35,10 +35,12 @@ public class WebSocketCodec : IMessageCodec
     /// <remarks>在只读序列上顺序读取，不拼读、不物化；掩码键挂在消息上，负载由消费方解码。</remarks>
     public ParseResult? TryParse(ReadOnlySequence<Byte> buffer)
     {
-        // 帧字段由消息类自行解析（消息定义即协议），帧层只负责装配
-        var message = new WsMessage();
-        if (!message.TryParse(buffer, out var bodyLength, out var headerSize, out var invalid))
+        // 帧字段由消息类自行解析（消息定义即协议），帧层只负责装配。
+        // 先做无副作用的头部探测：帧头未到齐时直接返回，不构造随即被丢弃的消息对象
+        if (!WsMessage.TryReadHeader(buffer, out var fin, out var type, out var maskKey, out var bodyLength, out var headerSize, out var invalid))
             return invalid ? new ParseResult { Invalid = true } : null;
+
+        var message = new WsMessage { Fin = fin, Type = type, MaskKey = maskKey };
 
         return new ParseResult { Message = message, HeaderSize = headerSize, BodyLength = bodyLength };
     }

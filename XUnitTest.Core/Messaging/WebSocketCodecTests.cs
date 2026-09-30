@@ -53,6 +53,61 @@ public class WebSocketCodecTests
     }
 
     [Fact]
+    [DisplayName("WS编解码_帧头未到齐_返回空且不产生对象")]
+    public void TryParse_IncompleteHeader_NoAllocation()
+    {
+        // 1 字节：帧头至少 2 字节
+        var one = new ReadOnlySequence<Byte>(new Byte[] { 0x81 });
+        Assert.Null(_serverCodec.TryParse(one));
+
+        var memory = GC.GetAllocatedBytesForCurrentThread();
+        var rs = _serverCodec.TryParse(one);
+        var used = GC.GetAllocatedBytesForCurrentThread() - memory;
+
+        Assert.Null(rs);
+        Assert.True(used == 0, $"帧头未到齐时不应产生对象，本次分配 {used} 字节");
+
+        // 掩码帧：长度字符与掩码键均未到齐
+        var masked = new ReadOnlySequence<Byte>(new Byte[] { 0x81, 0x85, 0x11, 0x22 });
+        Assert.Null(_serverCodec.TryParse(masked));
+
+        var memory2 = GC.GetAllocatedBytesForCurrentThread();
+        var rs2 = _serverCodec.TryParse(masked);
+        var used2 = GC.GetAllocatedBytesForCurrentThread() - memory2;
+
+        Assert.Null(rs2);
+        Assert.True(used2 == 0, $"掩码键未到齐时不应产生对象，本次分配 {used2} 字节");
+    }
+
+    [Fact]
+    [DisplayName("WS消息_实例解析_字段就位且失败路径无副作用")]
+    public void TryParse_Instance_FillsFields()
+    {
+        // 掩码文本帧头：FIN+Text + MASK+len5 + key
+        var frame = new ReadOnlySequence<Byte>(new Byte[] { 0x81, 0x85, 0x11, 0x22, 0x33, 0x44 });
+        var msg = new WsMessage();
+        Assert.True(msg.TryParse(frame, out var bodyLength, out var headerSize, out var invalid));
+        Assert.False(invalid);
+        Assert.Equal(6, headerSize);
+        Assert.Equal(5L, bodyLength);
+        Assert.True(msg.Fin);
+        Assert.Equal(WebSocketMessageType.Text, msg.Type);
+        Assert.Equal(new Byte[] { 0x11, 0x22, 0x33, 0x44 }, msg.MaskKey);
+
+        // 扩展长度未到齐：不写入实例
+        var keep = new WsMessage { Fin = true, Type = WebSocketMessageType.Ping, MaskKey = new Byte[] { 1, 2, 3, 4 } };
+        Assert.False(keep.TryParse(new ReadOnlySequence<Byte>(new Byte[] { 0x82, 0x7E }), out _, out _, out var invalid1));
+        Assert.False(invalid1);
+        Assert.Equal(WebSocketMessageType.Ping, keep.Type);
+        Assert.Equal(new Byte[] { 1, 2, 3, 4 }, keep.MaskKey);
+
+        // 保留 opcode：标记损坏，同样不写入实例
+        Assert.False(keep.TryParse(new ReadOnlySequence<Byte>(new Byte[] { 0x83, 0x00 }), out _, out _, out var invalid2));
+        Assert.True(invalid2);
+        Assert.Equal(WebSocketMessageType.Ping, keep.Type);
+    }
+
+    [Fact]
     [DisplayName("WS编解码_文本帧无掩码_定界")]
     public void TryParse_TextFrame()
     {
