@@ -318,6 +318,84 @@ public class HttpServerTests : IDisposable
         Assert.Equal(payload, await rs2.Content.ReadAsByteArrayAsync());
     }
 
+    [Fact(DisplayName = "流式响应_慢客户端_发送积压受水位约束且数据完整")]
+    public async Task StreamResponse_SlowClient_BoundedByBackpressure()
+    {
+        var payload = new Byte[16 * 1024 * 1024];
+        Random.Shared.NextBytes(payload);
+        _server.Map("/slow", new StreamTestHandler { Payload = payload });
+
+        // 会话启用发送管道：启用后本次会话的发送一律改为入队（不阻塞），
+        // 逐块直发若不等待背压，慢客户端下整个响应体会排队进内存，单连接即可耗尽内存
+        var session = default(TcpSession);
+        _server.NewSession += (s, e) =>
+        {
+            session = e.Session.Session as TcpSession;
+            _ = session?.SendPipe;
+        };
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync("GET /slow HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".GetBytes());
+        await ns.FlushAsync();
+
+        // 客户端暂不读取：服务端发送积压应停留在管道水位附近（暂停水位 + 一个读块），
+        // 而不是把 16M 响应体整段排队进内存
+        var maxPending = 0L;
+        for (var i = 0; i < 20; i++)
+        {
+            await Task.Delay(50);
+            if (session?.GetSendPipe() is { } pipe) maxPending = Math.Max(maxPending, pipe.UnconsumedLength);
+        }
+
+        Assert.True(maxPending > 0, "未观测到发送积压，用例未覆盖流式发送的背压路径");
+        Assert.True(maxPending < 2 * 1024 * 1024, $"发送积压 {maxPending} 字节，未受发送水位约束");
+
+        // 客户端开始读取：数据必须完整送达（背压只约束排队，不截断数据）
+        var all = new MemoryStream();
+        var buf = new Byte[64 * 1024];
+        var headEnd = -1;
+        while (headEnd < 0)
+        {
+            var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.True(n > 0, "连接提前结束");
+            all.Write(buf, 0, n);
+
+            headEnd = IndexOfHeadEnd(all.GetBuffer(), (Int32)all.Length);
+        }
+
+        var headText = all.GetBuffer().AsSpan(0, headEnd).ToStr();
+        Assert.StartsWith("HTTP/1.1 200", headText);
+
+        var cl = headText.Split("\r\n").First(e => e.StartsWith("Content-Length", StringComparison.OrdinalIgnoreCase)).Split(':')[1].Trim().ToInt();
+        Assert.Equal(payload.Length, cl);
+
+        var need = headEnd + cl;
+        while (all.Length < need)
+        {
+            var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.True(n > 0, "连接提前结束");
+            all.Write(buf, 0, n);
+        }
+
+        Assert.True(payload.AsSpan().SequenceEqual(all.GetBuffer().AsSpan(headEnd, cl)), "响应体不完整");
+    }
+
+    /// <summary>查找响应体起始位置（头与体之间的空行之后）；未找到返回 -1</summary>
+    /// <param name="buf">缓冲</param>
+    /// <param name="length">有效长度</param>
+    private static Int32 IndexOfHeadEnd(Byte[] buf, Int32 length)
+    {
+        for (var i = 3; i < length; i++)
+        {
+            if (buf[i - 3] == 13 && buf[i - 2] == 10 && buf[i - 1] == 13 && buf[i] == 10) return i + 1;
+        }
+
+        return -1;
+    }
+
     /// <summary>流式响应测试处理器。NonSeekable 时长度未知，触发分块传输</summary>
     class StreamTestHandler : IHttpHandler
     {

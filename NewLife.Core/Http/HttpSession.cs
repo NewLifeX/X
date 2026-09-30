@@ -335,6 +335,12 @@ public class HttpSession : INetHandler, IDisposable
     /// <summary>发送流式响应体。先发头部，再分块读取并发送主体</summary>
     /// <param name="rs">响应</param>
     /// <param name="stream">主体数据流（所有权随响应，发送完成后释放）</param>
+    /// <remarks>
+    /// <para>背压：发送走会话的水位感知出口，待发积压达到暂停水位时挂起等待网络消化，
+    /// 慢速客户端下每连接的排队内存有界（由暂停/恢复水位决定），不随响应体大小增长。</para>
+    /// <para>长度可知时整段交给会话的流式发送出口（分块读取 + 零拷贝入管道 + 水位背压），本同步处理链上等待完成；
+    /// 长度未知时按分块传输逐块发送。</para>
+    /// </remarks>
     private void SendStreamBody(HttpResponse rs, Stream stream)
     {
         try
@@ -352,6 +358,14 @@ public class HttpSession : INetHandler, IDisposable
             using var head = rs.BuildHeaderPacket(length);
             _session.Send(head);
 
+            // 长度可知：整段交给会话的流式发送出口（分块读取、零拷贝入管道、水位背压），本同步链上等待完成。
+            // 逐块直发在发送管道积压时不等待任何背压，慢客户端下整个响应体会排队进内存，单连接即可耗尽内存
+            if (!chunked && _session.Session is TcpSession { Active: true } tcp)
+            {
+                tcp.SendAsync(stream, length).GetAwaiter().GetResult();
+                return;
+            }
+
             using var buffer = Pool.Rent(64 * 1024);
 
             while (true)
@@ -363,7 +377,7 @@ public class HttpSession : INetHandler, IDisposable
                 {
                     // 分块传输：十六进制长度 CRLF + 数据 + CRLF 组装为单包
                     using var pk = BuildChunk(buffer, count);
-                    _session.Send(pk);
+                    SendBlock(pk);
                 }
                 else
                 {
@@ -384,6 +398,18 @@ public class HttpSession : INetHandler, IDisposable
         {
             stream.Dispose();
         }
+    }
+
+    /// <summary>背压发送一块流式数据。会话支持水位感知出口时挂起等待网络消化（本同步处理链上阻塞等待），否则直发</summary>
+    /// <param name="pk">数据包。句柄借用：与 <see cref="INetSession.Send(IPacket)"/> 同义，返回后调用方自行释放</param>
+    private void SendBlock(IPacket pk)
+    {
+        // SendAsync 与 Send 共用发送管道单出口：积压达到暂停水位时挂起，网络消化到恢复水位后继续。
+        // 等待不带取消：与直发路径的同步 socket 写阻塞语义一致，连接故障/关闭时管道完成并唤醒等待方
+        if (_session.Session is TcpSession { Active: true } tcp)
+            _ = tcp.SendAsync(pk).GetAwaiter().GetResult();
+        else
+            _session.Send(pk);
     }
 
     /// <summary>组装分块传输数据块（十六进制长度 CRLF + 数据 CRLF）</summary>
