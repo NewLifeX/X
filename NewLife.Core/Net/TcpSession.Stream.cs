@@ -33,6 +33,7 @@ partial class TcpSession
     private volatile Pipe? _pipe;
 
     /// <summary>获取已创建的数据管道。未访问过 <see cref="Pipe"/> 时返回 null（不触发创建）</summary>
+    /// <remarks>会话关闭时复位为 null，重开后再访问 <see cref="Pipe"/> 即重建新管道</remarks>
     /// <returns>数据管道；未创建时为 null</returns>
     public Pipe? GetPipe() => _pipe;
 
@@ -123,6 +124,7 @@ partial class TcpSession
     private volatile SendPump? _sendPump;
 
     /// <summary>获取已创建的数据发送管道。未访问过 <see cref="SendPipe"/> 时返回 null（不触发创建）</summary>
+    /// <remarks>会话关闭时复位为 null，重开后再访问 <see cref="SendPipe"/> 即重建新发送泵与管道</remarks>
     /// <returns>数据发送管道；未创建时为 null</returns>
     public Pipe? GetSendPipe() => _sendPump?.Pipe;
 
@@ -240,6 +242,13 @@ partial class TcpSession
             // 只完成写侧会让读侧链上尚未消费的池缓冲一直挂到管道随对象不可达，由终结器兜底归还；
             // 服务端会话还可能存活到 SessionTimeout，等于长期占用内存池。
             _pipe?.Dispose();
+
+            // 复位收发管道，交由懒创建在重开时重建。客户端会话关闭会把 Client 置空、同一实例可再次 Open，
+            // 若继续持有已完成管道：发送经泵被静默丢弃（Append 返回 -1，无异常无日志），
+            // 协议模式接收泵在已结束的读取器上读取抛异常并立即关闭会话，外显为“连得上、发不出、收不到”
+            _pipe = null;
+            _sendPump = null;
+
             ReleaseParkedReceive();
         }
     }
