@@ -412,8 +412,12 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 if (!ex.IsDisposed()) OnError("Close", ex);
                 //if (ThrowException) throw;
 
-                // 关闭动作本身抛异常：本次不释放服务端会话，它会以 Active=false 留在会话集合里，
-                // 由集合的超时清理（不活动会话）兜底摘除；客户端会话本就由调用方保管
+                // 关闭动作（Shutdown/Close）抛异常时底层连接状态已不可信，服务端会话必须在此释放：
+                // 否则它会以 Active=false 留在会话集合里，一直等到会话超时清理才摘除（这段时间集合与计数都把它算作在线）。
+                // 此处 Dispose 是安全的：Active 已在上方置 false，Dispose 内部再走的 Close 会幂等短路；
+                // 客户端会话不在此释放，由调用方保管以便重开。
+                if (_Server != null) Dispose();
+
                 return Task.FromResult(false);
             }
             Client = null;
