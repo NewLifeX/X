@@ -78,6 +78,42 @@ public class HttpServerTests : IDisposable
         Assert.Equal("data", body);
     }
 
+    [Fact(DisplayName = "HTTP服务端_主体分片恰好是合法请求头_不得吞掉在途请求")]
+    public async Task BodyRoundLooksLikeHead_KeepsPendingRequest()
+    {
+        // 在途请求的实体尚未收完时，本轮字节一律属于该实体，不得再尝试解析新的请求头。
+        // 旧实现先 Parse，实体内恰好出现一段合法请求头（代理转发、恶意构造）时会在此覆盖在途请求并丢弃缓存：
+        // 原请求永不回响应，其实体字节被当成下一个请求处理，连接边界失步（与前置代理共存即为请求走私面）
+        var tcs = new TaskCompletionSource<String>();
+        _server.MapPost("/echo", ctx => tcs.TrySetResult(ctx.Request.Body?.ToStr() ?? ""));
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var evil = "GET /smuggle HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n";
+        var body = "AAAA" + evil;
+        var head = $"POST /echo HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: {body.Length}\r\n\r\n";
+
+        // 第一轮：请求头 + 主体前 4 字节，服务端进入实体缓存等待后续分片
+        await ns.WriteAsync((head + "AAAA").GetBytes());
+        await ns.FlushAsync();
+        await Task.Delay(100);
+
+        // 第二轮：剩余主体恰好以一段合法请求头开头
+        await ns.WriteAsync(evil.GetBytes());
+        await ns.FlushAsync();
+
+        // 在途的 POST /echo 必须收满实体并交付业务，而不是被实体里的“新请求”顶掉
+        var received = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(body, received);
+
+        // 响应必须是 /echo 的 200；旧行为回的是被误认请求的 404
+        var buf = new Byte[4096];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.StartsWith("HTTP/1.1 200", buf.AsSpan(0, n).ToStr());
+    }
+
     [Theory(DisplayName = "HTTP服务端_Transfer-Encoding非chunked_回400；chunked暂不支持回411")]
     [InlineData("gzip", 400)]
     [InlineData("identity", 400)]

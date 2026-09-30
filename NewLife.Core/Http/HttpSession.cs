@@ -87,6 +87,21 @@ public class HttpSession : INetHandler, IDisposable
             return;
         }
 
+        // 在途请求的实体尚未收完：本轮字节一律属于该实体，绝不能再尝试解析新的请求头。
+        // 否则实体内恰好出现一段合法请求头（代理转发、恶意构造）时，会在此覆盖 Request 并丢弃实体缓存，
+        // 原请求永不回响应，其后的字节被当成下一个请求处理，连接边界失步（与前置代理共存即为请求走私面）
+        if (_cache != null)
+        {
+            if (Request is { } pending)
+            {
+                ReceiveBody(pending, _cache, pk, data);
+                return;
+            }
+
+            // Request 被外部清空，与实体缓存状态不一致：丢弃缓存，回到无在途请求的常态
+            _cache = null;
+        }
+
         // 取当前请求上下文引用（可能为 null）
         var req = Request;
         var request = new HttpRequest();
@@ -161,20 +176,6 @@ public class HttpSession : INetHandler, IDisposable
                 }
             }
         }
-        else if (req != null && _cache != null)
-        {
-            // 已有正在接收的请求，继续拼接主体
-            pk.CopyTo(_cache);
-
-            // 防御：主体量达到声明长度视为完成。本分支恒有 ContentLength >= 0，否则上面 IsCompleted 已为真
-            // 超出声明长度的字节（同连接的下一个请求）不属于本请求，必须截断，不能一并当主体交给业务
-            if (_cache.Length >= req.ContentLength)
-            {
-                _cache.Position = 0;
-                req.Body = new ArrayPacket(_cache.GetBuffer(), 0, req.ContentLength);
-                _cache = null;
-            }
-        }
         else if (_headCache != null)
         {
             // 缓存的头部片加本轮数据仍不能成头：超限，或含完整空行仍解析失败（无效请求头）——都按 400 拒绝并关闭
@@ -202,6 +203,34 @@ public class HttpSession : INetHandler, IDisposable
             return;
         }
 
+        Deliver(req, data);
+    }
+
+    /// <summary>接收在途请求的实体分片，收满声明长度后交付业务处理</summary>
+    /// <param name="req">在途请求</param>
+    /// <param name="cache">实体缓存流（由 <see cref="Process"/> 保证非空）</param>
+    /// <param name="pk">本轮数据</param>
+    /// <param name="data">数据帧</param>
+    private void ReceiveBody(HttpRequest req, MemoryStream cache, IPacket pk, IData data)
+    {
+        pk.CopyTo(cache);
+
+        // 防御：主体量达到声明长度视为完成。本分支恒有 ContentLength >= 0，否则头部解析后 IsCompleted 已为真
+        // 超出声明长度的字节（同连接的下一个请求）不属于本请求，必须截断，不能一并当主体交给业务
+        if (cache.Length < req.ContentLength) return;
+
+        cache.Position = 0;
+        req.Body = new ArrayPacket(cache.GetBuffer(), 0, req.ContentLength);
+        _cache = null;
+
+        Deliver(req, data);
+    }
+
+    /// <summary>交付请求给业务处理并发送响应，随后释放请求主体</summary>
+    /// <param name="req">请求；为 null 表示本轮数据尚未构成完整请求头，无需交付</param>
+    /// <param name="data">数据帧</param>
+    private void Deliver(HttpRequest? req, IData data)
+    {
         if (req != null)
         {
             // 改变数据
