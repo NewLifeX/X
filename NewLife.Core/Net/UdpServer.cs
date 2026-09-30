@@ -599,13 +599,25 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             us.ID = Interlocked.Increment(ref g_ID);
             us.Tracer = Tracer;
 
-            // 必须在加入会话集合前完成启动和事件订阅。
-            // sessions.Add 会将会话插入 ConcurrentDictionary，随后其他 IOCP 线程可在 lock 外通过 sessions.Get 找到该会话并立即调用 OnReceive。
-            // 若此时 us.Start() 尚未执行（Received 事件未订阅），则首批数据包会静默丢弃。
-            us.Start();
+            try
+            {
+                // 必须在加入会话集合前完成启动和事件订阅。
+                // sessions.Add 会将会话插入 ConcurrentDictionary，随后其他 IOCP 线程可在 lock 外通过 sessions.Get 找到该会话并立即调用 OnReceive。
+                // 若此时 us.Start() 尚未执行（Received 事件未订阅），则首批数据包会静默丢弃。
+                us.Start();
 
-            // 触发新会话事件（用户代码如 EchoSession 在此处通过 NewSession 订阅 Ss_Received）
-            NewSession?.Invoke(this, new SessionEventArgs(session));
+                // 触发新会话事件（用户代码如 EchoSession 在此处通过 NewSession 订阅 Ss_Received）
+                NewSession?.Invoke(this, new SessionEventArgs(session));
+            }
+            catch
+            {
+                // 从创建到入集合之间，会话还没被集合接管（Get 找不到它），启动或事件订阅抛异常时，
+                // 再也没人会来释放它：会话本身泄漏，同一端点的每个数据报还会再新建一个，持续累积。
+                // 此处立即释放后上抛，由接收环按既有错误处理记日志并继续收包（UdpSession 只解除与服务器的关联，不关共享Socket）
+                us.TryDispose();
+
+                throw;
+            }
 
             if (sessions.Add(session))
             {
