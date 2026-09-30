@@ -51,9 +51,9 @@ public class MessagePump
     /// </remarks>
     public Boolean RequireFullFrame { get; set; }
 
-    /// <summary>整帧模式下的单帧长度上限，默认 16M。0 表示不限制</summary>
+    /// <summary>单帧长度上限（整帧模式与协议预绑定体），默认 16M。0 表示不限制</summary>
     /// <remarks>
-    /// <para>整帧模式不消费未完整帧，仅凭对端声明一个超大帧长度即可让管道无限占用内存：<see cref="MaxCache"/> 只管“无法定界的残余”，
+    /// <para>整帧模式与协议预绑定体都不消费未完整帧，仅凭对端声明一个超大帧长度即可让管道无限占用内存：<see cref="MaxCache"/> 只管“无法定界的残余”，
     /// 管不到“已定界但永远到不齐”的帧。超过上限时抛出异常，由调用方按协议错误关闭连接。</para>
     /// </remarks>
     public Int32 MaxFrameSize { get; set; } = 16 * 1024 * 1024;
@@ -138,6 +138,13 @@ public class MessagePump
                 if (headerSize + bodyLength > buffer.Length)
                 {
                     msg.Dispose();
+
+                    // 已定界但整帧未到齐，与 NeedFullFrame 分支同口径：
+                    // 不报告帧长会被 ReadAsync 当作“无法定界的残余”，帧长超过 MaxCache 时把正常累积的大帧误判为坏数据而断连
+                    frameLength = headerSize + bodyLength;
+                    if (MaxFrameSize > 0 && frameLength > MaxFrameSize)
+                        throw new InvalidOperationException($"帧长度 {frameLength} 超过上限 {MaxFrameSize}，拒绝为超大帧无限缓冲");
+
                     return false;
                 }
 

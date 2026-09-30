@@ -742,5 +742,87 @@ public class MessagePumpTests
         Assert.Equal(200_000, msg.Payload!.Total);
         msg.Dispose();
     }
+
+    /// <summary>测试用协议：4 字节小端长度头；头部到齐即自行绑定整帧（模拟压缩协议解压后重绑）</summary>
+    private sealed class PreBoundCodec : IMessageCodec
+    {
+        public ParseResult? TryParse(ReadOnlySequence<Byte> buffer)
+        {
+            if (buffer.Length < 4) return null;
+
+            var head = buffer.Slice(0, 4).ToArray();
+            var bodyLength = head[0] | (head[1] << 8) | (head[2] << 16) | (head[3] << 24);
+
+            // 协议已预绑定体（Payload 非空）：帧泵走“预绑定体”分支，不再二次绑定
+            var msg = new DefaultMessage();
+            msg.SetBody(new ArrayPacket(new Byte[bodyLength]));
+
+            return new ParseResult { Message = msg, HeaderSize = 4, BodyLength = bodyLength };
+        }
+
+        public IOwnerPacket? Build(IMessage message) => throw new NotSupportedException("测试协议仅验证接收路径");
+
+        public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("测试协议仅验证接收路径");
+    }
+
+    /// <summary>构造预绑定体协议的帧（4 字节小端长度头 + 体）</summary>
+    private static Byte[] BuildPreBoundFrame(Int32 bodyLength)
+    {
+        var buf = new Byte[4 + bodyLength];
+        buf[0] = (Byte)(bodyLength & 0xFF);
+        buf[1] = (Byte)((bodyLength >> 8) & 0xFF);
+        buf[2] = (Byte)((bodyLength >> 16) & 0xFF);
+        buf[3] = (Byte)((bodyLength >> 24) & 0xFF);
+
+        return buf;
+    }
+
+    [Fact]
+    [DisplayName("帧泵_预绑定体大帧分批到达_不受最大缓存误报")]
+    public async Task ReadAsync_PreBoundBody_LargeFrame_NoMaxCacheFalsePositive()
+    {
+        using var pipe = new Pipe();
+        var pump = new MessagePump(new PreBoundCodec()) { MaxCache = 256, MaxFrameSize = 1024 * 1024 };
+
+        const Int32 bodyLength = 200_000;
+        var frame = BuildPreBoundFrame(bodyLength);
+
+        // 头部到齐、体未到齐，且残余已超过 MaxCache：协议已预绑定体，属于“已定界但整帧未到齐”，
+        // 不得报告为“无法定界的残余”（旧实现不报告帧长，等待中的连接被误判为坏数据而断开）
+        pipe.Writer.Append(new ArrayPacket(frame, 0, frame.Length - 1));
+
+        var task = pump.ReadAsync(pipe.Reader).AsTask();
+        Assert.False(task.IsCompleted);
+
+        // 补上最后一字节：帧完整后正常产出
+        pipe.Writer.Append(new ArrayPacket(frame, frame.Length - 1, 1));
+
+        var msg = await task;
+        Assert.NotNull(msg);
+        Assert.Equal(bodyLength, msg!.Payload!.Total);
+        Assert.Equal(0, pipe.UnconsumedLength);
+        msg.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("帧泵_预绑定体_帧长超上限_抛异常")]
+    public void TryRead_PreBoundBody_ExceedsMaxFrameSize_Throws()
+    {
+        using var pipe = new Pipe();
+        var pump = new MessagePump(new PreBoundCodec()) { MaxFrameSize = 64 };
+
+        // 声明 1000 字节体但只发头部：预绑定体分支同样不消费未完整帧，须受单帧上限约束，
+        // 否则对端仅凭一条声明就能让本连接的内存无限增长
+        var frame = BuildPreBoundFrame(1000);
+        pipe.Writer.Append(new ArrayPacket(frame, 0, 4));
+
+        var ex = Assert.Throws<InvalidOperationException>(() => pump.TryRead(pipe.Reader, out _));
+        Assert.Contains("超过上限", ex.Message);
+        Assert.Equal(4, pipe.UnconsumedLength);
+
+        // 上限之内的未完整帧仍按“等待后续分片”处理
+        pump.MaxFrameSize = 4096;
+        Assert.False(pump.TryRead(pipe.Reader, out _));
+    }
     #endregion
 }
