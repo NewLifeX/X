@@ -23,8 +23,10 @@ public class StaticFilesHandler : IHttpHandler
         var file = context.Path[Path.Length..];
         file = ContentPath.CombinePath(file);
 
-        // 路径安全检查，防止目录穿越
-        if (!file.GetFullPath().StartsWithIgnoreCase(ContentPath.GetFullPath()))
+        // 路径安全检查，防止目录穿越。基路径先补上目录分隔符再比对：
+        // 否则内容目录 D:\www\js 会放行 D:\www\js2 这类同前缀的兄弟目录
+        var baseDir = ContentPath.GetFullPath().EnsureEnd(System.IO.Path.DirectorySeparatorChar + "");
+        if (!file.GetFullPath().StartsWithIgnoreCase(baseDir))
             throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
         var fi = file.AsFile();
