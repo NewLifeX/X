@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife;
@@ -466,6 +467,151 @@ public class TinyHttpClientTest
         // 对端持续发送不含 CRLF 的字节：未解析残留必须有上限，不能无界累积
         await Assert.ThrowsAsync<InvalidDataException>(() => ReadChunkAsync(
             client, "abcdefghij".GetBytes(), "abcdefghij".GetBytes(), "abcdefghij".GetBytes()));
+    }
+    #endregion
+
+    #region 响应分帧与建连超时
+    [Fact(DisplayName = "分块与Content-Length同现_以分块为准_不按CL补读")]
+    public async Task Chunked_TakesPrecedenceOverContentLength()
+    {
+        // RFC 9112 §6.1：Transfer-Encoding 覆盖 Content-Length。
+        // 旧实现先按 Content-Length 补读再判分块：声明长度大于实际分块体时，一直等不到剩余字节，直到整次超时才失败
+        var head = "HTTP/1.1 200 OK\r\nContent-Length: 100\r\nTransfer-Encoding: chunked\r\n\r\n".GetBytes();
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(head);
+            await ns.WriteAsync("5\r\nhello\r\n0\r\n\r\n".GetBytes());
+            await ns.FlushAsync();
+
+            // 保持连接不关：旧实现会一直等 Content-Length 声明的剩余 95 字节
+            await Task.Delay(1500);
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(1) };
+        var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") });
+
+        Assert.NotNull(res);
+        Assert.Equal(HttpStatusCode.OK, res!.StatusCode);
+        Assert.Equal("hello", res.Body?.ToStr());
+
+        await server;
+    }
+
+    [Fact(DisplayName = "1xx临时响应_单独到达_跳过并返回最终响应")]
+    public async Task InterimResponse_SeparatePacket()
+    {
+        // 网关与 Expect 场景会先回 100 Continue。当成最终响应返回会让调用方拿到 1xx 的空体并误判成功
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync("HTTP/1.1 100 Continue\r\n\r\n".GetBytes());
+            await ns.FlushAsync();
+            await Task.Delay(50);
+
+            await ns.WriteAsync("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK".GetBytes());
+            await ns.FlushAsync();
+            await Task.Delay(50);
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") });
+
+        Assert.NotNull(res);
+        Assert.Equal(HttpStatusCode.OK, res!.StatusCode);
+        Assert.Equal("OK", res.Body?.ToStr());
+
+        await server;
+    }
+
+    [Fact(DisplayName = "1xx与最终响应同包到达_残留字节不丢弃")]
+    public async Task InterimResponse_SamePacket()
+    {
+        // 服务端两次写入常被合并到同一个接收包：1xx 之后的字节就是最终响应，丢弃即丢失响应并挂到超时
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync("HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello".GetBytes());
+            await ns.FlushAsync();
+            await Task.Delay(50);
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") });
+
+        Assert.NotNull(res);
+        Assert.Equal(HttpStatusCode.OK, res!.StatusCode);
+        Assert.Equal("hello", res.Body?.ToStr());
+
+        await server;
+    }
+
+    [Fact(DisplayName = "重定向跨跳_上一跳的Transfer-Encoding不残留")]
+    public async Task Redirect_HeaderResidue_NotReused()
+    {
+        // 解析只覆盖本次出现的头部，跨跳复用同一响应对象会把上一跳的 Transfer-Encoding 残留到第二跳，
+        // 让带 Content-Length 的最终响应被当成分块解析（旧实现下等不到分块长度行，直到超时）
+        var hop1 = "HTTP/1.1 302 Found\r\nLocation: /b\r\nContent-Length: 0\r\nTransfer-Encoding: chunked\r\n\r\n".GetBytes();
+        var hop2 = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello".GetBytes();
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(hop1);
+            await ns.FlushAsync();
+
+            // 第二跳请求（同一连接复用）
+            var buf = new Byte[1024];
+            var count = await ns.ReadAsync(buf);
+            Assert.True(count > 0);
+
+            await ns.WriteAsync(hop2);
+            await ns.FlushAsync();
+
+            // 保持连接不关：陈旧 TE 会让旧实现一直等分块数据
+            await Task.Delay(1500);
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(1) };
+        var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/a") });
+
+        Assert.NotNull(res);
+        Assert.Equal(HttpStatusCode.OK, res!.StatusCode);
+        Assert.Equal("hello", res.Body?.ToStr());
+
+        await server;
+    }
+
+    /// <summary>探测地址是否构成“黑洞”：预算内既没连上、也不立刻失败</summary>
+    private static Boolean IsBlackhole(String host, Int32 port, Int32 budgetMs)
+    {
+        try
+        {
+            using var tc = new TcpClient();
+            var task = tc.ConnectAsync(host, port);
+
+            return !task.Wait(budgetMs);
+        }
+        catch
+        {
+            return false;   // 立刻失败（拒绝或路由不可达）→ 不是黑洞
+        }
+    }
+
+    [Fact(DisplayName = "建连_黑洞地址_受整次超时约束")]
+    public async Task Connect_Blackhole_BoundedByTimeout()
+    {
+        // 192.0.2.0/24 为文档保留网段，正常不会被路由。若本机对该地址立刻拒绝（ICMP 或路由不可达），
+        // 就无从验证建连超时约束，跳过
+        if (!IsBlackhole("192.0.2.1", 80, 1000)) return;
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromMilliseconds(500) };
+
+        var sw = Stopwatch.StartNew();
+        // 没有超时约束时，建连要等操作系统默认 TCP 超时（Windows 约 21 秒）
+        var ex = await Assert.ThrowsAnyAsync<Exception>(() =>
+            client.SendAsync(new HttpRequest { RequestUri = new Uri("http://192.0.2.1/") }).WaitAsync(TimeSpan.FromSeconds(10)));
+        sw.Stop();
+
+        Assert.IsType<TimeoutException>(ex);
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"建连耗时 {sw.Elapsed}，未受整次超时约束");
     }
     #endregion
 }

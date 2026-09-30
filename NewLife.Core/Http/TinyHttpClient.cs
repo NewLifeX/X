@@ -120,7 +120,29 @@ public class TinyHttpClient : DisposeBase
 
             tc.TryDispose();
             tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
-            await tc.ConnectAsync(remote.GetAddresses(), remote.Port).ConfigureAwait(false);
+
+            // 建连同读取一样花整次请求的剩余预算。指向黑洞地址或被丢包的内网 VIP 时，操作系统默认 TCP 超时
+            // （Windows 约 21 秒）远超 Timeout，调用方会被长时间卡住（健康检查/网关调用还会连锁超时）。
+            // TcpClient 的 ConnectAsync 入参没有取消令牌，改由令牌触发时关闭客户端来中止连接
+            var remain = GetRemain();
+            using (var source = new CancellationTokenSource(remain))
+            {
+                try
+                {
+                    using (source.Token.Register(() => tc.Close()))
+                    {
+                        await tc.ConnectAsync(remote.GetAddresses(), remote.Port).ConfigureAwait(false);
+                    }
+
+                    // 令牌恰好落在握手完成之后：客户端已被回调关闭，按超时处理，不把已关闭的连接交给上层
+                    if (source.IsCancellationRequested) throw new OperationCanceledException(source.Token);
+                }
+                catch (Exception ex) when (source.IsCancellationRequested)
+                {
+                    // 中止连接抛出的异常形态随运行时不同（SocketException / ObjectDisposedException），统一收敛为超时
+                    throw new TimeoutException($"连接 {remote} 超时（{remain.TotalMilliseconds:0}ms）", ex);
+                }
+            }
 
             Client = tc;
             ns = tc.GetStream();
@@ -168,11 +190,7 @@ public class TinyHttpClient : DisposeBase
 
         // 只花剩余时间：若每轮读取都给完整 Timeout，服务端每隔 Timeout-1ms 滴漏一个字节，
         // 每轮读取都能在预算内拿到数据，调用方就被无限挂住（半截头补读循环同样每轮重新计时）
-        var deadline = _deadline;
-        var remain = deadline > DateTime.MinValue ? deadline - DateTime.UtcNow : Timeout;
-        if (remain < TimeSpan.Zero) remain = TimeSpan.Zero;
-
-        using var source = new CancellationTokenSource(remain);
+        using var source = new CancellationTokenSource(GetRemain());
 
 #if NETCOREAPP || NETSTANDARD2_1
         var count = await ns.ReadAsync(pk.GetMemory(), source.Token).ConfigureAwait(false);
@@ -198,42 +216,16 @@ public class TinyHttpClient : DisposeBase
 
         var res = new HttpResponse();
         IPacket? rs = null;
+        MemoryStream? carry = null;
         var retry = 5;
         while (retry-- > 0)
         {
-            // 发出请求
-            using var rs2 = await SendDataAsync(uri, req).ConfigureAwait(false);
-            if (rs2 == null || rs2.Length == 0) return null;
+            // 读出一条响应。重定向需要重发请求，故本轮传入请求数据；1xx 之后的继续读取由方法内部自行完成
+            var (response, carry2) = await ReadResponseAsync(uri, req, carry).ConfigureAwait(false);
+            carry = carry2;
+            if (response == null) return null;
 
-            // 解析响应。入参句柄由本层释放（主体等切片已取得独立引用）
-            var parsed = res.Parse(rs2);
-
-            // 响应头可能跨接收块：服务端头部稍慢时首个数据块只到达半截头，解析失败。
-            // 继续读取并累积到连续缓冲，直到拼出完整头部；否则会把半截头当成空的成功响应返回给调用方（静默错误）。
-            if (!parsed)
-            {
-                // 先清掉失败解析可能已设置的体切片（头部完整但首行非法时），避免重解析时泄漏
-                res.Body.TryDispose();
-                res.Body = null;
-
-                var ms = new MemoryStream(BufferSize);
-                rs2.CopyTo(ms);
-                while (MaxHeadLength <= 0 || ms.Length < MaxHeadLength)
-                {
-                    using var more = await SendDataAsync(null, null).ConfigureAwait(false);
-                    if (more == null || more.Length == 0) break;
-
-                    more.CopyTo(ms);
-                    if (res.Parse(new ArrayPacket(ms.GetBuffer(), 0, (Int32)ms.Length)))
-                    {
-                        parsed = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!parsed) return null;
-
+            res = response;
             rs = res.Body;
 
             // 跳转。301/302/303/307/308 都是重定向，此前只认 301/302，其余会被当成成功响应原样返回
@@ -282,8 +274,14 @@ public class TinyHttpClient : DisposeBase
             throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
         }
 
+        // 分块编码优先于 Content-Length（RFC 9112 §6.1：两者同现时以 Transfer-Encoding 为准）。
+        // 旧实现先按 Content-Length 补读再判分块：同发两者的响应会先按 CL 凑字节，把分块长度行与分块数据
+        // 错位喂给分块解析，得到内容错乱或异常却仍“成功”返回。分块响应的实体长度由分块解码决定，CL 视为未知
+        var chunked = res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked");
+        if (chunked) res.ContentLength = -1;
+
         // 如果没有收完数据包
-        if (rs != null && res.ContentLength > 0 && rs.Length < res.ContentLength)
+        if (!chunked && rs != null && res.ContentLength > 0 && rs.Length < res.ContentLength)
         {
             // 使用内存流拼接需要多次接收的数据包，降低逻辑复杂度
             var ms = new MemoryStream(res.ContentLength);
@@ -311,7 +309,7 @@ public class TinyHttpClient : DisposeBase
         }
 
         // chunk编码
-        if (rs != null && res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
+        if (chunked && rs != null)
         {
             // 如果不足则读取一个chunk，因为有可能第一个响应包只有头部
             if (rs.Length == 0)
@@ -328,6 +326,108 @@ public class TinyHttpClient : DisposeBase
         if (!KeepAlive) Client.TryDispose();
 
         return res;
+    }
+
+    /// <summary>读取并解析一条响应。跨接收包累积响应头，并跳过 1xx 临时响应</summary>
+    /// <remarks>
+    /// <para>优先消费 <paramref name="pending"/> 中的残留字节（同一次接收里上一条响应之后多出的字节），不足时才继续读取。</para>
+    /// <para>返回的残留字节属于后续响应，调用方需保留并在下一次读取时传回，不能丢弃。</para>
+    /// </remarks>
+    /// <param name="uri">请求地址，连接不可用时用于重新建连</param>
+    /// <param name="request">待发送的请求数据。为 null 表示只读取不发送</param>
+    /// <param name="pending">上一条响应之后多出的字节，可为 null</param>
+    /// <returns>响应与未消费的残留字节；响应头解析失败时响应为 null</returns>
+    private async Task<(HttpResponse? Response, MemoryStream? Carry)> ReadResponseAsync(Uri? uri, IPacket? request, MemoryStream? pending)
+    {
+        // 残留字节可能已是一条完整响应（1xx 与最终响应同包到达），先就地解析，避免去读一个永远不会到达的包
+        var carry = pending;
+        var interim = 5;
+        while (interim-- > 0)
+        {
+            MemoryStream? ms = null;
+            IOwnerPacket? rs2 = null;
+            IPacket pk;
+            try
+            {
+                if (carry != null && carry.Length > 0)
+                {
+                    ms = carry;
+                    pk = new ArrayPacket(ms.GetBuffer(), 0, (Int32)ms.Length);
+                }
+                else
+                {
+                    rs2 = await SendDataAsync(request == null ? null : uri, request).ConfigureAwait(false);
+                    request = null;     // 请求只发一次，1xx 之后只继续读同一连接
+                    if (rs2 == null || rs2.Length == 0) return (null, null);
+
+                    pk = rs2;
+                }
+
+                // 每条响应新建对象：解析只覆盖本次出现的头部，复用同一实例会把上一条响应的头部残留下来
+                // （最危险的是 Transfer-Encoding），让下一条响应按错误的方式分帧
+                var res = new HttpResponse();
+                var parsed = res.Parse(pk);
+
+                // 响应头可能跨接收块：服务端头部稍慢时首个数据块只到达半截头，解析失败。
+                // 继续读取并累积到连续缓冲，直到拼出完整头部；否则会把半截头当成空的成功响应返回给调用方（静默错误）。
+                if (!parsed)
+                {
+                    // 先清掉失败解析可能已设置的体切片（头部完整但首行非法时），避免重解析时泄漏
+                    res.Body.TryDispose();
+                    res.Body = null;
+
+                    // 有残留时连续缓冲已含本轮全部字节，无残留时在此补建
+                    if (ms == null)
+                    {
+                        ms = new MemoryStream(BufferSize);
+                        pk.CopyTo(ms);
+                    }
+
+                    while (MaxHeadLength <= 0 || ms.Length < MaxHeadLength)
+                    {
+                        using var more = await SendDataAsync(null, null).ConfigureAwait(false);
+                        if (more == null || more.Length == 0) break;
+
+                        more.CopyTo(ms);
+                        if (res.Parse(new ArrayPacket(ms.GetBuffer(), 0, (Int32)ms.Length)))
+                        {
+                            parsed = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!parsed) return (null, null);
+
+                // 1xx 临时响应（100 Continue、103 Early Hints 等）不是最终响应：丢弃后继续读取。
+                // 当最终响应返回会让调用方拿到 1xx 的空体并误判成功（网关与 Expect 场景常见）
+                var code = (Int32)res.StatusCode;
+                if (code is >= 100 and < 200)
+                {
+                    // 1xx 无实体也无 Content-Length，解析只能把头部之后的全部字节当成本响应体，
+                    // 而这些字节其实是最终响应的开头，必须留到下一轮解析，不能随 1xx 一起丢弃
+                    if (res.BodyLength > 0)
+                    {
+                        carry = new MemoryStream(BufferSize);
+                        res.Body!.CopyTo(carry);
+                    }
+                    else
+                        carry = null;
+
+                    res.Body.TryDispose();
+                    res.Body = null;
+                    continue;
+                }
+
+                return (res, ms);
+            }
+            finally
+            {
+                rs2.TryDispose();
+            }
+        }
+
+        return (null, null);
     }
 
     /// <summary>读取分片，返回链式 IPacket</summary>
@@ -486,6 +586,14 @@ public class TinyHttpClient : DisposeBase
 
         length = value;
         return true;
+    }
+
+    /// <summary>剩余时间预算。按 <see cref="SendAsync"/> 设定的整次截止时刻推算，未设定时按单次 <see cref="Timeout"/> 计</summary>
+    private TimeSpan GetRemain()
+    {
+        var remain = _deadline > DateTime.MinValue ? _deadline - DateTime.UtcNow : Timeout;
+
+        return remain > TimeSpan.Zero ? remain : TimeSpan.Zero;
     }
     #endregion
 
