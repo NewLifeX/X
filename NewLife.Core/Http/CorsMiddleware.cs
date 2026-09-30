@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using NewLife.Log;
 
 namespace NewLife.Http;
 
@@ -10,7 +11,11 @@ public delegate Task HttpMiddlewareDelegate(IHttpContext context, Func<Task> nex
 
 /// <summary>CORS 跨域中间件</summary>
 /// <remarks>
-/// 自动处理 OPTIONS 预检请求和设置 CORS 响应头。
+/// <para>自动处理 OPTIONS 预检请求和设置 CORS 响应头。</para>
+/// <para>
+/// 响应头取值只来自配置，不随请求源变化，因此无需 <c>Vary: Origin</c>；
+/// 若将来改为按请求源回显，必须同时补上该头部，否则共享缓存会把某个源的响应发给其它源。
+/// </para>
 /// 
 /// <code>
 /// server.Use(new CorsMiddleware
@@ -71,7 +76,15 @@ public class CorsMiddleware
         var res = context.Response;
 
         if (!AllowOrigin.IsNullOrEmpty())
-            res.Headers["Access-Control-Allow-Origin"] = AllowOrigin;
+        {
+            // 通配源与凭据同用被 Fetch 规范禁止（浏览器直接拒收该响应），属于配置错误。
+            // 此处失败关闭：不发通配源并警示，而不是按请求源回显——回显等于把“任意源 + 凭据”放行，
+            // 属 CORS 反射型漏洞，对 Cookie 鉴权的后台即 CSRF 与数据泄露面。要用凭据请把 AllowOrigin 设为明确的源
+            if (AllowCredentials && AllowOrigin.EqualIgnoreCase("*"))
+                XTrace.WriteLine("[CorsMiddleware] 配置无效：AllowOrigin=* 与 AllowCredentials=true 不能同时使用，已忽略 Access-Control-Allow-Origin。请把 AllowOrigin 设置为明确的源。");
+            else
+                res.Headers["Access-Control-Allow-Origin"] = AllowOrigin;
+        }
 
         if (!AllowMethods.IsNullOrEmpty())
             res.Headers["Access-Control-Allow-Methods"] = AllowMethods;

@@ -175,4 +175,47 @@ public class HttpMiddlewareTests
         var body = await res.Content.ReadAsStringAsync();
         Assert.Equal("Chained", body);
     }
+
+    [Fact(DisplayName = "CORS凭据模式配合通配源_不发出AllowOrigin")]
+    public async Task CorsCredentialsWithWildcard_NoAllowOrigin()
+    {
+        var cors = new CorsMiddleware { AllowOrigin = "*", AllowCredentials = true };
+        using var server = CreateServer(s =>
+        {
+            s.Use(cors.Invoke);
+            s.Map("/test", () => "OK");
+        });
+
+        var url = $"http://127.0.0.1:{server.Port}/test";
+        using var http = new HttpClient();
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Add("Origin", "http://example.com");
+        var res = await http.SendAsync(req);
+
+        // 通配源与凭据同用被规范禁止，失败关闭：既不回显请求源（回显等于放行任意源携带凭据），也不发通配源
+        Assert.True(res.IsSuccessStatusCode);
+        Assert.False(res.Headers.Contains("Access-Control-Allow-Origin"));
+        Assert.Equal("true", res.Headers.GetValues("Access-Control-Allow-Credentials").FirstOrDefault());
+    }
+
+    [Fact(DisplayName = "CORS凭据模式配合明确源_正常发出AllowOrigin")]
+    public async Task CorsCredentialsWithExplicitOrigin_EmitsOrigin()
+    {
+        var cors = new CorsMiddleware { AllowOrigin = "https://myapp.com", AllowCredentials = true };
+        using var server = CreateServer(s =>
+        {
+            s.Use(cors.Invoke);
+            s.Map("/test", () => "OK");
+        });
+
+        var url = $"http://127.0.0.1:{server.Port}/test";
+        using var http = new HttpClient();
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Add("Origin", "https://myapp.com");
+        var res = await http.SendAsync(req);
+
+        // 回归护栏：失败关闭只针对通配源，明确配置的源仍须正常发出
+        Assert.Equal("https://myapp.com", res.Headers.GetValues("Access-Control-Allow-Origin").FirstOrDefault());
+        Assert.Equal("true", res.Headers.GetValues("Access-Control-Allow-Credentials").FirstOrDefault());
+    }
 }
