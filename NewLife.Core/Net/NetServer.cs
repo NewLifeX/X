@@ -902,9 +902,8 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         if (max <= 0) return String.Empty;
 
         var sb = Pool.StringBuilder.Get();
-        // 注意：此处把字典计数反写回 SessionCount，使同一属性出现两种口径——UseSession=false（会话不进集合）时，
-        // 一次统计输出就会把会话计数清零。口径问题已登记待修，本次契约收口不改行为
-        SessionCount = _Sessions.Count;
+        // 只展示权威计数（_SessionCount 计数器），不用字典计数反写：UseSession=false 时会话不进集合，
+        // 反写会把一次统计输出变成“把会话计数清零”
         sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, max);
 
         return sb.Return(true);
