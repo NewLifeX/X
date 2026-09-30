@@ -83,6 +83,7 @@ public abstract class HttpBase : IDisposable
         // 只取头部区域（不包含分隔空行），避免之前 (p+2) 的截取导致尾部半行进入解析产生潜在问题
         var header = data[..p];
         var firstLine = "";
+        var clCount = 0;
         while (header.Length > 0)
         {
             var p2 = header.IndexOf(NewLine);
@@ -99,6 +100,11 @@ public abstract class HttpBase : IDisposable
                 {
                     var name = line[..p3].Trim((Byte)' ').ToStr();
                     var value = line[(p3 + 1)..].Trim((Byte)' ').ToStr();
+
+                    // 同名头部就地覆盖，重复的 Content-Length 只剩最后一个值，与前置代理（通常取第一个）理解不一致，
+                    // 构成 CL.CL 走私面。只统计本次解析的出现次数，不依赖 Headers 既有内容（可能残留上次解析结果）
+                    if (name.EqualIgnoreCase("Content-Length")) clCount++;
+
                     Headers[name] = value;
                 }
             }
@@ -108,11 +114,14 @@ public abstract class HttpBase : IDisposable
         }
 
         // Content-Length 用 Int64 解析：无法解析、为负或超上限都视为非法，不能退化成“无体”。
-        // 旧实现用 ToInt(-1)，非法值直接变成 -1（无体），声明的那段主体会被当成后续请求字节（边界失步）
+        // 旧实现用 ToInt(-1)，非法值直接变成 -1（无体），声明的那段主体会被当成后续请求字节（边界失步）。
+        // 出现两次及以上同样非法（RFC 9112 §6.3）：取值会被就地覆盖成其中一个，前后端看到不同长度
         var cl = Headers["Content-Length"];
         ContentLength = -1;
         InvalidContentLength = false;
-        if (!cl.IsNullOrEmpty())
+        if (clCount > 1)
+            InvalidContentLength = true;
+        else if (!cl.IsNullOrEmpty())
         {
             if (Int64.TryParse(cl, out var len) && len >= 0 && len <= Int32.MaxValue)
                 ContentLength = (Int32)len;

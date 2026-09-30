@@ -39,6 +39,22 @@ public class HttpServerTests : IDisposable
         _server?.Dispose();
     }
 
+    /// <summary>读取直到累积内容满足条件，用于流水线/临时响应等需要多次读取的场景</summary>
+    private static async Task<String> ReadUntilAsync(NetworkStream ns, Func<String, Boolean> done)
+    {
+        var ms = new MemoryStream();
+        var buf = new Byte[4096];
+        while (!done(Encoding.ASCII.GetString(ms.ToArray())))
+        {
+            var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            if (n <= 0) break;
+
+            ms.Write(buf, 0, n);
+        }
+
+        return Encoding.ASCII.GetString(ms.ToArray());
+    }
+
     [Fact]
     [DisplayName("HTTP服务端_声明升级但握手不合法_回400而非404")]
     public async Task WebSocketHandshake_Invalid_ReturnsBadRequest()
@@ -147,6 +163,26 @@ public class HttpServerTests : IDisposable
 
         // 头部完整（含空行）但请求行第三段不是 HTTP/：必须显式回 400 并关闭，不能既不回响应也不关连接
         var head = "GET /mf FOO/1.1\r\nHost: 127.0.0.1\r\n\r\n";
+        await ns.WriteAsync(head.GetBytes());
+        await ns.FlushAsync();
+
+        var buf = new Byte[4096];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
+    }
+
+    [Fact(DisplayName = "HTTP服务端_重复Content-Length_回400")]
+    public async Task DuplicateContentLength_Rejected()
+    {
+        // 同名头部就地覆盖只会剩最后一个值，与前置代理（通常取第一个）理解不一致，构成 CL.CL 走私面；
+        // 出现两个 Content-Length（不论大小写、值是否相同）即按协议错误回 400
+        _server.MapPost<IHttpContext, String>("/dup", ctx => ctx.Request.Body?.ToStr() ?? "");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var head = "POST /dup HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 5\r\ncontent-length: 5\r\n\r\nhello";
         await ns.WriteAsync(head.GetBytes());
         await ns.FlushAsync();
 

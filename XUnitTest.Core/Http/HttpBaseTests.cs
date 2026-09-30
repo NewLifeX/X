@@ -25,6 +25,9 @@ public class HttpBaseTests
     [InlineData("POST / HTTP/1.1\r\nContent-Length: -1\r\n\r\n", -1, true)]
     [InlineData("POST / HTTP/1.1\r\nContent-Length: abc\r\n\r\n", -1, true)]
     [InlineData("POST / HTTP/1.1\r\nContent-Length: 9999999999\r\n\r\n", -1, true)]
+    // 重复（含大小写不同）的 Content-Length 会与前置代理的取值理解不一致，构成 CL.CL 走私面，同样判非法
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: 5\r\nContent-Length: 5\r\n\r\nhello", -1, true)]
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: 5\r\ncontent-length: 3\r\n\r\nhello", -1, true)]
     public void ContentLength_ParsedOrMarkedInvalid(String raw, Int32 expectLength, Boolean expectInvalid)
     {
         var req = new HttpRequest();
