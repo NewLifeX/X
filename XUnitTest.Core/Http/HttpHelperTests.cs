@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
+using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using Xunit;
@@ -191,5 +192,60 @@ public class HttpHelperTests
         Assert.NotNull(rs);
         //Assert.Equal("state: xxxyyy\r\n", rs);
         Assert.Contains("\"name\":\"CubeSSO\"", rs);
+    }
+
+    [Fact(DisplayName = "MakeResponse_无实体_补Content-Length为零")]
+    public void MakeResponse_NoBody_WritesZeroContentLength()
+    {
+        // 不声明长度时报文不可自定界，keep-alive 下客户端会把下一个响应当成本次实体
+        var pk = HttpHelper.MakeResponse(HttpStatusCode.OK, null, null);
+        var text = pk.ToStr();
+
+        Assert.Contains("Content-Length: 0\r\n", text);
+        Assert.EndsWith("\r\n\r\n", text);
+    }
+
+    [Fact(DisplayName = "MakeResponse_有实体_写明长度并接上负载")]
+    public void MakeResponse_WithBody_WritesLength()
+    {
+        var pk = HttpHelper.MakeResponse(HttpStatusCode.OK, null, new ArrayPacket("hello".GetBytes()));
+        var text = pk.ToStr();
+
+        Assert.Contains("Content-Length: 5\r\n", text);
+        Assert.EndsWith("hello", text);
+    }
+
+    [Theory(DisplayName = "MakeResponse_无实体状态码_不声明Content-Length")]
+    [InlineData(HttpStatusCode.Continue)]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.NotModified)]
+    public void MakeResponse_NoEntityStatus_OmitsContentLength(HttpStatusCode code)
+    {
+        var pk = HttpHelper.MakeResponse(code, null, null);
+
+        // RFC 7230 §3.3.2：1xx/204/304 不得携带 Content-Length
+        Assert.DoesNotContain("Content-Length", pk.ToStr());
+    }
+
+    [Fact(DisplayName = "MakeResponse_调用方已声明长度_不重复写入")]
+    public void MakeResponse_ExistingContentLength_NotDuplicated()
+    {
+        // 重复的 Content-Length 是 CL.CL 走私面，宁可少补也不能补出第二个
+        var headers = new Dictionary<String, Object?> { ["Content-Length"] = "0" };
+        var pk = HttpHelper.MakeResponse(HttpStatusCode.OK, headers, null);
+        var text = pk.ToStr();
+
+        Assert.Equal(1, text.Split("Content-Length").Length - 1);
+    }
+
+    [Fact(DisplayName = "MakeResponse_已声明分块传输_不补Content-Length")]
+    public void MakeResponse_TransferEncodingHeader_NoContentLength()
+    {
+        var headers = new Dictionary<String, Object?> { ["Transfer-Encoding"] = "chunked" };
+        var pk = HttpHelper.MakeResponse(HttpStatusCode.OK, headers, null);
+        var text = pk.ToStr();
+
+        Assert.DoesNotContain("Content-Length", text);
+        Assert.Contains("Transfer-Encoding: chunked", text);
     }
 }

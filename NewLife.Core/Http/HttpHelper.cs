@@ -228,9 +228,15 @@ public static class HttpHelper
         var sb = Pool.StringBuilder.Get();
         sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)code, code);
 
-        // 内容长度
+        // 内容长度：有实体时写明长度；无实体时也必须显式声明 0，否则报文不可自定界，
+        // keep-alive 下客户端会把下一个响应当成本次实体。1xx/204/304 按 RFC 7230 §3.3.2 不得声明。
+        // 调用方已自行声明 Content-Length/Transfer-Encoding 时不再插手，避免写出重复头部（CL.CL 走私面）
         var count = pk?.Total ?? 0;
-        if (count > 0) sb.AppendFormat("Content-Length: {0}\r\n", count);
+        if (count > 0)
+            sb.AppendFormat("Content-Length: {0}\r\n", count);
+        else if (!HttpBase.IsNoEntityStatus(code) && !HasHeader(headers, "Content-Length") && !HasHeader(headers, "Transfer-Encoding"))
+            sb.Append("Content-Length: 0\r\n");
+
         if (headers != null)
         {
             foreach (var item in headers)
@@ -243,6 +249,22 @@ public static class HttpHelper
 
         var rs = new ArrayPacket(sb.Return(true).GetBytes()) { Next = pk };
         return rs;
+    }
+
+    /// <summary>判断头部集合中是否已存在指定名称的头部（忽略大小写）</summary>
+    /// <param name="headers">头部集合</param>
+    /// <param name="name">头部名称</param>
+    /// <returns>是否存在</returns>
+    private static Boolean HasHeader(IDictionary<String, Object?>? headers, String name)
+    {
+        if (headers == null) return false;
+
+        foreach (var item in headers)
+        {
+            if (item.Key.EqualIgnoreCase(name)) return true;
+        }
+
+        return false;
     }
 
     #endregion
