@@ -1026,6 +1026,46 @@ Content-Type: application/octet-stream
 
         private static String SecretOp() => "secret";
     }
+
+    [Fact(DisplayName = "控制器_多段挂载前缀_正确定位操作方法")]
+    public async Task Controller_MultiSegmentPath_ResolvesMethod()
+    {
+        _server.MapController<MultiSegmentController>("/api/user");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+
+        // 方法名位于挂载前缀之后。旧实现固定取 Split('/')[2]，
+        // 会拿到路径中间那段 "user"，报 Cannot find operation [user]
+        var txt = await client.GetStringAsync("/api/user/info");
+        Assert.Equal("info:/api/user/info", txt);
+
+        // 参数仍通过查询串绑定，不受方法名定位改动影响
+        txt = await client.GetStringAsync("/api/user/echo?name=abc");
+        Assert.Equal("abc", txt);
+    }
+
+    [Fact(DisplayName = "控制器_多段挂载前缀_不按前缀末段误路由")]
+    public async Task Controller_MultiSegmentPath_NotMisroutedByPrefixName()
+    {
+        _server.MapController<MultiSegmentController>("/api/user");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+
+        // 控制器恰好存在与挂载前缀末段同名的方法 User。
+        // 旧实现取 Split('/')[2] 得到 "user"，任意子路径都会被静默路由到该方法
+        var res = await client.GetAsync("/api/user/not-a-method");
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+    }
+
+    class MultiSegmentController
+    {
+        public String Info(IHttpContext ctx) => $"info:{ctx.Path}";
+
+        public String Echo(String name) => name;
+
+        /// <summary>与挂载前缀末段同名，用于验证方法名定位不按路径段序号猜测</summary>
+        public String User() => "wrong";
+    }
     #endregion
 
     #endregion

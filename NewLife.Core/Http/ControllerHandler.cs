@@ -37,6 +37,13 @@ public class ControllerHandler : IHttpHandler
     /// <summary>控制器类型</summary>
     public Type? ControllerType { get; set; }
 
+    /// <summary>挂载路径前缀，如 /api/user/</summary>
+    /// <remarks>
+    /// 由 MapController 写入，用于从请求路径中剪掉前缀后取出操作方法名。
+    /// 为空时按旧语义定位：控制器名占一段，方法名位于路径第 3 段。
+    /// </remarks>
+    public String? Path { get; set; }
+
     private readonly ConcurrentDictionary<String, MethodInfo?> _methods = new();
     #endregion
 
@@ -47,8 +54,24 @@ public class ControllerHandler : IHttpHandler
         var type = ControllerType;
         if (type == null) return;
 
-        var ss = context.Path.Split('/');
-        var methodName = ss.Length >= 3 ? ss[2] : null;
+        // 取操作方法名：先剪掉挂载前缀（如 /api/user/），再取剩余路径的第一段。
+        // 旧实现固定取 Split('/')[2]，隐含“控制器名恰好占一段”的假设，
+        // 一旦 MapController<T>("/api/user") 注册多段前缀，取到的将是路径中间那段而不是方法名。
+        var path = context.Path;
+        var prefix = Path;
+        if (prefix.IsNullOrEmpty())
+        {
+            // 未声明前缀（手工注册 Routes 的场景）沿用旧语义：跳过控制器名一段
+            var index = path.IndexOf('/', 1);
+            path = index >= 0 ? path[(index + 1)..] : String.Empty;
+        }
+        else if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            path = path[prefix.Length..];
+        }
+
+        var ss = path.TrimStart('/').Split('/');
+        var methodName = ss.Length > 0 && ss[0].Length > 0 ? ss[0] : null;
 
         // 优先使用服务提供者创建控制器对象，以便控制器构造函数注入
         // （HttpSession 已通过 HttpServiceProvider 将 IHttpContext 加入 DI 解析链）

@@ -153,7 +153,10 @@ public class HttpServer : NetServer, IHttpHost
         // 移除尾部 /* 防止重复通配，再统一追加
         path = path.EndsWith("/*") ? path[..^2] : path;
         var path2 = path.EnsureStart("/").EnsureEnd("/*");
-        SetRoute(path2, new ControllerHandler { ControllerType = controllerType });
+
+        // 挂载前缀交给处理器：多段前缀（如 /api/user）下，处理器需先剪掉前缀才能取出操作方法名
+        var handler = new ControllerHandler { ControllerType = controllerType, Path = path.EnsureStart("/").EnsureEnd("/") };
+        SetRoute(path2, handler);
     }
 
     /// <summary>映射静态文件目录</summary>
@@ -319,6 +322,27 @@ public class HttpServer : NetServer, IHttpHost
         if (!_pathCache.TryAdd(path, key)) Interlocked.Decrement(ref _pathCacheCount);
     }
 
+    /// <summary>判断通配路由命中的路径是否值得写入缓存</summary>
+    /// <param name="path">请求路径</param>
+    /// <param name="handler">命中的处理器</param>
+    /// <returns>是否缓存</returns>
+    /// <remarks>
+    /// 缓存记录的是“具体 URL → 通配键”，段数不受限的 URL 会让缓存无界增长。
+    /// 控制器路由的方法名与参数段数量有限，按剪掉挂载前缀后的剩余段数判断，
+    /// 避免多段前缀（如 /api/user）因为总段数偏大而永不缓存；其它通配路由沿用总段数上限。
+    /// </remarks>
+    private static Boolean IsCacheablePath(String path, IHttpHandler handler)
+    {
+        if (handler is ControllerHandler controller && !controller.Path.IsNullOrEmpty() &&
+            path.StartsWith(controller.Path, StringComparison.OrdinalIgnoreCase))
+        {
+            var rest = path[controller.Path.Length..].TrimStart('/');
+            return rest.Length > 0 && rest.IndexOf('/') < 0;
+        }
+
+        return path.Split('/').Length <= 3;
+    }
+
     /// <summary>匹配处理器（兼容 IHttpHost 接口）</summary>
     /// <param name="path">已规范化后的请求路径（不含查询字符串）</param>
     /// <param name="request">Http请求对象（可用于深度匹配）</param>
@@ -364,7 +388,7 @@ public class HttpServer : NetServer, IHttpHost
             if (Routes.TryGetValue(key, out handler))
             {
                 // 只缓存段数有限且非静态文件的路径：静态文件按每个具体 URL 缓存（如 /img/1.png、/img/2.png）同样会无界增长
-                if (handler is not StaticFilesHandler && path.Split('/').Length <= 3) CachePath(path, key);
+                if (handler is not StaticFilesHandler && IsCacheablePath(path, handler)) CachePath(path, key);
                 return handler;
             }
         }
