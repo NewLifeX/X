@@ -146,12 +146,13 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             _Stream = sslStream;
         }
 
+        // 服务端会话由服务器统一接管，必须启动接收环（事件模式），不支持拉取模式。
+        // 这里直接置位而不是读取配置：子类若在 CreateSession 里设 AutoReceive=false，
+        // 旧的"条件启动"会让属性与实际接收模式不一致（事件照收、拉取却被拒），必须在启动时收敛为 true
+        AutoReceive = true;
+
         // 协议模式：数据经数据管道定界，启动消息泵（先于接收环，首个数据到达前就绪）
-        if (Protocol != null)
-        {
-            if (AutoReceive) StartMessagePump();
-            else WriteLog("协议模式需要自动接收（AutoReceive），拉取模式下消息泵未启动，收到的是原始字节");
-        }
+        if (Protocol != null) StartMessagePump();
 
         StartReceive();
     }

@@ -449,6 +449,10 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     }
 
     /// <summary>创建会话</summary>
+    /// <remarks>
+    /// <para>服务端会话由服务器统一接管接收：<see cref="SessionBase.AutoReceive"/> 恒为 true，不支持拉取模式。</para>
+    /// <para>子类在这之后设置的 AutoReceive=false 会被会话启动流程忽略。</para>
+    /// </remarks>
     /// <param name="client"></param>
     /// <returns></returns>
     protected virtual TcpSession CreateSession(Socket client)

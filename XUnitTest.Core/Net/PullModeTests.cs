@@ -357,4 +357,62 @@ public class PullModeTests
         }
     }
     #endregion
+
+    #region 服务端会话强制事件模式
+    /// <summary>服务端会话必须事件模式：子类在 CreateSession 里设 AutoReceive=false，启动时被收敛为 true</summary>
+    [Fact(DisplayName = "拉取_服务端会话_强制事件模式")]
+    public async Task ServerSession_ForceEventMode()
+    {
+        // 服务端故意把会话设为拉取模式：服务端会话不支持拉取，启动时必须回到事件模式
+        using var server = new PullModeServer { Port = 0, Log = XTrace.Log };
+        server.NewSession += (s, e) =>
+        {
+            if (e.Session is TcpSession session)
+            {
+                session.Received += (ss, ee) =>
+                {
+                    var pk = ee.Packet;
+                    if (pk != null && pk.Length > 0) session.Send(pk);
+                };
+            }
+        };
+        server.Start();
+
+        using var client = new TcpSession
+        {
+            Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
+            Log = XTrace.Log,
+        };
+        client.Open();
+
+        // 回显成功说明服务端会话的接收环已启动
+        var received = new TaskCompletionSource<String>();
+        client.Received += (s, e) =>
+        {
+            var pk = e.Packet;
+            if (pk != null && pk.Length > 0) received.TrySetResult(pk.ToStr());
+        };
+        client.Send("pull-server");
+
+        var text = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal("pull-server", text);
+
+        // 服务端会话已收敛为事件模式：AutoReceive 为 true，且拉取被拒绝
+        var session = Assert.IsType<TcpSession>(Assert.Single(server.Sessions.Values));
+        Assert.True(session.AutoReceive, "服务端会话必须为事件模式");
+        var ex = Assert.Throws<InvalidOperationException>(() => session.Receive());
+        Assert.Contains("AutoReceive", ex.Message);
+    }
+
+    /// <summary>服务端会话：在 CreateSession 里关闭自动接收，用于验证服务端不支持拉取模式</summary>
+    private sealed class PullModeServer : TcpServer
+    {
+        protected override TcpSession CreateSession(Socket client)
+        {
+            var session = base.CreateSession(client);
+            session.AutoReceive = false;
+            return session;
+        }
+    }
+    #endregion
 }
