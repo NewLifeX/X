@@ -106,10 +106,16 @@ public class DefaultMessage : Message
 
     /// <summary>写入 SRMP 头部（4 或 8 字节，不含负载）</summary>
     /// <param name="header">头部目标跨度（至少 4/8 字节）</param>
-    /// <param name="bodyLength">负载长度</param>
+    /// <param name="bodyLength">负载长度（0 ~ 2147483647）</param>
     /// <returns>头部字节数（4 或 8）</returns>
+    /// <exception cref="ArgumentOutOfRangeException">长度为负或超过 32 位协议上限</exception>
     public Int32 WriteHeader(Span<Byte> header, Int64 bodyLength)
     {
+        // 长度字段只有 32 位：负数会写成 4 字节头里的 FF FF（被解析侧当成需要 8 字节扩展头），
+        // 超过 32 位上限会在 (Int32) 转换时静默截断，两者都写出与实际体长不符的帧，必须在源头拦住
+        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length must be non-negative.");
+        if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length exceeds the 32-bit protocol limit.");
+
         var size = bodyLength < 0xFFFF ? 4 : 8;
 
         // 标记位：高2位消息种类，低6位数据类型

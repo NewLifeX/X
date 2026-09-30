@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.ComponentModel;
 using System.Text;
 using NewLife;
 using NewLife.Data;
@@ -58,6 +59,30 @@ public class DefaultMessageTests
 
         msgd2.Dispose();
         pk2.TryDispose();
+    }
+
+    [Fact]
+    [DisplayName("消息头部_非法负载长度_抛参数越界")]
+    public void WriteHeader_InvalidBodyLength()
+    {
+        var msg = new DefaultMessage { Sequence = 1 };
+        var header = new Byte[8];
+
+        // 非法长度：旧实现写入 FF FF（被解析侧当成 8 字节扩展头）或静默截断长度字段
+        Assert.Throws<ArgumentOutOfRangeException>(() => msg.WriteHeader(header, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => msg.WriteHeader(header, Int32.MaxValue + 1L));
+
+        // 边界值可正常写入：0 用 4 字节头
+        Assert.Equal(4, msg.WriteHeader(header, 0));
+
+        // 32 位上限用 8 字节扩展头，回读长度不被截断
+        var codec = new SrmpCodec();
+        var pk = codec.BuildHeader(msg, Int32.MaxValue);
+        Assert.Equal(8, pk.Total);
+        var rs = codec.TryParse(pk.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        Assert.Equal(Int32.MaxValue, rs.Value.BodyLength);
+        pk.TryDispose();
     }
 
     //[Fact]
