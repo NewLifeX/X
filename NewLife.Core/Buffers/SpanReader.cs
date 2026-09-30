@@ -359,6 +359,7 @@ public ref struct SpanReader
     /// <param name="length">需要读取的长度。-1 读取剩余全部；0 读取 7 位压缩长度前缀；&gt;0 定长</param>
     /// <param name="encoding">编码，默认 UTF8</param>
     /// <returns>解码的字符串</returns>
+    /// <exception cref="InvalidDataException">长度前缀解出负数（对端数据非法）时</exception>
     public String ReadString(Int32 length = 0, Encoding? encoding = null)
     {
         var actualLength = length switch
@@ -367,6 +368,12 @@ public ref struct SpanReader
             0 => ReadEncodedInt(),
             _ => length
         };
+
+        // 长度前缀来自对端字节，7 位压缩可以解出负数。不拦截的话，EnsureSpace 会直接放行，
+        // 随后 Slice 抛出与该数据无关的 ArgumentOutOfRangeException，排障时容易误判成代码缺陷；
+        // 这里显式按“数据非法”报错
+        if (actualLength < 0)
+            throw new InvalidDataException($"Invalid string length [{actualLength}].");
 
         if (actualLength == 0) return String.Empty;
 

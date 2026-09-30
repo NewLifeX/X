@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.ComponentModel;
+using System.Text;
 using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.Security;
@@ -498,6 +499,19 @@ public class SpanReaderTests
         var reader = new SpanReader(encoded);
         var result = reader.ReadString(4, Encoding.ASCII);
         Assert.Equal(text, result);
+    }
+
+    [Fact]
+    [DisplayName("ReadString_长度前缀解出负数_抛出数据非法异常")]
+    public void ReadStringNegativeEncodedLengthThrows()
+    {
+        // 7 位压缩长度前缀由对端字节解出，0xFF 0xFF 0xFF 0xFF 0x0F 得到 -1（UInt32 0xFFFFFFFF 转 Int32）
+        var data = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x0F };
+        var reader = new SpanReader(data);
+
+        var threw = false;
+        try { reader.ReadString(0); } catch (InvalidDataException) { threw = true; }
+        Assert.True(threw);
     }
     #endregion
 
