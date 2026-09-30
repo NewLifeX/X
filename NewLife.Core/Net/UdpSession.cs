@@ -15,7 +15,7 @@ namespace NewLife.Net;
 /// <list type="bullet">
 /// <item>绑定到固定的远程地址</item>
 /// <item>共享UdpServer的底层Socket</item>
-/// <item>收到空数据包时自动结束会话</item>
+/// <item>收到空数据包时自动结束会话。判定以收到的原始数据报为准，在进入事件链之前定下；业务在事件内释放或置空 <see cref="ReceivedEventArgs.Packet"/> 不影响判定，要主动结束会话请 <see cref="DisposeBase.Dispose"/></item>
 /// </list>
 /// </remarks>
 public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
@@ -338,10 +338,15 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             return true;
         }
 
+        // 我们约定，UDP收到空数据包时，结束会话。判定以收到的原始数据报为准，在进入事件链之前定下：
+        // 业务按契约在事件内消费/释放本轮句柄（交发送链路、或置空做标记）后 Length 已归零，
+        // 事件之后再判会把正常数据报当成空包，误停会话并清掉会话级状态。要主动结束会话，请 Dispose 会话。
+        var empty = e != null && e.Packet is not { Length: > 0 };
+
         if (e != null) Received?.Invoke(this, e);
 
         // 我们约定，UDP收到空数据包时，结束会话
-        if (e != null && (e.Packet == null || e.Packet.Length == 0))
+        if (empty)
         {
             Stop("Finish");
             Dispose();
