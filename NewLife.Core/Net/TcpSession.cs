@@ -418,7 +418,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     #endregion 方法
 
     #region 发送
-
+    // 发送泵的发送委托必须是“不复查发送管道”的入口（DirectSendAsync，或低版本兜底 DirectSend(data, true)）：
+    // 泵已接管出口，任何复查都会把数据回投进泵自己正在消费的管道，造成重复发送与空转
     private Int32 _bsize;
     private SpinLock _spinLock = new();
 
@@ -623,7 +624,18 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     /// </remarks>
     /// <param name="data">数据包</param>
     /// <returns>已发送字节数；失败返回 -1</returns>
-    private Int32 DirectSend(ReadOnlySpan<Byte> data)
+    private Int32 DirectSend(ReadOnlySpan<Byte> data) => DirectSend(data, false);
+
+    /// <summary>直接发送数据。锁内按需复查发送泵</summary>
+    /// <remarks>
+    /// <para>目标地址由<seealso cref="SessionBase.Remote"/>决定。</para>
+    /// <para><paramref name="fromPump"/> 为 true 表示调用方就是发送泵（无异步发送重载的框架上，泵的兜底发送复用本方法），
+    /// 此时不得复查发送泵：泵已接管出口，复查会把数据回投进泵自己正在消费的管道，造成重复发送与空转。</para>
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <param name="fromPump">是否来自发送泵。为 true 时跳过发送泵复查</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private Int32 DirectSend(ReadOnlySpan<Byte> data, Boolean fromPump)
     {
         var count = data.Length;
 
@@ -642,8 +654,9 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             // 加锁发送
             _spinLock.Enter(ref gotLock);
 
-            // 双检泵（同 IPacket 重载）：泵已接管出口则改走队列，不与泵线程并发写
-            if (_sendPump is { } pump)
+            // 双检泵（同 IPacket 重载）：泵已接管出口则改走队列，不与泵线程并发写。
+            // 泵自身的兜底发送（fromPump）已是出口持有者，跳过复查，否则会把数据回投进泵自己的管道
+            if (!fromPump && _sendPump is { } pump)
             {
                 _spinLock.Exit();
                 gotLock = false;
@@ -881,9 +894,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     }
 #else
     /// <summary>异步发送一段数据（发送泵专用）。当前目标框架无带取消令牌的 Socket.SendAsync 重载，降级为同步续发发送</summary>
+    /// <remarks>泵已接管出口，走跳过发送泵复查的重载，避免数据被回投进泵自己正在消费的管道</remarks>
     /// <param name="data">数据</param>
     /// <returns>已发送字节数；失败返回 -1</returns>
-    private ValueTask<Int32> DirectSendAsync(ReadOnlyMemory<Byte> data) => new(DirectSend(data.Span));
+    private ValueTask<Int32> DirectSendAsync(ReadOnlyMemory<Byte> data) => new(DirectSend(data.Span, true));
 #endif
     #endregion 发送
 
