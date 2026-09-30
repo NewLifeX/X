@@ -70,6 +70,9 @@ public class ReadOnlyPacketTests
     public void Ctor_CountBeyondBuffer_Throws()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new ReadOnlyPacket(B(1, 2, 3), 1, 5));
+
+        // Int32.MaxValue 这类极端值不能靠 offset + count 相加溢出绕过校验
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ReadOnlyPacket(B(1, 2, 3), 1, Int32.MaxValue));
     }
 
     [Fact]

@@ -67,7 +67,8 @@ public readonly record struct ReadOnlyPacket : IPacket
         // 偏移越界时“到末尾”的长度推导会变成负数，得到 Length 为负的坏包；必须在这里拦住
         if (offset < 0 || offset > buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset));
         if (count < 0) count = buffer.Length - offset;
-        if (offset + count > buffer.Length) throw new ArgumentOutOfRangeException(nameof(count));
+        // 用 buffer.Length - offset 而不是 offset + count 比较：offset 已保证不超过 buffer.Length，减法右侧非负，不会像加法那样整数溢出后被绕过
+        if (count > buffer.Length - offset) throw new ArgumentOutOfRangeException(nameof(count));
 
         _buffer = buffer;
         _offset = offset;

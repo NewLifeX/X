@@ -76,9 +76,11 @@ public record struct ArrayPacket : IPacket
 
     #region 构造
     /// <summary>通过指定字节数组来实例化数据包</summary>
-    /// <param name="buf"></param>
-    /// <param name="offset"></param>
-    /// <param name="count"></param>
+    /// <param name="buf">字节数组</param>
+    /// <param name="offset">起始偏移</param>
+    /// <param name="count">数据长度，-1 表示到数组末尾</param>
+    /// <exception cref="ArgumentNullException">缓冲区为 null</exception>
+    /// <exception cref="ArgumentOutOfRangeException">偏移越界，或长度超出缓冲区范围</exception>
     public ArrayPacket(Byte[] buf, Int32 offset = 0, Int32 count = -1)
     {
         if (buf == null) throw new ArgumentNullException(nameof(buf));
@@ -86,6 +88,10 @@ public record struct ArrayPacket : IPacket
         // 偏移越界时“到末尾”的长度推导会变成负数，得到 Length 为负的坏包；必须在这里拦住
         if (offset < 0 || offset > buf.Length) throw new ArgumentOutOfRangeException(nameof(offset));
         if (count < 0) count = buf.Length - offset;
+
+        // 长度越窗时 GetSpan/GetMemory 会在构造 Span 时延迟抛异常，或按虚高长度参与 Total/Slice 计算得到越窗视图
+        // 用 buf.Length - offset 而不是 offset + count 比较：offset 已保证不超过 buf.Length，减法右侧非负，不会像加法那样整数溢出后被绕过
+        if (count > buf.Length - offset) throw new ArgumentOutOfRangeException(nameof(count));
 
         _buffer = buf;
         _offset = offset;

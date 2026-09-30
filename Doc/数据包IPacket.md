@@ -104,6 +104,7 @@
 - 值类型，适合高频创建和传递。
 - `TryGetArray` 恒为 `true`（仅针对当前段）。
 - 支持链式：`Next` 可挂接任意 `IPacket`。
+- 构造时校验 `offset`/`count` 是否落在缓冲区窗口内，越窗立即抛 `ArgumentOutOfRangeException`，不产生 `Length` 虚高的坏包。
 
 切片行为：
 
@@ -224,7 +225,7 @@ payload.TryDispose();
 
 构造：
 
-- `ReadOnlyPacket(Byte[] buffer, Int32 offset = 0, Int32 count = -1)`
+- `ReadOnlyPacket(Byte[] buffer, Int32 offset = 0, Int32 count = -1)`：`offset`/`count` 越窗立即抛 `ArgumentOutOfRangeException`。
 - `ReadOnlyPacket(IPacket packet)`：会复制 `packet.ToArray()`，生成独立只读副本。
 
 ---

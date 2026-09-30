@@ -37,6 +37,27 @@ public class ArrayPacketTests
     }
 
     [Fact]
+    [DisplayName("构造_长度越窗_抛参数异常而不是产生虚高长度的坏包")]
+    public void Ctor_CountBeyondBuffer_Throws()
+    {
+        var buf = "Stone".GetBytes();
+
+        // count 越窗若放过，GetSpan/GetMemory 会在构造 Span 时延迟抛异常，或按虚高长度参与 Total/Slice 计算
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, 0, buf.Length + 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, 2, buf.Length - 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, buf.Length, 1));
+
+        // Int32.MaxValue 这类极端值不能靠 offset + count 相加溢出绕过校验
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, 1, Int32.MaxValue));
+
+        // 恰好取到末尾是合法边界；负长度仍表示到末尾
+        Assert.Equal(buf.Length, new ArrayPacket(buf, 0, buf.Length).Length);
+        Assert.Equal(1, new ArrayPacket(buf, buf.Length - 1, 1).Length);
+        Assert.Equal(0, new ArrayPacket(buf, buf.Length, 0).Length);
+        Assert.Equal(buf.Length - 2, new ArrayPacket(buf, 2).Length);
+    }
+
+    [Fact]
     public void CtorTest()
     {
         var buf = "Stone".GetBytes();
