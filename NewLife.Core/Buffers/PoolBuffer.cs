@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace NewLife.Buffers;
@@ -12,6 +13,9 @@ namespace NewLife.Buffers;
 /// async 方法内借出缓冲，请继续使用 try/finally。</para>
 /// <para><b>使用纪律</b>：句柄不可复制后分开使用（原件与复制品都会归还同一个数组，造成池内同一块缓冲被两次借用）；
 /// <see cref="Buffer"/> 就是借出的数组本身，生命周期与句柄绑定，出了 using 作用域它已归还，不能再读写。</para>
+/// <para><b>归还方式</b>：归还只由 <c>using</c>（含 <c>using</c> 声明）自动完成，<b>不要手工调用 <see cref="Dispose"/></b>。
+/// 本类型是栈上类型，无法记录“已归还”，手工调用后再离开 using 作用域会把同一块数组两次放回池，该数组随即被两次借出、互相覆盖数据。
+/// 需要提前归还时，把 using 作用域收窄到实际使用范围即可，不必手工归还。</para>
 /// <para><b>长度语义</b>：<see cref="Length"/> 与 <see cref="Span"/> 均为<b>请求长度</b>（借出时传入的 size），
 /// 池实际返回的数组可能更长，只在 <see cref="Buffer"/> / 隐式转换上体现。</para>
 /// <para><b>与 <see cref="Data.OwnerPacket"/> 的分工</b>：本类型是单句柄、按作用域归还的轻量借用，不做引用计数、不支持切片共享；
@@ -71,7 +75,12 @@ public readonly ref struct PoolBuffer<T>
     #endregion
 
     #region 方法
-    /// <summary>归还缓冲区到数组池。默认实例（未借出）为空操作</summary>
+    /// <summary>归还缓冲区到数组池。仅供 using 自动调用，请勿手工调用；默认实例（未借出）为空操作</summary>
+    /// <remarks>
+    /// <para>手工调用后再离开 using 作用域会把同一块数组两次放回池，导致该数组被两次借出、互相覆盖数据。</para>
+    /// <para>需要提前归还时，请把 using 作用域收窄到实际使用范围，而不是手工调用本方法。</para>
+    /// </remarks>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Dispose() => _pool?.Return(_buffer!);
     #endregion

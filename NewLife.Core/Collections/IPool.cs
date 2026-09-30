@@ -175,6 +175,7 @@ public static class Pool
     /// <remarks>
     /// <para>等价于 <c>var buffer = Pool.Shared.Rent(size); try { ... } finally { Pool.Shared.Return(buffer); }</c>，但不产生堆分配，也不需要手写 finally。</para>
     /// <para>返回的 <see cref="PoolBuffer{T}"/> 为栈上类型，不能跨 await 持有；async 方法内借出缓冲请继续使用 try/finally。</para>
+    /// <para><b>归还方式</b>：句柄只由 <c>using</c> 自动归还，不要手工调用 <c>Dispose()</c>——手工归还后再离开 using 作用域会把同一块数组两次放回池。</para>
     /// <para><b>大小分界</b>：长度有界（几字节到几百字节）且全链路只用 Span 的临时缓冲直接 <c>stackalloc</c>，不必借池；
     /// 长度动态/无界，或下游 API 只接受数组（旧框架的 Stream.Read/Write、Socket.SendTo/ReceiveFrom、IOControl、crypto 变换等）时才用本方法。</para>
     /// </remarks>
