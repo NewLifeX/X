@@ -31,6 +31,13 @@ public abstract class HttpBase : IDisposable
     /// <summary>是否已完整。头部未指定长度，或指定长度后内容已满足</summary>
     public Boolean IsCompleted => ContentLength < 0 || ContentLength <= BodyLength;
 
+    /// <summary>本次解析消耗的字节数。为头部（含分隔空行）加上实体的长度</summary>
+    /// <remarks>
+    /// <para>HTTP/1.1 允许流水线（一次发送多个请求），调用方据此切出同一轮数据中其后多出的字节继续解析，不能丢弃。</para>
+    /// <para>未声明 Content-Length 时，头部之后的可用字节按实体处理（兼容直接发体的客户端），消耗量即整包长度。</para>
+    /// </remarks>
+    internal Int32 ConsumedLength { get; private set; }
+
     /// <summary>头部集合</summary>
     public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
@@ -136,9 +143,15 @@ public abstract class HttpBase : IDisposable
         // 不属于本请求，否则会被当业务参数/JSON 解析，并写进链路追踪
         var bodyStart = p + 4;
         var available = pk.Total - bodyStart;
-        Body = ContentLength >= 0 && ContentLength < available
+        // 声明长度小于本轮可用字节时只截取声明长度
+        var declared = ContentLength >= 0 && ContentLength < available;
+        Body = declared
             ? pk.Slice(bodyStart, ContentLength)
             : pk.Slice(bodyStart, -1);
+
+        // 本请求占用的字节数，其后多出的字节属于后续请求（HTTP/1.1 流水线），调用方据此切分保留。
+        // 未声明 Content-Length 时头部之后全部按实体处理，消耗量即整包长度
+        ConsumedLength = bodyStart + (declared ? ContentLength : available);
 
         // 分析第一行
         if (!OnParse(firstLine)) return false;

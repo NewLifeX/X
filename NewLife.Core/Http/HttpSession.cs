@@ -94,116 +94,145 @@ public class HttpSession : INetHandler, IDisposable
         {
             if (Request is { } pending)
             {
-                ReceiveBody(pending, _cache, pk, data);
-                return;
-            }
+                // 实体收满后，超出声明长度的字节属于后续请求（流水线），以共享视图返回继续解析
+                pk = ReceiveBody(pending, _cache, pk, data);
+                if (pk == null || pk.Total == 0) return;
 
-            // Request 被外部清空，与实体缓存状态不一致：丢弃缓存，回到无在途请求的常态
-            _cache = null;
-        }
-
-        // 取当前请求上下文引用（可能为 null）
-        var req = Request;
-        var request = new HttpRequest();
-
-        // 请求头可能跨接收轮分片：有缓存时先与缓存片合并再整体解析，其余情况直接用本轮数据
-        var headPk = pk;
-        if (_headCache != null)
-        {
-            pk.CopyTo(_headCache);
-            headPk = new ArrayPacket(_headCache.GetBuffer(), 0, (Int32)_headCache.Length);
-        }
-
-        if (request.Parse(headPk))
-        {
-            _headCache = null;
-            req = Request = request;
-
-            (_session as NetSession)?.WriteLog("{0} {1}", request.Method, request.RequestUri);
-
-            // Transfer-Encoding 只认 chunked，且 chunked 暂不支持：ContentLength 取到 -1，内容被当作“已完整”，
-            // chunk 帧本身会被当成业务参数/JSON 解析（静默错误），故回 411 请客户端改用 Content-Length。
-            // 其余取值（gzip/identity/未知）更危险：会退化成“无体”，声明的主体被当成后续请求字节（连接失步），
-            // 按 RFC 9112 §6.1 回 400
-            var te = request.Headers["Transfer-Encoding"];
-            if (!te.IsNullOrEmpty())
-            {
-                Reject(te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0
-                    ? HttpStatusCode.LengthRequired
-                    : HttpStatusCode.BadRequest);
-
-                return;
-            }
-
-            // Content-Length 非法（无法解析/为负/溢出）：按协议错误处理。
-            // 若按“无体”继续，声明的那段主体会被当成后续请求字节，连接边界失步（与前置代理共存时还有走私面）
-            if (request.InvalidContentLength)
-            {
-                Reject(HttpStatusCode.BadRequest);
-
-                return;
-            }
-
-            // 限制最大请求体
-            if (req.ContentLength > MaxRequestLength)
-            {
-                Reject(HttpStatusCode.RequestEntityTooLarge);
-
-                return;
-            }
-
-            _websocket = null; // 新请求到来，清空 websocket 握手状态
-            OnNewRequest(request, data);
-
-            // 后面还有数据包，克隆缓冲区
-            if (req.IsCompleted)
-            {
-                // 头部 + 空主体 或 已一次性接收完整主体
-                _cache = null;
+                // 交付后连接可能已被关闭（Connection: close）：剩余字节不再处理
+                if (_session.Disposed) return;
             }
             else
             {
-                // 缓存流按需增长：按 ContentLength 预分配会让“声明巨大长度但不发送”的请求直接占住等量内存
-                // （MaxRequestLength 默认 1GB，一条声明 1GB 的连接即可触发大对象分配）
-                _cache = new MemoryStream();
-
-                if (req.Body != null && req.Body.Length > 0)
-                {
-                    // 解析阶段已经截取到的主体部分先写入缓存
-                    req.Body.CopyTo(_cache);
-                    req.Body.TryDispose();
-                    req.Body = null;
-                }
+                // Request 被外部清空，与实体缓存状态不一致：丢弃缓存，回到无在途请求的常态
+                _cache = null;
             }
         }
-        else if (_headCache != null)
-        {
-            // 缓存的头部片加本轮数据仍不能成头：超限，或含完整空行仍解析失败（无效请求头）——都按 400 拒绝并关闭
-            if (_headCache.Length > MaxHeadLength || headPk.IndexOf(NewLine2) >= 0)
-            {
-                _headCache = null;
 
-                Reject(HttpStatusCode.BadRequest);
-
-                return;
-            }
-        }
-        else if (IsIncompleteHead(pk))
+        // 上次接收遗留的字节（流水线请求的整段或头部片段）先与本轮数据拼接，再一起解析
+        if (_headCache != null)
         {
-            // 无活动请求，本轮数据像 HTTP 开头但头部不含空行（不完整）：缓存等待后续分片（请求头跨轮）
-            _headCache = new MemoryStream();
             pk.CopyTo(_headCache);
+            pk = new ArrayPacket(_headCache.GetBuffer(), 0, (Int32)_headCache.Length);
         }
-        else if (pk.IndexOf(NewLine2) >= 0)
+
+        // 一次接收可能包含多个请求（HTTP/1.1 流水线）：逐个解析并交付，直到字节不足或出现错误。
+        // 旧实现丢弃请求体之后的字节，客户端一次发出两个请求只能收到一个响应，第二个请求要等到连接超时
+        IPacket? left = null;
+        try
         {
-            // 头部已完整（含空行）却解析失败：聘形请求行或无效头部。
-            // 按 400 拒绝并关闭；此前既不回响应也不关连接，客户端只能等到超时
-            Reject(HttpStatusCode.BadRequest);
+            while (pk.Total > 0)
+            {
+                var request = new HttpRequest();
+                if (!request.Parse(pk))
+                {
+                    // 请求头未解析成功：缓存不完整头部等待后续分片（头部跨轮），或按无效请求拒绝
+                    if (_headCache != null)
+                    {
+                        // 缓存的头部片加本轮数据仍不能成头：超限，或含完整空行仍解析失败（无效请求头）——都按 400 拒绝并关闭
+                        if (_headCache.Length > MaxHeadLength || pk.IndexOf(NewLine2) >= 0)
+                        {
+                            _headCache = null;
 
-            return;
+                            Reject(HttpStatusCode.BadRequest);
+                        }
+                    }
+                    else if (IsIncompleteHead(pk))
+                    {
+                        // 无活动请求，本轮数据像 HTTP 开头但头部不含空行（不完整）：缓存等待后续分片（请求头跨轮）
+                        _headCache = new MemoryStream();
+                        pk.CopyTo(_headCache);
+                    }
+                    else if (pk.IndexOf(NewLine2) >= 0)
+                    {
+                        // 头部已完整（含空行）却解析失败：聘形请求行或无效头部。
+                        // 按 400 拒绝并关闭；此前既不回响应也不关连接，客户端只能等到超时
+                        Reject(HttpStatusCode.BadRequest);
+                    }
+
+                    break;
+                }
+
+                _headCache = null;
+                Request = request;
+
+                (_session as NetSession)?.WriteLog("{0} {1}", request.Method, request.RequestUri);
+
+                // Transfer-Encoding 只认 chunked，且 chunked 暂不支持：ContentLength 取到 -1，内容被当作“已完整”，
+                // chunk 帧本身会被当成业务参数/JSON 解析（静默错误），故回 411 请客户端改用 Content-Length。
+                // 其余取值（gzip/identity/未知）更危险：会退化成“无体”，声明的主体被当成后续请求字节（连接失步），
+                // 按 RFC 9112 §6.1 回 400
+                var te = request.Headers["Transfer-Encoding"];
+                if (!te.IsNullOrEmpty())
+                {
+                    Reject(te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0
+                        ? HttpStatusCode.LengthRequired
+                        : HttpStatusCode.BadRequest);
+
+                    break;
+                }
+
+                // Content-Length 非法（无法解析/为负/溢出/重复）：按协议错误处理。
+                // 若按“无体”继续，声明的那段主体会被当成后续请求字节，连接边界失步（与前置代理共存时还有走私面）
+                if (request.InvalidContentLength)
+                {
+                    Reject(HttpStatusCode.BadRequest);
+
+                    break;
+                }
+
+                // 限制最大请求体
+                if (request.ContentLength > MaxRequestLength)
+                {
+                    Reject(HttpStatusCode.RequestEntityTooLarge);
+
+                    break;
+                }
+
+                _websocket = null; // 新请求到来，清空 websocket 握手状态
+                OnNewRequest(request, data);
+
+                // 后面还有数据包，克隆缓冲区
+                if (request.IsCompleted)
+                {
+                    // 头部 + 空主体 或 已一次性接收完整主体
+                    _cache = null;
+                }
+                else
+                {
+                    // 缓存流按需增长：按 ContentLength 预分配会让“声明巨大长度但不发送”的请求直接占住等量内存
+                    // （MaxRequestLength 默认 1GB，一条声明 1GB 的连接即可触发大对象分配）
+                    _cache = new MemoryStream();
+
+                    if (request.Body != null && request.Body.Length > 0)
+                    {
+                        // 解析阶段已经截取到的主体部分先写入缓存
+                        request.Body.CopyTo(_cache);
+                        request.Body.TryDispose();
+                        request.Body = null;
+                    }
+                }
+
+                Deliver(request, data);
+
+                // 连接已关闭（拒绝、Connection: close、流式发送失败），或已升级为 WebSocket（剩余字节是帧，等下一轮处理）：
+                // 剩余字节不再按请求解析
+                if (_session.Disposed || _websocket != null) break;
+
+                // 剩余字节属于后续流水线请求，切入共享句柄继续解析；本方法切出的句柄需自行释放，
+                // 入参句柄由框架在轮末按引用计数裁决，不得在此释放
+                var count = pk.Total - request.ConsumedLength;
+                if (count <= 0) break;
+
+                var next = pk.Slice(request.ConsumedLength, -1);
+                left.TryDispose();  // 上一轮切出的句柄已用完
+                left = next;
+                pk = next;
+            }
         }
-
-        Deliver(req, data);
+        finally
+        {
+            left.TryDispose();
+        }
     }
 
     /// <summary>接收在途请求的实体分片，收满声明长度后交付业务处理</summary>
@@ -211,19 +240,27 @@ public class HttpSession : INetHandler, IDisposable
     /// <param name="cache">实体缓存流（由 <see cref="Process"/> 保证非空）</param>
     /// <param name="pk">本轮数据</param>
     /// <param name="data">数据帧</param>
-    private void ReceiveBody(HttpRequest req, MemoryStream cache, IPacket pk, IData data)
+    /// <returns>本轮未消费的剩余字节（缓存流缓冲区的视图，无需释放）；实体尚未收满时返回 null</returns>
+    private IPacket? ReceiveBody(HttpRequest req, MemoryStream cache, IPacket pk, IData data)
     {
         pk.CopyTo(cache);
 
         // 防御：主体量达到声明长度视为完成。本分支恒有 ContentLength >= 0，否则头部解析后 IsCompleted 已为真
-        // 超出声明长度的字节（同连接的下一个请求）不属于本请求，必须截断，不能一并当主体交给业务
-        if (cache.Length < req.ContentLength) return;
+        if (cache.Length < req.ContentLength) return null;
 
         cache.Position = 0;
         req.Body = new ArrayPacket(cache.GetBuffer(), 0, req.ContentLength);
         _cache = null;
 
+        // 超出声明长度的字节（同连接的下一个请求）不属于本请求，不能一并当主体交给业务，
+        // 也不能丢弃：切出视图交给调用方继续解析并响应，否则流水线上第二个请求只能等到连接超时
+        var extra = (Int32)cache.Length - req.ContentLength;
+        IPacket? remain = null;
+        if (extra > 0) remain = new ArrayPacket(cache.GetBuffer(), req.ContentLength, extra);
+
         Deliver(req, data);
+
+        return remain;
     }
 
     /// <summary>交付请求给业务处理并发送响应，随后释放请求主体</summary>

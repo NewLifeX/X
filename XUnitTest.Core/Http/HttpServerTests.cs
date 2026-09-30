@@ -191,6 +191,51 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
     }
 
+    [Fact(DisplayName = "HTTP服务端_流水线两请求同轮到达_两个请求都得到响应")]
+    public async Task PipelinedRequests_BothAnswered()
+    {
+        _server.MapPost<IHttpContext, String>("/pipe1", ctx => "P1:" + (ctx.Request.Body?.ToStr() ?? ""));
+        _server.MapGet("/pipe2", () => "P2OK");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // HTTP/1.1 允许流水线（一次发出多个请求）：第一个请求体之后的字节属于第二个请求，不得丢弃。
+        // 旧实现直接丢掉这部分字节，第二个请求永远等不到响应，客户端只能等到连接超时
+        await ns.WriteAsync(("POST /pipe1 HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 4\r\n\r\nbody" +
+                             "GET /pipe2 HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n").GetBytes());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("P1:body") && s.Contains("P2OK"));
+        Assert.Contains("P1:body", resp);
+        Assert.Contains("P2OK", resp);
+    }
+
+    [Fact(DisplayName = "HTTP服务端_实体跨轮收满后紧跟完整请求_后者也得到响应")]
+    public async Task PipelinedAfterBody_SecondAnswered()
+    {
+        _server.MapPost<IHttpContext, String>("/pipeb1", ctx => "B1:" + (ctx.Request.Body?.ToStr() ?? ""));
+        _server.MapGet("/pipeb2", () => "B2OK");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 第一轮：请求头 + 一半主体，服务端进入实体缓存等待后续分片
+        await ns.WriteAsync("POST /pipeb1 HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 4\r\n\r\nda".GetBytes());
+        await ns.FlushAsync();
+        await Task.Delay(100);
+
+        // 第二轮：剩余主体与完整的第二个请求同轮到达
+        await ns.WriteAsync("taGET /pipeb2 HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".GetBytes());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("B1:data") && s.Contains("B2OK"));
+        Assert.Contains("B1:data", resp);
+        Assert.Contains("B2OK", resp);
+    }
+
     [Fact]
     public async Task MapDelegate()
     {
