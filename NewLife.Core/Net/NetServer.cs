@@ -568,7 +568,19 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         ns.Received += OnReceived;
 
         // 开始会话处理
-        ns.Start();
+        try
+        {
+            ns.Start();
+        }
+        catch
+        {
+            // 会话启动失败（如 CreateHandler 或 OnConnected 抛异常）时，ns 已经加入会话集合，
+            // 却还没来得及订阅底层会话的销毁回调，不在这里回滚就会永久残留成无人管理的记录（连接也已悬挂）。
+            // 释放 ns 会级联释放底层 Socket 会话，后续由 Socket 服务端完成会话集合与连接的回收
+            ns.TryDispose();
+
+            throw;
+        }
 
         return ns;
     }

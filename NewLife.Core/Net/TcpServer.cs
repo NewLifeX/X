@@ -401,13 +401,27 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             session.ID = Interlocked.Increment(ref g_ID);
             session.WriteLog("New {0}", session.Remote.EndPoint);
 
-            NewSession?.Invoke(this, new SessionEventArgs(session));
+            try
+            {
+                NewSession?.Invoke(this, new SessionEventArgs(session));
 
-            // 自动开始异步接收处理
-            session.SslProtocol = SslProtocol;
-            session.Certificate = Certificate;
-            session.Tracer = Tracer;
-            session.Start();
+                // 自动开始异步接收处理
+                session.SslProtocol = SslProtocol;
+                session.Certificate = Certificate;
+                session.Tracer = Tracer;
+                session.Start();
+            }
+            catch (Exception ex)
+            {
+                // 业务回调（CreateHandler/Init/Connected）或会话启动（SSL认证、启动接收环）抛异常时，
+                // 会话已入集合却无人接管：必须立即释放，否则它会一直留在集合里、Disconnected 永不触发、
+                // 连接一直悬挂到会话超时（默认20分钟）。释放由 Dispose 触发 OnDisposed，集合与端点缓存随之清理。
+                // 异常继续上抛，由 ProcessAccept 统一记账
+                session.WriteLog("新会话处理失败，释放会话 {0}", ex.Message);
+                session.TryDispose();
+
+                throw;
+            }
         }
         else
         {
