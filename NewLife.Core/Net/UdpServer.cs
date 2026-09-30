@@ -525,6 +525,10 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     private readonly SessionCollection _Sessions;
     /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
+    /// <remarks>
+    /// <para>会话在 Socket 层是否存在以本集合为准；出集合只有三条路：会话释放（OnDisposed 级联）、
+    /// 超时清理不活动会话、停机清空，调用方不要手工 Remove。</para>
+    /// </remarks>
     public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
     /// <summary>停机时是否排空各会话的发送队列。默认 false</summary>
@@ -540,6 +544,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     }
 
     // 广播会话按端口索引。并发字典：无锁快路径读取与加锁写入并存，普通字典会在并发读写时损坏结构
+    // 派生索引：与 _Sessions 同源同销（同一个 OnDisposed 回调里移除），会话是否存在仍以 _Sessions 为准
     private readonly ConcurrentDictionary<Int32, ISocketSession> _broadcasts = [];
 
     /// <summary>发送锁。同一监听Socket上的所有发送（含各 UdpSession）均经此串行化；不用 Socket 实例作锁，避免外部代码对同一对象加锁导致死锁</summary>

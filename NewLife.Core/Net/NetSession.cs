@@ -130,6 +130,8 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     /// <remarks>当有新数据到达时触发，事件参数包含原始数据包和经过管道处理后的消息对象</remarks>
     public event EventHandler<ReceivedEventArgs>? Received;
 
+    // Start/Close 的一次性闸门：0=未启动或已关闭，1=已启动且未关闭。
+    // 只用于保证 OnConnected/OnDisconnected 各触发一次，与传输可用性（SessionBase.Active）无关
     private Int32 _running;
     private IServiceScope? _scope;
     #endregion

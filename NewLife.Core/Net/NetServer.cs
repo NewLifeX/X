@@ -644,11 +644,19 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     #region 会话
     private readonly ConcurrentDictionary<Int32, INetSession> _Sessions = new();
     /// <summary>会话集合</summary>
-    /// <remarks>用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系</remarks>
+    /// <remarks>
+    /// <para>用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系</para>
+    /// <para>这是应用层对底层会话的登记（按 <see cref="INetSession"/> 包装器），受 <see cref="UseSession"/> 控制，
+    /// 与底层 <c>ISocketServer.Sessions</c>（Socket 层会话集合）不是一一对应：不登记时本集合恒空</para>
+    /// </remarks>
     public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
     private Int32 _SessionCount;
     /// <summary>当前会话数</summary>
+    /// <remarks>
+    /// <para>权威计数来自 _SessionCount：新会话建立时加一，底层会话释放（Disposed）时减一，与是否登记进 <see cref="Sessions"/> 无关。</para>
+    /// <para>因此 <see cref="Sessions"/>.Count 在 <see cref="UseSession"/> 为 false 时会恒为 0，而本属性仍反映真实会话数。</para>
+    /// </remarks>
     public Int32 SessionCount { get => _SessionCount; set => _SessionCount = value; }
 
     private volatile Int32 _maxSessionCount;
@@ -894,6 +902,8 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         if (max <= 0) return String.Empty;
 
         var sb = Pool.StringBuilder.Get();
+        // 注意：此处把字典计数反写回 SessionCount，使同一属性出现两种口径——UseSession=false（会话不进集合）时，
+        // 一次统计输出就会把会话计数清零。口径问题已登记待修，本次契约收口不改行为
         SessionCount = _Sessions.Count;
         sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, max);
 

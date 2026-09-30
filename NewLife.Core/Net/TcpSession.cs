@@ -108,6 +108,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     internal TcpSession(ISocketServer server, Socket client)
         : this(client)
     {
+        // 服务端会话表示“连接已被接受”，构造时即视为活动：之后服务器的 Start() 只负责启动接收环，
+        // 不再走打开流程（Open 因此幂等成功）
         Active = true;
         _Server = server;
         Name = server.Name;
@@ -379,6 +381,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             WriteLog("Close {0} {1}", reason, this);
 
             // 提前关闭这个标识，否则Close时可能触发自动重连机制
+            // 此处只改“传输可用性”：服务端会话随后会被 Dispose（连带移出会话集合），
+            // 客户端会话保留未释放以便重开，因此“Active 为假、Disposed 尚未置位”是关闭过程中的正常瞬态
             Active = false;
             try
             {
@@ -408,6 +412,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 if (!ex.IsDisposed()) OnError("Close", ex);
                 //if (ThrowException) throw;
 
+                // 关闭动作本身抛异常：本次不释放服务端会话，它会以 Active=false 留在会话集合里，
+                // 由集合的超时清理（不活动会话）兜底摘除；客户端会话本就由调用方保管
                 return Task.FromResult(false);
             }
             Client = null;

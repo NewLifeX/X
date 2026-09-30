@@ -54,6 +54,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <remarks>
     /// <para>打开成功后置 true；关闭完成后置 false。服务端已接受连接的会话由宿主直接置 true。</para>
     /// <para>关闭流程内可提前置 false（如底层连接已拆除时），用于阻断掉线重连判断。</para>
+    /// <para>本属性只表示“传输是否可用”，<b>不代表</b>接收环已经启动，也不代表会话还在服务端集合里；
+    /// 服务端会话由宿主在构造时即置 true（表示连接已被接受），因此它的 <see cref="Open()"/> 会幂等短路，不会执行 <see cref="OnOpenAsync(CancellationToken)"/>。</para>
     /// </remarks>
     public Boolean Active { get => _active; set => _active = value; }
 

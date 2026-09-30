@@ -10,6 +10,8 @@ namespace NewLife.Net;
 /// <remarks>
 /// <para>带有自动清理不活动会话的功能。</para>
 /// <para>使用远程地址端口作为标识，自动管理会话生命周期。</para>
+/// <para>会话在 Socket 层是否存在以本集合为准：只收未释放会话；出集合只有三条路——会话释放（OnDisposed 级联）、
+/// 超时清理不活动会话（RemoveNotAlive）、停机清空（CloseAll/Clear）。</para>
 /// </remarks>
 internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
 {

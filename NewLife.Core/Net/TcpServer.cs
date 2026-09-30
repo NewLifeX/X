@@ -434,6 +434,10 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     #region 会话
     private readonly SessionCollection _Sessions;
     /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
+    /// <remarks>
+    /// <para>会话在 Socket 层是否存在以本集合为准；出集合只有三条路：会话释放（OnDisposed 级联）、
+    /// 超时清理不活动会话、停机清空，调用方不要手工 Remove。</para>
+    /// </remarks>
     public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
     /// <summary>停机时是否排空各会话的发送队列。默认 false</summary>
