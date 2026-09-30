@@ -1,6 +1,8 @@
 using System;
+using System.Buffers;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using NewLife.Buffers;
 using NewLife.Data;
 using Xunit;
@@ -111,5 +113,70 @@ public class SpanReaderLifecycleTests
         Assert.Equal(1, reader.ReadByte());
         Assert.Equal(2, reader.ReadByte());
         Assert.Equal(3, reader.ReadByte());
+    }
+
+    [Fact]
+    [DisplayName("流式扩容_初始包可访问数组_未读数据不丢失")]
+    public void EnsureSpace_ArrayBackedPacket_KeepsUnreadData()
+    {
+        // 初始包只给 3 字节，读掉 1 字节后还剩 2 字节；再读 8 字节触发扩容，
+        // 剩下的 2 字节必须先搬进新缓冲，否则数据丢失
+        using var ms = new MemoryStream(new Byte[] { 4, 5, 6, 7, 8, 9 });
+        var head = new ArrayPacket(new Byte[] { 1, 2, 3 });
+
+        using var reader = new SpanReader(ms, head, 8);
+        Assert.Equal(1, reader.ReadByte());
+
+        var rest = reader.ReadBytes(8);
+        Assert.Equal(new Byte[] { 2, 3, 4, 5, 6, 7, 8, 9 }, rest.ToArray());
+    }
+
+    [Fact]
+    [DisplayName("流式扩容_初始包不可访问数组_抛异常不漏池缓冲")]
+    public void EnsureSpace_UnsupportedArrayAccess_DoesNotLeakPoolBuffer()
+    {
+        // 非数组内存的数据包让 TryGetArray 返回 false，扩容时走"旧数据无法搬运"的异常分支。
+        // 该判定必须排在租借新池缓冲之前，否则每抛一次就漏一块缓冲（读取器不持有它，谁也还不回去）
+        IPacket data = new MemoryPacket(new NonArrayMemoryManager(4).Memory, 4);
+        using var ms = new MemoryStream(new Byte[1024]);
+
+        const Int32 BufferSize = 65536;
+        const Int32 N = 16;
+
+        // 预热：先让池备好该尺寸的数组，之后每轮若能归还就不会再产生数组分配
+        for (var i = 0; i < 4; i++)
+        {
+            var warm = new SpanReader(ms, data, BufferSize);
+            try { _ = warm.ReadInt64(); } catch (NotSupportedException) { }
+            warm.Dispose();
+        }
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var i = 0; i < N; i++)
+        {
+            var reader = new SpanReader(ms, data, BufferSize);
+            try { _ = reader.ReadInt64(); } catch (NotSupportedException) { }
+            reader.Dispose();
+        }
+        var used = (GC.GetAllocatedBytesForCurrentThread() - before) / N;
+
+        // 正常情况下每轮只有异常对象的开销；若漏归还池缓冲，这里还会多出 64KB 的数组分配
+        Assert.True(used < 16 * 1024, $"每轮分配 {used} 字节，异常路径疑似漏归还池缓冲");
+    }
+
+    /// <summary>内存管理器：包装普通数组但让 Memory 不暴露数组视图，用于模拟 TryGetArray 返回 false 的数据包</summary>
+    private sealed class NonArrayMemoryManager : MemoryManager<Byte>
+    {
+        private readonly Byte[] _buffer;
+
+        public NonArrayMemoryManager(Int32 length) => _buffer = new Byte[length];
+
+        public override Span<Byte> GetSpan() => _buffer;
+
+        public override MemoryHandle Pin(Int32 elementIndex = 0) => default;
+
+        public override void Unpin() { }
+
+        protected override void Dispose(Boolean disposing) { }
     }
 }

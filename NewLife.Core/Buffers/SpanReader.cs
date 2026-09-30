@@ -175,17 +175,20 @@ public ref struct SpanReader
             if (MaxCapacity > 0 && bsize > MaxCapacity - _total) bsize = MaxCapacity - _total;
             if (remain + bsize < size) throw new InvalidOperationException();
 
+            // 先取出旧数据包的数组视图，再租借新缓冲。校验必须排在租借之前：
+            // 校验失败抛异常时新缓冲尚未挂到 _data 上，本方法又没有归还动作，这块池缓冲会永远回不到池
+            var old = _data;
+            var oldData = default(ArraySegment<Byte>);
+            if (old != null && remain > 0 && !old.TryGetArray(out oldData))
+                throw new NotSupportedException("Data packet does not support array access.");
+
             var pk = new OwnerPacket(bsize);
 
             // 把剩余未读数据拷贝到新数据块前部，避免丢失
             var available = 0;
-            var old = _data;
             if (old != null && remain > 0)
             {
-                if (!old.TryGetArray(out var arr))
-                    throw new NotSupportedException("Data packet does not support array access.");
-
-                arr.AsSpan(_index, remain).CopyTo(pk.Buffer);
+                oldData.AsSpan(_index, remain).CopyTo(pk.Buffer);
                 available += remain;
             }
 
