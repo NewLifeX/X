@@ -29,7 +29,7 @@ public enum WebSocketMessageType
 /// <summary>WebSocket 消息</summary>
 /// <remarks>
 /// <para>承载 WebSocket 帧协议字段（FIN/opcode/掩码键），体的读写经 <see cref="Message"/> 协作面（整帧为内存视图、头先行为流式）。</para>
-/// <para><b>掩码</b>：服务端→客户端方向不加掩码；客户端→服务端方向必须掩码——发送时未指定 <see cref="MaskKey"/> 则自动生成随机密钥（帧内临时，不写回消息）；接收侧保存客户端帧的掩码键，由消费方解码（参考 <see cref="WebSocketCodec"/> 的说明）。</para>
+/// <para><b>掩码</b>：服务端→客户端方向不加掩码；客户端→服务端方向必须掩码——发送时未指定 <see cref="MaskKey"/> 则自动生成随机密钥（帧内临时，不写回消息）；接收侧保存客户端帧的掩码键，由消费方解码（参考 <see cref="WebSocketCodec"/> 的说明）。解码只执行一次（<see cref="Demask"/> 非幂等）；经 WebSocket 通道交付的消息负载已在框架内解码，业务侧不得重复调用。</para>
 /// </remarks>
 public class WsMessage : Message
 {
@@ -199,10 +199,12 @@ public class WsMessage : Message
     /// <summary>对消息负载按掩码键解码（原地 XOR，链式负载跨段连续）</summary>
     /// <remarks>
     /// <para><b>整帧（内存体）路径</b>：对负载原地解码（帧内字节独享，属破坏性操作）；未持掩码键或负载为空时无操作。</para>
+    /// <para><b>只可调用一次</b>：XOR 自逆，本方法既不改变 <see cref="MaskKey"/> 也不记录解码状态，重复调用会把已解码负载再次异或成乱码（返回值仍为 true）。经 WebSocket 通道交付的消息负载已在框架内解码，业务侧不得再次调用。</para>
+    /// <para><b>负载所有权</b>：原地解码要求负载字节独享；负载为借阅视图（包装外部数组的 <see cref="ArrayPacket"/>、<see cref="ReadOnlyPacket"/>）时会就地改写该缓冲，与视图原拥有者共享同一份数据，调用前须确认所有权。</para>
     /// <para><b>流式体</b>：本方法不处理（数据未到齐时逐窗解码无法保持偏移连续），请先读满物化（<c>ReadAllAsync</c> 后 <c>SetBody</c>）再解码。</para>
     /// <para>服务端方向接收客户端帧时调用；服务端自身发送与客户端接收均无掩码，无需调用。</para>
     /// </remarks>
-    /// <returns>是否执行了解码</returns>
+    /// <returns>是否执行了解码（只反映本次调用，不表示负载处于已解码状态）</returns>
     public Boolean Demask()
     {
         var masks = MaskKey;
