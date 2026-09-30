@@ -133,8 +133,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
         Stop(disposing ? "Dispose" : "GC");
 
-        // 只释放、不置空：迟到的并发任务在 finally 里经属性重新取信号量，
-        // 置空后 ??= 会新建“满额”信号量，其 Release 直接抛 SemaphoreFullException（基类同样只释放不置空）
+        // 只释放、不置空：置空后 ??= 会为后续派发新建“满额”信号量，即便会话已销毁也放行消息进入处理链。
+        // 已派发的消息持有自己等待到的实例，其 Release 命中已释放实例抛 ObjectDisposedException，由调用点忽略（基类同样只释放不置空）
         _concurrency?.Dispose();
 
         //// 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
@@ -417,7 +417,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
                         return;
                     }
 
-                    ProcessMessage(message);
+                    ProcessMessage(message, concurrency);
                 });
 
                 pos += headerSize + bodyLength;
@@ -443,7 +443,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     /// <summary>并行处理单个消息：完成后释放并发信号量</summary>
     /// <param name="message">消息（体为数据报内零拷贝共享切片，天然独立）</param>
-    private void ProcessMessage(IMessage message)
+    /// <param name="concurrency">派发前等待到的信号量实例。归还必须用同一实例：会话首访并发时可能各建一个，重读属性会把槽位还到另一个满额实例并抛 <see cref="SemaphoreFullException"/></param>
+    private void ProcessMessage(IMessage message, SemaphoreSlim concurrency)
     {
         try
         {
@@ -457,8 +458,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         {
             message.TryDispose();
 
-            // 释放并发槽位（背压）；会话销毁时信号量可能已释放，忽略该异常
-            try { Concurrency.Release(); }
+            // 释放自己等待到的那个并发槽位（背压）；会话销毁时该实例已被释放，忽略该异常
+            try { concurrency.Release(); }
             catch (ObjectDisposedException) { }
         }
     }
@@ -466,6 +467,10 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     private SemaphoreSlim? _concurrency;
 
     /// <summary>并发信号量。并行模式（<see cref="MaxConcurrency"/> 大于1）下约束同会话并发处理数，等待时形成背压</summary>
+    /// <remarks>
+    /// 多条接收槽线程并发首访时可能各建一个满额实例，字段只留最后一个。该竞态无害：每个消息只归还自己等待到的实例，
+    /// 不存在“等待在A、归还到B”的错位，最坏仅首访瞬间并发上限短暂放大。刻意不加 CAS/锁，不为极窄窗口引入原子操作。
+    /// </remarks>
     private SemaphoreSlim Concurrency => _concurrency ??= new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
 
     /// <summary>收到消息。构造接收事件参数并进入事件链（协议模式）</summary>
