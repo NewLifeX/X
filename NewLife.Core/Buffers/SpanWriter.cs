@@ -577,10 +577,11 @@ public ref struct SpanWriter
     {
         var num = (UInt64)value;
 
-        // 根据实际数值计算所需字节数
+        // 根据实际数值计算所需字节数。7位一组，64位整数最多10字节（9×7=63位 + 末尾1位）
         var size = num < 0x80 ? 1 : num < 0x4000 ? 2 : num < 0x20_0000 ? 3 : num < 0x1000_0000 ? 4 :
                    num < 0x8_0000_0000L ? 5 : num < 0x400_0000_0000L ? 6 :
-                   num < 0x2_0000_0000_0000L ? 7 : num < 0x100_0000_0000_0000L ? 8 : 9;
+                   num < 0x2_0000_0000_0000L ? 7 : num < 0x100_0000_0000_0000L ? 8 :
+                   num < 0x8000_0000_0000_0000L ? 9 : 10;
         EnsureSpace(size);
 
         var span = _span[_index..];

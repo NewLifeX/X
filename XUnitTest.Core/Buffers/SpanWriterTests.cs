@@ -879,6 +879,60 @@ public class SpanWriterTests
     }
     #endregion
 
+    #region WriteEncodedInt64 边界测试
+    [Theory(DisplayName = "WriteEncodedInt64在缓冲区刚好足够时不应抛异常")]
+    [InlineData(0L, 1)]
+    [InlineData(127L, 1)]
+    [InlineData(128L, 2)]
+    [InlineData(0x3FFF, 2)]
+    [InlineData(0x4000, 3)]
+    [InlineData(0x1F_FFFF, 3)]
+    [InlineData(0x20_0000, 4)]
+    [InlineData(0x0FFF_FFFF, 4)]
+    [InlineData(0x1000_0000, 5)]
+    [InlineData(0x7_FFFF_FFFF, 5)]
+    [InlineData(0x8_0000_0000, 6)]
+    [InlineData(0x3FF_FFFF_FFFF, 6)]
+    [InlineData(0x400_0000_0000, 7)]
+    [InlineData(0x1_FFFF_FFFF_FFFF, 7)]
+    [InlineData(0x2_0000_0000_0000, 8)]
+    [InlineData(0x00FF_FFFF_FFFF_FFFF, 8)]
+    [InlineData(0x0100_0000_0000_0000, 9)]
+    [InlineData(Int64.MaxValue, 9)]
+    [InlineData(-1L, 10)]
+    [InlineData(Int64.MinValue, 10)]
+    public void WriteEncodedInt64WithExactBuffer(Int64 value, Int32 expectedBytes)
+    {
+        // 缓冲区大小恰好等于实际编码所需字节数，不应因多余的空间要求而失败
+        var buffer = new Byte[expectedBytes];
+        var writer = new SpanWriter(buffer);
+
+        var n = writer.WriteEncodedInt64(value);
+
+        Assert.Equal(expectedBytes, n);
+        Assert.Equal(expectedBytes, writer.Position);
+
+        // 验证写入结果可被正确读回
+        var reader = new SpanReader(buffer);
+        Assert.Equal(value, reader.ReadEncodedInt64());
+    }
+
+    [Theory(DisplayName = "WriteEncodedInt64缓冲区不足实际编码长度时应抛异常而非越界")]
+    [InlineData(Int64.MaxValue, 9)]
+    [InlineData(-1L, 10)]
+    [InlineData(Int64.MinValue, 10)]
+    public void WriteEncodedInt64InsufficientBufferThrows(Int64 value, Int32 requiredBytes)
+    {
+        // 缓冲区比实际所需少 1 字节，必须抛 InvalidOperationException（而不是写出缓冲区外的越界访问）
+        var buffer = new Byte[requiredBytes - 1];
+        var writer = new SpanWriter(buffer);
+
+        var threw = false;
+        try { writer.WriteEncodedInt64(value); } catch (InvalidOperationException) { threw = true; }
+        Assert.True(threw);
+    }
+    #endregion
+
     #region WriteArray 测试
     [Theory]
     [InlineData(0)]
