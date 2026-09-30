@@ -70,8 +70,8 @@ public class HttpResponse : HttpBase
         return base.Build();
     }
 
-    /// <summary>是否为无实体响应。204/304 不得携带实体，也不应声明 Content-Length（RFC 7230 §3.3.2）</summary>
-    protected override Boolean HasNoEntity => StatusCode is HttpStatusCode.NoContent or HttpStatusCode.NotModified;
+    /// <summary>是否为无实体响应。1xx/204/304 不得携带实体，也不应声明 Content-Length（RFC 7230 §3.3.2）</summary>
+    protected override Boolean HasNoEntity => HttpBase.IsNoEntityStatus(StatusCode);
 
     /// <summary>创建头部</summary>
     /// <param name="length"></param>

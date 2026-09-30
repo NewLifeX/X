@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using NewLife.Buffers;
 using NewLife.Collections;
 using NewLife.Data;
@@ -190,8 +191,14 @@ public abstract class HttpBase : IDisposable
         return pk.Resize(writer.Position);
     }
 
-    /// <summary>是否为无实体消息（如 204/304 响应）。无实体时不得声明 Content-Length（RFC 7230 §3.3.2）</summary>
+    /// <summary>是否为无实体消息（1xx/204/304 响应）。无实体时不得声明 Content-Length（RFC 7230 §3.3.2）</summary>
     protected virtual Boolean HasNoEntity => false;
+
+    /// <summary>判断状态码是否属于无实体响应（1xx、204、304）</summary>
+    /// <remarks>RFC 7230 §3.3.2：1xx 与 204 不得携带 Content-Length，1xx/204/304 均不得携带实体。响应构建与低级封包构造共用本判据，避免两处口径不一致。</remarks>
+    /// <param name="code">响应状态码</param>
+    /// <returns>是否为无实体响应</returns>
+    public static Boolean IsNoEntityStatus(HttpStatusCode code) => (Int32)code is >= 100 and < 200 or 204 or 304;
 
     /// <summary>仅创建头部封包（不含主体），流式发送时先发头部</summary>
     /// <param name="contentLength">主体长度；负数表示未知（调用方应先行设置 Transfer-Encoding 等头部）</param>

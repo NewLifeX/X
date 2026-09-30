@@ -72,7 +72,9 @@ public class HttpResponseTests
         Assert.EndsWith("hello world", text);
     }
 
-    [Theory(DisplayName = "Build 204/304 无实体响应：不声明 Content-Length")]
+    [Theory(DisplayName = "Build 1xx/204/304 无实体响应：不声明 Content-Length")]
+    [InlineData(HttpStatusCode.Continue)]
+    [InlineData(HttpStatusCode.SwitchingProtocols)]
     [InlineData(HttpStatusCode.NoContent)]
     [InlineData(HttpStatusCode.NotModified)]
     public void Build_NoEntityStatus_OmitsContentLength(HttpStatusCode code)
@@ -132,7 +134,20 @@ public class HttpResponseTests
         Assert.Contains("Content-Length: 0\r\n", text);
     }
 
-    [Theory(DisplayName = "BuildHeaderPacket 204/304 响应：不声明 Content-Length")]
+    [Fact(DisplayName = "Build 1xx响应：状态描述不当作实体，报文只剩头部")]
+    public void Build_InformationalStatus_UsesHeaderOnly()
+    {
+        // 非成功状态码会用状态描述补齐实体，但 1xx 属无实体响应（RFC 7230 §3.3.2）
+        var resp = new HttpResponse { StatusCode = HttpStatusCode.Continue, StatusDescription = "Continue" };
+
+        using var pk = resp.Build();
+
+        Assert.Equal("HTTP/1.1 100 Continue\r\n\r\n", pk.ToStr());
+    }
+
+    [Theory(DisplayName = "BuildHeaderPacket 1xx/204/304 响应：不声明 Content-Length")]
+    [InlineData(HttpStatusCode.Continue)]
+    [InlineData(HttpStatusCode.SwitchingProtocols)]
     [InlineData(HttpStatusCode.NoContent)]
     [InlineData(HttpStatusCode.NotModified)]
     public void BuildHeaderPacket_NoEntityStatus_OmitsContentLength(HttpStatusCode code)
