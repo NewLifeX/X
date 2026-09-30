@@ -87,4 +87,39 @@ public class IExtendTests
         Assert.Null(ext["bbb"]);
         //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
     }
+
+    [Fact(DisplayName = "扩展数据_并发首访_不丢弃任何写入")]
+    public void Items_ConcurrentFirstAccess_NoLostWrite()
+    {
+        // 懒创建字典：并发首访若各自新建，败者那份里刚写入的数据会随之不可达而丢失
+        using (var server = new NetServer()) AssertNoLostWrite(() => server.Items);
+        using (var client = new NetClient()) AssertNoLostWrite(() => client.Items);
+        using (var us = new UdpServer())
+        using (var session = new UdpSession(us, null, new IPEndPoint(IPAddress.Loopback, 0))) AssertNoLostWrite(() => session.Items);
+    }
+
+    /// <summary>并发首访扩展数据字典：每个线程写入的键都必须保留</summary>
+    /// <remarks>竞态非必现，用 Barrier 制造“同时首访”提高命中率；修复后恒定通过，旧实现高概率变红</remarks>
+    private static void AssertNoLostWrite(Func<IDictionary<String, Object?>> getItems)
+    {
+        const Int32 count = 32;
+
+        using var barrier = new Barrier(count);
+        var threads = new Thread[count];
+        for (var i = 0; i < count; i++)
+        {
+            var k = i;
+            threads[i] = new Thread(() =>
+            {
+                barrier.SignalAndWait();
+                getItems()["k" + k] = k;
+            })
+            { IsBackground = true };
+        }
+
+        foreach (var th in threads) th.Start();
+        foreach (var th in threads) Assert.True(th.Join(10_000), "并发写入未在超时内完成");
+
+        Assert.Equal(count, getItems().Count);
+    }
 }

@@ -547,8 +547,21 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     #region 扩展接口
     private ConcurrentDictionary<String, Object?>? _items;
-    /// <summary>数据项</summary>
-    public IDictionary<String, Object?> Items => _items ??= new();
+
+    /// <summary>数据项。首次访问时创建</summary>
+    /// <remarks>并发首用时以 CAS 保证只保留一份实例：直接 ??= 会各自新建，败者刚写入的数据随之不可达而丢失</remarks>
+    public IDictionary<String, Object?> Items
+    {
+        get
+        {
+            var items = _items;
+            if (items != null) return items;
+
+            var created = new ConcurrentDictionary<String, Object?>();
+
+            return Interlocked.CompareExchange(ref _items, created, null) ?? created;
+        }
+    }
 
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key">键</param>

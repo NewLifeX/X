@@ -210,9 +210,24 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     public IServiceProvider? ServiceProvider { get; set; }
 
     private ConcurrentDictionary<String, Object?>? _items;
+
     /// <summary>扩展数据字典</summary>
-    /// <remarks>用于存储服务器级别的自定义数据</remarks>
-    public IDictionary<String, Object?> Items => _items ??= new();
+    /// <remarks>
+    /// <para>用于存储服务器级别的自定义数据</para>
+    /// <para>并发首用时以 CAS 保证只保留一份实例，避免各自新建导致败者刚写入的数据被丢弃</para>
+    /// </remarks>
+    public IDictionary<String, Object?> Items
+    {
+        get
+        {
+            var items = _items;
+            if (items != null) return items;
+
+            var created = new ConcurrentDictionary<String, Object?>();
+
+            return Interlocked.CompareExchange(ref _items, created, null) ?? created;
+        }
+    }
 
     /// <summary>获取/设置扩展数据</summary>
     /// <param name="key">数据键名</param>

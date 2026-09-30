@@ -520,7 +520,19 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     private ConcurrentDictionary<String, Object?>? _items;
 
     /// <summary>扩展数据字典</summary>
-    public IDictionary<String, Object?> Items => _items ??= new ConcurrentDictionary<String, Object?>();
+    /// <remarks>并发首用时以 CAS 保证只保留一份实例，避免各自新建导致败者刚写入的数据被丢弃</remarks>
+    public IDictionary<String, Object?> Items
+    {
+        get
+        {
+            var items = _items;
+            if (items != null) return items;
+
+            var created = new ConcurrentDictionary<String, Object?>();
+
+            return Interlocked.CompareExchange(ref _items, created, null) ?? created;
+        }
+    }
 
     /// <summary>获取或设置扩展数据项</summary>
     /// <param name="key">键名</param>
