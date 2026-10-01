@@ -77,25 +77,19 @@ public class TcpSessionStreamTests
 
     #region 会话级行为
     [Fact]
-    [DisplayName("流式会话_发送管道创建后Send统一入管道_借阅视图转自有拷贝")]
-    public async Task SendPipeCreated_RoutesAndClones()
+    [DisplayName("直发_Send 同步写出_返回后改写原缓冲不影响已发数据")]
+    public async Task DirectSend_WritesCallerBuffer()
     {
         var (server, client, session) = await ConnectAsync();
         using (server)
         using (client)
         {
-            // 创建发送管道后，Send 系列统一入管道（单出口）
-            var pipe = session.SendPipe;
-            Assert.Same(pipe, session.GetSendPipe());
-
             var src = new Byte[] { 10, 20, 30 };
             var rs = session.Send(new ArrayPacket(src));
             Assert.Equal(3, rs);
 
-            // 借阅视图在入管道时已转自有拷贝：立即改写原缓冲不影响已排队数据
+            // 直发是同步写出：返回即已写入内核，此后改写原缓冲不影响已发数据
             src[0] = 99;
-
-            await WaitUntilAsync(() => pipe.UnconsumedLength == 0);
 
             var received = new Byte[3];
             Assert.Equal(3, await DrainAsync(client, received));
@@ -104,28 +98,24 @@ public class TcpSessionStreamTests
     }
 
     [Fact]
-    [DisplayName("流式会话_关闭_先排空排队数据再关闭")]
-    public async Task Close_DrainsPendingBeforeClosing()
+    [DisplayName("直发_发送后立即关闭_已写数据不丢")]
+    public async Task DirectSend_ThenClose_DataNotLost()
     {
         var (server, client, session) = await ConnectAsync();
         using (server)
         using (client)
         {
-            var pipe = session.SendPipe;
-
             var p1 = new Byte[] { 1, 2, 3 };
             var p2 = new Byte[] { 4, 5 };
-            pipe.Writer.Append(new ArrayPacket(p1));
-            pipe.Writer.Append(new ArrayPacket(p2));
-
             var received = new Byte[p1.Length + p2.Length];
             var reader = DrainAsync(client, received);
 
-            // 同步关闭：完成写入并限时等待泵发完已排队数据
+            // 直发：两次发送返回时数据已在网络栈里，随后关闭不会丢数据
+            Assert.Equal(3, session.Send(new ArrayPacket(p1)));
+            Assert.Equal(2, session.Send(new ArrayPacket(p2)));
+
             var ok = session.Close("test");
             Assert.True(ok);
-
-            Assert.True(pipe.IsCompleted);
 
             Assert.Equal(received.Length, await reader.WaitAsync(TimeSpan.FromSeconds(5)));
             Assert.Equal(p1.Concat(p2).ToArray(), received);
@@ -161,16 +151,13 @@ public class TcpSessionStreamTests
 
     #region 回环
     [Fact]
-    [DisplayName("发送管道_回环_批量下发完整到达")]
+    [DisplayName("直发_回环_批量下发完整到达")]
     public async Task Loopback_BatchSend_Arrives()
     {
         var (server, client, session) = await ConnectAsync();
         using (server)
         using (client)
         {
-            // 创建发送管道后经 Send 批量下发（单出口：管道接管发送）
-            _ = session.SendPipe;
-
             var payload = new Byte[100_000];
             Random.Shared.NextBytes(payload);
 
@@ -180,8 +167,6 @@ public class TcpSessionStreamTests
 
             var rs = session.Send(payload);
             Assert.Equal(payload.Length, rs);
-
-            await WaitUntilAsync(() => session.GetSendPipe()!.UnconsumedLength == 0);
 
             // 对端完整收到且内容一致
             var read = await reader.WaitAsync(TimeSpan.FromSeconds(30));
@@ -198,13 +183,9 @@ public class TcpSessionStreamTests
         using (server)
         using (client)
         {
-            // 1MB 数据流式发送：分块入管道 + 写侧回压，泵顺序送出
+            // 1MB 数据流式发送：分块读入一块、写完再读下一块，内存恒为一块
             var payload = new Byte[1_000_000];
             Random.Shared.NextBytes(payload);
-
-            var pipe = session.SendPipe;
-            pipe.PauseThreshold = 64 * 1024;
-            pipe.ResumeThreshold = 32 * 1024;
 
             // 对端并发排空：发送受阻于内核缓冲容量时，若客户端不读将永远阻塞（并行负载下必须边发边收）
             var received = new Byte[payload.Length];
@@ -228,11 +209,9 @@ public class TcpSessionStreamTests
         using (server)
         using (client)
         {
-            // 发送侧：头声明长度 + 流式体（等价 SRMP 大消息流式发送）；单出口保证头与体无交错
+            // 发送侧：头声明长度 + 流式体（等价 SRMP 大消息流式发送）；同一把写锁保证头与体无交错
             var payload = new Byte[256 * 1024];
             Random.Shared.NextBytes(payload);
-
-            _ = session.SendPipe;
 
             // 对端并发排空：边发边收，不依赖内核缓冲容量
             var frameLen = 8 + payload.Length;

@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.ComponentModel;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -171,6 +173,48 @@ public class MessageSessionTests
         Assert.False(second.ValueTask.IsCompleted);
     }
     #endregion
+
+    [Fact]
+    [DisplayName("协议模式_单帧分两段到达_接收方粘包重组")]
+    public async Task SplitFrame_Reassembled()
+    {
+        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        server.Start();
+
+        var got = NewTcs<Byte[]>();
+        server.Received += (s, e) =>
+        {
+            if (e.Message is not DefaultMessage msg) return;
+
+            // 先到一半的帧不会交付（头部定界后等体到齐），到齐后才进本事件；
+            // 交付契约：处理器返回后消息收尾，负载需在本方法内读完
+            var all = msg.Body!.ReadAllAsync().AsTask().GetAwaiter().GetResult();
+            var body = all.AsReadOnlySequence().ToArray();
+            all.TryDispose();
+
+            got.TrySetResult(body);
+        };
+
+        // 裸套接字把一整帧分两段发出：接收方必须自行重组，不得依赖发送方“一段写完”
+        using var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        await client.ConnectAsync(IPAddress.Loopback, server.Port);
+
+        var codec = new SrmpCodec();
+        var msg = new DefaultMessage();
+        msg.SetBody(new ArrayPacket("Split Frame Body"u8.ToArray()));
+
+        using var frame = codec.Build(msg);
+        var bytes = frame.ToArray();
+        Assert.True(bytes.Length > 6, "帧至少包含头部与部分负载，才能切成两段");
+
+        // 第一段：头部 + 部分负载，此时接收方只能定界不能成帧；延迟后补发剩余负载
+        client.Send(bytes, 0, 5, SocketFlags.None);
+        await Task.Delay(50);
+        client.Send(bytes, 5, bytes.Length - 5, SocketFlags.None);
+
+        var body = await WithTimeout(got.Task, 5_000);
+        Assert.Equal("Split Frame Body"u8.ToArray(), body);
+    }
 
     [Fact]
     [DisplayName("协议模式_小消息往返_服务端应答")]

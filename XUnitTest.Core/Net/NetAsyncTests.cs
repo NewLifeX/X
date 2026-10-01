@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -191,10 +192,11 @@ public class NetAsyncTests
     #region 同步发送测试
     /// <summary>测试SendMessage同步发送</summary>
     [Fact]
+    [DisplayName("同步发送_SendMessage 写出并送达_接收方经 Message 读负载")]
     public void SendMessageSyncTest()
     {
         var messageReceived = new ManualResetEventSlim(false);
-        IPacket? receivedPacket = null;
+        Byte[]? receivedBody = null;
 
         using var server = new NetServer
         {
@@ -206,11 +208,16 @@ public class NetAsyncTests
         server.Protocol = new SrmpCodec();
         server.Received += (s, e) =>
         {
-            if (e.Packet != null)
-            {
-                receivedPacket = e.Packet;
-                messageReceived.Set();
-            }
+            // 负载读取走 Message，不依赖 Packet：Packet 只是“整帧同窗到达”时的零拷贝快路径视图，
+            // 帧分片到达（发送方多次写出、或网络分段）时消息体是流式体，此时 Packet 为 null。
+            // 交付契约：处理器返回后消息收尾，负载需在本方法内读完（数据未到齐会等待——同连接消息串行）
+            if (e.Message is not DefaultMessage msg) return;
+
+            var all = msg.Body!.ReadAllAsync().AsTask().GetAwaiter().GetResult();
+            receivedBody = all.ToArray();
+            all.TryDispose();
+
+            messageReceived.Set();
         };
 
         server.Start();
@@ -228,7 +235,7 @@ public class NetAsyncTests
 
         Assert.True(result > 0);
         Assert.True(messageReceived.Wait(3000));
-        Assert.NotNull(receivedPacket);
+        Assert.Equal("Sync Message"u8.ToArray(), receivedBody);
 
         client.Close("Test");
     }

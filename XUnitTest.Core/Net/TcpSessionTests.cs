@@ -210,6 +210,63 @@ public class TcpSessionTests
         }
     }
 
+    /// <summary>SSL 会话发文件：SslStream 不能零拷贝，降级为分块发送，内容逐字节一致</summary>
+    [Fact(DisplayName = "文件发送_SSL会话_降级分块发送_内容一致")]
+    public async Task SendFile_SslSession_FallbackChunked()
+    {
+        const Int32 size = 200 * 1024;
+        var payload = new Byte[size];
+        Random.Shared.NextBytes(payload);
+
+        var file = Path.Combine(Path.GetTempPath(), "nl_sendfile_ssl_" + Guid.NewGuid().ToString("N") + ".bin");
+        await File.WriteAllBytesAsync(file, payload);
+
+        try
+        {
+            using var cert = LoadTestCert();
+            using var server = new NetServer
+            {
+                Port = 0,
+                ProtocolType = NetType.Tcp,
+                SslProtocol = SslProtocols.Tls12,
+                Certificate = cert,
+                Log = XTrace.Log,
+            };
+
+            var received = new List<Byte>();
+            var done = new ManualResetEventSlim(false);
+            server.Received += (s, e) =>
+            {
+                if (e.Packet == null) return;
+
+                lock (received)
+                {
+                    received.AddRange(e.Packet.ToArray());
+                    if (received.Count >= size) done.Set();
+                }
+            };
+            server.Start();
+
+            using var client = new TcpSession
+            {
+                Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
+                SslProtocol = SslProtocols.Tls12,
+                Log = XTrace.Log,
+            };
+            client.Open();
+
+            var rs = await client.SendFileAsync(file);
+            Assert.Equal(size, rs);
+
+            Assert.True(done.Wait(15_000), "服务端未收齐文件内容");
+            lock (received) Assert.Equal(payload, received.ToArray());
+        }
+        finally
+        {
+            File.Delete(file);
+        }
+    }
+
     /// <summary>SSL 客户端强制 RST：服务端应感知流异常并关闭会话，不悬挂</summary>
     [Fact(DisplayName = "SSL_客户端强制RST_服务端感知并关闭会话")]
     public void SslClientRst_ServerDetects()

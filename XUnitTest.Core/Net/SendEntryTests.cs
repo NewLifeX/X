@@ -2,17 +2,17 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using NewLife.Data;
 using NewLife.Net;
 using Xunit;
 
 namespace XUnitTest.Net;
 
-/// <summary>发送出口测试：直发与发送泵首次接管出口的交错，两条路径不得并发写同一 Socket</summary>
+/// <summary>发送出口测试：直发（无发送队列）——同步写完才返回，多入口共用一把写锁不交错</summary>
 /// <remarks>
-/// <para>交错窗口（“无锁快照读到无泵”与“泵发布”之间）转瞬即逝、无法直接观测，但互斥性会外显为一件事：
-/// 直发在途时创建发送泵（首次访问 <see cref="TcpSession.SendPipe"/>）必须等它写完才发布泵。</para>
-/// <para>本用例用“对端不读 + 收缩收发缓冲”把直发钉在内核写阻塞上：断言此刻创建发送泵不立即完成，
-/// 且直发之后入队的数据必须整段排在直发数据后面（逐块填充不同字节，错位即可定位）。</para>
+/// <para>架构：所有发送入口（Send/SendAsync/SendAsync(Stream)/SendFileAsync）共用一把写锁，任一时刻只有一位写者。</para>
+/// <para>观测手段：对端不读且收缩收发缓冲时，直发会堵在内核写阻塞上（同步 Send 不返回）；
+/// 对端开始读后数据完整到达。并发用例用“块内字节一致”检出交错。</para>
 /// </remarks>
 [Collection("Net")]
 public class SendEntryTests
@@ -38,13 +38,13 @@ public class SendEntryTests
     #endregion
 
     [Fact]
-    [DisplayName("发送出口_在途直发期间创建发送泵_必须等待且数据不交错")]
-    public async Task InFlightDirectSend_PumpCreation_WaitsAndKeepsOrder()
+    [DisplayName("直发_Send 同步写出_慢对端阻塞_读后续达")]
+    public async Task Send_SyncWriteBlocksOnSlowPeer()
     {
         const Int32 chunkSize = 64 * 1024;
-        const Int32 chunkCount = 64;                        // 合计 4MB，远超内核收发缓冲
-        var body = new Byte[chunkSize * chunkCount];
-        for (var i = 0; i < chunkCount; i++) body.AsSpan(i * chunkSize, chunkSize).Fill((Byte)(i + 1));
+        const Int32 chunkCount = 64;                        // 合计 4MB，超过内核收发缓冲
+        var body = new Byte[chunkSize];
+        body.AsSpan().Fill(0x5A);
 
         // 裸监听套接字：接受连接但不读取；收缩收发缓冲，让直发必然堵在内核写阻塞上
         var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -63,13 +63,13 @@ public class SendEntryTests
             peer.ReceiveBufferSize = 8 * 1024;
             peer.ReceiveTimeout = 30_000;
 
-            // 逐块直发：发送泵尚未创建，全部走直发路径并持发送锁；对端不读，几十 KB 后必然阻塞在写
+            // 直发：对端不读时同步 Send 必然阻塞（内存由内核缓冲天然限住，不需要发送队列）
             var sending = Task.Factory.StartNew(() =>
             {
                 var total = 0;
                 for (var i = 0; i < chunkCount; i++)
                 {
-                    var rs = client.Send(body, i * chunkSize, chunkSize);
+                    var rs = client.Send(body, 0, chunkSize);
                     if (rs <= 0) break;
 
                     total += rs;
@@ -79,16 +79,12 @@ public class SendEntryTests
             }, TaskCreationOptions.LongRunning);
             Assert.False(await CompletedWithinAsync(sending, 300), "前置条件不成立：直发应被内核缓冲阻塞");
 
-            // 关键断言：直发在途时创建发送泵必须等待（发布点持同一把发送锁），否则两条路径会并发写同一 Socket
-            var creating = Task.Factory.StartNew(() => client.SendPipe, TaskCreationOptions.LongRunning);
-            Assert.False(await CompletedWithinAsync(creating, 300), "在途直发未结束时，创建发送泵不应立即完成");
-
-            // 对端开始读取：直发写完 → 发送泵获锁并发布 → 之后的数据统一入队
+            // 对端开始读：直发跑到写完，数据完整到达
             var received = new MemoryStream();
             var reading = Task.Factory.StartNew(() =>
             {
                 var buf = new Byte[64 * 1024];
-                while (received.Length < body.Length + 3)
+                while (received.Length < chunkSize * chunkCount)
                 {
                     var n = peer.Receive(buf);
                     if (n <= 0) break;
@@ -97,22 +93,224 @@ public class SendEntryTests
                 }
             }, TaskCreationOptions.LongRunning);
 
-            var pipe = await creating.WaitAsync(TimeSpan.FromSeconds(30));
-            Assert.Same(pipe, client.GetSendPipe());
-
-            // 直发全部结束（含泵发布后仍在直发的余量），此后入队的数据必须整段排在直发数据之后
-            Assert.Equal(body.Length, await sending.WaitAsync(TimeSpan.FromSeconds(30)));
-
-            client.Send(new Byte[] { 0xAA, 0xBB, 0xCC });
-            await WaitUntilAsync(() => pipe.UnconsumedLength == 0);
-
-            Assert.True(client.Close("test"));
+            Assert.Equal(chunkSize * chunkCount, await sending.WaitAsync(TimeSpan.FromSeconds(30)));
             await reading.WaitAsync(TimeSpan.FromSeconds(30));
 
             var bytes = received.ToArray();
-            Assert.Equal(body.Length + 3, bytes.Length);
-            Assert.Equal(body, bytes[..body.Length]);
-            Assert.Equal(new Byte[] { 0xAA, 0xBB, 0xCC }, bytes[^3..]);
+            Assert.Equal(chunkSize * chunkCount, bytes.Length);
+            Assert.DoesNotContain(bytes, b => b != 0x5A);
+        }
+        finally
+        {
+            listener.Dispose();
+        }
+    }
+
+    [Fact]
+    [DisplayName("直发_并发写入_各块不交错（写锁契约）")]
+    public async Task Send_ConcurrentWriters_NoInterleave()
+    {
+        const Int32 writers = 8;
+        const Int32 blocks = 200;
+        const Int32 blockSize = 512;
+
+        var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        listener.Listen(1);
+        var port = ((IPEndPoint)listener.LocalEndPoint!).Port;
+
+        using var client = new TcpSession { Remote = new NetUri($"tcp://127.0.0.1:{port}") };
+        try
+        {
+            client.Open();
+
+            using var peer = listener.Accept();
+            peer.ReceiveTimeout = 30_000;
+
+            var total = writers * blocks * blockSize;
+            var received = new MemoryStream();
+            var reading = Task.Factory.StartNew(() =>
+            {
+                var buf = new Byte[64 * 1024];
+                while (received.Length < total)
+                {
+                    var n = peer.Receive(buf);
+                    if (n <= 0) break;
+
+                    received.Write(buf, 0, n);
+                }
+            }, TaskCreationOptions.LongRunning);
+
+            // 多线程同时发送：写锁保证任一时刻只有一位写者，所以每个 512 字节块内部必然同字节
+            var tasks = new Task[writers];
+            for (var w = 0; w < writers; w++)
+            {
+                var id = (Byte)(w + 1);
+                var block = new Byte[blockSize];
+                block.AsSpan().Fill(id);
+
+                tasks[w] = Task.Factory.StartNew(() =>
+                {
+                    for (var i = 0; i < blocks; i++) client.Send(block, 0, blockSize);
+                }, TaskCreationOptions.LongRunning);
+            }
+
+            await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+            await reading.WaitAsync(TimeSpan.FromSeconds(30));
+
+            var bytes = received.ToArray();
+            Assert.Equal(total, bytes.Length);
+
+            // 交错会把别的写者的字节混进块内（块内出现两种字节）
+            for (var i = 0; i < total; i += blockSize)
+            {
+                var first = bytes[i];
+                for (var j = 1; j < blockSize; j++)
+                {
+                    Assert.Equal(first, bytes[i + j]);
+                }
+            }
+        }
+        finally
+        {
+            listener.Dispose();
+        }
+    }
+
+    [Fact]
+    [DisplayName("直发_Send与SendAsync保序送达")]
+    public async Task SendAndSendAsync_DeliverInOrder()
+    {
+        using var server = new NetServer { Port = 0 };
+        server.Start();
+
+        var wait = new ManualResetEventSlim();
+        var received = new List<Byte>();
+        server.NewSession += (s, e) =>
+        {
+            e.Session.Session.Received += (ss, ee) =>
+            {
+                var pk = ee.Packet;
+                if (pk != null) lock (received) received.AddRange(pk.GetSpan().ToArray());
+            };
+            wait.Set();
+        };
+
+        using var client = new TcpSession { Remote = new NetUri($"tcp://127.0.0.1:{server.Port}") };
+        client.Open();
+
+        // 会话建立且订阅就绪后再发送，避免首轮数据早于订阅
+        Assert.True(wait.Wait(3_000));
+
+        // 同步直发与异步直发交替，共用写锁 → 前缀严格保序
+        Assert.Equal(4, client.Send(new Byte[] { 1, 2, 3, 4 }));
+        Assert.Equal(3, await client.SendAsync(new ArrayPacket(new Byte[] { 5, 6, 7 })));
+        Assert.Equal(2, client.Send(new Byte[] { 8, 9 }));
+
+        var sw = Stopwatch.StartNew();
+        while (sw.Elapsed < TimeSpan.FromSeconds(5))
+        {
+            lock (received) { if (received.Count >= 9) break; }
+            await Task.Delay(10);
+        }
+
+        lock (received) Assert.Equal(new Byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, received);
+    }
+
+    [Fact]
+    [DisplayName("文件发送_非SSL_内核零拷贝_内容逐字节一致")]
+    public async Task SendFile_ZeroCopy_ContentMatches()
+    {
+        const Int32 size = 300 * 1024;
+        var payload = new Byte[size];
+        Random.Shared.NextBytes(payload);
+
+        var file = Path.Combine(Path.GetTempPath(), "nl_sendfile_" + Guid.NewGuid().ToString("N") + ".bin");
+        await File.WriteAllBytesAsync(file, payload);
+
+        var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        listener.Listen(1);
+        var port = ((IPEndPoint)listener.LocalEndPoint!).Port;
+
+        using var client = new TcpSession { Remote = new NetUri($"tcp://127.0.0.1:{port}") };
+        try
+        {
+            client.Open();
+
+            using var peer = listener.Accept();
+            peer.ReceiveTimeout = 30_000;
+
+            var received = new MemoryStream();
+            var reading = Task.Factory.StartNew(() =>
+            {
+                var buf = new Byte[64 * 1024];
+                while (received.Length < size)
+                {
+                    var n = peer.Receive(buf);
+                    if (n <= 0) break;
+
+                    received.Write(buf, 0, n);
+                }
+            }, TaskCreationOptions.LongRunning);
+
+            // 非 SSL会话：整个文件交给内核推送（sendfile/TransmitFile），应用层不经读块
+            var rs = await client.SendFileAsync(file);
+            Assert.Equal(size, rs);
+
+            await reading.WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.Equal(payload, received.ToArray());
+        }
+        finally
+        {
+            listener.Dispose();
+            File.Delete(file);
+        }
+    }
+
+    [Fact]
+    [DisplayName("发送失败_错误回调内再次 Send_不自死锁")]
+    public async Task SendFailed_ErrorCallbackSendsAgain_NoDeadlock()
+    {
+        var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        listener.Listen(1);
+        var port = ((IPEndPoint)listener.LocalEndPoint!).Port;
+
+        using var client = new TcpSession { Remote = new NetUri($"tcp://127.0.0.1:{port}") };
+        try
+        {
+            client.Open();
+
+            using var peer = listener.Accept();
+            peer.ReceiveTimeout = 30_000;
+
+            // 确定性制造发送失败：关掉发送方向后任何 Send 都立刻失败，
+            // 而套接字仍处已绑定（Open 仍为真）、接收方向不受影响，不会顺带把会话关掉
+            client.Client!.Shutdown(SocketShutdown.Send);
+
+            // 错误回调内同步再次 Send：上报若发生在写锁内，这里会二次等待同一把 SemaphoreSlim 而自死锁
+            var innerDone = new ManualResetEventSlim();
+            var fired = 0;
+            client.Error += (s, e) =>
+            {
+                // 只在内层发一次，避免“失败 → 上报 → 再失败”的无限递归
+                if (Interlocked.Increment(ref fired) > 1) return;
+
+                client.Send(new Byte[] { 9, 9 });
+                innerDone.Set();
+            };
+
+            var rs = 0;
+            Exception? error = null;
+            var sending = Task.Factory.StartNew(() =>
+            {
+                try { rs = client.SendAsync(new ArrayPacket(new Byte[64])).AsTask().GetAwaiter().GetResult(); }
+                catch (Exception ex) { error = ex; }
+            }, TaskCreationOptions.LongRunning);
+
+            Assert.True(await CompletedWithinAsync(sending, 10_000), "发送失败时，错误回调内再次 Send 发生了自死锁");
+            Assert.True(innerDone.IsSet, $"发送失败没有触发错误回调（rs={rs}, error={error?.GetType().Name}: {error?.Message}）");
         }
         finally
         {

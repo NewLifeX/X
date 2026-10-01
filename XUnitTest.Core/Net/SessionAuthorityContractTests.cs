@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using NewLife;
 using NewLife.Log;
 using NewLife.Net;
 using Xunit;
@@ -104,6 +105,67 @@ public class SessionAuthorityContractTests
         Assert.Empty(sessions);
     }
 
+    /// <summary>底层连接不可用时，服务端会话仍必须释放并出集合，不能留在集合里等超时清理</summary>
+    /// <remarks>实测该场景不会进入 OnCloseAsync 的异常分支（接收环错误路径先一步收敛），
+    /// 因此本用例锁定的是“无论如何都会收敛到已释放”的最终契约，无负向验证</remarks>
+    [Fact(DisplayName = "生命周期权威_关闭动作失败_服务端会话仍被释放")]
+    public async Task ServerSession_CloseFails_StillDisposed()
+    {
+        using var server = new TcpServer { Port = 0, Log = XTrace.Log };
+
+        ISocketSession? session = null;
+        server.NewSession += (s, e) => session = e.Session;
+        server.Start();
+
+        using var client = new TcpClient();
+        await client.ConnectAsync(IPAddress.Loopback, server.Port);
+
+        await WaitUntilAsync(() => session != null && server.Sessions.Count == 1);
+
+        var tcp = Assert.IsType<TcpSession>(session);
+
+        // 制造“关闭动作无法成功”的现场：先把底层套接字释放
+        tcp.Client!.Dispose();
+
+        tcp.Close("契约用例-关闭失败");
+
+        // 无论关闭动作是否成功，服务端会话都必须收敛到终态并移出集合
+        await WaitUntilAsync(() => tcp.Disposed && server.Sessions.Count == 0);
+
+        Assert.True(tcp.Disposed);
+        Assert.False(tcp.Active);
+        Assert.Empty(server.Sessions);
+    }
+
+    /// <summary>对端 RST 断开时，服务端会话必须及时释放并出集合（不能只靠会话超时清理兜底）</summary>
+    [Fact(DisplayName = "生命周期权威_对端重置连接_服务端会话及时释放")]
+    public async Task ServerSession_PeerReset_SessionReleased()
+    {
+        using var server = new TcpServer { Port = 0, Log = XTrace.Log };
+
+        ISocketSession? session = null;
+        server.NewSession += (s, e) => session = e.Session;
+        server.Start();
+
+        using var client = new TcpClient();
+        await client.ConnectAsync(IPAddress.Loopback, server.Port);
+
+        await WaitUntilAsync(() => session != null && server.Sessions.Count == 1);
+
+        var tcp = Assert.IsType<TcpSession>(session);
+
+        // LingerState(true, 0)：客户端关闭时直接发 RST 而不是 FIN，服务端接收环随即报 ConnectionReset
+        client.LingerState = new LingerOption(true, 0);
+        client.Close();
+
+        // 不缩短 SessionTimeout，用等待窗口区分“立即释放”与“等超时清理”
+        await WaitUntilAsync(() => tcp.Disposed && server.Sessions.Count == 0, 5_000);
+
+        Assert.True(tcp.Disposed);
+        Assert.False(tcp.Active);
+        Assert.Empty(server.Sessions);
+    }
+
     /// <summary>登记会话时，会话数与集合数一致；客户端断开后两者一起归零</summary>
     [Fact(DisplayName = "生命周期权威_登记会话时_会话数与集合数一致")]
     public async Task NetServer_SessionCount_MatchesCollection()
@@ -170,5 +232,31 @@ public class SessionAuthorityContractTests
 
         await WaitUntilAsync(() => server.SessionCount == 0);
         Assert.Equal(0, server.SessionCount);
+    }
+
+    /// <summary>统计输出不得反写会话计数：不登记会话（UseSession=false）时字典恒空，不能把计数清零</summary>
+    [Fact(DisplayName = "生命周期权威_统计输出不反写会话计数")]
+    public async Task NetServer_GetStat_DoesNotOverwriteSessionCount()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            UseSession = false,
+            Log = XTrace.Log,
+        };
+        server.Start();
+
+        using var client = new TcpClient();
+        await client.ConnectAsync(IPAddress.Loopback, server.Port);
+
+        await WaitUntilAsync(() => server.SessionCount == 1);
+        Assert.Empty(server.Sessions);
+
+        var stat = server.GetStat();
+        Assert.False(stat.IsNullOrEmpty(), "有会话时统计输出不应为空");
+
+        // 权威计数是 _SessionCount 计数器，不因统计输出而改变
+        Assert.Equal(1, server.SessionCount);
     }
 }

@@ -535,13 +535,21 @@ public class NetServerTests
         // 等待服务端处理完成后再读取回送数据
         Assert.True(serverReceived.Wait(3000));
 
-        var buf = new Byte[64];
-        var n = stream.Read(buf, 0, buf.Length);
-        var received = buf[..n];
+        // 回送为直发同步写出：循环读满预期长度（读超时为 3 秒，未到即失败）
+        var expected = payload.Length + splitData.Length;
+        var received = new Byte[expected];
+        var read = 0;
+        while (read < expected)
+        {
+            var n = stream.Read(received, read, received.Length - read);
+            if (n <= 0) break;
+
+            read += n;
+        }
 
         // 服务端回送的数据末尾应包含分割字节
-        Assert.True(received.Length >= splitData.Length);
-        Assert.Equal(splitData, received[^splitData.Length..]);
+        Assert.True(read >= splitData.Length);
+        Assert.Equal(splitData, received[(read - splitData.Length)..read]);
     }
 
     /// <summary>SplitDataCodec 行帧交付：同步消费直接可用；跨轮带出经 Slice 后帧释放仍可读</summary>
