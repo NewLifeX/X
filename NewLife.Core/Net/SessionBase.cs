@@ -550,8 +550,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             }
 
             // 池化接收缓冲：从 ArrayPool 借出，归本会话持有。每轮把整块缓冲包装为本轮拥有句柄上抛，
-            // 轮末按引用计数裁决：无人持有则句柄回挂接收槽（UserToken）供下轮重绑复用，缓冲继续接收（零 Rent/Return），
-            // 被下游消费或带出时才解绑换新。归还见 ReleaseRecv 与 OwnerPacket.Detach/Rebind 协议。
+            // 轮末按引用计数裁决：无人持有则句柄回挂接收槽（UserToken）供下轮复用（重设窗口即可，缓冲原地不动，零 Rent/Return），
+            // 被下游消费或带出时才解绑换新。归还见 ReleaseRecv 与 OwnerPacket.Detach 协议。
             // 加大接收缓冲区，规避SocketError.MessageSize问题
             var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
             var se = new SocketAsyncEventArgs();
@@ -745,13 +745,18 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 if (se.Buffer != null)
                 {
                     // 同步执行，直接使用数据，不需要拷贝：整块缓冲包装为本轮拥有句柄，交由管道与事件消费。
-                    // 接收环复用：优先取回挂在接收槽上的上一轮句柄，重绑到本段数据；无则新建。
+                    // 接收环复用：优先取回挂在接收槽上的上一轮句柄，把窗口重设到本段数据；无则新建。
+                    // 不变量：slot.Packet 非空 ⇒ 它的缓冲就是本槽的 se.Buffer——se.Buffer 只在 StartReceive 借新、
+                    // ReleaseRecv 归还、轮末解绑换新三处变更，且都在变更前清空 slot.Packet；因此这里只需重设长度，
+                    // 不需要也不可能换缓冲（换缓冲必须换新句柄）。
+                    // 代价：不再校验 RefCount——本槽句柄由本槽独占，凡跨轮带出都会先 Slice（轮末即走换新分支、不回挂），
+                    // 唯一失守点是下游违规留存原句柄（不经 Slice）时会被静默重设窗口而不是报错。
                     var slot = se.UserToken as RecvSlot;
                     var pk = slot?.Packet;
                     if (pk != null)
                     {
                         slot!.Packet = null;
-                        pk.Rebind(se.Buffer, se.Offset, bytes);
+                        pk.Resize(bytes);
                     }
                     else
                     {
@@ -765,7 +770,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                     finally
                     {
                         // 轮末裁决缓冲归属，正常与异常路径一致：
-                        // 计数为 1（无他人持有）→ 句柄回挂接收槽供下轮重绑复用，缓冲留在会话继续接收，零 Rent/Return；
+                        // 计数为 1（无他人持有）→ 句柄回挂接收槽供下轮重设窗口复用，缓冲留在会话继续接收，零 Rent/Return；
                         // 其余情况（已被下游消费归零，或存在共享切片大于 1）→ 释放本句柄（已释放则空操作），解绑换新；
                         // 不在此归还：计数大于 1 时旧缓冲仍被外部使用，归还它会把正在使用的缓冲交还给池。
                         if (pk.RefCount == 1)
@@ -1451,7 +1456,7 @@ internal sealed class RecvSlot(Int32 index)
     /// <summary>槽序号（第几个接收事件参数）</summary>
     public Int32 Index { get; } = index;
 
-    /// <summary>轮末回挂的数据包句柄，下一轮重绑复用；无外部持有者时非空</summary>
+    /// <summary>轮末回挂的数据包句柄，下一轮重设窗口后复用；无外部持有者时非空</summary>
     public OwnerPacket? Packet { get; set; }
 
     /// <summary>是否已释放。用于释放幂等：同一个接收事件参数只释放一次</summary>

@@ -44,9 +44,6 @@ internal sealed class ArrayOwner(Byte[] buffer, Boolean returnToPool)
             ArrayPool<Byte>.Shared.Return(Buffer);
     }
 
-    /// <summary>接收环复用：重新绑定缓冲（前提：无其它引用持有）</summary>
-    /// <param name="buffer">新的缓冲数组</param>
-    public void Reset(Byte[] buffer) => Buffer = buffer;
     #endregion
 }
 
@@ -63,7 +60,7 @@ internal sealed class ArrayOwner(Byte[] buffer, Boolean returnToPool)
 /// <list type="number">
 /// <item>共享切片：<see cref="Slice(Int32, Int32)"/> 按段递增引用计数，返回独立句柄（具体类型 <see cref="OwnerPacket"/>，可直接 <c>using</c> 释放）；双方（或多方）均可继续使用，各自 <see cref="Dispose"/>，最后一个释放时才归还内存池</item>
 /// <item>独占换窗：<see cref="OwnerPacket(OwnerPacket, Int32)"/> 头部扩展构造，接管源实例的引用与链，源实例整体作废（仅此一处保留接管语义，调用方需自行确保无其它共享句柄）</item>
-/// <item>接收层轮末裁决：会话私有句柄在轮末按 <see cref="RefCount"/> 判定——无人持有（为 1）时回挂接收槽，下一轮 <see cref="Rebind"/> 重绑复用；存在共享引用时释放本引用并换新缓冲。把数据交给发送管道也计入共享引用（<c>SendPump.Append</c> 切出共享句柄），保证轮末不会复用仍在发送中的缓冲</item>
+/// <item>接收层轮末裁决：会话私有句柄在轮末按 <see cref="RefCount"/> 判定——无人持有（为 1）时回挂接收槽，下一轮 <see cref="Resize"/> 重设窗口复用；存在共享引用时释放本引用并换新缓冲。把数据交给发送管道也计入共享引用（<c>SendPump.Append</c> 切出共享句柄），保证轮末不会复用仍在发送中的缓冲</item>
 /// </list>
 /// <para><b>生命周期管理</b>：每个持有引用的句柄都必须调用 <see cref="Dispose"/>；引用计数归零时缓冲区归还内存池。未释放的句柄会让缓冲区无法回池，这是使用本类型唯一的纪律要求。
 /// 开发期（DEBUG）由析构函数兜底释放漏释放的句柄并输出 XTrace 告警；发布版默认不编译析构，不产生终结队列登记与终结器调度开销，如需生产兜底可定义编译符号 OWNERPACKET_FINALIZER 开启。</para>
@@ -334,7 +331,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// <remarks>
     /// <para>用于接收层复用缓冲：每轮把整块缓冲包装为句柄上抛，轮末确认没有其它持有者（<see cref="RefCount"/> 为 1）时即可脱手，
     /// 缓冲留在会话继续接收，做到零 Rent/Return；归还责任随脱手转交调用方，由其在会话关闭时归还。
-    /// 接收环的日常轮末改为把句柄回挂接收槽复用（见 <see cref="Rebind"/>），仅在会话关闭时才真正脱手。</para>
+    /// 接收环的日常轮末改为把句柄回挂接收槽、下一轮用 <see cref="Resize"/> 重设窗口复用，仅在会话关闭时才真正脱手。</para>
     /// <para>数据支撑（基准实测）：池化 Rent+Return 合计约 8ns、与大小无关，但接收环每轮必经；
     /// 轮末脱手复用把“归还+再借”的成对开销省为零，缓冲常驻不换新。</para>
     /// <para>与 <see cref="Dispose"/> 的区别：Dispose 释放引用并可能归还池；脱手只废弃句柄，保留缓冲的借用状态。</para>
@@ -363,30 +360,6 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         Next = null;
     }
 
-    /// <summary>接收环复用：把本句柄重新绑定到下一轮缓冲段，避免每轮新建包装对象</summary>
-    /// <remarks>
-    /// <para>仅用于接收层：轮末无外部持有（<see cref="RefCount"/> 为 1）时把句柄回挂接收槽，下一轮开始时重绑到新收到的数据段。</para>
-    /// <para>调用前提：本实例无其它持有者。缓冲通常仍是会话常驻缓冲，地址不变时仅更新偏移与长度；所有者缺失时补建。</para>
-    /// </remarks>
-    /// <param name="buffer">缓冲数组</param>
-    /// <param name="offset">数据起始偏移</param>
-    /// <param name="length">数据长度</param>
-    /// <exception cref="InvalidOperationException">仍有其它句柄持有缓冲区</exception>
-    internal void Rebind(Byte[] buffer, Int32 offset, Int32 length)
-    {
-        if (RefCount != 1)
-            throw new InvalidOperationException($"Cannot rebind while other handle(s) still hold the buffer: {RefCount}");
-
-        _buffer = buffer;
-        _offset = offset;
-        _length = length;
-        Next = null;
-
-        if (_owner == null)
-            _owner = new ArrayOwner(buffer, true);
-        else
-            _owner.Reset(buffer);
-    }
     #endregion
 
     #region 内存访问
@@ -424,6 +397,8 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// <remarks>
     /// <para>主要用于从缓冲区读取数据后，根据实际读取量调整有效长度。</para>
     /// <para>当存在 Next 节点时，仅允许减小当前段长度。</para>
+    /// <para>接收层复用：会话把轮末无外部持有的轮句柄回挂接收槽，下一轮用本方法把窗口重设到新收到的数据段，
+    /// 复用同一个拥有句柄（缓冲与引用计数对象都不重建），接收环因此做到每轮零分配。</para>
     /// </remarks>
     public OwnerPacket Resize(Int32 size)
     {

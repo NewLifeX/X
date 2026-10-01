@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.ComponentModel;
 using System.Net;
 using NewLife;
@@ -63,18 +64,26 @@ public class ReceivedEventArgsTests
     }
 
     [Fact]
-    [DisplayName("轮末裁决：无人带出（计数为 1）→ Detach 脱手复用（零 Rent/Return）")]
-    public void RoundHandle_Unowned_DetachForReuse()
+    [DisplayName("轮末裁决：无人带出（计数为 1）→ 句柄回挂接收槽，下轮 Resize 重设窗口复用")]
+    public void RoundHandle_Unowned_ReuseByResize()
     {
-        // 模拟接收层每轮：整块包装为拥有句柄直接交下游；下游同步只读、不持有
-        var round = new OwnerPacket(new Byte[] { 1, 2, 3, 4 }, 0, 4, true);
+        // 模拟接收层每轮：整块池化缓冲包装为拥有句柄直接交下游；下游同步只读、不持有
+        var buffer = ArrayPool<Byte>.Shared.Rent(16);
+        var round = new OwnerPacket(buffer, 0, 4, true);
 
-        // 无共享切片 → 计数为 1，可脱手：放弃本句柄引用但不归还，缓冲留在会话继续接收
+        // 无共享切片 → 计数为 1，轮末把句柄回挂接收槽（不脱手、不归还），缓冲留在会话继续接收
         Assert.Equal(1, round.RefCount);
-        round.Detach();
 
-        // 句柄作废、缓冲未归还（由会话在下轮复用或关闭时归还）
-        Assert.Equal(0, round.RefCount);
+        // 下一轮：同一句柄把窗口重设到本段数据（缓冲原地不动，零 Rent/Return、零分配）
+        buffer[0] = 9;
+        buffer[1] = 8;
+        round.Resize(2);
+
+        Assert.Same(buffer, round.Buffer);
+        Assert.Equal(2, round.Length);
+        Assert.Equal(new Byte[] { 9, 8 }, round.ToArray());
+
+        round.Dispose();
     }
 
     [Fact]

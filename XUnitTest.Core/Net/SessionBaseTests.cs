@@ -849,4 +849,59 @@ public class SessionBaseTests
         }
     }
     #endregion
+
+    #region 接收环复用
+    /// <summary>接收环复用：同一连接连续两轮不同长度报文，轮末回挂的句柄必须按本轮长度重设窗口</summary>
+    [Fact]
+    public async Task ReceiveRing_ReusedHandle_RewindowsPerRound()
+    {
+        var serverLengths = new List<Int32>();
+        var clientLengths = new List<Int32>();
+        using var received = new SemaphoreSlim(0);
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+        };
+
+        server.Received += (s, e) =>
+        {
+            if (s is INetSession session && e.Packet != null)
+            {
+                lock (serverLengths) serverLengths.Add(e.Packet.Length);
+
+                // Echo，客户端据回包长度判断本轮窗口
+                session.Send(e.Packet);
+            }
+        };
+
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Received += (s, e) =>
+        {
+            if (e.Packet != null)
+            {
+                lock (clientLengths) clientLengths.Add(e.Packet.Length);
+                received.Release();
+            }
+        };
+        Assert.True(client.Open());
+
+        // 第一轮 5 字节，等回包到达后再发第二轮：两轮分属不同接收轮次，不会被合并成一次读
+        client.Send(new Byte[5]);
+        Assert.True(await received.WaitAsync(5000), "首轮回包超时");
+        client.Send(new Byte[37]);
+        Assert.True(await received.WaitAsync(5000), "次轮回包超时");
+
+        // 两轮长度各自正确：第二轮若沿用上一轮窗口（未重设），长度会停在 5
+        lock (serverLengths) Assert.Equal(new[] { 5, 37 }, serverLengths);
+        lock (clientLengths) Assert.Equal(new[] { 5, 37 }, clientLengths);
+
+        // 迟到的多余轮次同样不允许出现
+        await Task.Delay(100);
+        lock (serverLengths) Assert.Equal(new[] { 5, 37 }, serverLengths);
+    }
+    #endregion
 }
