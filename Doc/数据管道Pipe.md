@@ -138,7 +138,7 @@ await pipe.Writer.FlushAsync();      // 提交，读取方立即可见
 ## 会话集成（TcpSession）
 
 - 入站管道由连接型会话 `TcpSession` 提供（接口 `IStreamSession`）：`Pipe` 属性懒创建（`CreatePipe()` 虚方法可定制水位）；`GetPipe()` 为不触发创建的访问器；
-- 接收环每轮把轮数据以**共享切片**（`pk.Slice(0, -1)`，引用计数）投递进管道——轮末裁决因引用计数大于 1 自动换新缓冲，**Detach 协议零改动**；
+- 接收环每轮把轮数据以**共享切片**（`pk.Slice(0, -1)`，引用计数）投递进管道——轮末裁决因引用计数大于 1 自动换新缓冲，**所有权协议零改动**；
 - 暂停由 `TcpSession` 在发起下一次接收时判定（`OnReceiveAsync` 内查管道水位）：达到暂停水位时暂存接收事件参数，`Resumed`（消费线程）触发经接收环同一入口重启（仍暂停则再次暂存）；
 - `CloseAsync` 完成管道写侧（挂起读取立即得到 IsCompleted）并释放挂起的事件参数。
 
