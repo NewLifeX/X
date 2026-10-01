@@ -453,6 +453,19 @@ public class HttpServerTests : IDisposable
         Assert.Equal(payload, await rs2.Content.ReadAsByteArrayAsync());
     }
 
+    [Fact(DisplayName = "流式响应_文件路径已失效_降级读流完整到达")]
+    public async Task StreamResponse_FileGone_FallsBackToStream()
+    {
+        var payload = new Byte[256 * 1024];
+        Random.Shared.NextBytes(payload);
+        _server.Map("/gone", new DeletedFileHandler { Payload = payload });
+
+        using var client = new HttpClient { BaseAddress = _baseUri };
+        var rs = await client.GetAsync("/gone");
+        Assert.Equal(HttpStatusCode.OK, rs.StatusCode);
+        Assert.Equal(payload, await rs.Content.ReadAsByteArrayAsync());
+    }
+
     [Fact(DisplayName = "流式响应_慢客户端_内存有界且数据完整")]
     public async Task StreamResponse_SlowClient_BoundedByBackpressure()
     {
@@ -547,6 +560,26 @@ public class HttpServerTests : IDisposable
         public override Int64 Seek(Int64 offset, SeekOrigin origin) => throw new NotSupportedException();
         public override void SetLength(Int64 value) => throw new NotSupportedException();
         public override void Write(Byte[] buffer, Int32 offset, Int32 count) => throw new NotSupportedException();
+    }
+
+    /// <summary>文件打开后即删除目录项的流式响应处理器</summary>
+    /// <remarks>流本身仍可读，但零拷贝要按路径重开文件——此时路径已不存在，必须降级回读原流</remarks>
+    class DeletedFileHandler : IHttpHandler
+    {
+        public Byte[] Payload { get; set; } = [];
+
+        public void ProcessRequest(IHttpContext context)
+        {
+            var path = Path.Combine(Path.GetTempPath(), "nl_delfile_" + Guid.NewGuid().ToString("N"));
+            File.WriteAllBytes(path, Payload);
+
+            // 带 FileShare.Delete 打开后立即删除目录项：句柄仍可读，路径重开必然失败
+            var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            File.Delete(path);
+
+            context.Response.ContentType = "application/octet-stream";
+            context.Response.BodyStream = fs;
+        }
     }
 
     [Fact]
