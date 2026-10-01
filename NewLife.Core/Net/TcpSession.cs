@@ -229,7 +229,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 var ep = new UnixDomainSocketEndPoint(uri.Path!);
                 span?.AppendTag($"RemoteEndPoint={ep}");
 
-                await ConnectUnixAsync(sock, ep, timeout, cancellationToken).ConfigureAwait(false);
+                await ConnectAsync(sock, ep, timeout, cancellationToken).ConfigureAwait(false);
 #endif
             }
             else
@@ -238,28 +238,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 addrs = addrs.Where(ip => ip.AddressFamily == sock.AddressFamily).ToArray();
                 span?.AppendTag($"addrs={addrs.Join()} port={uri.Port}");
 
-                if (timeout <= 0)
-                    sock.Connect(addrs, uri.Port);
-                else
-                {
-#if NET5_0_OR_GREATER
-                    using var source = new CancellationTokenSource(timeout);
-                    using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, source.Token);
-                    using var _ = cts2.Token.Register(() => sock.Close());
-                    await sock.ConnectAsync(addrs, uri.Port, cts2.Token).ConfigureAwait(false);
-#else
-                    // 采用异步来解决连接超时设置问题
-                    var ar = sock.BeginConnect(addrs, uri.Port, null, null);
-                    if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
-                    {
-                        sock.Close();
-                        throw new TimeoutException($"The connection to server [{uri}] timed out! [{timeout}ms]");
-                    }
-
-                    //sock.EndConnect(ar);
-                    await Task.Factory.FromAsync(ar, sock.EndConnect).ConfigureAwait(false);
-#endif
-                }
+                await ConnectAsync(sock, addrs, uri.Port, timeout, cancellationToken, uri).ConfigureAwait(false);
             }
 
             // 作为客户端，启用KeepAlive，及时释放无效连接。Unix域套接字不支持
@@ -342,11 +321,42 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     /// <param name="ep">远程终结点</param>
     /// <param name="timeout">超时时间（毫秒）</param>
     /// <param name="cancellationToken">取消通知</param>
-    private static async Task ConnectUnixAsync(Socket sock, EndPoint ep, Int32 timeout, CancellationToken cancellationToken)
+    private static Task ConnectAsync(Socket sock, EndPoint ep, Int32 timeout, CancellationToken cancellationToken)
+        => ConnectCoreAsync(sock, timeout, cancellationToken, null, 0, ep, ep);
+#endif
+
+    /// <summary>异步连接IP地址数组（同族地址按序回退），支持超时</summary>
+    /// <param name="sock">套接字</param>
+    /// <param name="addrs">目标地址数组</param>
+    /// <param name="port">目标端口</param>
+    /// <param name="timeout">超时时间（毫秒）</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <param name="remote">远程描述，仅用于超时异常消息</param>
+    private static Task ConnectAsync(Socket sock, IPAddress[] addrs, Int32 port, Int32 timeout, CancellationToken cancellationToken, Object remote)
+        => ConnectCoreAsync(sock, timeout, cancellationToken, addrs, port, null, remote);
+
+    /// <summary>连接核心：统一TCP与Unix域套接字的同步/异步建连及超时处理</summary>
+    /// <remarks>
+    /// <para>无超时（timeout小于等于零）时同步连接；高版本.NET用可取消的 ConnectAsync 配预算取消源；低版本用 BeginConnect+WaitOne 模拟超时。</para>
+    /// <para>超时异常类型随目标框架而异：高版本为预算取消源触发的 OperationCanceledException，低版本为本方法抛出的 TimeoutException。</para>
+    /// </remarks>
+    /// <param name="sock">套接字</param>
+    /// <param name="timeout">超时时间（毫秒），小于等于零表示不启用超时</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <param name="addrs">目标地址数组（TCP），与 <paramref name="ep"/> 二选一</param>
+    /// <param name="port">目标端口（TCP）</param>
+    /// <param name="ep">远程终结点（Unix域套接字），与 <paramref name="addrs"/> 二选一</param>
+    /// <param name="remote">远程描述，仅用于超时异常消息</param>
+    private static async Task ConnectCoreAsync(Socket sock, Int32 timeout, CancellationToken cancellationToken,
+        IPAddress[]? addrs, Int32 port, EndPoint? ep, Object? remote)
     {
         if (timeout <= 0)
         {
-            sock.Connect(ep);
+            if (ep != null)
+                sock.Connect(ep);
+            else
+                sock.Connect(addrs!, port);
+
             return;
         }
 
@@ -354,20 +364,24 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         using var source = new CancellationTokenSource(timeout);
         using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, source.Token);
         using var _ = cts2.Token.Register(() => sock.Close());
-        await sock.ConnectAsync(ep, cts2.Token).ConfigureAwait(false);
+
+        if (ep != null)
+            await sock.ConnectAsync(ep, cts2.Token).ConfigureAwait(false);
+        else
+            await sock.ConnectAsync(addrs!, port, cts2.Token).ConfigureAwait(false);
 #else
         // 采用异步来解决连接超时设置问题
-        var ar = sock.BeginConnect(ep, null, null);
+        var ar = ep != null ? sock.BeginConnect(ep, null, null) : sock.BeginConnect(addrs!, port, null, null);
         if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
         {
             sock.Close();
-            throw new TimeoutException($"The connection to server [{ep}] timed out! [{timeout}ms]");
+            throw new TimeoutException($"The connection to server [{remote}] timed out! [{timeout}ms]");
         }
 
+        //sock.EndConnect(ar);
         await Task.Factory.FromAsync(ar, sock.EndConnect).ConfigureAwait(false);
 #endif
     }
-#endif
 
     /// <summary>关闭</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>

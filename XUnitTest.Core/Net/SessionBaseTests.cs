@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using NewLife;
@@ -169,22 +170,45 @@ public class SessionBaseTests
         Assert.True(client.Active);
     }
 
-    /// <summary>测试TcpSession超时</summary>
-    [Fact]
+    /// <summary>探测地址是否构成“黑洞”：预算内既没连上、也不立刻失败</summary>
+    private static Boolean IsBlackhole(String host, Int32 port, Int32 budgetMs)
+    {
+        try
+        {
+            using var tc = new TcpClient();
+            var task = tc.ConnectAsync(host, port);
+
+            return !task.Wait(budgetMs);
+        }
+        catch
+        {
+            return false;   // 立刻失败（拒绝或路由不可达）→ 不是黑洞
+        }
+    }
+
+    /// <summary>测试TcpSession建连超时受Timeout约束</summary>
+    [Fact(DisplayName = "TcpSession_建连超时_受Timeout约束")]
     public void TcpSessionTimeout()
     {
-        var client = new TcpSession
+        // 192.0.2.0/24 为文档保留网段，正常不会被路由；若本机对它立刻拒绝（ICMP 或路由不可达），
+        // 就无从验证建连超时约束，跳过
+        if (!IsBlackhole("192.0.2.1", 12345, 1000)) return;
+
+        using var client = new TcpSession
         {
-            Remote = new NetUri("tcp://192.0.2.1:12345"), // 不可达地址
-            Timeout = 1000,
+            Remote = new NetUri("tcp://192.0.2.1:12345"), // 黑洞地址
+            Timeout = 800,
         };
 
-        // 连接不可达地址可能抛出 TimeoutException、SocketException 或 OperationCanceledException
+        var sw = Stopwatch.StartNew();
+        // 没有超时约束时，建连要等操作系统默认 TCP 超时（Windows 约 21 秒）
         var ex = Assert.ThrowsAny<Exception>(() => client.Open());
+        sw.Stop();
+
+        // 超时异常类型随目标框架而异：高版本为预算取消源触发的 OperationCanceledException，低版本为 TimeoutException
         Assert.True(ex is TimeoutException || ex is SocketException || ex is OperationCanceledException,
             $"Expected TimeoutException, SocketException or OperationCanceledException, but got {ex.GetType().Name}");
-
-        client.Dispose();
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"建连耗时 {sw.Elapsed}，未受 Timeout 约束");
     }
 
     /// <summary>测试TcpSession Items扩展数据</summary>
