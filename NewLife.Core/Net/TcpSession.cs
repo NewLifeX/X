@@ -444,6 +444,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
     #region 发送
     // 发送出口：默认直发，另有可选的发送队列作第二出口。两者共用一把写锁，任一时刻只有一位写者在写套接字。
+    // 例外：SSL 握手写（AuthenticateAsServer / AuthenticateAsClientAsync）不经写锁——握手发生在打开流程内，
+    // 此时会话尚未对业务可用、不可能有并发发送；若将来允许握手期间发送数据，必须把握手写纳入写锁。
     //   Send(IPacket/byte[]/Span)  锁内同步直写：0 分配 0 拷贝，写完才返回，失败返回 -1
     //   SendAsync(IPacket)         锁内异步直写：0 分配 0 拷贝，等待可写期间不占线程
     //   SendAsync(Stream)          流式：读一块 → 写完（或挂起）再读下一块，内核缓冲即背压，内存有界

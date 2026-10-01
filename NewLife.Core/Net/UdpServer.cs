@@ -631,6 +631,10 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 // 释放后回退到集合里已有的会话，调用方拿到的仍是该端点的有效会话（与 TcpServer.OnAccept 的失败分支同型）
                 session.TryDispose();
 
+                // 集合里取不到该端点的会话，说明新建的会话是被业务在 NewSession 中主动释放的（端点重复时这里必能取到）。
+                // 此处返回这个已释放实例是有意为之：调用方（ProcessReceive 的 OnPreReceive）只用它做判空，
+                // 真正交付数据的是随后的 OnReceive，它会重新创建该端点的会话并加入集合。
+                // 若改成抛异常，本轮数据报会被直接丢弃、也不再为该端点建会话（既有用例锁定此行为）
                 session = sessions.Get(remoteEP) ?? session;
             }
         }
