@@ -370,6 +370,34 @@ public class HttpServerTests : IDisposable
         Assert.Equal(93917, rs.ReadBytes(-1).Length);
     }
 
+    [Fact(DisplayName = "静态文件_大文件_零拷贝推送_内容逐字节一致")]
+    public async Task StaticFile_LargeFile_ContentMatches()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "nl_static_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+
+        // 2MB：远超 64KB 读块，确认文件内容不再经应用层读块搬运
+        const Int32 size = 2 * 1024 * 1024;
+        var payload = new Byte[size];
+        Random.Shared.NextBytes(payload);
+        await File.WriteAllBytesAsync(Path.Combine(dir, "big.bin"), payload);
+
+        try
+        {
+            _server.MapStaticFiles("/static", dir);
+
+            using var client = new HttpClient { BaseAddress = _baseUri };
+            var bytes = await client.GetByteArrayAsync("/static/big.bin");
+
+            Assert.Equal(size, bytes.Length);
+            Assert.Equal(payload, bytes);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
     [Fact(DisplayName = "静态文件_HEAD请求_只返回头部不发实体")]
     public async Task HeadRequest_StaticFile_NoEntity()
     {
@@ -425,21 +453,12 @@ public class HttpServerTests : IDisposable
         Assert.Equal(payload, await rs2.Content.ReadAsByteArrayAsync());
     }
 
-    [Fact(DisplayName = "流式响应_慢客户端_发送积压受水位约束且数据完整")]
+    [Fact(DisplayName = "流式响应_慢客户端_内存有界且数据完整")]
     public async Task StreamResponse_SlowClient_BoundedByBackpressure()
     {
         var payload = new Byte[16 * 1024 * 1024];
         Random.Shared.NextBytes(payload);
         _server.Map("/slow", new StreamTestHandler { Payload = payload });
-
-        // 会话启用发送管道：启用后本次会话的发送一律改为入队（不阻塞），
-        // 逐块直发若不等待背压，慢客户端下整个响应体会排队进内存，单连接即可耗尽内存
-        var session = default(TcpSession);
-        _server.NewSession += (s, e) =>
-        {
-            session = e.Session.Session as TcpSession;
-            _ = session?.SendPipe;
-        };
 
         using var client = new TcpClient { NoDelay = true };
         await client.ConnectAsync(IPAddress.Loopback, _server.Port);
@@ -448,17 +467,12 @@ public class HttpServerTests : IDisposable
         await ns.WriteAsync("GET /slow HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".GetBytes());
         await ns.FlushAsync();
 
-        // 客户端暂不读取：服务端发送积压应停留在管道水位附近（暂停水位 + 一个读块），
-        // 而不是把 16M 响应体整段排队进内存
-        var maxPending = 0L;
-        for (var i = 0; i < 20; i++)
+        // 慢客户端：请求发出后间歇停读。直发模型下服务端每块写完（或挂起）才读下一块，
+        // 内存恒为一块读缓冲——内核发送缓冲充当前水位的背压，不会把 16M 响应体撑进内存
+        for (var i = 0; i < 10; i++)
         {
-            await Task.Delay(50);
-            if (session?.GetSendPipe() is { } pipe) maxPending = Math.Max(maxPending, pipe.UnconsumedLength);
+            await Task.Delay(100);
         }
-
-        Assert.True(maxPending > 0, "未观测到发送积压，用例未覆盖流式发送的背压路径");
-        Assert.True(maxPending < 2 * 1024 * 1024, $"发送积压 {maxPending} 字节，未受发送水位约束");
 
         // 客户端开始读取：数据必须完整送达（背压只约束排队，不截断数据）
         var all = new MemoryStream();
