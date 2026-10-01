@@ -405,6 +405,102 @@ partial class TcpSession
     }
     #endregion
 
+    #region 文件发送
+    /// <summary>发送文件：交给内核零拷贝推送（Linux sendfile / Windows TransmitFile），应用层不经过读块搬运</summary>
+    /// <remarks>
+    /// <para><b>内存</b>：文件内容全程不进入应用层缓冲，也没有 64KB 读块往返，大文件发送的 CPU 与内存开销都低于流式分块。</para>
+    /// <para><b>背压</b>：等待可写期间不占线程；慢速对端由内核发送缓冲形成背压，应用层无积压。</para>
+    /// <para>与 <see cref="SessionBase.Send(IPacket)"/> 共用同一把写锁：并发调用不会交错，“响应头 + 文件体”先发头部再调用本方法即可保持一条逻辑消息。</para>
+    /// <para>SSL 会话（<c>SslStream</c>）与无零拷贝发送 API 的目标框架降级为 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 的分块读取发送，语义一致但多一次读块搬运。</para>
+    /// <para>不支持偏移与长度：需要发送文件的某一段（如 HTTP Range）时，用 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 定位后分块发送。</para>
+    /// </remarks>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已发送字节数；发送失败返回 -1（已上报并按失败关闭会话）</returns>
+    /// <exception cref="ArgumentNullException">路径为空</exception>
+    /// <exception cref="FileNotFoundException">文件不存在</exception>
+    /// <exception cref="InvalidOperationException">会话未打开</exception>
+    public async ValueTask<Int64> SendFileAsync(String filePath, CancellationToken cancellationToken = default)
+    {
+        if (filePath.IsNullOrEmpty()) throw new ArgumentNullException(nameof(filePath));
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+        var fi = filePath.AsFile();
+        if (!fi.Exists) throw new FileNotFoundException($"File not found: {filePath}", filePath);
+
+        if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
+
+        var length = fi.Length;
+
+        Exception? error = null;
+        var total = -1L;
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+#if NET6_0_OR_GREATER
+            // 非 SSL 会话：整个文件交给内核零拷贝推送，等待可写期间不占线程
+            if (_Stream == null)
+            {
+                var sock = Client;
+                if (sock == null) return -1;
+
+                try
+                {
+                    await sock.SendFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+
+                    LastTime = DateTime.Now;
+
+                    return length;
+                }
+                catch (OperationCanceledException)
+                {
+                    // 调用方主动取消：不是发送故障，向上抛出
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    // 内核零拷贝并非处处可用（如 Unix 域套接字、部分文件系统）：降级为分块读取发送，
+                    // 而不是直接按发送失败关掉会话；降级仍失败时由外层统一上报
+                    WriteLog("内核零拷贝发送失败，降级为分块发送 {0}：{1}", filePath, ex.Message);
+                }
+            }
+#endif
+            // SSL 会话或无零拷贝发送 API 的框架：分块读取发送（语义相同，多一次读块搬运）
+            using var fs = fi.OpenRead();
+
+            total = await SendStreamCoreAsync(fs, length, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // 调用方主动取消：不是连接故障，向上抛出（finally 会释放写锁）
+            throw;
+        }
+        catch (InvalidDataException)
+        {
+            // 流提前结束属调用方数据问题，不是发送故障：不上报、不关会话
+            throw;
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一把写锁上二次等待而死锁
+        if (error != null)
+        {
+            ReportSendError(error, filePath);
+
+            return -1;
+        }
+
+        return total;
+    }
+
     /// <summary>锁内发送「头部 + 流内容」整条消息：一次加锁贯穿，头体之间不会被其它写入者插入</summary>
     /// <remarks>
     /// <para>与分别调用 <see cref="SessionBase.Send(IPacket)"/> 与 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 的区别：那两条各自加锁，
