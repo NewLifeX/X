@@ -118,8 +118,9 @@ public sealed class Pipe : IDisposable
 
         if (_paused)
         {
-            // 已暂停：降到恢复水位以下时解除并报告
-            if (pending < ResumeThreshold)
+            // 已暂停：降到恢复水位以下时解除并报告。恢复水位应小于暂停水位（两者关系由使用方保证），
+            // 这里按两者较小值判定，避免配置反向时永久暂停（读侧挂起等待、写侧提交永久挂起）
+            if (pending < Math.Min(ResumeThreshold, PauseThreshold))
             {
                 _paused = false;
                 return true;
