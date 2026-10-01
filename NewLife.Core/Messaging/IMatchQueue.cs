@@ -129,14 +129,36 @@ public class DefaultMatchQueue : IMatchQueue
         throw new XException("The matching queue is full [{0}]", items.Length);
     }
 
+    /// <summary>启动周期检查定时器（队列非空时才需要）</summary>
     private void StartTimer()
     {
-        if (_Timer != null) return;
         lock (this)
         {
-            _Timer ??= new TimerX(Check, null, 1000, 1000, "Match") { Async = true };
+            if (_Timer != null) return;
+
+            // 等锁期间请求可能已被匹配/清理完（计数归零），此时无需启动
+            if (Volatile.Read(ref _Count) <= 0) return;
+
+            _Timer = new TimerX(Check, null, 1000, 1000, "Match") { Async = true };
         }
     }
+
+    /// <summary>队列已空时停止周期检查定时器，下次入队再启动</summary>
+    /// <remarks>与 <see cref="StartTimer"/> 同锁互斥，并在锁内复查计数：
+    /// 避免“入队刚看到定时器非空、此处又把它停掉”，导致该请求永远无人做超时检查（调用方悬挂）</remarks>
+    private void StopTimer()
+    {
+        lock (this)
+        {
+            if (Volatile.Read(ref _Count) > 0) return;
+
+            _Timer?.Dispose();
+            _Timer = null;
+        }
+    }
+
+    /// <summary>周期检查定时器。队列清空后停止，下次入队重启</summary>
+    internal TimerX? Timer => _Timer;
 
     /// <summary>检查请求队列是否有匹配该响应的请求</summary>
     /// <param name="owner">拥有者</param>
@@ -187,7 +209,12 @@ public class DefaultMatchQueue : IMatchQueue
     /// <param name="state">状态参数</param>
     void Check(Object? state)
     {
-        if (Volatile.Read(ref _Count) <= 0) return;
+        // 队列已空：停掉周期定时器，下次入队再启动（空闲队列无需每秒空转占用调度器）
+        if (Volatile.Read(ref _Count) <= 0)
+        {
+            StopTimer();
+            return;
+        }
 
         var now = Runtime.TickCount64;
         var items = Items;
@@ -209,6 +236,9 @@ public class DefaultMatchQueue : IMatchQueue
                 if (src != null) SetCanceled(src, qi.Version);
             }
         }
+
+        // 过期项清理完毕：若队列已空则停表。TimerX 的 Async 回调在线程池执行（不在调度器锁内），此处停表不会与调度器互锁
+        StopTimer();
     }
 
     /// <summary>清空队列</summary>

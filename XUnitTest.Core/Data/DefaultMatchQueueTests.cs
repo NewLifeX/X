@@ -141,4 +141,29 @@ public class DefaultMatchQueueTests
             req?.ToString() == "req2");
         Assert.True(matched2);
     }
+
+    [Fact]
+    [DisplayName("队列清空后停止检查定时器_再次入队重新启动")]
+    public async Task Timer_StopsWhenEmpty_AndRestarts()
+    {
+        var queue = new DefaultMatchQueue(16);
+
+        // 入队即启动周期检查定时器（请求超时取消依赖它）
+        var first = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
+        queue.Add(null, "req1", 11, first);
+        Assert.NotNull(queue.Timer);
+
+        // 首轮请求超时被清理后队列归空：实现应停掉定时器，空闲队列不再每秒空转占用调度器
+        await Task.Delay(1_500);
+        Assert.True(first.Task.IsCanceled, "首次请求未被超时取消");
+        Assert.Null(queue.Timer);
+
+        // 停表后再次入队必须重新启动，否则该请求永远等不到超时取消，等待方悬挂
+        var second = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
+        queue.Add(null, "req2", 11, second);
+        Assert.NotNull(queue.Timer);
+
+        await Task.Delay(1_500);
+        Assert.True(second.Task.IsCanceled, "停表后未重新启动定时器：第二次请求未被超时取消");
+    }
 }
