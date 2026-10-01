@@ -43,7 +43,7 @@
 
 | 行为 | 对齐前 | BCL（实测） | 现状（2026-09-27） |
 |------|--------|-------------|--------------------|
-| 读侧结束后继续 `ReadAsync`/`TryRead` | 返回 `IsCompleted` 空结果 | 抛 `InvalidOperationException` | **已对齐**：抛 `InvalidOperationException`（静默降级会把"复用已结束读取器/并发读"掩盖成流结束）。内部消费端（`SendPump`/`WebSocket.ReadFrames`/`LimitedReader`）已加完成判定，正常关闭路径不受影响 |
+| 读侧结束后继续 `ReadAsync`/`TryRead` | 返回 `IsCompleted` 空结果 | 抛 `InvalidOperationException` | **已对齐**：抛 `InvalidOperationException`（静默降级会把“复用已结束读取器/并发读”掩盖成流结束）。内部消费端（`WebSocket.ReadFrames`/`LimitedReader`）已加完成判定，正常关闭路径不受影响 |
 | 写侧 `Complete(error)` 后的读侧读取 | 返回 `IsCompleted`，异常只在 `Pipe.Error` | 抛该异常 | **已对齐（最小版）**：新增 `PipeReader.Error`，`MessagePump.ReadAsync` 在完成且带异常时抛出该异常；不再把连接故障当优雅关闭。`ReadResult` 携带异常留作 v12 可选增强 |
 | 读侧 `Complete(error)` 后的写侧提交 | 返回 `FlushResult(IsCompleted: true)` | 抛该异常 | **已对齐（最小版）**：`Reader.Complete(error)` 把异常记入 `Pipe.Error`，"两侧先完成方胜出"；写侧据 `Pipe.Error` 判断，而非依赖抛出 |
 | 读侧结束后的写侧 `GetSpan`/`WriteAsync` | 抛 `InvalidOperationException`（空数据例外） | 正常返回（不抛） | **已对齐**：读侧结束后可取窗口写入，由 `FlushAsync` 的 `IsCompleted` 告知停止；**写侧自己结束**后再写仍抛异常（两种状态已区分） |
@@ -128,12 +128,12 @@ await pipe.Writer.FlushAsync();      // 提交，读取方立即可见
 
 ## 背压（迟滞状态机）
 
-- 未检查数据（未消费 − 已检查）达到 `PauseThreshold` 转入**暂停态**并保持（`IsPaused` 为 true）；接收方应暂停继续接收，缓冲有界、消费者不取数则接收方停止拉动（TCP 窗口自然回压）；默认值分侧：**入站 1M/512K**（Kestrel 入站缓冲上限同量级的内存安全阀）、**出站 64K/32K**（对齐 BCL/Kestrel 出站档），定档依据见《背压水位定档与内存测算报告》；
+- 未检查数据（未消费 − 已检查）达到 `PauseThreshold` 转入**暂停态**并保持（`IsPaused` 为 true）；接收方应暂停继续接收，缓冲有界、消费者不取数则接收方停止拉动（TCP 窗口自然回压）；默认值分侧：**入站 1M/512K**（Kestrel 入站缓冲上限同量级的内存安全阀）、**出站队列 256K/128K**（`TcpSession.CreateSendQueue()` 可重写；默认直发路径没有应用层水位），定档依据见《背压水位定档与内存测算报告》；
 - 未检查数据降到 `ResumeThreshold` 以下解除暂停并触发 `Resumed`，接收方恢复接收；
 - **记账口径（2026-09-26 修正）**：与 BCL 一致按“未检查”记账（BCL `_unconsumedBytes` 在 `AdvanceTo` 时被 examined 扣减，已实测确认），`AdvanceTo(consumed, examined)` 声明为已检查的字节即解除计入。单参 `AdvanceTo(consumed)` 等价 examined=consumed，故常规消费推进的暂停/恢复行为与“按未消费记账”完全一致；修正前按未消费记账，导致“只检查不消费”（如 `TryRead` + `AdvanceTo(0, len)` 等帧凑齐）时暂停无法解除、写侧 `FlushAsync` 永久挂起；
 - **读饥饿让位（2026-09-17，实测死锁教训）**：读侧在“无新数据可交付”时才挂起等待（整帧未凑齐/凑最小长度）；此时消费不会再来、暂停无法再经消费解除，若继续持有将令接收方停摆（帧永远凑不齐）。故挂起等待时自动解除暂停并触发 `Resumed` 放行接收——**背压约束“已到达未检查的积压”，不束缚读者正在等待的数据**（大帧经此路径不受水位阻挡；代价是该帧驻留内存随帧长增长，超大 payload 建议头部先行流式）。2026-09-26 按“未检查”记账后，读者进入等待时未检查量必然不大于 0、暂停已自行解除，此处保留为运行期调低水位的兜底；
 - **不能按瞬时长度判断**：多次小步消费时，跨过恢复水位那一步的起始长度已低于暂停水位，按瞬时判断会漏报恢复事件（e2e 实测教训）。默认值 0 或负数表示不启用背压。
-- **写侧回压（双向背压，2026-09-17；默认挂起对齐 BCL）**：`FlushAsync(ct)` 在暂停态返回未完成任务——发送方向（应用持续写入）与接收方向共用同一套水位状态机；恢复、结束与取消都会唤醒挂起提交，避免无界积压。
+- **写侧回压（预留能力，2026-09-17）**：`FlushAsync(ct)` 在暂停态返回未完成任务，与接收方向共用同一套水位状态机；恢复、结束与取消都会唤醒挂起提交。当前出站不使用它——出站队列（`TcpSession.SendQueue`）自行以 `IsPaused` + `Resumed` 等待水位，`PipeWriter` 的写侧提交只服务于写入器自身的缓冲提交路径。
 
 ## 会话集成（TcpSession）
 
@@ -142,30 +142,62 @@ await pipe.Writer.FlushAsync();      // 提交，读取方立即可见
 - 暂停由 `TcpSession` 在发起下一次接收时判定（`OnReceiveAsync` 内查管道水位）：达到暂停水位时暂存接收事件参数，`Resumed`（消费线程）触发经接收环同一入口重启（仍暂停则再次暂存）；
 - `CloseAsync` 完成管道写侧（挂起读取立即得到 IsCompleted）并释放挂起的事件参数。
 
-> 数据管道属于连接型会话能力：`TcpSession` 在接收预处理中投递轮数据、在发起接收时执行背压暂停、在关闭流程中收尾（先排空发送队列、后完成管道写侧）；基类不感知流式概念（仅保留接收环原语供子类驱动），UDP 等报文式协议每包即一帧，不需要字节流管道。
+> 数据管道属于连接型会话能力：`TcpSession` 在接收预处理中投递轮数据、在发起接收时执行背压暂停、在关闭流程中收尾（完成管道写侧；出站队列残余不排空，直接丢弃并归还缓冲）；基类不感知流式概念（仅保留接收环原语供子类驱动），UDP 等报文式协议每包即一帧，不需要字节流管道。
 
-## 发送管道（出站，2026-09-17）
+## 出站方向：默认直发，可选发送队列（2026-10-01）
 
-`TcpSession.SendPipe` 与入站 `Pipe` 对称：懒创建（`CreateSendPipe()` 虚方法可定制水位），**发送泵**由内部组件 `SendPump` 承担（唯一的读侧消费方）循环取出窗口逐段发送（一次唤醒批处理整窗、部分发送自动续发）。
+出站曾与入站对称地引入 `SendPipe` + `SendPump` 发送泵（粘性队列单出口 + 水位背压，2026-09-17 落地）。该形态已废弃：管道一旦发布，`Send` 系列全部改入队，同一会话同时存在“持锁直发”与“泵写”两条路径，必须再加锁协商才能避免并发写同一 Socket/SslStream；且队列对借用视图与 `byte[]`/`Span` 入队必须拷贝，而直发可以做到 0 分配 0 拷贝。
 
-- **单出口**：管道创建后 `Send` 系列方法全部改为追加进管道（`TcpSession.OnSend` 内部队列优先分发）——`Send(IPacket)` 拥有句柄零拷贝入管道（借阅视图自动转自有拷贝，`Send(byte[])`/`Span` 按副本入管道，调用方可立即复用缓冲）；与管道内排队数据天然无交错，发送在泵上异步完成；
-- **流式发送**：`TcpSession.SendAsync(Stream, length, ct)` 从数据流分块（64KB）读取，每块零拷贝包装入管道并带写侧回压，大文件全程只在读块上驻留；"头 + 流式体"组合消息先 `Send(header)` 再 `SendAsync(body)`，整条消息仍走单出口顺序；
-- **写侧回压**：未检查数据（泵按 consumed 推进，等价于未发送数据）达到 `PauseThreshold`（默认 64K，恢复 32K）后 `IsPaused` 为 true，`await pipe.Writer.FlushAsync(ct)` 默认挂起等待（对齐 BCL；`FlushAsync(false, ct)` 仅提交不等待）；泵 `AdvanceTo` 推进降到 `ResumeThreshold` 以下时唤醒（与入站共用同一套水位状态机）；
-- **泵内异步（2026-09-18）**：泵的写委托在现代 TFM（`NET5_0_OR_GREATER`）经 `Socket.SendAsync` 真异步发出（每段预算 = 会话 `Timeout`，复用 CTS 避免热路径分配，超预算按超时中止管道），慢对端等待期间不占泵线程；`net5.0` 以下目标降级为同步续发（语义等价）。吞吐实测与直发持平（±5% 内），收益在并发线程占用而非速度；
-- **背压感知发送（2026-09-18）**：除手动 `Append + FlushAsync` 外，`TcpSession` 提供两个水位感知入口——`SendAsync(IPacket, ct)`（Open 守卫 → 入队 → 提交等待：未暂停立即完成，暂停则挂起等水位恢复）与 `TrySend(IPacket)`（不主动 Open；暂停或未激活时拒绝返回 false，由调用方决策重试/丢弃）。注意：`Send` 系列经管道后**不等待**（非阻塞入队），需要背压语义必须用上述 API 或 `SendAsync(Stream)`；
-- **生命周期**：`TcpSession.CloseAsync` 重写内先完成写入并限时（会话超时）等待泵发完已排队数据，再进入基类关闭流程；无连接关闭时直接中止管道（幂等），避免泵悬挂；发送失败（`OnSend` 返回负值或抛异常）中止管道——错误随 `Error`，挂起提交被唤醒，后续追加的数据由管道直接释放；
-- 数据报协议（如 UDP）不使用本管道，保持整包直发语义；读侧 `pipe.Reader` 为发送泵独占，请勿另作它用。
+现在的出站是**默认直发 + 一把写锁**（`TcpSession` 的 `_writeLock`，下列入口共用；`SessionBase.Send` 系列经 `OnSend` 直达写锁）：
+
+| 入口 | 语义 |
+|------|------|
+| `Send(IPacket)` / `Send(byte[])` / `Send(Span)` | 锁内同步直写，写完才返回；0 分配 0 拷贝（链式包散列写，一次系统调用提交整条链） |
+| `SendAsync(IPacket, ct)` | 锁内异步直写，等待可写期间不占线程 |
+| `SendAsync(Stream, length, ct)` | 读一块（64KB 池化块）→ 写完或挂起 → 再读下一块，内存恒为一块 |
+| `SendFileAsync(path, ct)` | 交给内核零拷贝推送（sendfile / TransmitFile），应用层不经读块 |
+
+- **背压**：内核发送缓冲充当水位——慢对端让写调用挂起（同步）或异步等待（异步），应用层不积压；
+- **排队与限流**：默认路径不承担，需要时在上层用 `Actor` 组合（见《并行模型Actor.md》）；批量场景可选走下面的发送队列；发送失败统一上报 `OnError("Send")` 并关闭会话；
+- **数据报协议（UDP）**：保持整包直发语义，不受本变更影响。
+
+### 可选的第二出口：发送队列
+
+批量场景可改走 `TcpSession.SendQueue`（一个 `Pipe`，与入站 `Pipe` 对称），`Send` 系列不受影响：
+
+| 项 | 约定 |
+|----|------|
+| 入口 | **只有异步** `SendQueuedAsync(IPacket, ct)`；无同步重载（同步等待会把入队方线程挂在水位上） |
+| 所有权 | 入队即转移：泵写出后由队列释放，调用方不得再释放 |
+| 水位 | 出站 256K 暂停 / 128K 恢复（`CreateSendQueue()` 可重写）；积压达上限时入队异步等待，泵写出后自动恢复 |
+| 顺序 | 同一条逻辑消息必须走同一出口；两条出口混用时消息之间不保证先后（各自内部有序） |
+| 批量 | 发送泵循环取走**整个读窗口**，一次散列写提交多条消息；写出时取同一把写锁，故两条出口不会字节交错 |
+| 关闭 | **不排空**：残余直接丢弃并归还池缓冲，避免批量停机耗时随会话数线性放大 |
+| 线程 | 泵运行在专用线程（`LongRunning`）上，不与线程池争抢 |
+
+原 `SendPipe` 用法的迁移：
 
 ```csharp
-var pipe = session.SendPipe;                          // 首次访问：创建管道并启动发送泵
-pipe.Writer.Append(packet);                           // 追加（所有权转移）
-await pipe.Writer.FlushAsync(ct);                     // 写侧回压：排队过深时挂起等待（默认，对齐 BCL）
-await session.SendAsync(packet, ct);                  // 背压感知入队：等待水位恢复（未暂停立即完成）
-session.TrySend(packet2);                             // 暂停或未激活时返回 false，由调用方决策重试/丢弃
-await session.SendAsync(fileStream);                  // 流式发送：分块入管道 + 写侧回压，大文件不整段驻留
-session.Send(msg.BuildHeader(len));             // 消息协议：头部声明负载长度
-await session.SendAsync(bodyStream, len);             // 体流式跟随，单出口保证无交错
+// 旧：入队 + 写侧回压，发送在泵上异步完成（粘性单出口，Send 系列会一并改入队）
+// var pipe = session.SendPipe;
+// pipe.Writer.Append(packet);
+// await pipe.Writer.FlushAsync(ct);
+
+session.Send(packet);                  // 新：同步直发，写完才返回（借用语义，调用方仍负责释放句柄）
+
+// 需要排队/批量时，改用可选的第二出口（只异步，所有权转移）
+await session.SendQueuedAsync(packet, ct);
+
+// 旧：TrySend（暂停时拒绝）已无对应概念；需要拒绝/丢弃策略时由上层 Actor 决定
+
+// 流式与文件发送（两版都可用）
+await session.SendAsync(bodyStream, len);     // 分块读写，内存恒为一块
+await session.SendFileAsync(filePath);        // 内核零拷贝推文件
 ```
+
+> **入站水位不受影响**：`Pipe.PauseThreshold`/`ResumeThreshold`、暂停接收与 `Resumed` 重启仍是入站机制；出站只是复用同一套水位原语，不改变入站行为。
+
+> 历史沿革：出站曾于 2026-09-17 引入与入站对称的发送管道 + 发送泵（`SendPipe`/`SendPump`，粘性队列单出口 + 出站水位背压 + 背压感知入口 `TrySend`），2026-10-01 先整块移除、回归直发，再以**可选的第二出口**加回：形态不同——`Send` 系列始终直发，队列只作 `SendQueuedAsync` 入口，泵与直发共用写锁（避免旧形态的锁协商）。
 
 ## 消费方接入
 

@@ -28,3 +28,5 @@ BenchmarkDotNet.Artifacts/
 /XUnitTest.Core/TestResults
 /TestResults
 /Benchmark/NetLoadTest/results
+/*-wt/
+/.wt-*/
