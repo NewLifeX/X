@@ -461,12 +461,12 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
         throw new NotSupportedException($"内部客户端不支持协议模式请求响应 [{_client?.GetType().Name}]");
     }
 
-    /// <summary>发送流式消息（协议模式）：先发协议头部（声明体长），再把数据流内容经发送管道分块送出</summary>
+    /// <summary>发送流式消息（协议模式）：先发协议头部（声明体长），再把数据流内容读一块写一块地送出</summary>
     /// <param name="message">消息（头部字段就位）</param>
     /// <param name="body">消息体数据流</param>
     /// <param name="bodyLength">消息体字节数；负数时从可定位流推导</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>已写入发送管道的内容字节数</returns>
+    /// <returns>已写出的流内容字节数</returns>
     /// <exception cref="NotSupportedException">内部客户端不支持协议模式流式发送</exception>
     public ValueTask<Int64> SendMessageAsync(Message message, Stream body, Int64 bodyLength = -1, CancellationToken cancellationToken = default)
     {

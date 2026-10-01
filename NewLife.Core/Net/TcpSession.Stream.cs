@@ -1,9 +1,10 @@
+using System.Buffers;
 using System.Net.Sockets;
 using NewLife.Data;
 
 namespace NewLife.Net;
 
-/// <summary>TCP 会话的流式收发：入站字节流管道（含背压暂停接收）与出站单出口发送队列（发送泵）</summary>
+/// <summary>TCP 会话的流式收发：入站字节流管道（含背压暂停接收）、出站可选发送队列（发送泵）与流式/文件发送</summary>
 partial class TcpSession
 {
     #region 入站管道
@@ -50,6 +51,7 @@ partial class TcpSession
     }
 
     /// <summary>本轮数据投递给入站管道。共享切片（引用计数），不改变轮句柄；轮末裁决因引用计数大于1自动换新缓冲，消费方经 Pipe.Reader 流式读取</summary>
+    /// <remarks>启用管道即放弃接收槽的“轮末零 Rent/Return”复用快路径：本共享切片使轮句柄计数恒大于 1，接收环每轮都要解绑换新（池化往返实测约 8ns/次，代价可忽略）。</remarks>
     /// <param name="pk">本轮数据包装句柄</param>
     private void AppendToPipe(IPacket pk)
     {
@@ -108,146 +110,200 @@ partial class TcpSession
     #endregion
 
     #region 出站队列
-    /// <summary>数据发送管道（出站）。按需创建：首次访问后，Send 系列方法把数据追加进管道，由发送泵统一顺序送出</summary>
+    /// <summary>发送队列（出站）。按需创建：首次访问后启动发送泵，入队数据由泵批量写出</summary>
     /// <remarks>
-    /// <para><b>单出口</b>：管道创建后 <see cref="SessionBase.Send(IPacket)"/> 等发送方法全部改为追加进管道（字节数组/跨度输入按副本，借阅视图自动转自有拷贝），与管道内排队数据天然无交错；发送在发送泵上异步完成。</para>
-    /// <para><b>与直发互斥</b>：首次访问本属性时若恰有直发在途，会等它写完再发布泵；泵发布之后的直发一律改为入队，不会出现直发与泵并发写同一 Socket/SslStream 的情况。</para>
-    /// <para><b>背压</b>：未发送数据达到 <see cref="Pipe.PauseThreshold"/> 后 <see cref="Pipe.IsPaused"/> 为 true，生产方的 <see cref="PipeWriter.FlushAsync(CancellationToken)"/> 默认挂起等待（对齐 BCL）；泵推进降到 <see cref="Pipe.ResumeThreshold"/> 以下时唤醒。水位感知发送可用 <see cref="TrySend(IPacket)"/>（暂停时拒绝）或 <see cref="SendAsync(IPacket, CancellationToken)"/>（挂起等待）。</para>
-    /// <para><b>生命周期</b>：关闭时完成写入并限时等待泵发完已排队数据；发送失败中止管道（错误随 <see cref="Pipe.Error"/>，后续追加的数据由管道直接释放）。</para>
-    /// <para>读侧 <see cref="Pipe.Reader"/> 为发送泵独占，请勿另作它用。</para>
+    /// <para>与直发并存：<see cref="SessionBase.Send(IPacket)"/> 系列始终直发，本队列是批量场景的第二出口，不改变直发路径。</para>
+    /// <para><b>顺序</b>：同一条逻辑消息必须走同一出口；两条出口混用时，消息之间不保证先后顺序（各自内部有序）。</para>
+    /// <para><b>所有权</b>：入队的 <see cref="IPacket"/> 所有权转移给队列，泵写出后由队列释放，调用方不得再释放。</para>
+    /// <para><b>背压</b>：未写出数据达到 <see cref="Pipe.PauseThreshold"/> 时入队异步等待，泵写出后自动恢复。</para>
     /// </remarks>
-    public Pipe SendPipe => GetOrCreatePump().Pipe;
-
-    private readonly Object _sendPumpLock = new();
-
-    /// <summary>发送泵。双检锁创建；volatile 保证无锁快照读（Send/GetSendPipe）的跨线程可见性</summary>
-    private volatile SendPump? _sendPump;
-
-    /// <summary>获取已创建的数据发送管道。未访问过 <see cref="SendPipe"/> 时返回 null（不触发创建）</summary>
-    /// <remarks>会话关闭时复位为 null，重开后再访问 <see cref="SendPipe"/> 即重建新发送泵与管道</remarks>
-    /// <returns>数据发送管道；未创建时为 null</returns>
-    public Pipe? GetSendPipe() => _sendPump?.Pipe;
-
-    /// <summary>创建数据发送管道。子类可重写以自定义水位等参数</summary>
-    /// <returns>数据发送管道</returns>
-    /// <remarks>出站水位默认 64K 暂停 / 32K 恢复：对齐 BCL 管道默认与 Kestrel 出站阻塞阈值（MaxResponseBufferSize=64KB），慢速对端下每连接最坏排队内存为入站侧（1M）的十六分之一；各档位吞吐实测无差异（见《背压水位定档与内存测算报告》）。入站方向保持 1M/512K（Kestrel 入站同量级的内存安全阀；读饥饿时自动让位，不束缚帧尺寸）。</remarks>
-    protected virtual Pipe CreateSendPipe() => new()
+    public Pipe SendQueue
     {
-        PauseThreshold = 64 * 1024,
-        ResumeThreshold = 32 * 1024,
-    };
-
-    /// <summary>获取或创建发送泵（管道唯一消费方，构造时启动）</summary>
-    /// <returns>发送泵</returns>
-    /// <remarks>
-    /// <para>发布点持 <see cref="_spinLock"/>：直发路径在锁内复查 <c>_sendPump</c>，拿到本锁即证明此刻没有直发正在写套接字，
-    /// 而发布之后进入锁的直发必然看到泵并改走队列，因此泵线程与直发线程不可能并发写同一 Socket/SslStream。</para>
-    /// <para>代价：恰有直发在途时本方法要等它写完（同一次会话至多发生一次）。锁序固定为 <c>_sendPumpLock → _spinLock</c>，单向无环。</para>
-    /// </remarks>
-    private SendPump GetOrCreatePump()
-    {
-        var pump = _sendPump;
-        if (pump != null) return pump;
-
-        lock (_sendPumpLock)
+        get
         {
-            if (_sendPump == null)
+            var queue = _sendQueue;
+            if (queue != null) return queue;
+
+            // 使用独立锁对象，禁止 lock(this)：泵与入队方都在锁外等待，锁对象本身不能被长时间持有
+            lock (_sendQueueLock)
             {
-                var created = CreateSendPipe();
+                queue = _sendQueue;
+                if (queue != null) return queue;
 
-                // 发送泵（管道唯一消费方），构造时启动；发送委托指向泵专用发送核心，避免再次进入队列分流。
-                // 泵只消费管道、不会主动写套接字，此时尚未发布故不会与直发交汇，发布点再与直发互斥
-                var newPump = new SendPump(created, DirectSendAsync, OnError, WriteLog);
+                queue = CreateSendQueue();
+                queue.Resumed += OnSendQueueResumed;
+                _sendQueue = queue;
 
-                var gotLock = false;
-                try
-                {
-                    _spinLock.Enter(ref gotLock);
+                StartSendPump(queue);
 
-                    _sendPump = newPump;
-                }
-                finally
-                {
-                    if (gotLock) _spinLock.Exit();
-                }
+                return queue;
             }
-
-            return _sendPump!;
         }
     }
-    #endregion
 
-    #region 发送核心
-    // 无锁快照 _sendPump 只是快速路径：管道发布点持发送锁，三个直发重载在锁内复查并让位（见 DirectSend 备注），
-    // 因此“快照读到无泵”与“泵已发布”之间的窗口不会让两条路径并发写同一 Socket
-    /// <summary>发送核心：发送管道创建后队列优先（单出口），否则直发</summary>
-    /// <param name="data">数据包</param>
-    /// <returns>已发送或已接收字节数</returns>
-    protected override Int32 OnSend(IPacket data)
+    private readonly Object _sendQueueLock = new();
+
+    /// <summary>发送队列。双检锁创建；volatile 保证入队方的无锁快照读可见</summary>
+    private volatile Pipe? _sendQueue;
+
+    /// <summary>获取已创建的发送队列。未访问过 <see cref="SendQueue"/> 时返回 null（不触发创建）</summary>
+    /// <remarks>会话关闭时复位为 null，重开后再访问 <see cref="SendQueue"/> 即重建新队列与发送泵</remarks>
+    /// <returns>发送队列；未创建时为 null</returns>
+    public Pipe? GetSendQueue() => _sendQueue;
+
+    /// <summary>创建发送队列。子类可重写以自定义水位等参数</summary>
+    /// <returns>发送队列</returns>
+    protected virtual Pipe CreateSendQueue()
     {
-        var pump = _sendPump;
-        if (pump != null) return pump.Append(data);
-
-        return DirectSend(data);
+        // 出站水位 256K 暂停 / 128K 恢复：出站积压是应用层待发数据、按会话占用内存，
+        // 取入站（1M/512K）的 1/4 已足够吸收抖动；恢复水位取暂停的一半，迟滞避免频繁抖动
+        return new Pipe
+        {
+            PauseThreshold = 256 * 1024,
+            ResumeThreshold = 128 * 1024,
+        };
     }
 
-    /// <summary>发送核心：发送管道创建后队列优先（单出口），否则直发</summary>
-    /// <param name="data">数据包</param>
-    /// <returns>已发送或已接收字节数</returns>
-    protected override Int32 OnSend(ArraySegment<Byte> data)
+    /// <summary>经发送队列发送（所有权转移）。队列积压达上限时异步等待，泵写出后自动恢复</summary>
+    /// <remarks>
+    /// <para>与直发系列并存；同一条逻辑消息必须走同一出口，混用只保证各自内部有序。</para>
+    /// <para>不提供同步重载：同步等待会把入队方线程挂在水位上，异步等待期间不占线程。</para>
+    /// <para><b>失败归属</b>：入队成功后句柄即归队列（含返回 false 的情形，此时队列已代为释放）；
+    /// 仅会话已释放/未打开等入队前抛异常时句柄仍在调用方，由调用方负责释放。</para>
+    /// </remarks>
+    /// <param name="data">数据包。所有权转移：入队后由发送泵负责释放，调用方不得再释放</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>入队并提交成功返回 true；等待水位期间会话关闭、数据被丢弃返回 false</returns>
+    public async ValueTask<Boolean> SendQueuedAsync(IPacket data, CancellationToken cancellationToken = default)
     {
-        var pump = _sendPump;
-        if (pump != null && data.Array != null && data.Count > 0)
-            return pump.Append(new ReadOnlySpan<Byte>(data.Array, data.Offset, data.Count));
+        if (data == null) throw new ArgumentNullException(nameof(data));
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
 
-        return DirectSend(data);
+        var queue = SendQueue;
+        queue.Writer.Append(data);
+
+        // 背压门：管道写侧回压是单写者（并发 FlushAsync(true) 会抛），故自行以 IsPaused + Resumed 广播等待
+        while (queue.IsPaused && !queue.IsCompleted)
+        {
+            await WaitQueueResumeAsync(queue, cancellationToken).ConfigureAwait(false);
+        }
+
+        return !queue.IsCompleted;
     }
 
-    /// <summary>发送核心：发送管道创建后队列优先（单出口），否则直发</summary>
-    /// <param name="data">数据包</param>
-    /// <returns>已发送或已接收字节数</returns>
-    protected override Int32 OnSend(ReadOnlySpan<Byte> data)
-    {
-        var pump = _sendPump;
-        if (pump != null && !data.IsEmpty) return pump.Append(data);
+    private TaskCompletionSource<Boolean>? _queueResume;
+    private readonly Object _queueResumeLock = new();
 
-        return DirectSend(data);
+    /// <summary>等待发送队列水位恢复。多生产者共享同一唤醒源，由 <see cref="Pipe.Resumed"/> 广播完成</summary>
+    /// <param name="queue">发送队列</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    private async Task WaitQueueResumeAsync(Pipe queue, CancellationToken cancellationToken)
+    {
+        Task<Boolean> task;
+        lock (_queueResumeLock)
+        {
+            // 与事件回调同锁复查：恢复若发生在判定与登记之间，IsPaused 已为 false，直接返回，避免丢唤醒
+            if (!queue.IsPaused || queue.IsCompleted) return;
+
+#if NET45
+            _queueResume ??= new TaskCompletionSource<Boolean>();
+#else
+            _queueResume ??= new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
+            task = _queueResume.Task;
+        }
+
+        if (!cancellationToken.CanBeCanceled)
+        {
+            await task.ConfigureAwait(false);
+
+            return;
+        }
+
+        // 低版本框架没有 Task.WaitAsync，手工用 WhenAny 附加取消
+#if NET45
+        var tcs = new TaskCompletionSource<Boolean>();
+#else
+        var tcs = new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
+        using (cancellationToken.Register(() => tcs.TrySetResult(false)))
+        {
+            await Task.WhenAny(task, tcs.Task).ConfigureAwait(false);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+    }
+
+    /// <summary>发送队列水位恢复：广播唤醒全部等待中的入队方</summary>
+    private void OnSendQueueResumed(Object? sender, EventArgs e) => WakeQueueWaiters();
+
+    /// <summary>广播唤醒全部等待中的入队方</summary>
+    /// <remarks>
+    /// <para>水位恢复与队列结束都走这里：等待者醒来后自行复查 <see cref="Pipe.IsPaused"/> 与 <see cref="Pipe.IsCompleted"/>，
+    /// 暂停未解除则继续等待，队列已结束则退出并返回 false。</para>
+    /// <para>关闭路径必须显式调用：<see cref="PipeWriter.Complete"/> 只唤醒挂起读与挂起提交，并不触发 <see cref="Pipe.Resumed"/>，
+    /// 不唤醒会让等水位的入队方永久挂起（HTTP 同步链上即表现为处理线程卡死）。</para>
+    /// </remarks>
+    private void WakeQueueWaiters()
+    {
+        TaskCompletionSource<Boolean>? tcs;
+        lock (_queueResumeLock)
+        {
+            tcs = _queueResume;
+            _queueResume = null;
+        }
+
+        tcs?.TrySetResult(true);
     }
     #endregion
 
     #region 关闭收尾
-    /// <summary>关闭。重写以收尾流式收发：有连接先排空发送队列，完成后终止入站管道（挂起读立即完成）</summary>
-    /// <remarks>发送队列限时（会话超时）等待泵发完已排队数据；无连接时直接中止队列（幂等）</remarks>
+    /// <summary>关闭。重写以收尾流式收发：出站队列残余直接丢弃并归还缓冲（不排空），入站管道终止（挂起读立即完成）</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>是否成功</returns>
     public override async Task<Boolean> CloseAsync(String reason, CancellationToken cancellationToken = default)
     {
-        // 出站队列：有连接时限时等待发送泵发完已排队数据；无连接直接中止（幂等）
-        var pump = _sendPump;
-        if (pump != null)
-        {
-            // 批量停机（服务端 Stop/Dispose）跳过排空：逐会话限时等待会让停机时间随会话数线性放大
-            if (Active && !FastCloseOnShutdown) await pump.FlushAsync(Timeout > 0 ? Timeout : 3_000).ConfigureAwait(false);
-            else pump.Abort(null);
-        }
-
         try
         {
             return await base.CloseAsync(reason, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
+            // 出站队列：先停泵（结束写侧唤醒挂起读，并等泵退出后不再触碰队列缓冲），
+            // 入队方的水位等待随之结束，最后释放队列归还残余池缓冲。
+            // 不排空——停机场景对端往往已不可达，队列残余本就送不出去，逐会话限时排空会让总耗时随会话数线性放大。
+            //
+            // 取走队列与 getter 的双检锁互斥，避免关闭期间又新建出一个无人释放的队列与发送泵
+            Pipe? queue;
+            lock (_sendQueueLock)
+            {
+                queue = _sendQueue;
+                _sendQueue = null;
+            }
+
+            if (queue != null)
+            {
+                queue.Resumed -= OnSendQueueResumed;
+
+                StopSendPump(queue);
+
+                // 唤醒仍在等水位的入队方：完成写侧不会触发 Resumed，不唤醒它们会永久挂起
+                WakeQueueWaiters();
+
+                queue.Dispose();
+            }
+
             // 入站流：释放管道（等价于完成写侧唤醒挂起读 + 结束读侧归还残余池缓冲）。
             // 只完成写侧会让读侧链上尚未消费的池缓冲一直挂到管道随对象不可达，由终结器兜底归还；
             // 服务端会话还可能存活到 SessionTimeout，等于长期占用内存池。
             _pipe?.Dispose();
 
-            // 复位收发管道，交由懒创建在重开时重建。客户端会话关闭会把 Client 置空、同一实例可再次 Open，
-            // 若继续持有已完成管道：发送经泵被静默丢弃（Append 返回 -1，无异常无日志），
-            // 协议模式接收泵在已结束的读取器上读取抛异常并立即关闭会话，外显为“连得上、发不出、收不到”
+            // 复位入站管道，交由懒创建在重开时重建。客户端会话关闭会把 Client 置空、同一实例可再次 Open，
+            // 若继续持有已完成管道：协议模式接收泵在已结束的读取器上读取抛异常并立即关闭会话，
+            // 外显为“连得上、发不出、收不到”
             _pipe = null;
-            _sendPump = null;
 
             ReleaseParkedReceive();
         }
@@ -255,69 +311,169 @@ partial class TcpSession
     #endregion
 
     #region 流式发送
-    /// <summary>流式发送。从数据流分块读入发送管道，由发送泵顺序送出</summary>
+    /// <summary>流式发送的读块大小</summary>
+    /// <remarks>64KB：基准实测 16KB 分块在回环下的吞吐只有 64KB 分块的一半（小分块导致两端 syscall/唤醒次数成倍），64KB 与整段发送持平且仍远低于 LOH 阈值。</remarks>
+    private const Int32 StreamChunkSize = 64 * 1024;
+
+    /// <summary>流式发送：分块读入数据流并逐块写出，读一块写一块</summary>
     /// <remarks>
-    /// <para>形态对齐主流网络框架的 SendAsync(Stream)：分块读取（默认 64KB），每块零拷贝包装入 <see cref="SendPipe"/>，大文件全程只在读块上驻留，不产生整段内存。回环基准实测：1MB 用时 510µs、8MB 4.08ms，与手工 64KB 分块持平（管道自身开销约 1~2%），16KB→64KB 分块优化带来 2.3× 提升。</para>
-    /// <para>写侧回压：管道未发送数据达到 <see cref="Pipe.PauseThreshold"/> 时挂起等待网络消化，内存占用有界，慢速对端不会导致应用层无限积压。</para>
-    /// <para>发送与 <see cref="SessionBase.Send(IPacket)"/> 共用 <see cref="SendPipe"/> 单出口（无交错）；"头 + 流式体"组合消息先发头部数据包再调用本方法即可，整条消息保持一条逻辑消息语义。</para>
-    /// <para>流提前结束（不足 <paramref name="length"/>）或发送管道中途中止（连接故障/关闭）时抛出异常，已入管道部分仍会尽力送出。</para>
+    /// <para>形态对齐主流网络框架的 SendAsync(Stream)：默认 64KB 分块，每块由池化读块直接写出（0 拷贝），全程只在读块上驻留，不产生整段内存。</para>
+    /// <para><b>背压</b>：每块写完（或在写锁/内核上挂起）才读下一块，慢速对端不会导致应用层积压——内存占用恒为一块读缓冲，水位由内核发送缓冲充当。</para>
+    /// <para>与 <see cref="SessionBase.Send(IPacket)"/> 共用同一把写锁：并发调用不会交错，“头 + 流式体”先发头部再调用本方法即可保持一条逻辑消息。</para>
+    /// <para>流提前结束（不足 <paramref name="length"/>）或连接故障时抛出异常，已发出的部分不会回退。</para>
     /// </remarks>
     /// <param name="source">数据流</param>
     /// <param name="length">期望发送的字节数；负数表示读到流尾</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>已写入发送管道的总字节数</returns>
-    public ValueTask<Int64> SendAsync(Stream source, Int64 length = -1, CancellationToken cancellationToken = default)
+    /// <returns>已发送的总字节数</returns>
+    public async ValueTask<Int64> SendAsync(Stream source, Int64 length = -1, CancellationToken cancellationToken = default)
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
 
-        return GetOrCreatePump().SendAsync(source, length, cancellationToken);
+        Exception? error = null;
+        var total = 0L;
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            total = await SendStreamCoreAsync(source, length, cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidDataException)
+        {
+            // 流提前结束属调用方数据问题，不是发送故障：不上报、不关会话，直接抛（finally 会释放写锁）
+            throw;
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一把写锁上二次等待而死锁
+        if (error != null)
+        {
+            ReportSendError(error, null);
+
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error).Throw();
+        }
+
+        return total;
+    }
+
+    /// <summary>分块读流并写出。读一块写一块，内存恒为一块读缓冲（调用方须已持有写锁）</summary>
+    /// <remarks>每块写完（或在写锁/内核上挂起）才读下一块，慢速对端不会导致应用层积压；流提前结束时报错，已发出的部分不回退。</remarks>
+    /// <param name="source">数据流</param>
+    /// <param name="length">期望发送的字节数；负数表示读到流尾</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已发送的总字节数</returns>
+    private async ValueTask<Int64> SendStreamCoreAsync(Stream source, Int64 length, CancellationToken cancellationToken)
+    {
+        var chunk = StreamChunkSize;
+        var buffer = ArrayPool<Byte>.Shared.Rent(chunk);
+        try
+        {
+            var total = 0L;
+            while (length < 0 || total < length)
+            {
+                var size = chunk;
+                if (length > 0 && length - total < size) size = (Int32)(length - total);
+
+                var count = await source.ReadAsync(buffer, 0, size, cancellationToken).ConfigureAwait(false);
+                if (count <= 0) break;
+
+                // 写完这一块才读下一块：内存恒为一块，慢对端由内核缓冲形成背压
+                var rs = await WriteMemoryAsync(buffer.AsMemory(0, count), cancellationToken).ConfigureAwait(false);
+                if (rs < 0) throw new IOException($"Send failed on [{Name}], {total} bytes sent before failure.");
+
+                total += count;
+            }
+
+            // 流提前结束：报错，避免调用方误以为已完整发送
+            if (length > 0 && total < length) throw new InvalidDataException($"Stream ended early. Expected {length} bytes but got {total}.");
+
+            return total;
+        }
+        finally
+        {
+            ArrayPool<Byte>.Shared.Return(buffer);
+        }
     }
     #endregion
 
-    #region 背压发送
-    /// <summary>异步发送数据包。入队后等待积压降到恢复水位以下，等待期间不占用线程</summary>
+    /// <summary>锁内发送「头部 + 流内容」整条消息：一次加锁贯穿，头体之间不会被其它写入者插入</summary>
     /// <remarks>
-    /// <para>与 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 共用发送管道单出口；积压达到 <see cref="Pipe.PauseThreshold"/> 时挂起，降至 <see cref="Pipe.ResumeThreshold"/> 以下恢复。</para>
-    /// <para>管道已中止时抛出异常（错误随 <see cref="Pipe.Error"/>）。发送管道为单写者：请勿与本方法、<see cref="PipeWriter.FlushAsync(CancellationToken)"/> 并发提交。</para>
+    /// <para>与分别调用 <see cref="SessionBase.Send(IPacket)"/> 与 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 的区别：那两条各自加锁，
+    /// 多写者并发时头体之间可能被插入其它数据；本方法一次持锁贯穿整条消息，保持“一条逻辑消息”语义。</para>
+    /// <para>头部句柄借用（调用方释放）；失败上报在释放写锁之后进行。</para>
     /// </remarks>
-    /// <param name="data">数据包。拥有句柄零拷贝入管道；借阅视图自动转自有拷贝</param>
+    /// <param name="header">协议头部数据包。借用语义：调用方保留句柄，用完自行释放</param>
+    /// <param name="body">消息体数据流</param>
+    /// <param name="length">消息体字节数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>已入队字节数；管道已中止返回 -1</returns>
-    public async ValueTask<Int32> SendAsync(IPacket data, CancellationToken cancellationToken = default)
+    /// <returns>已写出的流内容字节数；失败返回 -1（已上报）</returns>
+    internal async ValueTask<Int64> SendMessageLockedAsync(IPacket header, Stream body, Int64 length, CancellationToken cancellationToken = default)
+    {
+        if (header == null) throw new ArgumentNullException(nameof(header));
+        if (body == null) throw new ArgumentNullException(nameof(body));
+
+        Exception? error = null;
+        var total = -1L;
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            // 头部先行：与流内容在同一把写锁内，整条消息不会与其它写入者交错
+            WritePacket(header);
+
+            total = await SendStreamCoreAsync(body, length, cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidDataException)
+        {
+            // 流提前结束属调用方数据问题，不是发送故障：不上报、不关会话
+            throw;
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一把写锁上二次等待而死锁
+        if (error != null)
+        {
+            ReportSendError(error, null);
+
+            return -1;
+        }
+
+        return total;
+    }
+    #endregion
+
+    #region 异步发送
+    /// <summary>异步发送数据包：写完才返回，等待可写期间不占线程（与同步 Send 共用写锁）</summary>
+    /// <remarks>
+    /// <para>与 <see cref="SessionBase.Send(IPacket)"/> 同义，只是异步执行：不排队、不拷贝，失败记录错误并关闭会话（返回 -1）。</para>
+    /// <para>借用语义：调用方保留句柄，返回后即可释放自己的引用</para>
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    public ValueTask<Int32> SendAsync(IPacket data, CancellationToken cancellationToken = default)
     {
         if (data == null) throw new ArgumentNullException(nameof(data));
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
 
-        var pump = GetOrCreatePump();
-        var rs = pump.Append(data);
-        if (rs < 0) return rs;
-
-        // 背压等待：积压达到暂停水位时挂起，网络消化到恢复水位后继续
-        var flush = await pump.Pipe.Writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-        if (flush.IsCompleted) throw new InvalidOperationException("Send pipe has been completed.", pump.Pipe.Error);
-
-        return rs;
-    }
-
-    /// <summary>尝试非阻塞发送数据包。管道积压达到暂停水位时拒绝，交由调用方决定丢弃或稍后重试</summary>
-    /// <remarks>不主动打开连接：非活动会话直接拒绝。首次调用会创建发送管道，此后该会话的发送统一经泵送出（单出口）</remarks>
-    /// <param name="data">数据包。拥有句柄零拷贝入管道；借阅视图自动转自有拷贝</param>
-    /// <returns>是否成功入队；暂停或管道已中止返回 false</returns>
-    public Boolean TrySend(IPacket data)
-    {
-        if (data == null) throw new ArgumentNullException(nameof(data));
-        if (Disposed) throw new ObjectDisposedException(GetType().Name);
-
-        // 不主动打开连接：“尝试发送”不应发生阻塞式连接
-        if (!Active) return false;
-
-        var pump = GetOrCreatePump();
-        if (pump.Pipe.IsPaused) return false;
-
-        return pump.Append(data) >= 0;
+        return DirectSendAsync(data, cancellationToken);
     }
     #endregion
 }

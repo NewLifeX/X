@@ -443,15 +443,26 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     #endregion 方法
 
     #region 发送
-    // 发送泵的发送委托必须是“不复查发送管道”的入口（DirectSendAsync，或低版本兜底 DirectSend(data, true)）：
-    // 泵已接管出口，任何复查都会把数据回投进泵自己正在消费的管道，造成重复发送与空转
+    // 发送出口：默认直发，另有可选的发送队列作第二出口。两者共用一把写锁，任一时刻只有一位写者在写套接字。
+    //   Send(IPacket/byte[]/Span)  锁内同步直写：0 分配 0 拷贝，写完才返回，失败返回 -1
+    //   SendAsync(IPacket)         锁内异步直写：0 分配 0 拷贝，等待可写期间不占线程
+    //   SendAsync(Stream)          流式：读一块 → 写完（或挂起）再读下一块，内核缓冲即背压，内存有界
+    //   SendFileAsync(文件)        锁内让内核零拷贝推文件（SendFile/TransmitFile）
+    // 慢对端由内核发送缓冲形成天然背压；需要排队/限流的场合可在上层用 Actor 组合，不进发送核心。
+    // 批量场景可选走 TcpSession.SendQueue（见 TcpSession.Stream.cs 出站队列），由发送泵在锁内批量写出。
+
+    /// <summary>写锁。四个发送入口共用：任一时刻只有一位写者在写套接字，故多线程/多入口混用不会交错</summary>
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
+
+    /// <summary>获取续发总预算的截止时间。返回 0 表示不限制（Timeout 未启用）</summary>
+    private Int64 GetSendDeadline() => Timeout > 0 ? Runtime.TickCount64 + Timeout : 0;
+
     private Int32 _bsize;
-    private SpinLock _spinLock = new();
 
     /// <summary>按本次发送量调优内核发送缓冲（_bsize 缓存，读取 SendBufferSize 耗时很大）</summary>
     /// <remarks>
-    /// <para>调用方须已持有 <see cref="_spinLock"/>：套接字参数调整不能与锁内的 Send/Write 并发。</para>
-    /// <para>_bsize 只增不减，仅同步直发路径使用；发送泵路径不调整内核缓冲。</para>
+    /// <para>调用方须已持有写锁：套接字参数调整不能与锁内的 Send/Write 并发。</para>
+    /// <para>_bsize 只增不减，仅同步直写路径使用；异步直写与流式分块不调整内核缓冲。</para>
     /// </remarks>
     /// <param name="sock">目标套接字</param>
     /// <param name="count">本次发送字节数</param>
@@ -460,296 +471,6 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         if (_bsize == 0) _bsize = sock.SendBufferSize;
         if (_bsize < count) sock.SendBufferSize = _bsize = count;
     }
-
-    /// <summary>直接发送数据。无发送队列时走此路径</summary>
-    /// <remarks>
-    /// <para>目标地址由<seealso cref="SessionBase.Remote"/>决定。</para>
-    /// <para>锁内会复查发送泵是否已接管出口：发布点持同一把锁，若泵已发布则本方法改为把数据交给泵，
-    /// 避免与泵线程并发写同一 Socket/SslStream（“读快照”与“写套接字”本不是原子的，只能靠同一把锁互斥）。</para>
-    /// </remarks>
-    /// <param name="pk">数据包</param>
-    /// <returns>已发送字节数；失败返回 -1</returns>
-    private Int32 DirectSend(IPacket pk)
-    {
-        var count = pk.Total;
-
-        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
-
-        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
-
-        var rs = count;
-        var sock = Client;
-        if (sock == null) return -1;
-
-        var gotLock = false;
-        Exception? error = null;
-        try
-        {
-            // 加锁发送
-            _spinLock.Enter(ref gotLock);
-
-            // 双检：泵的发布点持同一把锁。本线程是在读到“无泵”快照之后才走到这里的，
-            // 若此刻泵已接管出口，必须改走队列，否则会与泵线程并发写同一 Socket/SslStream。
-            // 持锁读到泵即证明发布已完成（发布需持本锁），两条写入路径不可能同时进行；锁内不入队，出锁后再追加
-            if (_sendPump is { } pump)
-            {
-                _spinLock.Exit();
-                gotLock = false;
-
-                return pump.Append(pk);
-            }
-
-            TuneSendBufferSize(sock, count);
-
-            if (_Stream is not { } stream)
-            {
-                // 同步 Send 在接收方窗口受限时可能只发出一部分，续发循环保证整包送出；总预算按会话 Timeout 计时
-                if (count == 0)
-                    rs = sock.Send(Pool.Empty);
-                else if (pk.Next == null && pk.TryGetArray(out var segment))
-                    rs = SendAll(sock, segment.Array!, segment.Offset, segment.Count, GetSendDeadline());
-#if NETCOREAPP || NETSTANDARD2_1
-                else if (pk.TryGetSpan(out var data))
-                    rs = SendAll(sock, data, GetSendDeadline());
-#endif
-                else
-                    rs = SendAll(sock, pk.ToSegments(), count, GetSendDeadline());
-            }
-            else
-            {
-                // SSL 流内部已处理部分写：整段写完才返回，失败直接抛异常，无需续发循环
-                if (count == 0)
-                    stream.Write([]);
-                else
-                    pk.CopyTo(stream);
-            }
-        }
-        catch (Exception ex)
-        {
-            error = ex;
-        }
-        finally
-        {
-            if (gotLock) _spinLock.Exit();
-        }
-
-        if (error != null)
-        {
-            // 发生异常时，全量数据写入埋点
-            span?.SetError(error, pk);
-
-            // 上报与关闭放到锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 将在同一线程二次进入
-            // 不可重入的 SpinLock（Enter 无超时），表现为 CPU 100% 静默挂死
-            if (!error.IsDisposed())
-            {
-                OnError("Send", error);
-
-                // 发送异常可能是连接出了问题，需要关闭
-                Close("SendError");
-            }
-
-            return -1;
-        }
-
-        LastTime = DateTime.Now;
-
-        return rs;
-    }
-
-    /// <summary>直接发送数据。无发送队列时走此路径</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
-    /// </remarks>
-    /// <param name="data">数据包</param>
-    /// <returns>已发送字节数；失败返回 -1</returns>
-    private Int32 DirectSend(ArraySegment<Byte> data)
-    {
-        var count = data.Count;
-        var logCount = count > LogDataLength ? count : LogDataLength;
-
-        if (Log != null && Log.Enable && LogSend)
-            WriteLog("Send [{0}]: {1}", count, data.Array.ToHex(data.Offset, logCount));
-
-        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
-
-        var rs = count;
-        var sock = Client;
-        if (sock == null) return -1;
-
-        var gotLock = false;
-        Exception? error = null;
-        try
-        {
-            // 加锁发送
-            _spinLock.Enter(ref gotLock);
-
-            // 双检泵（同 IPacket 重载）：泵已接管出口则改走队列，不与泵线程并发写
-            if (_sendPump is { } pump)
-            {
-                _spinLock.Exit();
-                gotLock = false;
-
-                return data.Array == null ? 0 : pump.Append(new ReadOnlySpan<Byte>(data.Array, data.Offset, data.Count));
-            }
-
-            TuneSendBufferSize(sock, count);
-
-            if (_Stream is not { } stream)
-            {
-                // 同步 Send 在接收方窗口受限时可能只发出一部分，续发循环保证整段送出；总预算按会话 Timeout 计时
-                if (count == 0)
-                    rs = sock.Send(Pool.Empty);
-                else
-                    rs = SendAll(sock, data.Array!, data.Offset, data.Count, GetSendDeadline());
-            }
-            else
-            {
-                // SSL 流内部已处理部分写：整段写完才返回，失败直接抛异常，无需续发循环
-                if (count == 0)
-                    stream.Write([]);
-                else
-                    stream.Write(data.Array!, data.Offset, data.Count);
-            }
-        }
-        catch (Exception ex)
-        {
-            error = ex;
-        }
-        finally
-        {
-            if (gotLock) _spinLock.Exit();
-        }
-
-        if (error != null)
-        {
-            // 发生异常时，全量数据写入埋点
-            span?.SetError(error, data.Array.ToHex(data.Offset, data.Count));
-
-            // 上报与关闭放到锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 将在同一线程二次进入
-            // 不可重入的 SpinLock（Enter 无超时），表现为 CPU 100% 静默挂死
-            if (!error.IsDisposed())
-            {
-                OnError("Send", error);
-
-                // 发送异常可能是连接出了问题，需要关闭
-                Close("SendError");
-            }
-
-            return -1;
-        }
-
-        LastTime = DateTime.Now;
-
-        return rs;
-    }
-
-    /// <summary>直接发送数据。无发送队列时走此路径</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
-    /// </remarks>
-    /// <param name="data">数据包</param>
-    /// <returns>已发送字节数；失败返回 -1</returns>
-    private Int32 DirectSend(ReadOnlySpan<Byte> data) => DirectSend(data, false);
-
-    /// <summary>直接发送数据。锁内按需复查发送泵</summary>
-    /// <remarks>
-    /// <para>目标地址由<seealso cref="SessionBase.Remote"/>决定。</para>
-    /// <para><paramref name="fromPump"/> 为 true 表示调用方就是发送泵（无异步发送重载的框架上，泵的兜底发送复用本方法），
-    /// 此时不得复查发送泵：泵已接管出口，复查会把数据回投进泵自己正在消费的管道，造成重复发送与空转。</para>
-    /// </remarks>
-    /// <param name="data">数据包</param>
-    /// <param name="fromPump">是否来自发送泵。为 true 时跳过发送泵复查</param>
-    /// <returns>已发送字节数；失败返回 -1</returns>
-    private Int32 DirectSend(ReadOnlySpan<Byte> data, Boolean fromPump)
-    {
-        var count = data.Length;
-
-        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
-
-        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
-
-        var rs = count;
-        var sock = Client;
-        if (sock == null) return -1;
-
-        var gotLock = false;
-        Exception? error = null;
-        try
-        {
-            // 加锁发送
-            _spinLock.Enter(ref gotLock);
-
-            // 双检泵（同 IPacket 重载）：泵已接管出口则改走队列，不与泵线程并发写。
-            // 泵自身的兜底发送（fromPump）已是出口持有者，跳过复查，否则会把数据回投进泵自己的管道
-            if (!fromPump && _sendPump is { } pump)
-            {
-                _spinLock.Exit();
-                gotLock = false;
-
-                return pump.Append(data);
-            }
-
-            TuneSendBufferSize(sock, count);
-
-            if (_Stream is not { } stream)
-            {
-                // 同步 Send 在接收方窗口受限时可能只发出一部分，续发循环保证整段送出；总预算按会话 Timeout 计时
-                if (count == 0)
-                    rs = sock.Send(Pool.Empty);
-                else
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-                    rs = SendAll(sock, data, GetSendDeadline());
-#else
-                    rs = SendAll(sock, data.ToArray(), 0, count, GetSendDeadline());
-#endif
-            }
-            else
-            {
-                // SSL 流内部已处理部分写：整段写完才返回，失败直接抛异常，无需续发循环
-                if (count == 0)
-                    stream.Write([]);
-                else
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-                    stream.Write(data);
-#else
-                    stream.Write(data.ToArray());
-#endif
-            }
-        }
-        catch (Exception ex)
-        {
-            error = ex;
-        }
-        finally
-        {
-            if (gotLock) _spinLock.Exit();
-        }
-
-        if (error != null)
-        {
-            // 发生异常时，全量数据写入埋点
-            span?.SetError(error, data.ToHex());
-
-            // 上报与关闭放到锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 将在同一线程二次进入
-            // 不可重入的 SpinLock（Enter 无超时），表现为 CPU 100% 静默挂死
-            if (!error.IsDisposed())
-            {
-                OnError("Send", error);
-
-                // 发送异常可能是连接出了问题，需要关闭
-                Close("SendError");
-            }
-
-            return -1;
-        }
-
-        LastTime = DateTime.Now;
-
-        return rs;
-    }
-
-    /// <summary>获取续发总预算的截止时间。返回 0 表示不限制（Timeout 未启用）</summary>
-    private Int64 GetSendDeadline() => Timeout > 0 ? Runtime.TickCount64 + Timeout : 0;
 
     /// <summary>发送一段数据，短计数自动续发。返回时全部字节已交给内核，失败抛异常</summary>
     /// <remarks>同步 Send 在接收方窗口受限时可能只发出一部分；循环续发直到发完，总耗时超过预算按超时失败。异常由调用方统一转为发送失败处理</remarks>
@@ -818,7 +539,6 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         var skip = sent;
         foreach (var seg in segments)
         {
-            // 跳过已发段
             if (skip >= seg.Count)
             {
                 skip -= seg.Count;
@@ -833,26 +553,276 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     }
 
 #if NET5_0_OR_GREATER
-    /// <summary>发送泵异步发送的预算取消源。泵为单消费者，复用；正常完成时解除计时，触发取消即超时失败</summary>
+    /// <summary>异步发送的预算取消源。单写者复用；正常完成时解除计时，触发取消即超时失败</summary>
     private CancellationTokenSource? _sendCts;
 #endif
 
-#if NET5_0_OR_GREATER
-    /// <summary>异步发送一段数据（发送泵专用），短计数自动续发；等待可写期间不占用线程</summary>
-    /// <remarks>
-    /// <para>与同步直发一致：发送失败记录错误并关闭会话，返回 -1；预算按会话 Timeout 计时，超时取消发送并按失败处理。</para>
-    /// <para>SSL 流内部处理部分写，整段写完才返回。仅由发送泵单消费者调用。</para>
-    /// </remarks>
-    /// <param name="data">数据</param>
+    /// <summary>直发：锁内同步写出整个数据包（直接写数据包缓冲，0 拷贝 0 分配），写完才返回</summary>
+    /// <remarks>写锁保证任一时刻只有一位写者；失败已上报并按失败关闭会话</remarks>
+    /// <param name="pk">数据包。借用语义：调用方保留句柄，用完自行释放</param>
     /// <returns>已发送字节数；失败返回 -1</returns>
-    private async ValueTask<Int32> DirectSendAsync(ReadOnlyMemory<Byte> data)
+    private Int32 DirectSend(IPacket pk)
     {
-        var count = data.Length;
-        var sock = Client;
-        if (sock == null) return -1;
+        if (pk == null) return -1;
+
+        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
+
+        Exception? error = null;
+        var rs = -1;
+
+        _writeLock.Wait();
+        try
+        {
+            rs = WritePacket(pk);
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        // 上报与关闭放到锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 将在同一线程二次进入写锁而死锁
+        if (error != null)
+        {
+            ReportSendError(error, pk);
+
+            return -1;
+        }
+
+        return rs;
+    }
+
+    /// <summary>直发：锁内同步写出一段数据（直接写调用方缓冲，0 拷贝 0 分配），写完才返回</summary>
+    /// <param name="data">数据。调用方需保证返回前不改写该缓冲</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private Int32 DirectSend(ReadOnlySpan<Byte> data)
+    {
+        if (data.IsEmpty) return 0;
+
+        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", data.Length, data.ToHex(LogDataLength));
+
+        Exception? error = null;
+        var rs = -1;
+
+        _writeLock.Wait();
+        try
+        {
+            rs = WriteMemory(data);
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        if (error != null)
+        {
+            ReportSendError(error, null);
+
+            return -1;
+        }
+
+        return rs;
+    }
+
+    /// <summary>直发：锁内异步写出整个数据包（0 拷贝 0 分配），等待可写期间不占线程</summary>
+    /// <remarks>失败已上报并按失败关闭会话；同时使用多个发送入口时由写锁串行化</remarks>
+    /// <param name="pk">数据包。借用语义：调用方保留句柄，用完自行释放</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private async ValueTask<Int32> DirectSendAsync(IPacket pk, CancellationToken cancellationToken = default)
+    {
+        if (pk == null) return -1;
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
+
+        Exception? error = null;
+        var rs = -1;
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            rs = await WritePacketAsync(pk).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一把写锁上二次等待而死锁
+        if (error != null)
+        {
+            ReportSendError(error, pk);
+
+            return -1;
+        }
+
+        return rs;
+    }
+
+    /// <summary>直发：锁内异步写出一块内存（供流式分块使用，0 拷贝 0 分配）</summary>
+    /// <param name="data">数据。调用方需保证写完前不改写该缓冲</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private async ValueTask<Int32> DirectSendAsync(ReadOnlyMemory<Byte> data, CancellationToken cancellationToken = default)
+    {
+        if (data.IsEmpty) return 0;
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", data.Length, data.Span.ToHex(LogDataLength));
+
+        Exception? error = null;
+        var rs = -1;
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            rs = await WriteMemoryAsync(data, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一把写锁上二次等待而死锁
+        if (error != null)
+        {
+            ReportSendError(error, null);
+
+            return -1;
+        }
+
+        return rs;
+    }
+
+    /// <summary>写核心（同步）：把整包（含链）写完才返回；短计数自动续发，失败抛异常</summary>
+    /// <param name="pk">数据包</param>
+    /// <returns>已发送字节数</returns>
+    private Int32 WritePacket(IPacket pk)
+    {
+        var count = pk.Total;
         if (count == 0) return 0;
 
-        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
+        var sock = Client ?? throw new InvalidOperationException($"Session [{Name}] is not open.");
+
+        TuneSendBufferSize(sock, count);
+
+        // SSL 流内部处理部分写：整段写完才返回，无需续发循环
+        if (_Stream is { } stream)
+        {
+            pk.CopyTo(stream);
+
+            LastTime = DateTime.Now;
+
+            return count;
+        }
+
+        // 一次系统调用写出整包：单节点直接写数据包自己的缓冲（0 拷贝 0 分配）；
+        // 链式包用散列写（scatter-gather）一次提交整条链——逐节点多次写会把一条逻辑帧拆成多个 TCP 段，
+        // 对端“整帧同窗到达”的零拷贝快路径随之失效（同一次解读出内存视图而非流式体）
+        var deadline = GetSendDeadline();
+        if (pk.Next == null && pk.TryGetArray(out var segment))
+            SendAll(sock, segment.Array!, segment.Offset, segment.Count, deadline);
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+        else if (pk.Next == null)
+            SendAll(sock, pk.GetMemory().Span, deadline);
+#endif
+        else
+            SendAll(sock, pk.ToSegments(), count, deadline);
+
+        LastTime = DateTime.Now;
+
+        return count;
+    }
+
+    /// <summary>同步写一块内存（零拷贝：直接写调用方缓冲），短计数自动续发</summary>
+    /// <param name="data">数据</param>
+    /// <returns>已发送字节数</returns>
+    private Int32 WriteMemory(ReadOnlySpan<Byte> data)
+    {
+        var sock = Client ?? throw new InvalidOperationException($"Session [{Name}] is not open.");
+        Int32 rs;
+
+        TuneSendBufferSize(sock, data.Length);
+
+        if (_Stream is { } stream)
+        {
+            // SSL 流内部处理部分写：整段写完才返回，失败直接抛异常，无需续发循环
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+            stream.Write(data);
+#else
+            stream.Write(data.ToArray());
+#endif
+            rs = data.Length;
+        }
+        else
+        {
+            // 同步 Send 在接收方窗口受限时可能只发出一部分，续发循环保证整段送出；总预算按会话 Timeout 计时
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+            rs = SendAll(sock, data, GetSendDeadline());
+#else
+            rs = SendAll(sock, data.ToArray(), 0, data.Length, GetSendDeadline());
+#endif
+        }
+
+        LastTime = DateTime.Now;
+
+        return rs;
+    }
+
+#if NET5_0_OR_GREATER
+    /// <summary>写核心（异步）：把整包（含链）写完才返回，等待可写期间不占线程；失败抛异常</summary>
+    /// <remarks>失败一律抛异常、不在此上报：调用方须先释放写锁再调 <see cref="ReportSendError"/>，否则用户回调内再次 Send 会在同一把写锁上二次等待而死锁</remarks>
+    /// <param name="pk">数据包</param>
+    /// <returns>已发送字节数；无套接字返回 -1</returns>
+    private async ValueTask<Int32> WritePacketAsync(IPacket pk)
+    {
+        var count = pk.Total;
+        if (count == 0) return 0;
+
+        // 逐段写出（通常只有一段），每段发完再发下一段
+        for (var node = pk; node != null; node = node.Next)
+        {
+            if (node.Length == 0) continue;
+
+            var rs = await WriteMemoryAsync(node.GetMemory(), default).ConfigureAwait(false);
+            if (rs < 0) return -1;
+        }
+
+        LastTime = DateTime.Now;
+
+        return count;
+    }
+
+    /// <summary>写核心（异步）：写完一块内存才返回，短计数自动续发；失败抛异常</summary>
+    /// <remarks>失败一律抛异常、不在此上报（同 <see cref="WritePacketAsync"/>）</remarks>
+    /// <param name="data">数据</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已发送字节数；无套接字返回 -1</returns>
+    private async ValueTask<Int32> WriteMemoryAsync(ReadOnlyMemory<Byte> data, CancellationToken cancellationToken)
+    {
+        var count = data.Length;
+        if (count == 0) return 0;
+
+        var sock = Client;
+        if (sock == null) return -1;
 
         var total = 0;
 
@@ -872,7 +842,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 if (_Stream is { } stream)
                 {
                     // SSL 流内部处理部分写：整段写完才返回，无需续发
-                    await stream.WriteAsync(data, cts.Token).ConfigureAwait(false);
+                    await stream.WriteAsync(data[total..], cts.Token).ConfigureAwait(false);
                     sent = count - total;
                 }
                 else
@@ -885,27 +855,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            // 预算超时：与同步发送超时一致，按发送失败处理
-            var ex = new TimeoutException($"Send timeout, {total}/{count} bytes sent");
-            span?.SetError(ex, null);
-            OnError("Send", ex);
-            Close("SendError");
-
-            return -1;
-        }
-        catch (Exception ex)
-        {
-            span?.SetError(ex, null);
-
-            if (!ex.IsDisposed())
-            {
-                OnError("Send", ex);
-
-                // 发送异常可能是连接出了问题，需要关闭
-                Close("SendError");
-            }
-
-            return -1;
+            // 预算超时：与同步发送超时一致，按发送失败处理（由调用方在锁外上报）
+            throw new TimeoutException($"Send timeout, {total}/{count} bytes sent");
         }
         finally
         {
@@ -918,12 +869,157 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         return total;
     }
 #else
-    /// <summary>异步发送一段数据（发送泵专用）。当前目标框架无带取消令牌的 Socket.SendAsync 重载，降级为同步续发发送</summary>
-    /// <remarks>泵已接管出口，走跳过发送泵复查的重载，避免数据被回投进泵自己正在消费的管道</remarks>
+    /// <summary>写核心（异步）。本框架无带取消令牌的 Socket.SendAsync 重载，降级为同步写完（仍然零拷贝）；失败抛异常</summary>
+    /// <param name="pk">数据包</param>
+    /// <returns>已发送字节数</returns>
+    private ValueTask<Int32> WritePacketAsync(IPacket pk) => new(WritePacket(pk));
+
+    /// <summary>写核心（异步，低版本 TFM）。降级为同步写完；失败抛异常</summary>
+    /// <param name="data">数据</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已发送字节数</returns>
+    private ValueTask<Int32> WriteMemoryAsync(ReadOnlyMemory<Byte> data, CancellationToken cancellationToken) => new(WriteMemory(data.Span));
+#endif
+
+    /// <summary>发送失败上报：记错误日志并关闭会话</summary>
+    /// <remarks>调用方必须已释放写锁：OnError/Close 会触发用户事件回调，回调内再次 Send 会二次进入写锁而死锁</remarks>
+    /// <param name="error">发送异常</param>
+    /// <param name="data">出错的发送数据，便于日志定位</param>
+    private void ReportSendError(Exception error, Object? data)
+    {
+        if (error.IsDisposed()) return;
+
+        if (Tracer is { } tracer)
+        {
+            using var span = tracer.NewSpan($"net:{Name}:Send");
+            span?.SetError(error, data);
+        }
+
+        OnError("Send", error);
+
+        // 发送异常可能是连接出了问题，需要关闭
+        Close("SendError");
+    }
+
+    /// <summary>发送数据包（同步直发）：写完才返回</summary>
+    /// <param name="data">数据包。借用语义：调用方保留句柄，用完自行释放</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    protected override Int32 OnSend(IPacket data) => DirectSend(data);
+
+    /// <summary>发送数据（同步直发）：写完才返回</summary>
     /// <param name="data">数据</param>
     /// <returns>已发送字节数；失败返回 -1</returns>
-    private ValueTask<Int32> DirectSendAsync(ReadOnlyMemory<Byte> data) => new(DirectSend(data.Span, true));
-#endif
+    protected override Int32 OnSend(ArraySegment<Byte> data)
+        => data.Array == null || data.Count <= 0 ? 0 : DirectSend(new ReadOnlySpan<Byte>(data.Array, data.Offset, data.Count));
+
+    /// <summary>发送数据（同步直发）：写完才返回</summary>
+    /// <param name="data">数据</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    protected override Int32 OnSend(ReadOnlySpan<Byte> data) => DirectSend(data);
+
+    #region 发送泵
+    private CancellationTokenSource? _pumpCts;
+    private Task? _pumpTask;
+    private Int32 _pumpThreadId;
+
+    /// <summary>启动发送泵。专用线程（LongRunning）：同步泵不能占用线程池线程，否则同步入队方在等待水位时把线程池占满，泵与入队方会互相等待而死锁</summary>
+    /// <param name="queue">发送队列</param>
+    private void StartSendPump(Pipe queue)
+    {
+        var cts = new CancellationTokenSource();
+        _pumpCts = cts;
+
+        _pumpTask = Task.Factory.StartNew(() => SendPumpLoop(queue, cts.Token), cts.Token,
+            TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+    }
+
+    /// <summary>停止发送泵。先结束写侧唤醒挂起读，再限时等泵退出——泵退出后不再触碰队列缓冲，方能安全释放队列</summary>
+    /// <remarks>本方法可能由泵线程自身触发（发送失败→上报→关闭），此时等待就是自死锁，按线程判定跳过</remarks>
+    /// <param name="queue">发送队列</param>
+    private void StopSendPump(Pipe queue)
+    {
+        // 结束写侧：挂起的 ReadAsync 立即返回完成，入队方的水位等待随之结束
+        queue.Writer.Complete();
+
+        var task = _pumpTask;
+        if (task == null || task.IsCompleted) return;
+        if (Environment.CurrentManagedThreadId == _pumpThreadId) return;
+
+        // 限时等待：泵可能正阻塞在写锁或慢对端的套接字写上。超时先中止泵再给一小段收尾时间，
+        // 仍不退出就放手——残余缓冲随管道回收，泵持有的帧自带引用计数，不会读到已归还的内存。
+        // 等待上限刻意压在 2 秒内：Close 是常见操作，不能因为一个慢对端把调用方长时间卡住
+        try
+        {
+            if (!task.Wait(1000))
+            {
+                _pumpCts?.Cancel();
+                task.Wait(1000);
+            }
+        }
+        catch (AggregateException) { }
+    }
+
+    /// <summary>发送泵：从队列取数据批量写出。一个读窗口内累积的多条消息一次散列写提交，得出批量发送</summary>
+    /// <param name="queue">发送队列</param>
+    /// <param name="cancellationToken">取消令牌。会话关闭时触发</param>
+    private void SendPumpLoop(Pipe queue, CancellationToken cancellationToken)
+    {
+        _pumpThreadId = Environment.CurrentManagedThreadId;
+
+        var reader = queue.Reader;
+        try
+        {
+            while (true)
+            {
+                var result = reader.ReadAsync(cancellationToken).GetAwaiter().GetResult();
+                var count = result.Buffer.Length;
+
+                if (count > 0)
+                {
+                    // 零拷贝切出整窗并推进消费窗口（同时解除写侧水位）：多条消息合并为一次散列写
+                    var frame = reader.TakeFrame(count);
+
+                    Exception? error = null;
+                    _writeLock.Wait();
+                    try
+                    {
+                        WritePacket(frame);
+                        LastTime = DateTime.Now;
+                    }
+                    catch (Exception ex)
+                    {
+                        error = ex;
+                    }
+                    finally
+                    {
+                        _writeLock.Release();
+                    }
+
+                    frame.TryDispose();
+
+                    // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一线程二次进入写锁而死锁
+                    if (error != null)
+                    {
+                        ReportSendError(error, null);
+
+                        break;
+                    }
+                }
+
+                if (result.IsCompleted) break;
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            ReportSendError(ex, null);
+        }
+        finally
+        {
+            reader.Complete();
+        }
+    }
+    #endregion
     #endregion 发送
 
     #region 接收

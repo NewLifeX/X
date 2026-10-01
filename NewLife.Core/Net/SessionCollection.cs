@@ -133,14 +133,6 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         if (_endPoints.TryGetValue(ep, out var item) && ReferenceEquals(item, session)) _endPoints.TryRemove(ep, out _);
     }
 
-    /// <summary>停机时是否排空发送队列。默认 false</summary>
-    /// <remarks>
-    /// <para>会话关闭会限时等待发送队列排空（最长会话 Timeout）。批量停机逐个等待会让总耗时随会话数线性放大
-    /// （1000 会话 × 3 秒 ≈ 50 分钟），而停机场景对端往往已不可达，排队数据本就送不出去。</para>
-    /// <para>需要“停机前尽力发完”时置为 true。</para>
-    /// </remarks>
-    public Boolean DrainOnShutdown { get; set; }
-
     /// <summary>关闭所有会话</summary>
     /// <param name="reason">关闭原因</param>
     public void CloseAll(String reason)
@@ -151,9 +143,6 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         {
             if (item != null && !item.Disposed)
             {
-                // 批量停机直接中止发送队列，不做逐会话限时排空
-                if (!DrainOnShutdown && item is SessionBase sb) sb.FastCloseOnShutdown = true;
-
                 if (item is INetSession ss) ss.Close(reason);
 
                 item.TryDispose();

@@ -440,18 +440,6 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// </remarks>
     public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
-    /// <summary>停机时是否排空各会话的发送队列。默认 false</summary>
-    /// <remarks>
-    /// <para>默认 false：批量停机直接中止发送队列，不做逐会话限时排空。逐个等待会让停机总耗时随会话数线性放大
-    /// （1000 会话 × 3 秒 ≈ 50 分钟），而停机场景对端往往已不可达，排队数据本就送不出去。</para>
-    /// <para>需要“停机前尽力发完”时置为 true。</para>
-    /// </remarks>
-    public Boolean DrainOnShutdown
-    {
-        get => _Sessions.DrainOnShutdown;
-        set => _Sessions.DrainOnShutdown = value;
-    }
-
     /// <summary>创建会话</summary>
     /// <remarks>
     /// <para>服务端会话由服务器统一接管接收：<see cref="SessionBase.AutoReceive"/> 恒为 true，不支持拉取模式。</para>

@@ -552,6 +552,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             // 池化接收缓冲：从 ArrayPool 借出，归本会话持有。每轮把整块缓冲包装为本轮拥有句柄上抛，
             // 轮末按引用计数裁决：无人持有则句柄回挂接收槽（UserToken）供下轮复用（重设窗口即可，缓冲原地不动，零 Rent/Return），
             // 被下游消费或带出时才解绑换新。归还见 ReleaseRecv 与 OwnerPacket.Detach 协议。
+            // “零 Rent/Return”的前提是未启用入站管道（Pipe）：启用管道后每轮均因共享切片换新缓冲，见轮末裁决处注释。
             // 加大接收缓冲区，规避SocketError.MessageSize问题
             var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
             var se = new SocketAsyncEventArgs();
@@ -773,6 +774,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                         // 计数为 1（无他人持有）→ 句柄回挂接收槽供下轮重设窗口复用，缓冲留在会话继续接收，零 Rent/Return；
                         // 其余情况（已被下游消费归零，或存在共享切片大于 1）→ 释放本句柄（已释放则空操作），解绑换新；
                         // 不在此归还：计数大于 1 时旧缓冲仍被外部使用，归还它会把正在使用的缓冲交还给池。
+                        // 已启用入站管道（Pipe）时必然走换新分支：AppendToPipe 投递的共享切片使本句柄计数恒大于 1，
+                        // 故“零 Rent/Return”复用只发生在未启用管道的会话上（换新为池化往返，实测约 8ns/次，代价可忽略）。
                         if (pk.RefCount == 1)
                         {
                             // 槽缺失（理论不发生）时按旧语义脱手，防止句柄被弃后析构兜底误归还缓冲
@@ -1138,9 +1141,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>并发信号量。并行模式（<see cref="MaxConcurrency"/> 大于1）下约束同连接并发处理数，等待时形成背压</summary>
     private SemaphoreSlim Concurrency => _concurrency ??= new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
 
-    /// <summary>批量停机快速关闭。置位后本次关闭跳过发送队列排空，由 <see cref="SessionCollection.CloseAll"/> 在批量场景设置</summary>
-    internal Boolean FastCloseOnShutdown { get; set; }
-
     /// <summary>取出协议的请求-响应配对能力。装饰协议（压缩/加密等）把配对能力留给内层，需逐层解包</summary>
     /// <param name="codec">协议</param>
     /// <returns>配对器；协议不支持配对时返回 null</returns>
@@ -1235,7 +1235,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             }
             finally
             {
-                // 发送为借阅消费语义：构建产物由本层兜底归还（拥有句柄入发送管道时所有权转移，此处为幂等兜底）
+                // 发送为借阅消费语义：直发写完才返回，构建产物由本层归还（拥有句柄）
                 data.TryDispose();
             }
         }
@@ -1292,24 +1292,24 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         return source.ValueTask;
     }
 
-    /// <summary>发送流式消息（协议模式）：先发协议头部（声明体长），再把数据流内容经发送管道分块送出</summary>
+    /// <summary>发送流式消息（协议模式）：先发协议头部（声明体长），再把数据流内容读一块写一块地送出</summary>
     /// <param name="message">消息（头部字段就位）</param>
     /// <param name="body">消息体数据流</param>
     /// <param name="bodyLength">消息体字节数；负数时从可定位流推导（<see cref="Stream.CanSeek"/>）</param>
     /// <param name="cancellationToken">取消通知</param>
-    /// <returns>已写入发送管道的内容字节数</returns>
+    /// <returns>已写出的流内容字节数</returns>
     /// <remarks>
-    /// <para>头部与流内容共用发送管道单出口（无交错），整条消息保持一条逻辑消息语义；大消息全程只在读块上驻留，不产生整段内存。</para>
-    /// <para>流提前结束（不足声明长度）或管道中止时抛出异常，已入管道部分仍会尽力送出。</para>
+    /// <para>头部与流内容在<strong>一次</strong>写锁持有期间写出（无交错），整条消息保持一条逻辑消息语义；大消息全程只在读块上驻留，不产生整段内存。</para>
+    /// <para>流提前结束（不足声明长度）或连接故障时抛出异常，已发出的部分不回退。</para>
     /// </remarks>
     /// <exception cref="InvalidOperationException">未设置协议</exception>
     /// <exception cref="ArgumentException">体长未知且流不可定位</exception>
-    /// <exception cref="NotSupportedException">会话不支持流式发送（需要发送管道）</exception>
+    /// <exception cref="NotSupportedException">会话类型不支持流式发送（仅流式会话支持）</exception>
     public virtual async ValueTask<Int64> SendMessageAsync(IMessage message, Stream body, Int64 bodyLength = -1, CancellationToken cancellationToken = default)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (body == null) throw new ArgumentNullException(nameof(body));
-        if (this is not TcpSession tcp) throw new NotSupportedException($"会话类型 [{GetType().Name}] 不支持流式发送（需要发送管道）");
+        if (this is not TcpSession tcp) throw new NotSupportedException($"会话类型 [{GetType().Name}] 不支持流式发送（仅流式会话支持）");
 
         var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
 
@@ -1320,19 +1320,17 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             bodyLength = body.Length - body.Position;
         }
 
-        // 头部先行：与流内容共用发送管道（单出口，无交错）
+        // 头部先行：与流内容在一次写锁内（头体之间不会被其它写入者插入）
         var header = codec.BuildHeader(message, bodyLength);
         try
         {
-            await tcp.SendAsync(header, cancellationToken).ConfigureAwait(false);
+            return await tcp.SendMessageLockedAsync(header, body, bodyLength, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
-            // 入队后所有权归发送管道，此处为幂等兜底
+            // 写完才返回，此处释放头部构建产物
             header.TryDispose();
         }
-
-        return await tcp.SendAsync(body, bodyLength, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>协议模式的响应等待包装（Object 版返回）</summary>

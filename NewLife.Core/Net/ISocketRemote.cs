@@ -37,7 +37,7 @@ public interface ISocketRemote : ISocket, IExtend
     /// <summary>发送数据包</summary>
     /// <param name="data">要发送的数据包</param>
     /// <returns>实际发送的字节数，失败时返回负数</returns>
-    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（直发路径已续发部分发送；已创建发送管道时为入队）；数据报（UDP）：整包原子送出</remarks>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（短计数自动续发）；数据报（UDP）：整包原子送出</remarks>
     Int32 Send(IPacket data);
 
     /// <summary>发送字节数组</summary>
@@ -45,13 +45,13 @@ public interface ISocketRemote : ISocket, IExtend
     /// <param name="offset">数据起始偏移量</param>
     /// <param name="count">发送字节数，-1表示发送从偏移量开始的所有数据</param>
     /// <returns>实际发送的字节数，失败时返回负数</returns>
-    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（直发路径已续发部分发送；已创建发送管道时为入队）；数据报（UDP）：整包原子送出</remarks>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（短计数自动续发）；数据报（UDP）：整包原子送出</remarks>
     Int32 Send(Byte[] data, Int32 offset = 0, Int32 count = -1);
 
     /// <summary>发送数组段</summary>
     /// <param name="data">数组段</param>
     /// <returns>实际发送的字节数，失败时返回负数</returns>
-    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（直发路径已续发部分发送；已创建发送管道时为入队）；数据报（UDP）：整包原子送出</remarks>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（短计数自动续发）；数据报（UDP）：整包原子送出</remarks>
     Int32 Send(ArraySegment<Byte> data);
 
     /// <summary>发送只读内存段</summary>
@@ -59,7 +59,7 @@ public interface ISocketRemote : ISocket, IExtend
     /// <returns>实际发送的字节数，失败时返回负数</returns>
     /// <remarks>
     /// <para>目标地址由 <see cref="Remote"/> 属性决定。</para>
-    /// <para>流式协议（TCP）：返回时整包已提交（直发路径已续发部分发送；已创建发送管道时为入队）；数据报（UDP）：整包原子送出。</para>
+    /// <para>流式协议（TCP）：返回时整包已提交（短计数自动续发）；数据报（UDP）：整包原子送出。</para>
     /// <para>高性能API，避免不必要的内存拷贝，适用于.NET Core/.NET 5+环境。</para>
     /// </remarks>
     Int32 Send(ReadOnlySpan<Byte> data);

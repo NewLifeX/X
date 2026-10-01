@@ -131,7 +131,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
     public ValueTask<FlushResult> FlushAsync(CancellationToken cancellationToken = default) => FlushAsync(true, cancellationToken);
 
     /// <summary>提交写入（可选写侧回压）。waitForResume 为 true 且读侧未消费量达到暂停水位时挂起，直到消费降至恢复水位以下、管道结束或取消；false 仅提交不等待</summary>
-    /// <param name="waitForResume">是否等待水位恢复。true 时提交在管道暂停期间挂起，供发送方向回压使用</param>
+    /// <param name="waitForResume">是否等待水位恢复。true 时提交在管道暂停期间挂起；当前无出站调用方，属预留能力（见《数据管道Pipe》出站一节）</param>
     /// <param name="cancellationToken">取消通知。挂起期间触发则任务以取消结束</param>
     /// <returns>提交结果；管道已结束时 IsCompleted 为 true；被 <see cref="CancelPendingFlush"/> 取消时 IsCanceled 为 true</returns>
     /// <exception cref="OperationCanceledException">取消令牌已请求取消，或在挂起期间被取消</exception>

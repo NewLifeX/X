@@ -531,18 +531,6 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// </remarks>
     public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
-    /// <summary>停机时是否排空各会话的发送队列。默认 false</summary>
-    /// <remarks>
-    /// <para>默认 false：批量停机直接中止发送队列，不做逐会话限时排空。逐个等待会让停机总耗时随会话数线性放大
-    /// （1000 会话 × 3 秒 ≈ 50 分钟），而停机场景对端往往已不可达，排队数据本就送不出去。</para>
-    /// <para>需要“停机前尽力发完”时置为 true。</para>
-    /// </remarks>
-    public Boolean DrainOnShutdown
-    {
-        get => _Sessions.DrainOnShutdown;
-        set => _Sessions.DrainOnShutdown = value;
-    }
-
     // 广播会话按端口索引。并发字典：无锁快路径读取与加锁写入并存，普通字典会在并发读写时损坏结构
     // 派生索引：与 _Sessions 同源同销（同一个 OnDisposed 回调里移除），会话是否存在仍以 _Sessions 为准
     private readonly ConcurrentDictionary<Int32, ISocketSession> _broadcasts = [];
