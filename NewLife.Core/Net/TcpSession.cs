@@ -690,7 +690,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            rs = await WriteMemoryAsync(data, cancellationToken).ConfigureAwait(false);
+            rs = await WriteMemoryAsync(data).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -802,7 +802,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         {
             if (node.Length == 0) continue;
 
-            var rs = await WriteMemoryAsync(node.GetMemory(), default).ConfigureAwait(false);
+            var rs = await WriteMemoryAsync(node.GetMemory()).ConfigureAwait(false);
             if (rs < 0) return -1;
         }
 
@@ -812,11 +812,14 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     }
 
     /// <summary>写核心（异步）：写完一块内存才返回，短计数自动续发；失败抛异常</summary>
-    /// <remarks>失败一律抛异常、不在此上报（同 <see cref="WritePacketAsync"/>）</remarks>
+    /// <remarks>
+    /// <para>失败一律抛异常、不在此上报（同 <see cref="WritePacketAsync"/>）。</para>
+    /// <para>不接收调用方取消令牌：写侧取消由 <see cref="SessionBase.Timeout"/> 预算承担（与同步写一致），
+    /// 调用方取消在等写锁与流式读块（<see cref="Stream.ReadAsync(Byte[], Int32, Int32, CancellationToken)"/>）的边界生效。</para>
+    /// </remarks>
     /// <param name="data">数据</param>
-    /// <param name="cancellationToken">取消令牌</param>
     /// <returns>已发送字节数；无套接字返回 -1</returns>
-    private async ValueTask<Int32> WriteMemoryAsync(ReadOnlyMemory<Byte> data, CancellationToken cancellationToken)
+    private async ValueTask<Int32> WriteMemoryAsync(ReadOnlyMemory<Byte> data)
     {
         var count = data.Length;
         if (count == 0) return 0;
@@ -876,9 +879,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
     /// <summary>写核心（异步，低版本 TFM）。降级为同步写完；失败抛异常</summary>
     /// <param name="data">数据</param>
-    /// <param name="cancellationToken">取消令牌</param>
     /// <returns>已发送字节数</returns>
-    private ValueTask<Int32> WriteMemoryAsync(ReadOnlyMemory<Byte> data, CancellationToken cancellationToken) => new(WriteMemory(data.Span));
+    private ValueTask<Int32> WriteMemoryAsync(ReadOnlyMemory<Byte> data) => new(WriteMemory(data.Span));
 #endif
 
     /// <summary>发送失败上报：记错误日志并关闭会话</summary>

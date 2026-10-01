@@ -238,5 +238,59 @@ public class TcpSessionStreamTests
             Assert.Equal(payload, received[8..]);
         }
     }
+
+    [Fact]
+    [DisplayName("流式发送_调用方取消_抛取消异常且不关闭会话")]
+    public async Task SendStream_CallerCancel_ThrowsAndKeepsSession()
+    {
+        var (server, client, session) = await ConnectAsync();
+        using (server)
+        using (client)
+        {
+            // 读块挂起直到取消触发：取消点确定，不依赖内核缓冲容量或对端读速
+            using var source = new BlockingStream();
+            using var cts = new CancellationTokenSource();
+
+            var task = session.SendAsync(source, 1024, cts.Token).AsTask();
+            Assert.True(source.Entered.Wait(5_000), "未进入读块，用例前置条件不成立");
+
+            cts.Cancel();
+
+            // 调用方取消不是发送故障：向上抛取消异常
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+
+            // 会话不得被当作发送故障关闭（旧实现走通用 catch 上报并 Close("SendError")）
+            Assert.True(session.Active, "调用方取消被误判为发送故障，会话已被关闭");
+        }
+    }
+
+    /// <summary>读块挂起直到被取消的测试流</summary>
+    private sealed class BlockingStream : Stream
+    {
+        private readonly TaskCompletionSource<Boolean> _entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// <summary>已进入读块</summary>
+        public Task<Boolean> Entered => _entered.Task;
+
+        public override async Task<Int32> ReadAsync(Byte[] buffer, Int32 offset, Int32 count, CancellationToken cancellationToken)
+        {
+            _entered.TrySetResult(true);
+
+            await Task.Delay(System.Threading.Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+
+            return 0;
+        }
+
+        public override Boolean CanRead => true;
+        public override Boolean CanSeek => false;
+        public override Boolean CanWrite => false;
+        public override Int64 Length => throw new NotSupportedException();
+        public override Int64 Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count) => throw new NotSupportedException();
+        public override Int64 Seek(Int64 offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(Int64 value) => throw new NotSupportedException();
+        public override void Write(Byte[] buffer, Int32 offset, Int32 count) => throw new NotSupportedException();
+    }
     #endregion
 }

@@ -340,6 +340,11 @@ partial class TcpSession
         {
             total = await SendStreamCoreAsync(source, length, cancellationToken).ConfigureAwait(false);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // 调用方主动取消：不是发送故障，不上报、不关会话（finally 会释放写锁）
+            throw;
+        }
         catch (InvalidDataException)
         {
             // 流提前结束属调用方数据问题，不是发送故障：不上报、不关会话，直接抛（finally 会释放写锁）
@@ -387,7 +392,7 @@ partial class TcpSession
                 if (count <= 0) break;
 
                 // 写完这一块才读下一块：内存恒为一块，慢对端由内核缓冲形成背压
-                var rs = await WriteMemoryAsync(buffer.AsMemory(0, count), cancellationToken).ConfigureAwait(false);
+                var rs = await WriteMemoryAsync(buffer.AsMemory(0, count)).ConfigureAwait(false);
                 if (rs < 0) throw new IOException($"Send failed on [{Name}], {total} bytes sent before failure.");
 
                 total += count;
@@ -447,27 +452,29 @@ partial class TcpSession
 
                 try
                 {
+                    // 内核 SendFileAsync(string) 无返回值（推完整个文件即成功），以文件长度作为发送量
                     await sock.SendFileAsync(filePath, cancellationToken).ConfigureAwait(false);
 
                     LastTime = DateTime.Now;
 
                     return length;
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     // 调用方主动取消：不是发送故障，向上抛出
                     throw;
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is NotSupportedException or FileNotFoundException)
                 {
-                    // 内核零拷贝并非处处可用（如 Unix 域套接字、部分文件系统）：降级为分块读取发送，
-                    // 而不是直接按发送失败关掉会话；降级仍失败时由外层统一上报
-                    WriteLog("内核零拷贝发送失败，降级为分块发送 {0}：{1}", filePath, ex.Message);
+                    // 只有「根本没发出任何数据」的失败才能安全降级：平台/套接字类型不支持零拷贝、或路径在存在性检查后被删除。
+                    // 网络中断、对端复位一类失败可能已送出部分文件，重发会让对端收到重复内容，必须交由外层按发送失败处理
+                    WriteLog("内核零拷贝不可用，降级为分块发送 {0}：{1}", filePath, ex.Message);
                 }
             }
 #endif
-            // SSL 会话或无零拷贝发送 API 的框架：分块读取发送（语义相同，多一次读块搬运）
-            using var fs = fi.OpenRead();
+            // SSL 会话或无零拷贝发送 API 的框架：分块读取发送（语义相同，多一次读块搬运）。
+            // 显式启用异步 IO 与顺序扫描：默认 OpenRead 得到的 FileStream 未开异步，ReadAsync 会同步阻塞线程
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
             total = await SendStreamCoreAsync(fs, length, cancellationToken).ConfigureAwait(false);
         }
@@ -527,6 +534,11 @@ partial class TcpSession
             WritePacket(header);
 
             total = await SendStreamCoreAsync(body, length, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // 调用方主动取消：不是发送故障，不上报、不关会话（finally 会释放写锁）
+            throw;
         }
         catch (InvalidDataException)
         {

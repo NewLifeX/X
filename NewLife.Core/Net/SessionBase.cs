@@ -1324,7 +1324,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         var header = codec.BuildHeader(message, bodyLength);
         try
         {
-            return await tcp.SendMessageLockedAsync(header, body, bodyLength, cancellationToken).ConfigureAwait(false);
+            var rs = await tcp.SendMessageLockedAsync(header, body, bodyLength, cancellationToken).ConfigureAwait(false);
+
+            // 失败返回 -1：底层已记错误日志并按失败关闭会话，这里转成异常，保持本方法“失败即抛”的契约
+            if (rs < 0) throw new IOException($"Send message failed on [{Name}].");
+
+            return rs;
         }
         finally
         {
