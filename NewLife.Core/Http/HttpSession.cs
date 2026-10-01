@@ -425,9 +425,23 @@ public class HttpSession : INetHandler, IDisposable
                 // 文件流且从头整发：交给内核零拷贝推文件（sendfile/TransmitFile），应用层不再经读块搬运；
                 // 其余情形（Range 片段、内存流等）走分块读写的流式发送
                 if (stream is FileStream fs && fs.Position == 0 && fs.Length == length && !fs.Name.IsNullOrEmpty())
-                    tcp.SendFileAsync(fs.Name).GetAwaiter().GetResult();
-                else
-                    tcp.SendAsync(stream, length).GetAwaiter().GetResult();
+                {
+                    // 零拷贝按路径重开文件：流打开后文件被删除/改名（临时文件、DeleteOnClose）或相对路径解析失败时，
+                    // 此路径会在未发出任何数据前抛 FileNotFoundException，此时降级为按原流分块发送。
+                    // 没有这层兜底，优化会把「读已打开的流一定成功」变成「路径失效即整条响应失败」
+                    try
+                    {
+                        if (tcp.SendFileAsync(fs.Name).GetAwaiter().GetResult() < 0) throw new IOException($"Send file failed: {fs.Name}");
+
+                        return;
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        if (fs.Position != 0) fs.Seek(0, SeekOrigin.Begin);
+                    }
+                }
+
+                tcp.SendAsync(stream, length).GetAwaiter().GetResult();
 
                 return;
             }
