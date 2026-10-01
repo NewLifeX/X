@@ -352,15 +352,16 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
 
     private async void DoReconnect(Object? state)
     {
-        // 清除定时器引用，使 ScheduleReconnect 可在失败时创建新的一次性定时器
-        StopReconnect();
-        if (Disposed || _userClosed || (_client != null && _client.Active)) return;
-
-        _reconnectCount++;
-        WriteLog("正在重连 [{0}] {1}", _reconnectCount, Remote);
-
+        // 整个方法体都在 try 内：async void 逃出的异常无人观测，会直接终止进程
         try
         {
+            // 清除定时器引用，使 ScheduleReconnect 可在失败时创建新的一次性定时器
+            StopReconnect();
+            if (Disposed || _userClosed || (_client != null && _client.Active)) return;
+
+            _reconnectCount++;
+            WriteLog("正在重连 [{0}] {1}", _reconnectCount, Remote);
+
             var client = CreateClient();
             if (await client.OpenAsync().ConfigureAwait(false))
             {
