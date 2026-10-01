@@ -530,6 +530,8 @@ partial class TcpSession
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", header.Total, header.ToHex(LogDataLength));
+
             // 头部先行：与流内容在同一把写锁内，整条消息不会与其它写入者交错
             WritePacket(header);
 
