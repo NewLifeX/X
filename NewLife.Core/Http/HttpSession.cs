@@ -385,9 +385,8 @@ public class HttpSession : INetHandler, IDisposable
     /// <param name="rs">响应</param>
     /// <param name="stream">主体数据流（所有权随响应，发送完成后释放）</param>
     /// <remarks>
-    /// <para>背压：发送走会话的水位感知出口，待发积压达到暂停水位时挂起等待网络消化，
-    /// 慢速客户端下每连接的排队内存有界（由暂停/恢复水位决定），不随响应体大小增长。</para>
-    /// <para>长度可知时整段交给会话的流式发送出口（分块读取 + 零拷贝入管道 + 水位背压），本同步处理链上等待完成；
+    /// <para>背压：读一块写一块，慢速客户端下每连接内存有界——待发数据由内核发送缓冲限定（水位即内核缓冲），不随响应体大小增长。</para>
+    /// <para>长度可知时整段交给会话的发送出口，其中“文件流从头整发”交给内核零拷贝推送；
     /// 长度未知时按分块传输逐块发送。</para>
     /// </remarks>
     private void SendStreamBody(HttpResponse rs, Stream stream)
@@ -404,14 +403,32 @@ public class HttpSession : INetHandler, IDisposable
             var chunked = length < 0;
             if (chunked) rs.Headers["Transfer-Encoding"] = "chunked";
 
-            using var head = rs.BuildHeaderPacket(length);
-            _session.Send(head);
+            // 分块响应体（长度未知）：头部与各分块同走发送队列出口——一条响应内严格有序，
+            // 且发送泵会把读窗口内累积的多块合并为一次散列写提交，减少系统调用与 TCP 段
+            TcpSession? queued = null;
+            if (chunked && _session.Session is TcpSession { Active: true } host) queued = host;
 
-            // 长度可知：整段交给会话的流式发送出口（分块读取、零拷贝入管道、水位背压），本同步链上等待完成。
-            // 逐块直发在发送管道积压时不等待任何背压，慢客户端下整个响应体会排队进内存，单连接即可耗尽内存
+            var head = rs.BuildHeaderPacket(length);
+            if (queued != null)
+                SendBlock(queued, head);
+            else
+            {
+                _session.Send(head);
+                head.TryDispose();
+            }
+
+            // 长度可知：整段交给会话的发送出口（读一块写一块，内核缓冲形成背压）。
+            // 本同步链上等待完成：HTTP 处理链由 void 的 Process(IData) 驱动、无法 await，
+            // 慢客户端下大文件响应会占住该会话的处理线程（分块响应体已改走发送队列，不再阻塞在套接字写上）
             if (!chunked && _session.Session is TcpSession { Active: true } tcp)
             {
-                tcp.SendAsync(stream, length).GetAwaiter().GetResult();
+                // 文件流且从头整发：交给内核零拷贝推文件（sendfile/TransmitFile），应用层不再经读块搬运；
+                // 其余情形（Range 片段、内存流等）走分块读写的流式发送
+                if (stream is FileStream fs && fs.Position == 0 && fs.Length == length && !fs.Name.IsNullOrEmpty())
+                    tcp.SendFileAsync(fs.Name).GetAwaiter().GetResult();
+                else
+                    tcp.SendAsync(stream, length).GetAwaiter().GetResult();
+
                 return;
             }
 
@@ -425,8 +442,11 @@ public class HttpSession : INetHandler, IDisposable
                 if (chunked)
                 {
                     // 分块传输：十六进制长度 CRLF + 数据 + CRLF 组装为单包
-                    using var pk = BuildChunk(buffer, count);
-                    SendBlock(pk);
+                    var pk = BuildChunk(buffer, count);
+                    if (queued != null)
+                        SendBlock(queued, pk);
+                    else
+                        SendBlock(pk);
                 }
                 else
                 {
@@ -435,7 +455,13 @@ public class HttpSession : INetHandler, IDisposable
             }
 
             // 终止块
-            if (chunked) _session.Send("0\r\n\r\n");
+            if (chunked)
+            {
+                if (queued != null)
+                    SendBlock(queued, new ArrayPacket("0\r\n\r\n".GetBytes()));
+                else
+                    _session.Send("0\r\n\r\n");
+            }
         }
         catch (Exception ex)
         {
@@ -449,16 +475,34 @@ public class HttpSession : INetHandler, IDisposable
         }
     }
 
-    /// <summary>背压发送一块流式数据。会话支持水位感知出口时挂起等待网络消化（本同步处理链上阻塞等待），否则直发</summary>
+    /// <summary>发送一块流式数据（直发）。与其它发送入口共用会话写锁，写完（或内核缓冲满时挂起）才返回</summary>
     /// <param name="pk">数据包。句柄借用：与 <see cref="INetSession.Send(IPacket)"/> 同义，返回后调用方自行释放</param>
-    private void SendBlock(IPacket pk)
+    private void SendBlock(IPacket pk) => _session.Send(pk);
+
+    /// <summary>发送一块流式数据（经发送队列，所有权转移）。队列积压时本同步链上等待水位恢复</summary>
+    /// <remarks>
+    /// <para>同步等待：<see cref="SendStreamBody"/> 由同步接收链调用（<c>Process(IData)</c> 返回 void），本层无法 await。</para>
+    /// <para>发送泵运行在专用线程（LongRunning）上，故此处阻塞不会与泵互抢线程池线程而死锁。</para>
+    /// </remarks>
+    /// <param name="session">目标会话</param>
+    /// <param name="pk">数据包。所有权转移：入队后由发送泵负责释放，调用方不得再释放</param>
+    private static void SendBlock(TcpSession session, IPacket pk)
     {
-        // SendAsync 与 Send 共用发送管道单出口：积压达到暂停水位时挂起，网络消化到恢复水位后继续。
-        // 等待不带取消：与直发路径的同步 socket 写阻塞语义一致，连接故障/关闭时管道完成并唤醒等待方
-        if (_session.Session is TcpSession { Active: true } tcp)
-            _ = tcp.SendAsync(pk).GetAwaiter().GetResult();
-        else
-            _session.Send(pk);
+        Boolean ok;
+        try
+        {
+            ok = session.SendQueuedAsync(pk).GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // 未入队即失败（会话已释放/未打开）：句柄所有权未转移，由本层归还
+            pk.TryDispose();
+
+            throw;
+        }
+
+        // 返回 false 表示队列已结束：数据已由管道释放，这里不得再释放（否则重复归还池缓冲）
+        if (!ok) throw new IOException("Send queue is closed.");
     }
 
     /// <summary>组装分块传输数据块（十六进制长度 CRLF + 数据 CRLF）</summary>
