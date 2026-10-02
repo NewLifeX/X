@@ -635,6 +635,38 @@ public class SpanReaderTests
         try { reader.ReadEncodedInt(); } catch (FormatException) { threw = true; }
         Assert.True(threw);
     }
+
+    [Fact]
+    public void ReadEncodedIntTerminatorOverflowThrows()
+    {
+        // 第 5 字节只剩高 4 位可用（28+4=32）：0x7F 的值位溢出 Int32 范围，
+        // 旧实现静默丢弃高位、解出与编码意图无关的值却当成功
+        var data = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x7F };
+        var reader = new SpanReader(data);
+        var threw = false;
+        try { reader.ReadEncodedInt(); } catch (FormatException) { threw = true; }
+        Assert.True(threw);
+    }
+
+    [Fact]
+    public void ReadEncodedInt64TerminatorOverflowThrows()
+    {
+        // 第 10 字节只剩最高位可用（63+1=64）：同理拒绝值位溢出
+        var data = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F };
+        var reader = new SpanReader(data);
+        var threw = false;
+        try { reader.ReadEncodedInt64(); } catch (FormatException) { threw = true; }
+        Assert.True(threw);
+    }
+
+    [Fact]
+    public void ReadEncodedInt64MaxNegativeAccepted()
+    {
+        // 防止误伤：10 字节的合法上限形态（末字节 0x01 = 符号位）仍应解出 -1
+        var data = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01 };
+        var reader = new SpanReader(data);
+        Assert.Equal(-1L, reader.ReadEncodedInt64());
+    }
     #endregion
 
     #region ReadArray 测试

@@ -474,6 +474,10 @@ public ref struct SpanReader
         {
             var b = ReadByte();
 
+            // 第 5 个字节（28+4=32 位）只剩高 4 位可用：值位溢出即超出 Int32 表示范围，
+            // 静默丢弃会解出一个完全不同的值，按格式错误拒绝（与下方字节数上限同口径）
+            if (n == 28 && (b & 0x7f) > 0x0F) throw new FormatException("The number value is too large to read in compressed format!");
+
             // 必须转为 UInt32，否则可能溢出
             rs |= (UInt32)((b & 0x7f) << n);
             if ((b & 0x80) == 0) break;
@@ -496,6 +500,10 @@ public ref struct SpanReader
         while (true)
         {
             var b = ReadByte();
+
+            // 第 10 个字节（63+1=64 位）只剩最高位可用：值位溢出即超出 Int64 表示范围，
+            // 静默丢弃会解出一个完全不同的值，按格式错误拒绝（与下方字节数上限同口径）
+            if (n == 63 && (b & 0x7f) > 1) throw new FormatException("The number value is too large to read in compressed 64-bit format!");
 
             rs |= (UInt64)((UInt64)(b & 0x7f) << n);
             if ((b & 0x80) == 0) break;

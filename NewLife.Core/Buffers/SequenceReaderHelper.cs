@@ -248,6 +248,14 @@ public static class SequenceReaderHelper
                 return false;
             }
 
+            // 第 5 个字节（28+4=32 位）只剩高 4 位可用：值位溢出即超出 Int32 表示范围，
+            // 静默丢弃会解出一个完全不同的值，与截断/字节数超限同口径判为读取失败
+            if (n == 28 && (b & 0x7F) > 0x0F)
+            {
+                value = default;
+                return false;
+            }
+
             // 必须先转 UInt32 再移位，否则 28 位处溢出 int 符号位
             rs |= (UInt32)(b & 0x7F) << n;
             if ((b & 0x80) == 0) break;
@@ -279,6 +287,14 @@ public static class SequenceReaderHelper
         while (true)
         {
             if (!copy.TryRead(out var b))
+            {
+                value = default;
+                return false;
+            }
+
+            // 第 10 个字节（63+1=64 位）只剩最高位可用：值位溢出即超出 Int64 表示范围，
+            // 静默丢弃会解出一个完全不同的值，与截断/字节数超限同口径判为读取失败
+            if (n == 63 && (b & 0x7F) > 1)
             {
                 value = default;
                 return false;

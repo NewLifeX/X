@@ -58,6 +58,27 @@ public class SequenceReaderHelperTests
         Assert.Equal(0, reader.Consumed);
     }
 
+    [Fact(DisplayName = "7位压缩：末字节值位溢出返回false且不推进")]
+    public void EncodedInt_TerminatorOverflow_NoAdvance()
+    {
+        // 第 5 字节只剩高 4 位可用（28+4=32）：0x7F 的值位溢出 Int32 范围。
+        // 旧实现静默丢弃高位，返回 true 并给出与编码意图无关的值
+        var reader = new SequenceReader<Byte>(new ReadOnlySequence<Byte>([0xFF, 0xFF, 0xFF, 0xFF, 0x7F]));
+
+        Assert.False(reader.TryReadEncodedInt(out _));
+        Assert.Equal(0, reader.Consumed);
+    }
+
+    [Fact(DisplayName = "7位压缩64位：末字节值位溢出返回false且不推进")]
+    public void EncodedInt64_TerminatorOverflow_NoAdvance()
+    {
+        // 第 10 字节只剩最高位可用（63+1=64）
+        var reader = new SequenceReader<Byte>(new ReadOnlySequence<Byte>([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]));
+
+        Assert.False(reader.TryReadEncodedInt64(out _));
+        Assert.Equal(0, reader.Consumed);
+    }
+
     [Fact(DisplayName = "7位压缩64位：Int64.MaxValue（9字节）与 -1")]
     public void EncodedInt64_Boundaries()
     {
