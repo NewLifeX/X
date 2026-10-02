@@ -346,6 +346,7 @@ public class TinyHttpClient : DisposeBase
     /// <param name="request">待发送的请求数据。为 null 表示只读取不发送</param>
     /// <param name="pending">上一条响应之后多出的字节，可为 null</param>
     /// <returns>响应与未消费的残留字节；响应头解析失败时响应为 null</returns>
+    /// <exception cref="InvalidDataException">临时响应（1xx）连续超过上限，始终未收到最终响应</exception>
     private async Task<(HttpResponse? Response, MemoryStream? Carry)> ReadResponseAsync(Uri? uri, IPacket? request, MemoryStream? pending)
     {
         // 残留字节可能已是一条完整响应（1xx 与最终响应同包到达），先就地解析，避免去读一个永远不会到达的包
@@ -441,7 +442,10 @@ public class TinyHttpClient : DisposeBase
             }
         }
 
-        return (null, null);
+        // 循环退出只可能是因为临时响应把计数耗尽：服务端反复回 1xx 而始终不给最终响应。
+        // 此处必须报错而非静默返回 null——调用方无法区分“服务端没响应”与“响应被临时响应吞掉”，
+        // null 会让上层把一次失败的请求当成空结果（与重复/非法 Content-Length 同口径）
+        throw new InvalidDataException($"临时响应（1xx）连续超过上限，始终未收到最终响应：{carry?.Length ?? 0} 字节残留");
     }
 
     /// <summary>读取分片，返回链式 IPacket</summary>

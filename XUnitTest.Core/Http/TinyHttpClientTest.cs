@@ -259,6 +259,26 @@ public class TinyHttpClientTest
         await server;
     }
 
+    [Fact(DisplayName = "HTTP客户端_临时响应连续超限_报错而非静默返回null")]
+    public async Task SendAsync_TooManyInterimResponses_Throws()
+    {
+        // 1xx 计数上限用于兜住反复回临时响应却不给最终响应的服务端；触顶时旧实现静默返回 null，
+        // 调用方无法区分“服务端没响应”与“响应被临时响应吞掉”，故按协议错误报出（与重复/非法 Content-Length 同口径）
+        var resp = Encoding.ASCII.GetBytes(String.Concat(Enumerable.Repeat("HTTP/1.1 100 Continue\r\n\r\n", 6)));
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(resp);
+            await ns.FlushAsync();
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") }));
+
+        await server;
+    }
+
     [Fact(DisplayName = "异步请求_204无内容_按成功返回")]
     public async Task SendAsync_NoContent_Succeeds()
     {
