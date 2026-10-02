@@ -399,6 +399,11 @@ public class TinyHttpClient : DisposeBase
 
                 if (!parsed) return (null, null);
 
+                // 重复（或无法解析/为负/超上限）的 Content-Length 会让本端与中间代理对实体长度产生分歧：
+                // 本端按最后一个值读、代理按第一个值转发，多出的字节在本端被当成下一条响应（响应队列投毒）。
+                // 取值口径与请求侧一致（HttpSession 对请求同样拒绝），此处按协议错误直接报错，不静默取一个值
+                if (res.InvalidContentLength) throw new InvalidDataException($"响应包含重复或非法的 Content-Length：{res.Headers["Content-Length"]}");
+
                 // 1xx 临时响应（100 Continue、103 Early Hints 等）不是最终响应：丢弃后继续读取。
                 // 当最终响应返回会让调用方拿到 1xx 的空体并误判成功（网关与 Expect 场景常见）
                 var code = (Int32)res.StatusCode;

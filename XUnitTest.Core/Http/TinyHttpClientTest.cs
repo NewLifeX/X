@@ -196,6 +196,46 @@ public class TinyHttpClientTest
         await server;
     }
 
+    [Fact(DisplayName = "HTTP客户端_响应重复Content-Length_报错拒绝")]
+    public async Task SendAsync_DuplicateContentLength_Throws()
+    {
+        // 同名头部就地覆盖只会剩最后一个值，与中间代理（通常取第一个）理解不一致，构成实体长度分歧：
+        // 本端按 10 读、代理按 5 转发，多出的字节被当成下一条响应（响应队列投毒）。请求侧已拒绝，响应侧同口径
+        var resp = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Length: 5\r\nContent-Length: 10\r\n\r\nhello");
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(resp);
+            await ns.FlushAsync();
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") }));
+
+        await server;
+    }
+
+    [Fact(DisplayName = "HTTP客户端_响应非法Content-Length_报错拒绝")]
+    public async Task SendAsync_InvalidContentLength_Throws()
+    {
+        // 无法解析的长度值旧实现退化成“无体”（ContentLength=-1），实体随首个接收包原样截断，边界不可预期；
+        // 与请求侧一致按协议错误报错
+        var resp = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Length: abc\r\n\r\nhello");
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(resp);
+            await ns.FlushAsync();
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") }));
+
+        await server;
+    }
+
     [Fact(DisplayName = "异步请求_204无内容_按成功返回")]
     public async Task SendAsync_NoContent_Succeeds()
     {
