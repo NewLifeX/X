@@ -87,7 +87,8 @@ public class WebSocketCodec : IMessageCodec
             <= 0xFFFF => 1 + 1 + 2,
             _ => 1 + 1 + 8,
         };
-        if (masks != null) size += masks.Length;
+        // 线上掩码键固定 4 字节：按数组实际长度算头长，会与 WriteHeader 写出的字节数不一致，导致帧错位
+        if (masks != null) size += 4;
 
         IOwnerPacket pk;
         if (masks == null)
@@ -144,19 +145,63 @@ public class WebSocketCodec : IMessageCodec
     #endregion
 
     #region 辅助
+    /// <summary>判断关闭状态码是否允许出现在线路上（RFC 6455 §7.4.1）</summary>
+    /// <param name="closeStatus">关闭状态码</param>
+    /// <returns>可发送返回 true</returns>
+    /// <remarks>1000~1003、1007~1014 为协议与 IANA 已分配值，3000~4999 供应用与注册使用；
+    /// 1004/1005/1006/1015 属保留值，0~999 与 1016~2999 未分配，端点均禁止发送——
+    /// 发送这类码会被对端判定为协议错误，把优雅关闭变成异常关闭</remarks>
+    internal static Boolean IsSendableCloseStatus(Int32 closeStatus) => closeStatus switch
+    {
+        >= 1000 and <= 1003 => true,
+        >= 1007 and <= 1014 => true,
+        >= 3000 and <= 4999 => true,
+        _ => false,
+    };
+
     /// <summary>构造关闭帧正文：2 字节网络序状态码加 UTF-8 原因（RFC 6455 §5.5.1）</summary>
     /// <param name="closeStatus">关闭状态码</param>
     /// <param name="statusDescription">原因描述，可为空</param>
     /// <returns>关闭帧正文数据包，调用方负责 Dispose</returns>
+    /// <remarks>不可发送的状态码退化为无负载（即“无状态码关闭帧”语义）；原因按控制帧上限截断到 123 字节且不切断多字节字符</remarks>
     internal static IPacket BuildClosePayload(Int32 closeStatus, String? statusDescription)
     {
+        if (!IsSendableCloseStatus(closeStatus))
+        {
+            NewLife.Log.XTrace.WriteLine("WebSocket 关闭状态码 {0} 不允许出现在线路上，改为发送无状态码关闭帧", closeStatus);
+
+            return new ArrayPacket(new Byte[0]);
+        }
+
         var desc = (statusDescription ?? String.Empty).GetBytes();
+
+        // RFC 6455 §5.5：控制帧负载不得超过 125 字节——状态码 2 字节 + 原因最多 123 字节。
+        // 不截断会发出非法控制帧，对端（含本库服务端）会按协议错误 1002 关闭，优雅关闭变成异常关闭
+        if (desc.Length > 123) desc = TruncateUtf8(desc, 123);
+
         var buf = new Byte[2 + desc.Length];
         buf[0] = (Byte)(closeStatus >> 8);
         buf[1] = (Byte)closeStatus;
         desc.CopyTo(buf, 2);
 
         return new ArrayPacket(buf);
+    }
+
+    /// <summary>按 UTF-8 字符边界截断字节，不切断多字节字符</summary>
+    /// <param name="bytes">原始字节</param>
+    /// <param name="max">最大字节数</param>
+    /// <returns>截断结果</returns>
+    private static Byte[] TruncateUtf8(Byte[] bytes, Int32 max)
+    {
+        var len = max;
+
+        // 续字节（10xxxxxx）不能作为起点：回退到该字符首字节，否则截出半个字符（对端读到非法 UTF-8）
+        while (len > 0 && (bytes[len] & 0xC0) == 0x80) len--;
+
+        var buf = new Byte[len];
+        Array.Copy(bytes, buf, len);
+
+        return buf;
     }
 
     /// <summary>按掩码键对数据原地 XOR 解码/编码（跨段连续：偏移按负载起点累计）</summary>

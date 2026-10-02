@@ -174,11 +174,13 @@ public class WsMessage : Message
     /// <summary>写入 WebSocket 帧头（FIN/OPCODE/长度/[掩码键]，均为大端）</summary>
     /// <param name="header">头部目标跨度（至少所需字节）</param>
     /// <param name="bodyLength">负载长度</param>
-    /// <param name="maskKey">掩码键（4 字节时写入并置掩码位；null 不掩码）</param>
+    /// <param name="maskKey">掩码键。长度达到 4 字节时取前 4 字节写入并置掩码位；不足 4 字节或 null 不掩码</param>
     /// <returns>帧头字节数</returns>
+    /// <remarks>线上掩码键固定 4 字节（RFC 6455 §5.2）：传超长数组也只写前 4 字节，
+    /// 否则帧头会多出 (长度-4) 字节，对端把多出的字节当成负载开头读取，整条消息错位</remarks>
     public Int32 WriteHeader(Span<Byte> header, Int64 bodyLength, Byte[]? maskKey)
     {
-        var masked = maskKey != null && maskKey.Length >= 4;
+        var masked = maskKey is { Length: >= 4 };
         var size = bodyLength switch
         {
             < 126 => 1 + 1,
@@ -195,7 +197,8 @@ public class WsMessage : Message
         // 长度：< 126 单字节；≤ 0xFFFF 用 2 字节；否则用 8 字节（均网络序）
         WriteLength(ref writer, masked ? (Byte)0x80 : (Byte)0, bodyLength);
 
-        if (masked) writer.Write(maskKey!);
+        // 掩码键只写线上固定的 4 字节（超长数组的其余字节丢弃）
+        if (masked) writer.Write(maskKey!.AsSpan(0, 4));
 
         return size;
     }

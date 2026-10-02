@@ -340,6 +340,43 @@ public class WebSocketCodecTests
     }
 
     [Fact]
+    [DisplayName("WS编解码_掩码键超过4字节_只写前4字节")]
+    public void Build_MaskKeyLongerThanFour_WritesFourBytes()
+    {
+        // 掩码键在线上固定 4 字节（RFC 6455 §5.2）。若按数组实际长度写头，帧头会多出 (长度-4) 字节，
+        // 对端把多出的字节当成负载开头，整条消息错位
+        var payload = MakePayload(10);
+        var msg = new WsMessage { Type = WebSocketMessageType.Binary };
+        var key = new Byte[8];
+        for (var i = 0; i < key.Length; i++) key[i] = (Byte)(0x10 + i);
+        msg.MaskKey = key;
+        msg.SetBody(new ArrayPacket(payload));
+
+        var frame = _clientCodec.Build(msg)!;
+        var bytes = frame.AsReadOnlySequence().ToArray();
+
+        // 头 2 + 掩码 4 = 6，加载荷 10 = 16；多余的掩码字节不得进入帧
+        Assert.Equal(16, bytes.Length);
+
+        var rs = _serverCodec.TryParse(new ReadOnlySequence<Byte>(bytes));
+        Assert.NotNull(rs);
+        Assert.Equal(6, rs!.Value.HeaderSize);
+        Assert.Equal(10L, rs.Value.BodyLength);
+
+        // 掩码字段必须是键的前 4 字节；且解码后负载与原文一致——
+        // 按 8 字节写头会把键的后 4 字节覆盖到负载前 4 字节上
+        Assert.Equal(key.AsSpan(0, 4).ToArray(), bytes[2..6]);
+        var parsed = (WsMessage)rs.Value.Message!;
+        parsed.SetBody(new ArrayPacket(bytes).Slice(6, 10));
+        parsed.Demask();
+        Assert.Equal(payload, parsed.Payload!.ToArray());
+        parsed.Dispose();
+
+        msg.Dispose();
+        frame.TryDispose();
+    }
+
+    [Fact]
     [DisplayName("WS编解码_关闭帧_状态码与描述解析")]
     public void CloseStatus_Parse()
     {
@@ -358,6 +395,49 @@ public class WebSocketCodecTests
         Assert.Equal(desc, msg.StatusDescription);
 
         msg.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_关闭帧原因超长_截断到控制帧上限")]
+    public void ClosePayload_LongReason_Truncated()
+    {
+        // RFC 6455 §5.5：控制帧负载不得超过 125 字节，即状态码 2 字节 + 原因最多 123 字节
+        var pk = WebSocketCodec.BuildClosePayload(1000, new String('x', 300));
+        Assert.Equal(125L, pk.Total);
+        Assert.Equal(1000, (pk[0] << 8) | pk[1]);
+        pk.TryDispose();
+
+        // 多字节字符不得被截成半个：'中' 占 3 字节，123 恰是边界（3×41），整 123 字节保留
+        var pk2 = WebSocketCodec.BuildClosePayload(1000, new String('中', 100));
+        Assert.Equal(125L, pk2.Total);
+        pk2.TryDispose();
+
+        // 加 2 字节 ASCII 前缀后 123 落在 '中' 的续字节上，须退到该字符首字节（122）
+        var pk3 = WebSocketCodec.BuildClosePayload(1000, "xy" + new String('中', 100));
+        Assert.Equal(124L, pk3.Total);
+        pk3.TryDispose();
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_不可发送的关闭码_退化为无状态码关闭帧")]
+    public void ClosePayload_UnsendableStatus_Dropped()
+    {
+        // 保留值与未分配段禁止端点发送，发出会被对端判定协议错误
+        foreach (var code in new[] { 0, 999, 1004, 1005, 1006, 1015, 1016, 2999, 5000 })
+        {
+            var pk = WebSocketCodec.BuildClosePayload(code, "bye");
+            Assert.Equal(0L, pk.Total);
+            pk.TryDispose();
+        }
+
+        // 已分配段照常携带状态码（无原因时正文仅 2 字节）
+        foreach (var code in new[] { 1000, 1003, 1007, 1011, 1014, 3000, 4999 })
+        {
+            var pk = WebSocketCodec.BuildClosePayload(code, null);
+            Assert.Equal(2L, pk.Total);
+            Assert.Equal(code, (pk[0] << 8) | pk[1]);
+            pk.TryDispose();
+        }
     }
     #endregion
 

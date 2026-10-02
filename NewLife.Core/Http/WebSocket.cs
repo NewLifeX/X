@@ -242,9 +242,15 @@ public class WebSocket : IDisposable
             case WebSocketMessageType.Close:
                 {
                     // RFC 6455 §5.5.1/§7.4.1：有状态码则回显；无状态码时发空负载关闭帧。
-                    // 1005/1006/1015 是保留值，禁止出现在线上（客户端会判定为协议错误）
-                    if (message.CloseStatus > 0)
+                    // 1005/1006/1015 是保留值，0~999 与 1016~2999 未分配，都禁止出现在线路上：
+                    // 收到这类码本身就是协议错误，回显等于把违规码原样发回，正解是按协议错误失败连接
+                    if (WebSocketCodec.IsSendableCloseStatus(message.CloseStatus))
                         Close(message.CloseStatus, message.StatusDescription ?? "Finished");
+                    else if (message.CloseStatus > 0)
+                    {
+                        FailConnection(1002, "invalid close code");
+                        return;
+                    }
                     else
                         Close();
 
