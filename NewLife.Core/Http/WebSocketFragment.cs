@@ -26,9 +26,20 @@ internal sealed class WebSocketFragment
     public void Begin(WebSocketMessageType type, IPacket? payload)
     {
         _fragments.Clear();
-        _fragments.Add(payload?.ToArray() ?? []);
         _type = type;
-        _length = _fragments[0].Length;
+
+        // 首片同样受上限约束：不检查会让一个超大 FIN=0 首片直接分配并绕过上限（Append 侧已有同样检查）。
+        // 先按长度判定再拷贝，避免为注定被丢弃的分片白拷贝一大块
+        var total = payload?.Total ?? 0;
+        if (total > MaxFragments)
+        {
+            _length = 0;
+            return;
+        }
+
+        var data = payload?.ToArray() ?? [];
+        _fragments.Add(data);
+        _length = data.Length;
     }
 
     /// <summary>追加续片；末片（FIN=1）时合并为完整消息</summary>
