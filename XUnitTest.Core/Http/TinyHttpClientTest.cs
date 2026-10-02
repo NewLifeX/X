@@ -236,6 +236,29 @@ public class TinyHttpClientTest
         await server;
     }
 
+    [Fact(DisplayName = "HTTP客户端_传输编码列表末位为chunked_按分块解码")]
+    public async Task SendAsync_TransferEncodingList_DecodesChunked()
+    {
+        // RFC 9112 §6.1：存在传输编码时 chunked 必须位于末位（其前置编码如 gzip 由调用方自理，本端只解分块）。
+        // 精确匹配旧实现把「gzip, chunked」判成非分块，于是按 Content-Length（或 -1 当无体）读，
+        // 调用方拿到未解码的分块帧：内容错乱却“成功”返回
+        var resp = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nTransfer-Encoding: gzip, chunked\r\n\r\n5\r\nhello\r\n0\r\n\r\n");
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(resp);
+            await ns.FlushAsync();
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") });
+
+        Assert.NotNull(res);
+        Assert.Equal("hello", res!.Body!.ToStr());
+
+        await server;
+    }
+
     [Fact(DisplayName = "异步请求_204无内容_按成功返回")]
     public async Task SendAsync_NoContent_Succeeds()
     {

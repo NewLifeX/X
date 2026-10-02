@@ -274,10 +274,19 @@ public class TinyHttpClient : DisposeBase
             throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
         }
 
-        // 分块编码优先于 Content-Length（RFC 9112 §6.1：两者同现时以 Transfer-Encoding 为准）。
+        // 分块编码优先于 Content-Length（RFC 9112 §6.1：两者同现时以 Transfer-Encoding 为准。该条是接收方规则，
+        // 本端解码响应后即交出、不转发消息，故按 TE 为准而非判非法——需要拒绝的是服务端与转发中间件）。
         // 旧实现先按 Content-Length 补读再判分块：同发两者的响应会先按 CL 凑字节，把分块长度行与分块数据
         // 错位喂给分块解析，得到内容错乱或异常却仍“成功”返回。分块响应的实体长度由分块解码决定，CL 视为未知
-        var chunked = res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked");
+        var chunked = false;
+        if (res.Headers.TryGetValue("Transfer-Encoding", out var te) && !te.IsNullOrEmpty())
+        {
+            // 传输编码是逗号分隔的列表，且 RFC 9112 §6.1 要求存在传输编码时 chunked 必须位于末位。
+            // 精确匹配会把「gzip, chunked」判成非分块，于是按 Content-Length（或 -1 当无体）读，
+            // 调用方拿到未解码的分块帧、内容错乱却“成功”返回，故取末位编码判定；
+            // 末位之前的编码（gzip 等）本端不解码，原样交给调用方
+            chunked = te[(te.LastIndexOf(',') + 1)..].Trim().EqualIgnoreCase("chunked");
+        }
         if (chunked) res.ContentLength = -1;
 
         // 如果没有收完数据包
