@@ -60,6 +60,36 @@ public class WebSocketFragmentTests
 
         Assert.Null(f.Append(false, new ArrayPacket(new Byte[6])));
         Assert.False(f.Active);
+        Assert.True(f.TooBig);
+    }
+
+    [Fact]
+    [DisplayName("分片重组_首片超限_丢弃并置TooBig")]
+    public void Fragment_BeginTooBig()
+    {
+        // 首片同样受上限约束：置标记让调用方能按 RFC 6455 §7.4.1 以 1009 失败连接，而非静默吞掉
+        var f = new WebSocketFragment { MaxFragments = 8 };
+
+        f.Begin(WebSocketMessageType.Binary, new ArrayPacket(new Byte[9]));
+
+        Assert.True(f.TooBig);
+        Assert.False(f.Active);
+    }
+
+    [Fact]
+    [DisplayName("分片重组_新序列开始_复位TooBig")]
+    public void Fragment_NewSequence_ResetsTooBig()
+    {
+        // 标记随新序列复位，否则上一段的超限结论会误伤其后每一条消息
+        var f = new WebSocketFragment { MaxFragments = 8 };
+        f.Begin(WebSocketMessageType.Binary, new ArrayPacket(new Byte[4]));
+        Assert.Null(f.Append(false, new ArrayPacket(new Byte[6])));
+        Assert.True(f.TooBig);
+
+        f.Begin(WebSocketMessageType.Text, new ArrayPacket(new Byte[1]));
+
+        Assert.False(f.TooBig);
+        Assert.True(f.Active);
     }
 
     [Fact]

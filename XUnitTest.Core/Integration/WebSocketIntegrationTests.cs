@@ -699,6 +699,39 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         Assert.True(fixture.Server.Active, "服务器应保持可用");
     }
 
+    [Fact(DisplayName = "18-分片累计超限_服务端失败连接而非静默丢弃")]
+    public async Task Test18_FragmentTooBig_ConnectionClosed()
+    {
+        var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws");
+        Assert.True(await ws.OpenAsync());
+
+        // 分片上限是累计口径，单帧都不大也能触发：用 60KB 首片(Binary,FIN=0)+续片(Data)把累计推过 16MB，
+        // 避免测试为制造超限而分配单个 16MB 大帧
+        var chunk = new Byte[60_000];
+        try
+        {
+            ws.Send(new ArrayPacket(MakeMaskedFrame(0x02, false, chunk)));
+            for (var i = 0; i < 300 && ws.Active; i++)
+            {
+                ws.Send(new ArrayPacket(MakeMaskedFrame(0x00, false, chunk)));
+            }
+        }
+        catch
+        {
+            // 服务端可能在中途就已失败连接，尾部分片发不出去
+        }
+
+        // RFC 6455 §7.4.1：分片超限应失败连接（1009 Message Too Big），而非丢弃后维持连接——
+        // 静默丢弃会让客户端以为消息已送达，后续续片还会被当成孤立续片一路吞掉
+        var sw = Stopwatch.StartNew();
+        while (ws.Active && sw.ElapsedMilliseconds < 10_000) await Task.Delay(50);
+
+        Assert.False(ws.Active, "分片累计超限应导致服务端失败连接");
+        ws.Dispose();
+
+        Assert.True(fixture.Server.Active, "服务器应保持可用");
+    }
+
     /// <summary>构造客户端掩码原始帧（支持 126 扩展长度）</summary>
     /// <param name="opcode">操作码（1=Text，2=Binary，8=Close，9=Ping，10=Pong）</param>
     /// <param name="fin">是否末片</param>

@@ -15,10 +15,16 @@ internal sealed class WebSocketFragment
     private Int32 _length;
 
     /// <summary>分片重组上限（字节）。超过丢弃当前分片序列，避免内存无界增长。默认 16M</summary>
+    /// <remarks>超限后置位 <see cref="TooBig" />：调用方据此按 RFC 6455 §7.4.1 失败连接（1009 Message Too Big），
+    /// 而非静默丢弃——静默丢弃会让对端以为消息已送达</remarks>
     public Int32 MaxFragments { get; set; } = 16 * 1024 * 1024;
 
     /// <summary>是否正在累积分片</summary>
     public Boolean Active => _fragments.Count > 0;
+
+    /// <summary>是否因超过上限而丢弃了当前分片序列</summary>
+    /// <remarks>下一次 <see cref="Begin"/> 开始新序列时复位；置位期间到达的续片按无首片的孤立续片忽略</remarks>
+    public Boolean TooBig { get; private set; }
 
     /// <summary>开始累积新的分片序列。新首片到来时丢弃未完成的旧序列（协议错误或对端中断）</summary>
     /// <param name="type">首片类型（文本或二进制）</param>
@@ -27,12 +33,14 @@ internal sealed class WebSocketFragment
     {
         _fragments.Clear();
         _type = type;
+        TooBig = false;
 
         // 首片同样受上限约束：不检查会让一个超大 FIN=0 首片直接分配并绕过上限（Append 侧已有同样检查）。
         // 先按长度判定再拷贝，避免为注定被丢弃的分片白拷贝一大块
         var total = payload?.Total ?? 0;
         if (total > MaxFragments)
         {
+            TooBig = true;
             _length = 0;
             return;
         }
@@ -54,7 +62,8 @@ internal sealed class WebSocketFragment
         _length += data.Length;
         if (_length > MaxFragments)
         {
-            // 超限：丢弃整段分片序列
+            // 超限：丢弃整段分片序列，并置标记由调用方失败连接（1009）
+            TooBig = true;
             _fragments.Clear();
             return null;
         }

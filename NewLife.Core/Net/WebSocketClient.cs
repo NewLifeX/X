@@ -229,11 +229,26 @@ public class WebSocketClient : TcpSession
         if (msg.Type is WebSocketMessageType.Text or WebSocketMessageType.Binary && !msg.Fin)
         {
             _fragment.Begin(msg.Type, msg.Payload);
+
+            // RFC 6455 §7.4.1：分片超限应失败连接并回 1009（Message Too Big），而非静默丢弃让服务端以为已送达。
+            // 本处为同步事件路径无法 await，关闭异常只记日志
+            if (_fragment.TooBig) _ = CloseAsync(1009, "message too big").ContinueWith(
+                t => { if (t.IsFaulted) NewLife.Log.XTrace.WriteException(t.Exception!.GetBaseException()); },
+                CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
             return;
         }
         if (msg.Type == WebSocketMessageType.Data)
         {
-            if (_fragment.Append(msg.Fin, msg.Payload) is not { } whole) return;
+            if (_fragment.Append(msg.Fin, msg.Payload) is not { } whole)
+            {
+                if (_fragment.TooBig) _ = CloseAsync(1009, "message too big").ContinueWith(
+                    t => { if (t.IsFaulted) NewLife.Log.XTrace.WriteException(t.Exception!.GetBaseException()); },
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+                return;
+            }
+
             msg = whole;
         }
 

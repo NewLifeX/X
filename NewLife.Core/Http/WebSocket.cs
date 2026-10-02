@@ -186,11 +186,13 @@ public class WebSocket : IDisposable
                 if (ws.Type is WebSocketMessageType.Text or WebSocketMessageType.Binary && !ws.Fin)
                 {
                     _fragment.Begin(ws.Type, ws.Payload);
+                    if (_fragment.TooBig) { FailConnection(1009, "message too big"); return; }
                     continue;
                 }
                 if (ws.Type == WebSocketMessageType.Data)
                 {
                     if (_fragment.Append(ws.Fin, ws.Payload) is { } whole) Process(whole);
+                    if (_fragment.TooBig) { FailConnection(1009, "message too big"); return; }
                     continue;
                 }
 
@@ -202,6 +204,20 @@ public class WebSocket : IDisposable
                 message.TryDispose();
             }
         }
+    }
+
+    /// <summary>失败连接：发关闭帧（对端可感知原因）后释放连接</summary>
+    /// <param name="closeStatus">关闭状态码，如 1002 协议错误、1009 消息过大</param>
+    /// <param name="reason">关闭描述，随关闭帧下发</param>
+    private void FailConnection(Int32 closeStatus, String reason)
+    {
+        NewLife.Log.XTrace.WriteLine("WebSocket 失败连接 {0}：{1}", closeStatus, reason);
+
+        try { Close(closeStatus, reason); } catch { }
+
+        Context?.Connection?.TryDispose();
+        Context?.Socket?.TryDispose();
+        Connected = false;
     }
 
     /// <summary>处理WebSocket消息</summary>
