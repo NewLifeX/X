@@ -538,6 +538,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <summary>发送锁。同一监听Socket上的所有发送（含各 UdpSession）均经此串行化；不用 Socket 实例作锁，避免外部代码对同一对象加锁导致死锁</summary>
     private readonly Object _sendLock = new();
 
+    /// <summary>惰性打开锁。首个数据报可能来自不同端点、由多个 IOCP 线程并发进入，用于把打开收敛为一次</summary>
+    private readonly Object _openLock = new();
+
     /// <summary>本地端口由系统自动分配（未指定监听端口，纯客户端模式）。首次打开时判定，决定是否连接远端</summary>
     private Boolean _autoLocalPort;
 
@@ -557,10 +560,19 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
         if (!Active)
         {
-            // 根据目标地址适配本地IPv4/IPv6
-            Local.Address = Local.Address.GetRightAny(remoteEP.AddressFamily);
+            // 首包可能来自不同端点、由多个 IOCP 线程并发进入：入口检查与置位之间没有原子性
+            // （见 SessionBase.OpenAsync 备注），两个线程同时 Open 会各建一个 Socket 并 Bind 同一端口，
+            // 后者抛 AddressAlreadyInUse 而丢掉该数据报。双检锁收敛为只打开一次；已建会话的快路径不取锁
+            lock (_openLock)
+            {
+                if (!Active)
+                {
+                    // 根据目标地址适配本地IPv4/IPv6
+                    Local.Address = Local.Address.GetRightAny(remoteEP.AddressFamily);
 
-            if (!Open()) throw new InvalidOperationException($"Open {Local} error");
+                    if (!Open()) throw new InvalidOperationException($"Open {Local} error");
+                }
+            }
         }
 
         // 需要查找已有会话，已有会话不存在时才创建新会话
