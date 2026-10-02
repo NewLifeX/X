@@ -466,8 +466,8 @@ public class HttpServerTests : IDisposable
         Assert.Equal(payload, await rs.Content.ReadAsByteArrayAsync());
     }
 
-    [Fact(DisplayName = "流式响应_慢客户端_内存有界且数据完整")]
-    public async Task StreamResponse_SlowClient_BoundedByBackpressure()
+    [Fact(DisplayName = "流式响应_慢客户端_数据完整送达")]
+    public async Task StreamResponse_SlowClient_DataIntact()
     {
         var payload = new Byte[16 * 1024 * 1024];
         Random.Shared.NextBytes(payload);

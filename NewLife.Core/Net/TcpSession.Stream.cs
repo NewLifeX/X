@@ -322,6 +322,8 @@ partial class TcpSession
     /// <para>与 <see cref="SessionBase.Send(IPacket)"/> 共用同一把写锁：并发调用不会交错，“头 + 流式体”先发头部再调用本方法即可保持一条逻辑消息。</para>
     /// <para><b>打开时序</b>：本方法在取写锁之前先确保会话已打开。并发首访同一未打开会话时，打开流程（含 SSL 握手）可能被两个调用者同时进入；
     /// 写锁只串行化“写套接字”，不覆盖打开流程，调用方应在发送前先完成打开。</para>
+    /// <para><b>超时</b>：异步写核心按“块”重设计时预算（每块 <see cref="SessionBase.Timeout"/>），故大流的总耗时上限约等于 块数 × Timeout；
+    /// 与同步直写路径的“整段总预算”（<see cref="SessionBase.Send(IPacket)"/> 链式包续发）口径不同。</para>
     /// <para>流提前结束（不足 <paramref name="length"/>）或连接故障时抛出异常，已发出的部分不会回退。</para>
     /// </remarks>
     /// <param name="source">数据流</param>
