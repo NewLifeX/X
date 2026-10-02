@@ -1139,6 +1139,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     private SemaphoreSlim? _concurrency;
 
     /// <summary>并发信号量。并行模式（<see cref="MaxConcurrency"/> 大于1）下约束同连接并发处理数，等待时形成背压</summary>
+    /// <remarks>惰性创建后<b>只释放、不置空</b>：置空后迟到的归还会经 <c>??=</c> 新建出“满额”信号量，
+    /// 其 <c>Release</c> 抛 <see cref="SemaphoreFullException"/>；保留已释放实例则只抛
+    /// <see cref="ObjectDisposedException"/>，由收尾逻辑按正常时序忽略。</remarks>
     private SemaphoreSlim Concurrency => _concurrency ??= new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
 
     /// <summary>取出协议的请求-响应配对能力。装饰协议（压缩/加密等）把配对能力留给内层，需逐层解包</summary>
