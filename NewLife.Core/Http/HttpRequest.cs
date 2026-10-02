@@ -74,6 +74,9 @@ public class HttpRequest : HttpBase
         var line = pk.Slice(0, p).ToStr();
 
         // 主体：共享切片独立持有引用；入参句柄由调用方释放
+        // 旧主体可能是上一次解析的拥有句柄，覆盖前先归还（同 HttpBase.Parse）
+        Body.TryDispose();
+
         Body = pk.Slice(p + 2, -1);
 
         // 本方法不解析头部，故整表清空：同实例复用时不把上一条请求的头部（如 Host）残留给本次

@@ -84,4 +84,27 @@ public class HttpBaseTests
         Assert.Null(req.Headers["Host"]);
         Assert.Null(req.Host);
     }
+
+    [Fact(DisplayName = "同实例二次解析_上一条主体句柄已归还")]
+    public void Reparse_SameInstance_ReleasesStaleBody()
+    {
+        // 旧主体是上一次解析的拥有句柄（源包共享切片）：覆盖而不归还，其池缓冲引用计数永不归零
+        var bytes = "POST /a HTTP/1.1\r\nHost: a\r\nContent-Length: 3\r\n\r\nabc".GetBytes();
+        using var src = new OwnerPacket(bytes.Length);
+        bytes.CopyTo(src.GetSpan());
+
+        var req = new HttpRequest();
+        Assert.True(req.Parse(src));
+
+        var body = (OwnerPacket)req.Body!;
+        Assert.Equal("abc", body.ToStr());
+        Assert.Equal(2, src.RefCount);   // 源句柄 + 主体切片
+
+        Assert.True(req.Parse(src));
+
+        // 旧主体已释放（Dispose 置空 _owner，RefCount 读作 0 哨兵值）；源句柄 + 新主体仍为 2，
+        // 既证明旧句柄已归还，也证明没有过度释放
+        Assert.Equal(0, body.RefCount);
+        Assert.Equal(2, src.RefCount);
+    }
 }

@@ -168,6 +168,11 @@ public abstract class HttpBase : IDisposable
         var available = pk.Total - bodyStart;
         // 声明长度小于本轮可用字节时只截取声明长度
         var declared = ContentLength >= 0 && ContentLength < available;
+
+        // 旧主体可能是上一次解析（同实例复用）或调用方置入的拥有句柄：覆盖前先归还，
+        // 否则它持有的池缓冲引用计数永不归零（与 Dispose 将 Body 视为拥有句柄的口径一致）
+        Body.TryDispose();
+
         Body = declared
             ? pk.Slice(bodyStart, ContentLength)
             : pk.Slice(bodyStart, -1);
