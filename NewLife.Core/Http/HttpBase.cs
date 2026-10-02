@@ -65,6 +65,11 @@ public abstract class HttpBase : IDisposable
         return p >= 0;
     }
 
+    /// <summary>是否严格校验头部行：拒绝字段名含空白、以及以空白开头的续行折叠（obs-fold）</summary>
+    /// <remarks>RFC 7230 §3.2.4 对「服务端收到的请求」是 MUST（拒绝或替换为空格），对响应则是客户端替换、不得拒绝，
+    /// 故请求侧置为 true（见 <see cref="HttpRequest" />），响应侧保持宽容以兼容历史服务器。</remarks>
+    protected virtual Boolean StrictHeader => false;
+
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析请求头。主体以共享切片截取，不释放入参</summary>
@@ -104,6 +109,18 @@ public abstract class HttpBase : IDisposable
             else
             {
                 var p3 = line.IndexOf((Byte)':');
+
+                // 严格模式（请求侧）：字段名与冒号之间的空白、以及以空白开头的续行折叠（obs-fold）一律拒绝。
+                // 二者都会让本端与前置代理对同一段字节得出不同理解——攻击者用「Content-Length\t: 5」或折叠出的
+                // 「 Content-Length: 5」藏出第二个长度：本端认不出而代理认（或反之），后续字节在本端算作下一个请求、
+                // 在代理算作实体，请求走私与连接边界失步由此成立。此处选择拒绝而非替换（RFC 7230 §3.2.4 二者皆可）
+                if (StrictHeader)
+                {
+                    if (line.Length > 0 && (line[0] == (Byte)' ' || line[0] == (Byte)'\t')) return false;
+
+                    if (p3 > 0 && (line[..p3].IndexOf((Byte)' ') >= 0 || line[..p3].IndexOf((Byte)'\t') >= 0)) return false;
+                }
+
                 if (p3 > 0)
                 {
                     var name = line[..p3].Trim((Byte)' ').ToStr();

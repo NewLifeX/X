@@ -24,6 +24,9 @@ public class HttpRequest : HttpBase
     public FormFile[]? Files { get; set; }
     #endregion
 
+    /// <summary>是否严格校验头部行。请求侧强制：字段名含空白、或续行折叠一律拒绝（RFC 7230 §3.2.4）</summary>
+    protected override Boolean StrictHeader => true;
+
     /// <summary>分析第一行</summary>
     /// <param name="firstLine"></param>
     protected override Boolean OnParse(String firstLine)

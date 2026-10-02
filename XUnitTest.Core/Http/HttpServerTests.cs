@@ -191,6 +191,40 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
     }
 
+    [Fact(DisplayName = "HTTP服务端_字段名与冒号之间含制表符_回400")]
+    public async Task HeaderTabBeforeColon_Rejected()
+    {
+        // RFC 7230 §3.2.4：字段名与冒号之间不得出现空白，服务端必须拒绝。
+        // 不拒绝则与前置代理产生长度理解分歧——代理按 OWS（含制表符）剥去空白后认作 Content-Length，本端认不出，
+        // 声明的那段实体在本端被当成后续请求字节（请求走私面）
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync("POST / HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length\t: 5\r\n\r\nHELLO".GetBytes());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("\r\n\r\n"));
+        Assert.StartsWith("HTTP/1.1 400", resp);
+    }
+
+    [Fact(DisplayName = "HTTP服务端_头部续行折叠_回400")]
+    public async Task HeaderObsFold_Rejected()
+    {
+        // RFC 7230 §3.2.4：以空白开头的续行（obs-fold）禁止出现，服务端必须拒绝或替换为空格。
+        // 旧实现 Trim 前导空格后把该行当独立头部解析——本端据此等待 5 字节实体，而前置代理视其为上一头部的续行（不产生长度头），
+        // 后续字节在本端算实体、在代理算请求，长度理解分歧构成请求走私面
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync("GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n Content-Length: 5\r\n\r\n".GetBytes());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("\r\n\r\n"));
+        Assert.StartsWith("HTTP/1.1 400", resp);
+    }
+
     [Fact(DisplayName = "HTTP服务端_流水线两请求同轮到达_两个请求都得到响应")]
     public async Task PipelinedRequests_BothAnswered()
     {
