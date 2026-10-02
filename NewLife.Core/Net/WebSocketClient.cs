@@ -433,7 +433,9 @@ public class WebSocketClient : TcpSession
     /// <param name="key">客户端密钥</param>
     /// <param name="remainder">响应头之后的剩余字节（服务器可能在同一 TCP 段内紧跟首帧）；所有权转移给调用方，无剩余时为 null</param>
     /// <returns>是否有效</returns>
-    private static Boolean ValidateHandshake(IPacket response, String key, out IPacket? remainder)
+    /// <remarks>RFC 6455 §4.1：除状态码 101 与 Sec-WebSocket-Accept 外，响应还必须声明 Upgrade: websocket 与 Connection: Upgrade，
+    /// 否则对端可能根本不是 WebSocket 服务端，连接会被错误地当成 WebSocket 使用</remarks>
+    internal static Boolean ValidateHandshake(IPacket response, String key, out IPacket? remainder)
     {
         remainder = null;
 
@@ -446,7 +448,14 @@ public class WebSocketClient : TcpSession
             //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
             if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception("WebSocket握手失败！" + res.StatusDescription);
 
-            // 检查响应头
+            // 检查响应头。Upgrade/Connection 允许携多个令牌（如 keep-alive, Upgrade），按逗号拆分逐项比较
+            if (!res.Headers.TryGetValue("Upgrade", out var upgrade) || !HasToken(upgrade, "websocket"))
+                throw new Exception("WebSocket握手失败！响应缺少 Upgrade: websocket");
+
+            if (!res.Headers.TryGetValue("Connection", out var connection) || !HasToken(connection, "Upgrade"))
+                throw new Exception("WebSocket握手失败！响应缺少 Connection: Upgrade");
+
+            // RFC 6455 §4.1：Accept = base64(SHA1(客户端密钥 + 固定魔法串))，不匹配则拒绝
             if (!res.Headers.TryGetValue("Sec-WebSocket-Accept", out var accept) ||
                 accept != SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes()).ToBase64())
                 throw new Exception("WebSocket握手失败！");
@@ -462,6 +471,22 @@ public class WebSocketClient : TcpSession
         {
             res.Dispose();
         }
+    }
+
+    /// <summary>判断响应头值是否包含指定令牌（逗号分隔，大小写不敏感，忽略首尾空白）</summary>
+    /// <param name="value">响应头值，可为空</param>
+    /// <param name="token">令牌</param>
+    /// <returns>是否包含</returns>
+    private static Boolean HasToken(String? value, String token)
+    {
+        if (value == null) return false;
+
+        foreach (var item in value.Split(','))
+        {
+            if (item.Trim().Equals(token, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
     }
 
     /// <summary>打开链路内的异步握手。经直读原语收发，不经过 Open 守卫与接收环；失败返回 false</summary>

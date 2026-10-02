@@ -108,4 +108,49 @@ public class WebSocketHandshakeTests
 
         await server;
     }
+
+    #region 响应校验（RFC 6455 §4.1）
+    // 密钥与 Accept 取自 RFC 6455 §1.3 示例
+    private const String _rfcKey = "dGhlIHNhbXBsZSBub25jZQ==";
+    private const String _rfcAccept = "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=";
+
+    [Fact]
+    [DisplayName("ws握手_响应缺Upgrade头_校验失败")]
+    public void Validate_MissingUpgrade_Throws()
+    {
+        // 响应必须声明 Upgrade: websocket，否则对端可能根本不是 WebSocket 服务端，
+        // 连接会被错误地当成 WebSocket 使用
+        var raw = $"HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {_rfcAccept}\r\n\r\n";
+
+        Assert.Throws<Exception>(() => WebSocketClient.ValidateHandshake((ArrayPacket)raw.GetBytes(), _rfcKey, out _));
+    }
+
+    [Fact]
+    [DisplayName("ws握手_响应缺Connection头_校验失败")]
+    public void Validate_MissingConnection_Throws()
+    {
+        var raw = $"HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nSec-WebSocket-Accept: {_rfcAccept}\r\n\r\n";
+
+        Assert.Throws<Exception>(() => WebSocketClient.ValidateHandshake((ArrayPacket)raw.GetBytes(), _rfcKey, out _));
+    }
+
+    [Fact]
+    [DisplayName("ws握手_连接头含多个令牌_校验通过")]
+    public void Validate_MultiTokenConnection_ReturnsTrue()
+    {
+        // 大小写不敏感、令牌可混在列表中（代理常在 Upgrade 之外追加 keep-alive）
+        var raw = $"HTTP/1.1 101 Switching Protocols\r\nUpgrade: WebSocket\r\nConnection: keep-alive, Upgrade\r\nSec-WebSocket-Accept: {_rfcAccept}\r\n\r\n";
+
+        Assert.True(WebSocketClient.ValidateHandshake((ArrayPacket)raw.GetBytes(), _rfcKey, out _));
+    }
+
+    [Fact]
+    [DisplayName("ws握手_Accept不匹配_校验失败")]
+    public void Validate_WrongAccept_Throws()
+    {
+        var raw = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: AAAA\r\n\r\n";
+
+        Assert.Throws<Exception>(() => WebSocketClient.ValidateHandshake((ArrayPacket)raw.GetBytes(), _rfcKey, out _));
+    }
+    #endregion
 }
