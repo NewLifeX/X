@@ -89,6 +89,27 @@ public class EventHubTests
         Assert.Equal(0, await hub.OnReceiveAsync("event#topic#client#", null));
     }
 
+    [Fact(DisplayName = "TryParseHeader 客户端标识为空应解析成功（与 EncodeEvent 对称）")]
+    public void TryParseHeader_EmptyClientId_Accepted()
+    {
+        // EncodeEvent 允许空标识，会发出 event#topic##body；解码侧若按非法头部拒绝，
+        // 本库编码器产出的消息会被对端静默丢弃
+        var bytes = "event#topic##body".GetBytes();
+        Assert.True(EventHub<String>.TryParseHeader(bytes, out var topic, out var clientId, out var headerLen));
+        Assert.Equal("topic", topic);
+        Assert.Equal("", clientId);
+        Assert.Equal(13, headerLen);
+
+        // 字符版重载行为一致
+        Assert.True(EventHub<String>.TryParseHeader("event#topic##body".AsSpan(), out var t2, out var c2, out var h2));
+        Assert.Equal("topic", t2);
+        Assert.Equal("", c2);
+        Assert.Equal(13, h2);
+
+        // 缺失分隔符仍非法
+        Assert.False(EventHub<String>.TryParseHeader("event#topic#body".GetBytes(), out _, out _, out _));
+    }
+
     [Fact(DisplayName = "OnReceiveAsync_String 消息体为空时应返回 0")]
     public async Task OnReceiveAsync_String_EmptyBody_ReturnsZero()
     {

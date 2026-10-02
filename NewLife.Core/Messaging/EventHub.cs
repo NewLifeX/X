@@ -325,7 +325,10 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
 
         var rest2 = rest[(p2 + 1)..];
         var p3 = rest2.IndexOf((Byte)'#');
-        if (p3 <= 0) return false;
+
+        // p3 == 0 表示客户端标识为空：EncodeEvent 允许空标识（会发出 event#topic##body），
+        // 解码侧必须同样接受，否则本库编码器产出的消息会被对端当非法头部静默丢弃；只有缺失分隔符（-1）才非法
+        if (p3 < 0) return false;
         clientId = rest2[..p3].ToStr();
 
         headerLength = p + 1 + p2 + 1 + p3 + 1;
@@ -352,7 +355,9 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
 
         var rest2 = rest[(p2 + 1)..];
         var p3 = rest2.IndexOf('#');
-        if (p3 <= 0) return false;
+
+        // 空客户端标识合法（与 EncodeEvent 对称），仅缺失分隔符非法
+        if (p3 < 0) return false;
         clientId = rest2[..p3].ToString();
 
         headerLength = p + 1 + p2 + 1 + p3 + 1;
@@ -393,7 +398,8 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <summary>把解码后的事件信封路由到控制面或数据面</summary>
     private async Task<Int32> DispatchEnvelopeAsync(EventEnvelope envelope, Object raw, IEventContext? context, CancellationToken cancellationToken)
     {
-        // 把原始数据透传到扩展项，便于网络层做后续路由（如转发到其他客户端）
+        // 把原始数据透传到扩展项，便于网络层做后续路由（如转发到其他客户端）。
+        // Raw 为借阅引用：IPacket 归框架所有，在回调返回后随消息释放，上下文不得跨回调保留
         if (context is IExtend ext) ext["Raw"] = raw;
 
         // 控制面：订阅/取消订阅
