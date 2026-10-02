@@ -460,7 +460,11 @@ public class HttpSession : INetHandler, IDisposable
                     if (queued != null)
                         SendBlock(queued, pk);
                     else
+                    {
+                        // 直发为借用语义（不接管句柄），发完由本层归还池缓冲
                         SendBlock(pk);
+                        pk.TryDispose();
+                    }
                 }
                 else
                 {
