@@ -973,6 +973,23 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         var reader = queue.Reader;
         try
         {
+            // 会话已终结时立即收尾退出。只认两种终态：已释放，或服务端会话已关闭不再活动。
+            // 服务端会话关闭即 Dispose、不会重开，而客户端会话关闭后保留以便重开，
+            // 故客户端“已关闭未释放”不算终结，其新建的泵理应留着等重开后的数据。
+            //
+            // 本泵可能是关闭收尾之后才建出来的——入队方过了 Open 检查、随后关闭完成（见 SendQueue 的建队列路径），
+            // 此时队列读侧不会再有写入、泵令牌也无人取消，继续阻塞在读取上会让这条 LongRunning 专用线程
+            // 连同它引用的会话永久存活。
+            if (Disposed || (_Server != null && !Active))
+            {
+                // 按关闭收尾的同构动作收尾本队列：完成写侧让等水位的入队方立即退出
+                // （完成写侧不触发 Resumed，必须显式广播），读侧由 finally 完成并归还残余句柄
+                queue.Writer.Complete();
+                WakeQueueWaiters();
+
+                return;
+            }
+
             while (true)
             {
                 var result = reader.ReadAsync(cancellationToken).GetAwaiter().GetResult();

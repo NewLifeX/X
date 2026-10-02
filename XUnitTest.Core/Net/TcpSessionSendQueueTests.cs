@@ -353,4 +353,46 @@ public class TcpSessionSendQueueTests
             listener.Dispose();
         }
     }
+
+    [Fact]
+    [DisplayName("发送队列_已终结会话_不遗留常驻发送泵")]
+    public async Task SendQueue_TerminatedSession_PumpExits()
+    {
+        var listener = CreateListener(out var port);
+        using var client = new TcpSession { Remote = new NetUri($"tcp://127.0.0.1:{port}") };
+        try
+        {
+            client.Open();
+            using (var peer = listener.Accept())
+            {
+                peer.ReceiveTimeout = 30_000;
+
+                // 先正常收发一次，确认发送泵已按需启动
+                Assert.True(await client.SendQueuedAsync(new ArrayPacket(new Byte[] { 1, 2, 3 })));
+
+                var buf = new Byte[16];
+                Assert.Equal(3, peer.Receive(buf));
+                Assert.Equal(new Byte[] { 1, 2, 3 }, buf[..3]);
+            }
+
+            // 释放会话（终态，不会再重开）：关闭收尾取走并释放当时的队列
+            client.Dispose();
+
+            // 关闭收尾之后才访问发送队列，复现“入队方过了 Open 检查、随后关闭完成”的交错。
+            // 已终结会话上新建的发送泵必须立即收尾本队列，不得阻塞在读取上长期占用专用线程
+            var queue = client.SendQueue;
+            Assert.NotNull(queue);
+
+            var sw = Stopwatch.StartNew();
+            while (!queue.IsCompleted)
+            {
+                Assert.True(sw.ElapsedMilliseconds < 5_000, "已终结会话上的发送泵未收尾队列，仍阻塞在读取上");
+                await Task.Delay(10);
+            }
+        }
+        finally
+        {
+            listener.Dispose();
+        }
+    }
 }
