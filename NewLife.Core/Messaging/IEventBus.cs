@@ -61,7 +61,9 @@ public interface IEventBusFactory
 /// <para><b>实现约束</b>：</para>
 /// <list type="bullet">
 /// <item><description><b>幂等订阅</b>：相同 <c>clientId</c> 重复订阅应覆盖前一次订阅，不抛异常。</description></item>
-/// <item><description><b>排除回环</b>：发布时若 <see cref="IEventContext"/> 携带 <c>ClientId</c>，应跳过同名订阅者。</description></item>
+/// <item><description><b>排除回环</b>：发布时若 <see cref="EventContext"/> 的 <c>ClientId</c> 与某订阅者同名，应跳过该订阅者。
+/// 该字段不在 <see cref="IEventContext"/> 上（接口不能加成员，否则实现者二进制断裂），故默认实现只识别 <see cref="EventContext"/>；
+/// 自定义上下文实现需自行保证回环排除，可先转成 <see cref="EventContext"/> 再发布。</description></item>
 /// <item><description><b>错误隔离</b>：默认实现不应让单个订阅者异常中断其他订阅者（严格模式由具体实现自行开关）。</description></item>
 /// </list>
 /// </remarks>
