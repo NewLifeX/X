@@ -66,18 +66,22 @@ public class WebClientX : DisposeBase
     public virtual HttpClient EnsureCreate()
     {
         var http = _client;
-        if (http == null)
-        {
-            http = DefaultTracer.Instance.CreateHttpClient();
-            http.Timeout = TimeSpan.FromMilliseconds(Timeout);
-            http.SetUserAgent();
+        if (http != null) return http;
 
-            // 原子发布，并发创建时释放多余客户端，避免泄漏
-            if (Interlocked.CompareExchange(ref _client, http, null) != null)
-                http.Dispose();
+        http = DefaultTracer.Instance.CreateHttpClient();
+        http.Timeout = TimeSpan.FromMilliseconds(Timeout);
+        http.SetUserAgent();
+
+        // 原子发布，并发创建时释放多余客户端，避免泄漏。
+        // 返回 CompareExchange 取回的实例而非字段：字段可空，直接返回会让调用方拿到可能为空的引用
+        if (Interlocked.CompareExchange(ref _client, http, null) is { } existed)
+        {
+            http.Dispose();
+
+            return existed;
         }
 
-        return _client;
+        return http;
     }
 
     /// <summary>发送请求，获取响应</summary>
