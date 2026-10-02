@@ -192,12 +192,22 @@ public class HttpSession : INetHandler, IDisposable
                 // 不应答会让每个此类请求白等一次客户端超时，个别实现直接失败。实体已随头部一并到达时无需应答。
                 // HTTP/1.0 不支持临时响应（RFC 7231 §5.1.1 要求忽略其 Expect），按其协议版本原样处理
                 var expect = request.Headers["Expect"];
-                if (!request.IsCompleted && !expect.IsNullOrEmpty() && !request.Version.EqualIgnoreCase("1.0") &&
-                    expect.IndexOf("100-continue", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (!request.IsCompleted && !expect.IsNullOrEmpty() && !request.Version.EqualIgnoreCase("1.0"))
                 {
-                    // 临时响应不含实体，也不得声明 Content-Length（RFC 7230 §3.3.2），故直接发送响应行
-                    var version = request.Version.IsNullOrEmpty() ? "1.1" : request.Version;
-                    _session.Send($"HTTP/{version} 100 Continue\r\n\r\n");
+                    if (expect.IndexOf("100-continue", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        // 临时响应不含实体，也不得声明 Content-Length（RFC 7230 §3.3.2），故直接发送响应行
+                        var version = request.Version.IsNullOrEmpty() ? "1.1" : request.Version;
+                        _session.Send($"HTTP/{version} 100 Continue\r\n\r\n");
+                    }
+                    else
+                    {
+                        // 100-continue 是 Expect 唯一已定义的期望（RFC 7231 §5.1.1）：本端无法满足其它期望，
+                        // 按 417 明确回绝。旧实现静默忽略，客户端在“期望落空”下继续发送实体，服务端只能等超时兜底
+                        Reject(HttpStatusCode.ExpectationFailed);
+
+                        break;
+                    }
                 }
 
                 _websocket = null; // 新请求到来，清空 websocket 握手状态

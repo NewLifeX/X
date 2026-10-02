@@ -225,6 +225,22 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 400", resp);
     }
 
+    [Fact(DisplayName = "HTTP服务端_Expect非100continue_回417")]
+    public async Task ExpectOtherThan100Continue_Rejected()
+    {
+        // 100-continue 是 Expect 唯一已定义的期望（RFC 7231 §5.1.1）：本端无法满足其它期望时回 417。
+        // 旧实现静默忽略，客户端在“期望落空”下继续发送实体，服务端只能靠超时兜底
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync("POST / HTTP/1.1\r\nHost: 127.0.0.1\r\nExpect: some-expectation\r\nContent-Length: 5\r\n\r\n".GetBytes());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("\r\n\r\n"));
+        Assert.StartsWith("HTTP/1.1 417", resp);
+    }
+
     [Fact(DisplayName = "HTTP服务端_流水线两请求同轮到达_两个请求都得到响应")]
     public async Task PipelinedRequests_BothAnswered()
     {
