@@ -15,7 +15,7 @@ namespace NewLife.Net;
 /// <list type="bullet">
 /// <item>绑定到固定的远程地址</item>
 /// <item>共享UdpServer的底层Socket</item>
-/// <item>收到空数据包时自动结束会话。判定以收到的原始数据报为准，在进入事件链之前定下；业务在事件内释放或置空 <see cref="ReceivedEventArgs.Packet"/> 不影响判定，要主动结束会话请 <see cref="DisposeBase.Dispose"/></item>
+/// <item>收到空数据包时自动结束会话。判定以收到的原始数据报为准，在进入事件链之前定下；业务在事件内释放或置空 <see cref="ReceivedEventArgs.Packet"/> 不影响判定，要主动结束会话请 <see cref="DisposeBase.Dispose()"/></item>
 /// </list>
 /// </remarks>
 public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
