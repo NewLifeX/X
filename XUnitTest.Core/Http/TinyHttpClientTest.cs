@@ -259,6 +259,26 @@ public class TinyHttpClientTest
         await server;
     }
 
+    [Fact(DisplayName = "HTTP客户端_响应头始终无法解析_报错而非静默返回null")]
+    public async Task SendAsync_UnparsableHead_Throws()
+    {
+        // 服务端回了不成形的字节（首行 10 字节内无空格，FastValidHeader 即否）后断开：旧实现静默返回 null，
+        // 调用方无法区分“服务端没响应”与“响应不成形”，故按协议错误报出
+        var resp = Encoding.ASCII.GetBytes("garbage-response\r\n\r\n");
+
+        var (port, server) = StartLocalServer(async ns =>
+        {
+            await ns.WriteAsync(resp);
+            await ns.FlushAsync();
+        });
+
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") }));
+
+        await server;
+    }
+
     [Fact(DisplayName = "HTTP客户端_临时响应连续超限_报错而非静默返回null")]
     public async Task SendAsync_TooManyInterimResponses_Throws()
     {

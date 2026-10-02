@@ -407,7 +407,9 @@ public class TinyHttpClient : DisposeBase
                     }
                 }
 
-                if (!parsed) return (null, null);
+                // 响应头始终凑不成一条完整消息（持续累积到上限，或对端在中途断开）：调用方无法区分
+                // 与“服务端没响应”，故按协议错误报出而非静默返回 null（与重复/非法 Content-Length、临时响应超限同口径）
+                if (!parsed) throw new InvalidDataException($"响应头无法解析：已累积 {ms?.Length ?? 0} 字节仍未成头");
 
                 // 重复（或无法解析/为负/超上限）的 Content-Length 会让本端与中间代理对实体长度产生分歧：
                 // 本端按最后一个值读、代理按第一个值转发，多出的字节在本端被当成下一条响应（响应队列投毒）。
