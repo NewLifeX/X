@@ -95,6 +95,11 @@ public abstract class HttpBase : IDisposable
 
         // 只取头部区域（不包含分隔空行），避免之前 (p+2) 的截取导致尾部半行进入解析产生潜在问题
         var header = data[..p];
+
+        // 整表重建：同实例二次解析（复用 HttpRequest/HttpResponse）时，上一条的头部必须随之消失。
+        // 否则残留的 Transfer-Encoding/Content-Length 会让本条消息按错误的方式分帧（残留判据比缺省值更危险）
+        Headers.Clear();
+
         var firstLine = "";
         var clCount = 0;
         while (header.Length > 0)
@@ -127,7 +132,7 @@ public abstract class HttpBase : IDisposable
                     var value = line[(p3 + 1)..].Trim((Byte)' ').ToStr();
 
                     // 同名头部就地覆盖，重复的 Content-Length 只剩最后一个值，与前置代理（通常取第一个）理解不一致，
-                    // 构成 CL.CL 走私面。只统计本次解析的出现次数，不依赖 Headers 既有内容（可能残留上次解析结果）
+                    // 构成 CL.CL 走私面。只统计本次解析的出现次数
                     if (name.EqualIgnoreCase("Content-Length")) clCount++;
 
                     Headers[name] = value;

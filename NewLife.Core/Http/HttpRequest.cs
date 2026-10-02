@@ -76,6 +76,9 @@ public class HttpRequest : HttpBase
         // 主体：共享切片独立持有引用；入参句柄由调用方释放
         Body = pk.Slice(p + 2, -1);
 
+        // 本方法不解析头部，故整表清空：同实例复用时不把上一条请求的头部（如 Host）残留给本次
+        Headers.Clear();
+
         // 分析第一行
         if (!OnParse(line)) return false;
 
