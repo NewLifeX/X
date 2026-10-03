@@ -62,9 +62,13 @@ public class MessageSessionTests
 
         var task = source.ValueTask.AsTask();
 
-        // 超时取消由共享的 1 秒周期 TimerX 驱动，回调还要经线程池调度；并行跑测试时抖动可能远超 1 秒。
-        // 本用例只验证“到期必然取消”这一契约，故给足余量——曾因 10 秒上限在与网络用例同批跑时被拖超时
+        // 超时取消由 TimerX 驱动，而 TimerX 对回调目标只持弱引用：目标一旦被 GC 回收，该项会被静默摘除，
+        // 到期永不再取消，本用例就会偶发地以 TimeoutException（而非 OperationCanceledException）失败。
+        // 因此必须让 queue 活到用例最后——GC.KeepAlive 同时把局部变量提升到异步状态机，await 期间不会被回收。
+        // 上限给足余量：定时器是约 1 秒周期的共享表，回调还要经线程池调度
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => WithTimeout(task, 60_000));
+
+        GC.KeepAlive(queue);
     }
 
     [Fact]
