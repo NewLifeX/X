@@ -252,6 +252,8 @@ server.Start();
 - `NewLife.Core/Http/HttpServer.cs`
 - `NewLife.Core/Http/HttpSession.cs`
 - `NewLife.Core/Http/Handlers/DelegateHandler.cs`（按项目实际路径为准）
+- `NewLife.Core/Http/Handlers/ControllerHandler.cs`
+- `NewLife.Core/Http/Handlers/StaticFilesHandler.cs`
 
 ---
 
@@ -262,10 +264,39 @@ server.Start();
 | 路由参数优先 | 路径参数（`{id}` 等）在 `PrepareRequest` 解析完之后合并，因此**优先于**查询串/表单同名字段。此前 `?id=999` 可覆盖路径参数，现在以路径参数为准 |
 | 响应体所有权随响应 | 处理器返回后 `HttpResponse.Body` 会被归还池化缓冲。处理器若在返回后仍持有该引用（审计、重试、日志），需先自行复制 |
 | `Content-Length` 规则 | 204/304 响应不再声明 `Content-Length`；`Build` 与 `BuildHeaderPacket`（HEAD/流式）两条路径同规则（RFC 7230 §3.3.2） |
-| `Transfer-Encoding: chunked` 请求 | 请求方向明确不支持分块解码，回 `411 Length Required` 并关闭连接 |
+| `Transfer-Encoding: chunked` 请求 | **已支持分块解码**（含块扩展 `;` 与终止块后的 trailer 段）：跨轮累积原始字节，收齐终止块后解码交付，并同步移除 `Transfer-Encoding` 头、补齐 `Content-Length`——业务侧看到的主体与头部，与普通 `Content-Length` 请求完全一致。坏块长度行回 `400`，原始字节超 `MaxRequestLength` 回 `413`，其它传输编码（gzip/identity）仍回 `400` |
 | 路径缓存并发化 | `_pathCache` 改为并发字典并新增 `MaxPathCacheSize`（默认 4096），超限后静默不写 |
 | WebSocket 握手校验 | 带 `Sec-WebSocket-Key` 但握手四要素不合法时回 `400 Bad Request`（此前会落到普通路由报 404，掩盖真实原因）；`Upgrade`/`Connection`/`Sec-WebSocket-Version` 按逗号分隔的**令牌列表**解析，版本含 `13` 即接受 |
 | 非法 `Content-Length` | `Content-Length` 非数字、负数或超出范围时回 `400 Bad Request` 并关闭连接；此前解析失败静默当 0 处理，请求体边界随之错位 |
 | HEAD 不发实体 | HEAD 请求只发送响应头，实体流（静态文件/嵌入资源）就地释放；此前会把整个实体发出去 |
-- `NewLife.Core/Http/Handlers/ControllerHandler.cs`
-- `NewLife.Core/Http/Handlers/StaticFilesHandler.cs`
+
+---
+
+## 12. 能力边界（不做什么）
+
+`HttpServer` 的定位是**轻量级嵌入式 HTTP 服务器**，不是通用 Web 服务器。新增能力只按两条判据取舍——**下游能正常用**、**不在连接边界上制造歧义**；其余需求请直接用 ASP.NET Core / Kestrel。
+
+**明确不做**：
+
+| 不做项 | 替代方式 |
+|--------|----------|
+| HTTP/2、HTTP/3 | Kestrel |
+| HTTP 层 TLS/SNI | `NetServer` 的 SSL 配置，或前置反向代理 |
+| 响应压缩（gzip/deflate） | 前置反向代理 |
+| `Range` 分段 / `206` | 断点续传属下载器能力（`WebClientX`），不属服务端 |
+| `ETag` / `Last-Modified` / 条件请求 | 无缓存语义，静态文件靠前置反向代理 |
+| 请求级慢速攻击专项防护 | 已由 `HttpSession.MaxRequestIdle`（请求停滞上限，默认 30 秒回 408）与网络层会话超时兜底 |
+
+**`MapController` 封边**：只提供“最小 MVC”——按路径段定位方法、从参数字典绑参、调 DI、返回 `HttpResponse`。以下一律不做，避免膨胀为标准 MVC：
+
+- 特性路由（`[Route]`/`[HttpGet]` 等）
+- 模型绑定验证与 `ModelState`
+- 过滤器管道（`IActionFilter` 那一套）
+- 内容协商与格式化器
+
+**已知限制**（明确接受，不修）：
+
+- `Transfer-Encoding` 与 `Content-Length` 同时出现时不拒绝，按 chunked 处理且不强制关闭连接。只在**与前置代理共存**时构成请求走私面；内网/嵌入式无代理部署不成立，收紧与轻量取向相悖。
+- HTTP/1.0 请求携带 `Transfer-Encoding` 不做特殊处理。HTTP/1.0 客户端不会产生该组合，实际不可达。
+- 分块请求体的原始字节全量缓冲（受 `MaxRequestLength` 约束），不做流式交付；业务侧始终拿到完整主体。
+- `Expect` 只处理 `100-continue`，其余期望一律忽略（不回 `417`）。
