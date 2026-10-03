@@ -13,6 +13,8 @@ public interface IMatchQueue
     /// <param name="request">请求消息</param>
     /// <param name="msTimeout">超时取消时间</param>
     /// <param name="source">任务源。TaskCompletionSource 或 PooledValueTaskSource</param>
+    /// <remarks>超时取消由队列内部的定时器驱动，而定时器对回调目标只持弱引用：
+    /// 调用方在等待结束前必须保持对队列实例的引用，否则队列被回收后该请求的超时取消不再发生，等待方将一直悬挂</remarks>
     void Add(Object? owner, Object request, Int32 msTimeout, Object source);
 
     /// <summary>检查请求队列是否有匹配该响应的请求</summary>
