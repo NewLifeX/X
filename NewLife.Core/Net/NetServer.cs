@@ -403,56 +403,24 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         if (Servers.Count == 0) throw new Exception($"Failed to listen to all ports! Port=[{Port}]");
 
-        // 随机端口可能落入系统保留段（如 Windows 仅 UDP 排除的范围），TCP 绑到该端口后 UDP 绑定失败抛 WSAEACCES。
-        // 失败时清理已启动服务器并重新随机分配端口，有界重试避免环境性偶发失败导致整个服务不可用
-        // Unix域套接字以文件路径为地址，没有端口重试的概念
-        var maxRetry = Port == 0 && !Local.IsUnix ? 3 : 0;
-        for (var attempt = 0; ; attempt++)
+        var snapshot = Servers.ToArray();
+        WriteLog("准备开始监听{0}个服务器", snapshot.Length);
+
+        foreach (var item in snapshot)
         {
-            var snapshot = Servers.ToArray();
-            WriteLog("准备开始监听{0}个服务器", snapshot.Length);
+            item.Start();
 
-            try
+            // 如果是随机端口，反写回来，并且修改其它服务器的端口
+            if (Port == 0)
             {
-                foreach (var item in snapshot)
+                Port = item.Port;
+
+                foreach (var elm in Servers)
                 {
-                    item.Start();
-
-                    // 如果是随机端口，反写回来，并且修改其它服务器的端口
-                    if (Port == 0)
-                    {
-                        Port = item.Port;
-
-                        foreach (var elm in Servers)
-                        {
-                            if (elm != item && elm.Port == 0) elm.Port = Port;
-                        }
-                    }
-                    WriteLog("开始监听 {0}", item);
+                    if (elm != item && elm.Port == 0) elm.Port = Port;
                 }
-
-                break;
             }
-            catch (SocketException ex)
-            {
-                if (attempt >= maxRetry) throw;
-
-                WriteLog("监听失败[{0}]，第{1}次重试：{2}", ex.SocketErrorCode, attempt + 1, ex.Message);
-
-                // 清理本批已启动或半启动的服务器，重新随机分配端口
-                Port = 0;
-                foreach (var item in Servers.ToArray())
-                {
-                    Servers.Remove(item);
-                    try
-                    {
-                        item.Stop("随机端口重试");
-                    }
-                    catch { }
-                }
-
-                EnsureCreateServer();
-            }
+            WriteLog("开始监听 {0}", item);
         }
 
         if (StatPeriod > 0) _Timer = new TimerX(ShowStat, null, 10_000, StatPeriod * 1000);

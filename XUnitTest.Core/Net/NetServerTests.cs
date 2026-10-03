@@ -392,6 +392,10 @@ public class NetServerTests
 
         Thread.Sleep(500);
 
+        // 并行满载时服务端建会话可能滞后，轮询等待 5 个会话全部到位
+        var end = Environment.TickCount64 + 10_000;
+        while (sessionIds.Count < 5 && Environment.TickCount64 < end) Thread.Sleep(10);
+
         // 验证ID唯一性
         Assert.Equal(5, sessionIds.Count);
         Assert.Equal(sessionIds.Count, sessionIds.Distinct().Count());
@@ -1352,7 +1356,9 @@ public class NetServerTests
             clients.Add(client);
         }
 
-        Thread.Sleep(500);
+        // 并行满载时服务端建会话可能滞后，轮询等待 5 个会话全部到位
+        var end = Environment.TickCount64 + 10_000;
+        while (server.MaxSessionCount < 5 && Environment.TickCount64 < end) Thread.Sleep(10);
 
         // 记录最高会话数
         var maxCount = server.MaxSessionCount;
