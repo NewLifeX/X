@@ -15,6 +15,9 @@ namespace XUnitTest.Net;
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class TcpSessionTests
 {
+    /// <summary>HTTPS 服务端口。动态分配：固定 443 一旦被其它进程占用，本类静态构造就会抛“Failed to listen to all ports”，整类用例全红</summary>
+    private static readonly Int32 _httpsPort;
+
     static TcpSessionTests()
     {
         var ip4 = IPAddress.Parse("127.0.0.66");
@@ -43,19 +46,22 @@ public class TcpSessionTests
         var cert = new X509Certificate2(pfx, "123456", X509KeyStorageFlags.DefaultKeySet);
 #endif
 
-        // 启动NetServer
+        // 启动NetServer。先让 IPv4 随机取端口，再让 IPv6 复用同一端口（地址不同、互不冲突），
+        // 这样 https://test.newlifex.com:端口 在两条协议栈上都能连上，且不再依赖固定 443
         var server4 = new HttpServer
         {
-            Local = new NetUri(NetType.Https, ip4, 443),
+            Local = new NetUri(NetType.Https, ip4, 0),
             Certificate = cert,
             SslProtocol = SslProtocols.Tls12,
             Log = XTrace.Log,
         };
         server4.Start();
 
+        _httpsPort = server4.Port;
+
         var server6 = new HttpServer
         {
-            Local = new NetUri(NetType.Https, ip6, 443),
+            Local = new NetUri(NetType.Https, ip6, _httpsPort),
             Certificate = cert,
             SslProtocol = SslProtocols.Tls12,
             Log = XTrace.Log,
@@ -97,7 +103,7 @@ public class TcpSessionTests
         var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => e.IsIPv4() && !IPAddress.IsLoopback(e));
         Assert.NotNull(addr);
 
-        var uri = new NetUri("https://test.newlifex.com");
+        var uri = new NetUri($"https://test.newlifex.com:{_httpsPort}");
         var client = uri.CreateRemote() as TcpSession;
         client.Local.Address = addr;
 
@@ -117,7 +123,7 @@ public class TcpSessionTests
         var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => e.IsIPv4() && !IPAddress.IsLoopback(e));
         Assert.NotNull(addr);
 
-        var uri = new NetUri("https://test.newlifex.com");
+        var uri = new NetUri($"https://test.newlifex.com:{_httpsPort}");
         var client = uri.CreateRemote() as TcpSession;
 
         Assert.Equal(0, client.Local.Port);
@@ -145,7 +151,7 @@ public class TcpSessionTests
 
         if (entry.AddressList.Any(_ => !_.IsIPv4()))
         {
-            var uri = new NetUri("https://test.newlifex.com");
+            var uri = new NetUri($"https://test.newlifex.com:{_httpsPort}");
             var client = uri.CreateRemote();
             client.Local.Address = addr;
             client.Log = XTrace.Log;
