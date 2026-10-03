@@ -224,27 +224,19 @@ public class HttpSession : INetHandler, IDisposable
                     break;
                 }
 
-                // Expect: 100-continue：curl、.NET ExpectContinue 等客户端发完请求头后等待临时响应才发实体，
-                // 不应答会让每个此类请求白等一次客户端超时，个别实现直接失败。实体已随头部一并到达时无需应答。
-                // HTTP/1.0 不支持临时响应（RFC 7231 §5.1.1 要求忽略其 Expect），按其协议版本原样处理
+                // Expect：本端只处理 100-continue，其余期望一律忽略，不回 417。
+                // 100-continue 值得处理——curl 对超过 1KB 的请求体默认就发它，客户端发完请求头后等待临时响应才发实体，
+                // 不应答会让每个此类请求白等一次客户端超时；实体已随头部一并到达时无需应答。
+                // 其它期望在现实中不会出现（RFC 9110 §10.1.1 的 417 是 MAY 不是 MUST），回 417 只会把本可成功的请求变成失败。
+                // HTTP/1.0 不支持临时响应（RFC 7231 §5.1.1 要求忽略其 Expect），按其协议版本原样处理。
                 // 分块体的“是否已完整”不能用 IsCompleted 判定（ContentLength 为 -1 时为 true）
                 var expect = request.Headers["Expect"];
-                if ((chunked || !request.IsCompleted) && !expect.IsNullOrEmpty() && !request.Version.EqualIgnoreCase("1.0"))
+                if ((chunked || !request.IsCompleted) && !expect.IsNullOrEmpty() && !request.Version.EqualIgnoreCase("1.0") &&
+                    expect.IndexOf("100-continue", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    if (expect.IndexOf("100-continue", StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        // 临时响应不含实体，也不得声明 Content-Length（RFC 7230 §3.3.2），故直接发送响应行
-                        var version = request.Version.IsNullOrEmpty() ? "1.1" : request.Version;
-                        _session.Send($"HTTP/{version} 100 Continue\r\n\r\n");
-                    }
-                    else
-                    {
-                        // 100-continue 是 Expect 唯一已定义的期望（RFC 7231 §5.1.1）：本端无法满足其它期望，
-                        // 按 417 明确回绝。旧实现静默忽略，客户端在“期望落空”下继续发送实体，服务端只能等超时兜底
-                        Reject(HttpStatusCode.ExpectationFailed);
-
-                        break;
-                    }
+                    // 临时响应不含实体，也不得声明 Content-Length（RFC 7230 §3.3.2），故直接发送响应行
+                    var version = request.Version.IsNullOrEmpty() ? "1.1" : request.Version;
+                    _session.Send($"HTTP/{version} 100 Continue\r\n\r\n");
                 }
 
                 _websocket = null; // 新请求到来，清空 websocket 握手状态
@@ -367,10 +359,15 @@ public class HttpSession : INetHandler, IDisposable
         _cache = null;
         _chunkedBody = false;
 
-        // 解码后按已知长度交付：业务、链路追踪、multipart 解析看到的主体与 Content-Length 请求完全一致
+        // 解码后按已知长度交付：业务、链路追踪、multipart 解析看到的主体与 Content-Length 请求完全一致。
+        // 头部也要一并对齐（RFC 9112 §7.1.3 的解码算法即“Content-Length := length，再从 Transfer-Encoding 移除 chunked”）：
+        // 留着 Transfer-Encoding 会让下游按该头判断“拿到的实体是不是原始分块”而再解码一次，
+        // 但这里交付的已经是解码结果，重复解码必然失败（NewLife.AI 的 HttpMcpServer 就是按该头判断的）
         req.Body.TryDispose();
         req.Body = body;
         req.ContentLength = body.Total;
+        req.Headers.Remove("Transfer-Encoding");
+        req.Headers["Content-Length"] = body.Total + "";
 
         // 终止块之后的字节属于后续流水线请求，切出视图交给调用方继续解析
         var extra = (Int32)cache.Length - consumed;

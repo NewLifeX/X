@@ -155,7 +155,12 @@ public class HttpServerTests : IDisposable
     public async Task ChunkedBody_SingleRound_Decoded()
     {
         var tcs = new TaskCompletionSource<String>();
-        _server.MapPost("/chunked", ctx => tcs.TrySetResult(ctx.Request.Body?.ToStr() ?? ""));
+        _server.MapPost("/chunked", ctx =>
+        {
+            var te = ctx.Request.Headers["Transfer-Encoding"] ?? "";
+            var cl = ctx.Request.Headers["Content-Length"] ?? "";
+            tcs.TrySetResult($"{ctx.Request.Body?.ToStr()}|TE={te}|CL={cl}");
+        });
 
         using var client = new TcpClient { NoDelay = true };
         await client.ConnectAsync(IPAddress.Loopback, _server.Port);
@@ -166,8 +171,10 @@ public class HttpServerTests : IDisposable
         await ns.WriteAsync((head + body).GetBytes());
         await ns.FlushAsync();
 
-        // 旧实现回 411；新实现解码后按已知长度交付，业务侧看到的主体与 Content-Length 请求一致
-        Assert.Equal("Hello, world", await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+        // 旧实现回 411；新实现解码后按已知长度交付，业务侧看到的主体与 Content-Length 请求一致。
+        // 头部同样要对齐：Transfer-Encoding 必须移除（下游按它判断“实体是否为原始分块”，留着会让下游重复解码），
+        // Content-Length 补齐为解码后的长度
+        Assert.Equal("Hello, world|TE=|CL=12", await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5)));
 
         var text = await ReadUntilAsync(ns, t => t.Contains("\r\n\r\n"));
         Assert.StartsWith("HTTP/1.1 200", text);
@@ -370,20 +377,23 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 400", resp);
     }
 
-    [Fact(DisplayName = "HTTP服务端_Expect非100continue_回417")]
-    public async Task ExpectOtherThan100Continue_Rejected()
+    [Fact(DisplayName = "HTTP服务端_Expect非100continue_忽略而非回417")]
+    public async Task ExpectOtherThan100Continue_Ignored()
     {
-        // 100-continue 是 Expect 唯一已定义的期望（RFC 7231 §5.1.1）：本端无法满足其它期望时回 417。
-        // 旧实现静默忽略，客户端在“期望落空”下继续发送实体，服务端只能靠超时兜底
+        // 本端只处理 100-continue 这一个期望，其它 Expect 一律忽略（RFC 9110 §10.1.1 的 417 是 MAY 不是 MUST）。
+        // 现实中没有客户端发送其它期望；回 417 只会把本可成功的请求变成失败
+        _server.MapPost<IHttpContext, String>("/exp", ctx => "GOT:" + (ctx.Request.Body?.ToStr() ?? ""));
+
         using var client = new TcpClient { NoDelay = true };
         await client.ConnectAsync(IPAddress.Loopback, _server.Port);
         using var ns = client.GetStream();
 
-        await ns.WriteAsync("POST / HTTP/1.1\r\nHost: 127.0.0.1\r\nExpect: some-expectation\r\nContent-Length: 5\r\n\r\n".GetBytes());
+        // 未知 Expect 不得阻断请求：实体照常接收，正常回 200
+        await ns.WriteAsync("POST /exp HTTP/1.1\r\nHost: 127.0.0.1\r\nExpect: some-expectation\r\nContent-Length: 5\r\n\r\nHELLO".GetBytes());
         await ns.FlushAsync();
 
-        var resp = await ReadUntilAsync(ns, s => s.Contains("\r\n\r\n"));
-        Assert.StartsWith("HTTP/1.1 417", resp);
+        var resp = await ReadUntilAsync(ns, s => s.Contains("GOT:HELLO"));
+        Assert.StartsWith("HTTP/1.1 200", resp);
     }
 
     [Fact(DisplayName = "HTTP服务端_流水线两请求同轮到达_两个请求都得到响应")]
