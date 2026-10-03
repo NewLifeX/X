@@ -29,6 +29,14 @@ public class HttpSession : INetHandler, IDisposable
     /// <summary>最大请求长度。单位字节，默认1G</summary>
     public Int32 MaxRequestLength { get; set; } = 1 * 1024 * 1024 * 1024;
 
+    /// <summary>在途请求的停滞上限。单位毫秒，默认30000；0或负数不启用</summary>
+    /// <remarks>
+    /// <para>请求已开始（头部或实体未收齐）却超过此时长没有新字节到达时，回 408 并关闭连接，兜住慢速攻击（slowloris，滴字节占用连接）。</para>
+    /// <para>只判<b>停滞</b>不判<b>总时长</b>：持续推进的慢速上传（大文件、弱网）不受影响，完全静默的连接由会话超时回收。</para>
+    /// <para>仅在请求头/实体未收齐时生效，已交付业务处理的请求不会再被本判定打断。</para>
+    /// </remarks>
+    public Int32 MaxRequestIdle { get; set; } = 30_000;
+
     /// <summary>忽略的头部。在链路追踪中不记录这些头部</summary>
     public static String[] ExcludeHeaders { get; set; } = [
         "traceparent", "Authorization", "Cookie"
@@ -51,6 +59,9 @@ public class HttpSession : INetHandler, IDisposable
 
     /// <summary>在途请求的实体是否为分块传输（无 Content-Length，必须解码终止块后才能交付）</summary>
     private Boolean _chunkedBody;
+
+    /// <summary>上次收到字节的时间。用于判定在途请求是否停滞（慢速攻击兜底）</summary>
+    private DateTime _lastReceive;
     #endregion
 
     #region 辅助
@@ -89,6 +100,22 @@ public class HttpSession : INetHandler, IDisposable
             _websocket.Process(pk);
             return;
         }
+
+        // 慢速攻击兜底：在途请求（头部或实体未收齐）长期没有新字节到达时，连接会被无限期占用。
+        // 只判“距上次收到字节的间隔”而不判请求总时长，故持续推进的慢速上传不受影响；
+        // 完全静默的连接不会进入本方法，由会话超时回收。
+        var now = DateTime.Now;
+        if ((_headCache != null || _cache != null) && MaxRequestIdle > 0 && (now - _lastReceive).TotalMilliseconds > MaxRequestIdle)
+        {
+            _headCache = null;
+            _cache = null;
+            _chunkedBody = false;
+
+            Reject(HttpStatusCode.RequestTimeout);
+
+            return;
+        }
+        _lastReceive = now;
 
         // 在途请求的实体尚未收完：本轮字节一律属于该实体，绝不能再尝试解析新的请求头。
         // 否则实体内恰好出现一段合法请求头（代理转发、恶意构造）时，会在此覆盖 Request 并丢弃实体缓存，

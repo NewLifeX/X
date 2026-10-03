@@ -241,6 +241,62 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
     }
 
+    /// <summary>把在途请求停滞上限压到 300ms 的服务器。HttpSession 按连接创建，配置入口是重载 CreateHandler</summary>
+    private sealed class SlowIdleHttpServer : HttpServer
+    {
+        public override INetHandler? CreateHandler(INetSession session) => new HttpSession { MaxRequestIdle = 300 };
+    }
+
+    [Fact(DisplayName = "HTTP服务端_在途请求长期无进展_回408并关闭")]
+    public async Task StalledRequest_ReturnsRequestTimeout()
+    {
+        using var server = new SlowIdleHttpServer { Port = 0, Log = XTrace.Log };
+        server.Map("/slow", () => "OK");
+        server.Start();
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, server.Port);
+        using var ns = client.GetStream();
+
+        // 第一轮：只发半个请求头，服务端进入头部缓存等待后续分片
+        await ns.WriteAsync("GET /slow HTTP/1.1\r\nHost: 127.0.0.1\r\n"u8.ToArray());
+        await ns.FlushAsync();
+
+        // 停滞超过 MaxRequestIdle（300ms）后才有新字节：滴字节占用连接的慢速攻击应被回 408 并断开
+        await Task.Delay(600);
+        await ns.WriteAsync("X: 1\r\n\r\n"u8.ToArray());
+        await ns.FlushAsync();
+
+        var buf = new Byte[4096];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.StartsWith("HTTP/1.1 408", buf.AsSpan(0, n).ToStr());
+    }
+
+    [Fact(DisplayName = "HTTP服务端_持续推进的慢速上传_不触发停滞判定")]
+    public async Task SlowButProgressingUpload_NotRejected()
+    {
+        using var server = new SlowIdleHttpServer { Port = 0, Log = XTrace.Log };
+        var tcs = new TaskCompletionSource<String>();
+        server.MapPost("/up", ctx => tcs.TrySetResult(ctx.Request.Body?.ToStr() ?? ""));
+        server.Start();
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync("POST /up HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 6\r\n\r\n"u8.ToArray());
+
+        // 总耗时 900ms 远超 300ms 阈值，但单次间隔只有 150ms：判定看的是“停滞”，不得打断有进展的上传
+        foreach (var ch in "abcdef")
+        {
+            await Task.Delay(150);
+            await ns.WriteAsync(new[] { (Byte)ch });
+            await ns.FlushAsync();
+        }
+
+        Assert.Equal("abcdef", await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+
     [Fact(DisplayName = "HTTP服务端_聘形请求行_回400而非静默挂起")]
     public async Task MalformedRequestLine_ReturnsBadRequest()
     {
