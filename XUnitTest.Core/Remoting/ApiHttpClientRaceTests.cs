@@ -109,15 +109,16 @@ public class ApiHttpClientRaceTests
             DataName = "data"
         };
 
-        // 添加三个服务，第二个响应最快
+        // 添加三个服务，第二个响应最快。
+        // 同 DownloadFileRaceAsync_Fastest：错峰使 “fast” 在 100+50=150ms 完成，慢节点需留足余量
         client.Add("slow1", "http://service1.test");
-        client.Services[0].Client = new HttpClient(new MockJsonHandler(200, """{"code":0,"data":"slow1"}"""));
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(1000, """{"code":0,"data":"slow1"}"""));
 
         client.Add("fast", "http://service2.test");
         client.Services[1].Client = new HttpClient(new MockJsonHandler(50, """{"code":0,"data":"fast"}"""));
 
         client.Add("slow2", "http://service3.test");
-        client.Services[2].Client = new HttpClient(new MockJsonHandler(300, """{"code":0,"data":"slow2"}"""));
+        client.Services[2].Client = new HttpClient(new MockJsonHandler(1500, """{"code":0,"data":"slow2"}"""));
 
         var result = await client.InvokeRaceAsync<String>("/api/test");
 
@@ -244,15 +245,17 @@ public class ApiHttpClientRaceTests
             Timeout = 5000
         };
 
-        // 添加三个服务，第二个响应最快
+        // 添加三个服务，第二个响应最快。
+        // 竞速会按序号给节点加启动错峰（Score = 序号×100ms），故 “fast” 实际在 100+50=150ms 完成；
+        // 慢节点延迟必须远大于错峰幅度，否则调度抖动会让 200ms 的 slow1 抢在 fast 之前返回，用例偶发变红
         client.Add("slow1", "http://service1.test");
-        client.Services[0].Client = new HttpClient(new MockHandler(200));
+        client.Services[0].Client = new HttpClient(new MockHandler(1000));
 
         client.Add("fast", "http://service2.test");
         client.Services[1].Client = new HttpClient(new MockHandler(50));
 
         client.Add("slow2", "http://service3.test");
-        client.Services[2].Client = new HttpClient(new MockHandler(300));
+        client.Services[2].Client = new HttpClient(new MockHandler(1500));
 
         var file = "race_fastest.txt";
         var fullPath = file.GetFullPath();
