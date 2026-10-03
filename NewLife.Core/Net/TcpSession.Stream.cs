@@ -426,7 +426,7 @@ partial class TcpSession
     /// 需要整条消息原子时改用 <see cref="SendMessageLockedAsync"/>。</para>
     /// <para><b>打开时序</b>：本方法在取写锁之前先确保会话已打开（与 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 同构）。并发首访同一未打开会话时，
     /// 打开流程（含 SSL 握手）可能被两个调用者同时进入；写锁只串行化“写套接字”，不覆盖打开流程，调用方应在发送前先完成打开。</para>
-    /// <para>SSL 会话（<c>SslStream</c>）与无零拷贝发送 API 的目标框架降级为 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 的分块读取发送，语义一致但多一次读块搬运。</para>
+    /// <para>SSL 会话（<c>SslStream</c>）、Unix 域套接字（内核零拷贝在其中既不会推进也不会报错，实测永久挂起）与无零拷贝发送 API 的目标框架，均降级为 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 的分块读取发送，语义一致但多一次读块搬运。</para>
     /// <para>不支持偏移与长度：需要发送文件的某一段（如 HTTP Range）时，用 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 定位后分块发送。</para>
     /// </remarks>
     /// <param name="filePath">文件路径</param>
@@ -454,12 +454,11 @@ partial class TcpSession
         try
         {
 #if NET6_0_OR_GREATER
-            // 非 SSL 会话：整个文件交给内核零拷贝推送，等待可写期间不占线程
-            if (_Stream == null)
+            // 非 SSL 会话：整个文件交给内核零拷贝推送，等待可写期间不占线程。
+            // 仅 IP 套接字可用：Unix 域套接字上 sendfile/TransmitFile 既不会推进也不会完成（实测永久挂起：
+            // 对端不读时 1KB 即挂，TCP 同条件 0ms 完成），必须排除，否则静态文件响应会一直挂着不返回。
+            if (_Stream == null && Client is { AddressFamily: AddressFamily.InterNetwork or AddressFamily.InterNetworkV6 } sock)
             {
-                var sock = Client;
-                if (sock == null) return -1;
-
                 try
                 {
                     // 内核 SendFileAsync(string) 无返回值（推完整个文件即成功），以文件长度作为发送量

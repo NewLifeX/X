@@ -248,6 +248,86 @@ public class UdsNetServerTests
     }
 
     [Fact]
+    [DisplayName("Unix域套接字_静态文件响应不因内核零拷贝挂起")]
+    public void StaticFileOverUds()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        var root = Path.Combine(Path.GetTempPath(), "nl_uds_www_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(root);
+        File.WriteAllText(Path.Combine(root, "hello.txt"), "hello-uds");
+        try
+        {
+            using var server = new HttpServer { Local = new NetUri($"unix://{path}") };
+            server.MapStaticFiles("/www", root);
+            server.Start();
+
+            Assert.True(server.Active);
+
+            using var client = new NetUri($"unix://{path}").CreateRemote();
+
+            var wait = new ManualResetEventSlim();
+            var text = "";
+            client.Received += (s, e) =>
+            {
+                var bytes = e.GetBytes();
+                if (bytes != null) text += bytes.ToStr();
+
+                if (text.Contains("hello-uds")) wait.Set();
+            };
+
+            client.Open();
+
+            var request = "GET /www/hello.txt HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n".GetBytes();
+            _ = client.Send(request);
+
+            // 旧实现：UDS 上内核零拷贝既不会推进也不会报错，响应永不返回（此处超时）；
+            // 修复后判定套接字类型走分块发送，数秒内返回文件内容
+            Assert.True(wait.Wait(5_000), "静态文件响应超时：UDS 上内核零拷贝未降级");
+            Assert.Contains("200", text);
+            Assert.Contains("hello-uds", text);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+            try { Directory.Delete(root, true); } catch { }
+        }
+    }
+
+    [Fact]
+    [DisplayName("Unix域套接字_对端不读时发送文件不挂起")]
+    public async Task SendFileOnUds_NonReadingPeer_Completes()
+    {
+        if (!UnixSupported()) return;
+
+        var path = NewTempPath();
+        var file = Path.Combine(Path.GetTempPath(), $"nl_uds_file_{Guid.NewGuid():N}.bin");
+        File.WriteAllBytes(file, new Byte[1024]);
+        try
+        {
+            using var listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            listener.Bind(new UnixDomainSocketEndPoint(path));
+            listener.Listen(1);
+
+            using var client = (TcpSession)new NetUri($"unix://{path}").CreateRemote();
+            client.Open();
+
+            // 对端接受连接但永不读取：UDS 上内核零拷贝（sendfile/TransmitFile）会永不完成（TCP 同条件 0ms 返回），
+            // 旧实现会在此挂死（无取消令牌时无限期占用发送线程）。修复后判定套接字类型走分块发送，1KB 直接入缓冲区完成
+            using var accepted = listener.Accept();
+
+            using var cts = new CancellationTokenSource(5_000);
+            Assert.Equal(1024, await client.SendFileAsync(file, cts.Token));
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+            try { File.Delete(file); } catch { }
+        }
+    }
+
+    [Fact]
     [DisplayName("Unix域套接字_拉取模式收发")]
     public async Task PullModeEcho()
     {
