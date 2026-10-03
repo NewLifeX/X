@@ -457,6 +457,15 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     #endregion
 
     #region 切片操作
+    /// <summary>切片得到新数据包（三参重载，仅为兼容旧二进制保留）</summary>
+    /// <param name="offset">相对当前包起始偏移</param>
+    /// <param name="count">个数。默认 -1 表示到末尾</param>
+    /// <param name="transferOwner">是否转移所有权。<b>已忽略</b></param>
+    /// <returns>共享底层缓冲区的拥有句柄，请使用 <c>using</c> 释放</returns>
+    /// <remarks>切片语义已统一为引用计数共享，<paramref name="transferOwner"/> 参数被忽略；详见 <see cref="IPacket.Slice(Int32, Int32, Boolean)"/>。</remarks>
+    [Obsolete("请改用 Slice(offset, count)；切片已统一为引用计数共享语义")]
+    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
+
     /// <summary>切片生成新数据包，共享底层缓冲区（引用计数）。返回具体类型句柄，可直接 <c>using</c> 释放</summary>
     /// <param name="offset">相对当前包的起始偏移</param>
     /// <param name="count">切片长度，-1 表示到末尾</param>
@@ -471,15 +480,6 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// 线性交接场景直接传递句柄本身即可，无需切片。</para>
     /// <para><see cref="IPacket.Slice(Int32, Int32)"/> 与 <see cref="IOwnerPacket.Slice(Int32, Int32)"/> 是本方法的显式接口实现，经接口访问时分别返回各自声明类型。</para>
     /// </remarks>
-    /// <summary>切片得到新数据包（三参重载，仅为兼容旧二进制保留）</summary>
-    /// <param name="offset">相对当前包起始偏移</param>
-    /// <param name="count">个数。默认 -1 表示到末尾</param>
-    /// <param name="transferOwner">是否转移所有权。<b>已忽略</b></param>
-    /// <returns>共享底层缓冲区的拥有句柄，请使用 <c>using</c> 释放</returns>
-    /// <remarks>切片语义已统一为引用计数共享，<paramref name="transferOwner"/> 参数被忽略；详见 <see cref="IPacket.Slice(Int32, Int32, Boolean)"/>。</remarks>
-    [Obsolete("请改用 Slice(offset, count)；切片已统一为引用计数共享语义")]
-    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
-
     public OwnerPacket Slice(Int32 offset, Int32 count = -1)
     {
         if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));

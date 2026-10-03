@@ -319,7 +319,9 @@ partial class TcpSession
     /// <remarks>
     /// <para>形态对齐主流网络框架的 SendAsync(Stream)：默认 64KB 分块，每块由池化读块直接写出（0 拷贝），全程只在读块上驻留，不产生整段内存。</para>
     /// <para><b>背压</b>：每块写完（或在写锁/内核上挂起）才读下一块，慢速对端不会导致应用层积压——内存占用恒为一块读缓冲，水位由内核发送缓冲充当。</para>
-    /// <para>与 <see cref="SessionBase.Send(IPacket)"/> 共用同一把写锁：并发调用不会交错，“头 + 流式体”先发头部再调用本方法即可保持一条逻辑消息。</para>
+    /// <para>与 <see cref="SessionBase.Send(IPacket)"/> 共用同一把写锁：并发调用不会交错。但两者是<b>各自独立加锁</b>，
+    /// “头 + 流式体”先发头部再调用本方法只在单写者场景下保持一条逻辑消息；多写者并发时头体之间可能被插入其它数据，
+    /// 需要整条消息原子时改用 <see cref="SendMessageLockedAsync"/>。</para>
     /// <para><b>打开时序</b>：本方法在取写锁之前先确保会话已打开。并发首访同一未打开会话时，打开流程（含 SSL 握手）可能被两个调用者同时进入；
     /// 写锁只串行化“写套接字”，不覆盖打开流程，调用方应在发送前先完成打开。</para>
     /// <para><b>超时</b>：异步写核心按“块”重设计时预算（每块 <see cref="SessionBase.Timeout"/>），故大流的总耗时上限约等于 块数 × Timeout；
@@ -419,7 +421,9 @@ partial class TcpSession
     /// <remarks>
     /// <para><b>内存</b>：文件内容全程不进入应用层缓冲，也没有 64KB 读块往返，大文件发送的 CPU 与内存开销都低于流式分块。</para>
     /// <para><b>背压</b>：等待可写期间不占线程；慢速对端由内核发送缓冲形成背压，应用层无积压。</para>
-    /// <para>与 <see cref="SessionBase.Send(IPacket)"/> 共用同一把写锁：并发调用不会交错，“响应头 + 文件体”先发头部再调用本方法即可保持一条逻辑消息。</para>
+    /// <para>与 <see cref="SessionBase.Send(IPacket)"/> 共用同一把写锁：并发调用不会交错。但两者是<b>各自独立加锁</b>，
+    /// “响应头 + 文件体”先发头部再调用本方法只在单写者场景下保持一条逻辑消息；多写者并发时头体之间可能被插入其它数据，
+    /// 需要整条消息原子时改用 <see cref="SendMessageLockedAsync"/>。</para>
     /// <para><b>打开时序</b>：本方法在取写锁之前先确保会话已打开（与 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 同构）。并发首访同一未打开会话时，
     /// 打开流程（含 SSL 握手）可能被两个调用者同时进入；写锁只串行化“写套接字”，不覆盖打开流程，调用方应在发送前先完成打开。</para>
     /// <para>SSL 会话（<c>SslStream</c>）与无零拷贝发送 API 的目标框架降级为 <see cref="SendAsync(Stream, Int64, CancellationToken)"/> 的分块读取发送，语义一致但多一次读块搬运。</para>
