@@ -48,6 +48,9 @@ public class HttpSession : INetHandler, IDisposable
     private WebSocket? _websocket;
     private MemoryStream? _cache;
     private MemoryStream? _headCache;
+
+    /// <summary>在途请求的实体是否为分块传输（无 Content-Length，必须解码终止块后才能交付）</summary>
+    private Boolean _chunkedBody;
     #endregion
 
     #region 辅助
@@ -95,7 +98,9 @@ public class HttpSession : INetHandler, IDisposable
             if (Request is { } pending)
             {
                 // 实体收满后，超出声明长度的字节属于后续请求（流水线），以共享视图返回继续解析
-                pk = ReceiveBody(pending, _cache, pk, data);
+                pk = _chunkedBody
+                    ? ReceiveChunkedBody(pending, _cache, pk, data)
+                    : ReceiveBody(pending, _cache, pk, data);
                 if (pk == null || pk.Total == 0) return;
 
                 // 交付后连接可能已被关闭（Connection: close）：剩余字节不再处理
@@ -105,6 +110,7 @@ public class HttpSession : INetHandler, IDisposable
             {
                 // Request 被外部清空，与实体缓存状态不一致：丢弃缓存，回到无在途请求的常态
                 _cache = null;
+                _chunkedBody = false;
             }
         }
 
@@ -157,18 +163,21 @@ public class HttpSession : INetHandler, IDisposable
 
                 (_session as NetSession)?.WriteLog("{0} {1}", request.Method, request.RequestUri);
 
-                // Transfer-Encoding 只认 chunked，且 chunked 暂不支持：ContentLength 取到 -1，内容被当作“已完整”，
-                // chunk 帧本身会被当成业务参数/JSON 解析（静默错误），故回 411 请客户端改用 Content-Length。
-                // 其余取值（gzip/identity/未知）更危险：会退化成“无体”，声明的主体被当成后续请求字节（连接失步），
-                // 按 RFC 9112 §6.1 回 400
+                // Transfer-Encoding：只支持 chunked，且必须是唯一编码（RFC 9112 §6.1 要求 chunked 最后出现，
+                // 本库不实现其它传输编码，故出现 gzip 等一律按不支持回 400）。分块体长度未知，必须逐块解码，
+                // 否则 ContentLength 取到 -1、内容被当作“已完整”，chunk 帧会被当成业务参数/JSON 解析（静默错误）
                 var te = request.Headers["Transfer-Encoding"];
+                var chunked = false;
                 if (!te.IsNullOrEmpty())
                 {
-                    Reject(te.IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0
-                        ? HttpStatusCode.LengthRequired
-                        : HttpStatusCode.BadRequest);
+                    if (!te.EqualIgnoreCase("chunked"))
+                    {
+                        Reject(HttpStatusCode.BadRequest);
 
-                    break;
+                        break;
+                    }
+
+                    chunked = true;
                 }
 
                 // Content-Length 非法（无法解析/为负/溢出/重复）：按协议错误处理。
@@ -191,8 +200,9 @@ public class HttpSession : INetHandler, IDisposable
                 // Expect: 100-continue：curl、.NET ExpectContinue 等客户端发完请求头后等待临时响应才发实体，
                 // 不应答会让每个此类请求白等一次客户端超时，个别实现直接失败。实体已随头部一并到达时无需应答。
                 // HTTP/1.0 不支持临时响应（RFC 7231 §5.1.1 要求忽略其 Expect），按其协议版本原样处理
+                // 分块体的“是否已完整”不能用 IsCompleted 判定（ContentLength 为 -1 时为 true）
                 var expect = request.Headers["Expect"];
-                if (!request.IsCompleted && !expect.IsNullOrEmpty() && !request.Version.EqualIgnoreCase("1.0"))
+                if ((chunked || !request.IsCompleted) && !expect.IsNullOrEmpty() && !request.Version.EqualIgnoreCase("1.0"))
                 {
                     if (expect.IndexOf("100-continue", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
@@ -212,6 +222,31 @@ public class HttpSession : INetHandler, IDisposable
 
                 _websocket = null; // 新请求到来，清空 websocket 握手状态
                 OnNewRequest(request, data);
+
+                // 分块传输的请求体：长度未知，必须先解码出终止块才能交付业务，不能按“已完整”放行
+                if (chunked)
+                {
+                    _chunkedBody = true;
+                    _cache = new MemoryStream();
+
+                    // 本轮已到达的实体字节所有权转交解码器；解码器只借阅，用完由这里释放
+                    var raw = request.Body;
+                    request.Body = null;
+
+                    var done = TryDeliverChunked(request, _cache, raw, data, out var chunkLeft);
+                    raw.TryDispose();
+
+                    if (!done) break;
+
+                    // 终止块之后可能还有流水线请求：以剩余字节继续循环
+                    if (_session.Disposed || _websocket != null) break;
+                    if (chunkLeft == null || chunkLeft.Total == 0) break;
+
+                    left.TryDispose();
+                    left = chunkLeft;
+                    pk = chunkLeft;
+                    continue;
+                }
 
                 // 后面还有数据包，克隆缓冲区
                 if (request.IsCompleted)
@@ -256,6 +291,180 @@ public class HttpSession : INetHandler, IDisposable
             left.TryDispose();
         }
     }
+
+    /// <summary>接收分块传输的请求体：累积原始字节，收齐终止块后解码交付</summary>
+    /// <param name="req">在途请求</param>
+    /// <param name="cache">原始字节缓存（由 <see cref="Process"/> 保证非空）</param>
+    /// <param name="pk">本轮数据（只借阅，不释放）</param>
+    /// <param name="data">数据帧</param>
+    /// <returns>分块体之后的剩余字节（缓存流缓冲区的视图，无需释放）；尚未收齐时返回 null</returns>
+    private IPacket? ReceiveChunkedBody(HttpRequest req, MemoryStream cache, IPacket pk, IData data)
+        => TryDeliverChunked(req, cache, pk, data, out var remain) ? remain : null;
+
+    /// <summary>尝试解码并交付分块传输的请求体</summary>
+    /// <param name="req">在途请求</param>
+    /// <param name="cache">原始字节缓存</param>
+    /// <param name="raw">本轮新到的原始字节；只借阅，不释放</param>
+    /// <param name="data">数据帧</param>
+    /// <param name="remain">分块体之后的剩余字节（同一缓存缓冲区的视图），无则为 null</param>
+    /// <returns>是否已收齐并交付；false 表示还需后续分片，或已因超限/非法而拒绝并关闭</returns>
+    private Boolean TryDeliverChunked(HttpRequest req, MemoryStream cache, IPacket? raw, IData data, out IPacket? remain)
+    {
+        remain = null;
+
+        if (raw != null && raw.Total > 0) raw.CopyTo(cache);
+
+        // 原始字节上限即内存上限（解码结果只会更小）
+        if (cache.Length > MaxRequestLength)
+        {
+            _cache = null;
+            _chunkedBody = false;
+
+            Reject(HttpStatusCode.RequestEntityTooLarge);
+
+            return false;
+        }
+
+        var status = TryDecodeChunked(cache.GetBuffer(), (Int32)cache.Length, out var body, out var consumed);
+        if (status == ChunkedStatus.Incomplete) return false;
+        if (status == ChunkedStatus.Invalid)
+        {
+            _cache = null;
+            _chunkedBody = false;
+
+            Reject(HttpStatusCode.BadRequest);
+
+            return false;
+        }
+
+        _cache = null;
+        _chunkedBody = false;
+
+        // 解码后按已知长度交付：业务、链路追踪、multipart 解析看到的主体与 Content-Length 请求完全一致
+        req.Body.TryDispose();
+        req.Body = body;
+        req.ContentLength = body.Total;
+
+        // 终止块之后的字节属于后续流水线请求，切出视图交给调用方继续解析
+        var extra = (Int32)cache.Length - consumed;
+        if (extra > 0) remain = new ArrayPacket(cache.GetBuffer(), consumed, extra);
+
+        Deliver(req, data);
+
+        return true;
+    }
+
+    /// <summary>分块传输解码结果</summary>
+    private enum ChunkedStatus
+    {
+        /// <summary>数据不足，需继续接收</summary>
+        Incomplete,
+
+        /// <summary>已收齐终止块</summary>
+        Complete,
+
+        /// <summary>分块格式非法（坏块长度行）</summary>
+        Invalid,
+    }
+
+    /// <summary>解码分块传输体（RFC 9112 §7.1）。块长度十六进制、忽略“;”扩展，终止块之后的 trailer 段一并消费</summary>
+    /// <param name="buffer">原始字节</param>
+    /// <param name="length">原始字节有效长度</param>
+    /// <param name="body">解码后的主体；未收齐或非法时为 null</param>
+    /// <param name="consumed">消耗的原始字节数（收齐时有效）</param>
+    /// <returns>解码结果</returns>
+    private static ChunkedStatus TryDecodeChunked(Byte[] buffer, Int32 length, out IPacket body, out Int32 consumed)
+    {
+        body = null!;
+        consumed = 0;
+
+        var decoded = new MemoryStream();
+        var pos = 0;
+        while (true)
+        {
+            var eol = IndexOfCrlf(buffer, pos, length);
+            if (eol < 0) return ChunkedStatus.Incomplete;
+
+            // 块长度行：十六进制长度，可带 ";" 扩展
+            var line = buffer.AsSpan(pos, eol - pos);
+            var sc = line.IndexOf((Byte)';');
+            if (sc >= 0) line = line[..sc];
+            line = line.Trim((Byte)' ');
+
+            if (line.Length == 0 || line.Length > 8) return ChunkedStatus.Invalid;
+
+            var size = 0L;
+            foreach (var b in line)
+            {
+                var d = HexValue(b);
+                if (d < 0) return ChunkedStatus.Invalid;
+
+                size = size * 16 + d;
+            }
+
+            pos = eol + 2;
+
+            // 终止块：其后可能有 trailer 段，以空行结束
+            if (size == 0)
+            {
+                if (pos + 1 < length && buffer[pos] == (Byte)'\r' && buffer[pos + 1] == (Byte)'\n')
+                    consumed = pos + 2;
+                else
+                {
+                    var end = IndexOfCrlf2(buffer, pos, length);
+                    if (end < 0) return ChunkedStatus.Incomplete;
+
+                    consumed = end + 4;
+                }
+
+                body = new ArrayPacket(decoded.GetBuffer(), 0, (Int32)decoded.Length);
+
+                return ChunkedStatus.Complete;
+            }
+
+            // 数据不足：块体与末尾 CRLF 必须都在缓冲区内
+            if (size > length - pos - 2) return ChunkedStatus.Incomplete;
+
+            decoded.Write(buffer, pos, (Int32)size);
+            pos += (Int32)size;
+
+            // 块数据后的 CRLF
+            if (pos + 2 > length || buffer[pos] != (Byte)'\r' || buffer[pos + 1] != (Byte)'\n') return ChunkedStatus.Incomplete;
+
+            pos += 2;
+        }
+    }
+
+    /// <summary>在指定范围内查找 CRLF，返回起始下标；未找到返回 -1</summary>
+    private static Int32 IndexOfCrlf(Byte[] buffer, Int32 start, Int32 length)
+    {
+        for (var i = start; i + 1 < length; i++)
+        {
+            if (buffer[i] == (Byte)'\r' && buffer[i + 1] == (Byte)'\n') return i;
+        }
+
+        return -1;
+    }
+
+    /// <summary>在指定范围内查找空行（CRLFCRLF），返回其起始下标；未找到返回 -1</summary>
+    private static Int32 IndexOfCrlf2(Byte[] buffer, Int32 start, Int32 length)
+    {
+        for (var i = start; i + 3 < length; i++)
+        {
+            if (buffer[i] == (Byte)'\r' && buffer[i + 1] == (Byte)'\n' && buffer[i + 2] == (Byte)'\r' && buffer[i + 3] == (Byte)'\n') return i;
+        }
+
+        return -1;
+    }
+
+    /// <summary>十六进制字符转数值；非法字符返回 -1</summary>
+    private static Int32 HexValue(Byte b) => b switch
+    {
+        >= (Byte)'0' and <= (Byte)'9' => b - (Byte)'0',
+        >= (Byte)'a' and <= (Byte)'f' => b - (Byte)'a' + 10,
+        >= (Byte)'A' and <= (Byte)'F' => b - (Byte)'A' + 10,
+        _ => -1,
+    };
 
     /// <summary>接收在途请求的实体分片，收满声明长度后交付业务处理</summary>
     /// <param name="req">在途请求</param>

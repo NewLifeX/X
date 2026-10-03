@@ -130,14 +130,13 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 200", buf.AsSpan(0, n).ToStr());
     }
 
-    [Theory(DisplayName = "HTTP服务端_Transfer-Encoding非chunked_回400；chunked暂不支持回411")]
+    [Theory(DisplayName = "HTTP服务端_Transfer-Encoding非chunked_回400")]
     [InlineData("gzip", 400)]
     [InlineData("identity", 400)]
-    [InlineData("chunked", 411)]
     public async Task TransferEncoding_Unsupported_Rejected(String te, Int32 status)
     {
-        // chunked 暂不支持，回 411 引导改用 Content-Length；
-        // 其它取值会退化成“无体”，声明的主体被当成后续请求字节（连接失步），回 400
+        // 本库不实现其它传输编码：取值会退化成“无体”，声明的主体被当成后续请求字节（连接失步），回 400；
+        // chunked 已支持，见分块请求体各用例
         _server.Map("/te", () => "OK");
 
         using var client = new TcpClient { NoDelay = true };
@@ -150,6 +149,96 @@ public class HttpServerTests : IDisposable
         var buf = new Byte[4096];
         var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.StartsWith($"HTTP/1.1 {status}", buf.AsSpan(0, n).ToStr());
+    }
+
+    [Fact(DisplayName = "HTTP服务端_分块请求体_单轮到达_解码后交付")]
+    public async Task ChunkedBody_SingleRound_Decoded()
+    {
+        var tcs = new TaskCompletionSource<String>();
+        _server.MapPost("/chunked", ctx => tcs.TrySetResult(ctx.Request.Body?.ToStr() ?? ""));
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var head = "POST /chunked HTTP/1.1\r\nHost: 127.0.0.1\r\nTransfer-Encoding: chunked\r\n\r\n";
+        var body = "5\r\nHello\r\n7\r\n, world\r\n0\r\n\r\n";
+        await ns.WriteAsync((head + body).GetBytes());
+        await ns.FlushAsync();
+
+        // 旧实现回 411；新实现解码后按已知长度交付，业务侧看到的主体与 Content-Length 请求一致
+        Assert.Equal("Hello, world", await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+
+        var text = await ReadUntilAsync(ns, t => t.Contains("\r\n\r\n"));
+        Assert.StartsWith("HTTP/1.1 200", text);
+    }
+
+    [Fact(DisplayName = "HTTP服务端_分块请求体_跨轮分片_解码后交付")]
+    public async Task ChunkedBody_SplitAcrossRounds_Decoded()
+    {
+        var tcs = new TaskCompletionSource<String>();
+        _server.MapPost("/chunked2", ctx => tcs.TrySetResult(ctx.Request.Body?.ToStr() ?? ""));
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var head = "POST /chunked2 HTTP/1.1\r\nHost: 127.0.0.1\r\nTransfer-Encoding: chunked\r\n\r\n";
+        // 第一轮：头部 + 块长度行 + 半个块数据
+        await ns.WriteAsync((head + "A\r\n01234").GetBytes());
+        await ns.FlushAsync();
+        await Task.Delay(100);
+
+        // 第二轮：块数据尾部 + CRLF + 终止块
+        await ns.WriteAsync("56789\r\n0\r\n\r\n".GetBytes());
+        await ns.FlushAsync();
+
+        Assert.Equal("0123456789", await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+
+    [Fact(DisplayName = "HTTP服务端_分块请求体带trailer_其后流水线请求也得到响应")]
+    public async Task ChunkedBody_WithTrailers_PipelinedAnswered()
+    {
+        var tcs = new TaskCompletionSource<String>();
+        _server.MapPost("/chunked3", ctx => tcs.TrySetResult(ctx.Request.Body?.ToStr() ?? ""));
+        _server.MapGet("/next", () => "NEXT");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var head = "POST /chunked3 HTTP/1.1\r\nHost: 127.0.0.1\r\nTransfer-Encoding: chunked\r\n\r\n";
+        var body = "3\r\nabc\r\n0\r\nX-Trailer: v\r\n\r\n";
+        var next = "GET /next HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+
+        // trailer 段与在它之后的流水线请求同轮到达：trailer 必须被一并消费，剩余字节属于下一个请求
+        await ns.WriteAsync((head + body + next).GetBytes());
+        await ns.FlushAsync();
+
+        Assert.Equal("abc", await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+
+        var text = await ReadUntilAsync(ns, t => t.Contains("NEXT"));
+        Assert.Contains("200", text);
+        Assert.Contains("NEXT", text);
+    }
+
+    [Fact(DisplayName = "HTTP服务端_分块长度行非法_回400")]
+    public async Task ChunkedBody_MalformedSize_ReturnsBadRequest()
+    {
+        _server.MapPost("/chunked4", ctx => { });
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var head = "POST /chunked4 HTTP/1.1\r\nHost: 127.0.0.1\r\nTransfer-Encoding: chunked\r\n\r\n";
+        // 坏块长度行（非十六进制）不得静默等待，按协议错误回 400 并关闭
+        await ns.WriteAsync((head + "zz\r\nabc\r\n0\r\n\r\n").GetBytes());
+        await ns.FlushAsync();
+
+        var buf = new Byte[4096];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
     }
 
     [Fact(DisplayName = "HTTP服务端_聘形请求行_回400而非静默挂起")]
