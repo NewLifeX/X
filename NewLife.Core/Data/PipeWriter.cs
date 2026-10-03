@@ -56,7 +56,10 @@ public sealed class PipeWriter : IBufferWriter<Byte>
     #region 方法
     /// <summary>追加数据（所有权转移：无条件接管入参句柄；管道已关闭时由管道释放）</summary>
     /// <param name="pk">追加的数据包（单段或链式）</param>
-    /// <remarks>追加后数据进入未消费窗口，并立即唤醒挂起的读取；调用后不得再使用或释放入参句柄，由管道在消费后归还。</remarks>
+    /// <remarks>
+    /// <para>追加后数据进入未消费窗口，并立即唤醒挂起的读取；调用后不得再使用或释放入参句柄，由管道在消费后归还。</para>
+    /// <para><b>只接受真正拥有内存的句柄</b>：<see cref="OwnerPacket"/> 或按池化数组构造的 <see cref="ArrayPacket"/>。无所有权的借用视图（包装外部/共享数组的 <see cref="ArrayPacket"/>、<see cref="ReadOnlyPacket"/>）不得追加——管道按句柄生命周期持有数据，视图的原拥有者归还缓冲后，管道与 <see cref="PipeReader.TakeFrame(Int64)"/> 切出的帧会读到回收数据。</para>
+    /// </remarks>
     public void Append(IPacket pk) => _pipe.Reader.AppendInternal(pk);
 
     /// <summary>获取可写入内存窗口（至少 sizeHint 字节）。推进用 <see cref="Advance"/>，提交用 <see cref="FlushAsync(CancellationToken)"/></summary>
