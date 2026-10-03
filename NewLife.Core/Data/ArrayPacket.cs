@@ -179,6 +179,9 @@ public record struct ArrayPacket : IPacket
         return new ArrayPacket(_buffer, _offset - size, _length + size) { Next = Next };
     }
 
+    [Obsolete("请改用 Slice(offset, count)")]
+    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
+
     /// <summary>切片得到新数据包，共用缓冲区，无内存分配</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>

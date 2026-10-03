@@ -66,6 +66,13 @@ public static class Reflect
         return Provider.GetType(typeName, false);
     }
 
+    /// <summary>根据名称获取类型（旧版重载，仅为兼容旧二进制保留）</summary>
+    /// <param name="typeName">类型名</param>
+    /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。<b>已忽略</b></param>
+    /// <returns></returns>
+    [Obsolete("不再支持isLoadAssembly")]
+    public static Type? GetTypeEx(this String typeName, Boolean isLoadAssembly) => GetTypeEx(typeName);
+
     /// <summary>获取方法</summary>
     /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
     /// <param name="type">类型</param>

@@ -257,6 +257,11 @@ public static class NetHelper
     /// <returns></returns>
     public static Boolean CheckPort(this NetUri uri) => !uri.IsUnix && uri.Address.CheckPort(uri.Type, uri.Port);
 
+    /// <summary>获取所有Tcp连接（无参重载，仅为兼容旧二进制保留）</summary>
+    /// <returns></returns>
+    [Obsolete("请改用 GetAllTcpConnections(processId)")]
+    public static TcpConnectionInformation2[] GetAllTcpConnections() => GetAllTcpConnections(-1);
+
     /// <summary>获取所有Tcp连接，带进程Id</summary>
     /// <returns></returns>
     public static TcpConnectionInformation2[] GetAllTcpConnections(Int32 processId = -1)

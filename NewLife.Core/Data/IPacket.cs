@@ -55,6 +55,20 @@ public interface IPacket
     /// <param name="count">个数。默认 -1 表示到末尾</param>
     IPacket Slice(Int32 offset, Int32 count = -1);
 
+    /// <summary>切片得到新数据包（三参重载，仅为兼容旧二进制保留）</summary>
+    /// <param name="offset">相对当前包起始偏移</param>
+    /// <param name="count">个数。默认 -1 表示到末尾</param>
+    /// <param name="transferOwner">是否转移所有权。<b>已忽略</b></param>
+    /// <returns>共享底层缓冲区的新数据包</returns>
+    /// <remarks>
+    /// <para>切片语义已统一为引用计数共享：新旧句柄同时可用、各自释放，最后一个释放时归还内存池。
+    /// 因此旧版 <c>transferOwner=true</c>（转移所有权、作废源句柄）的语义不再存在，参数被忽略。</para>
+    /// <para><b>旧二进制注意</b>：按旧语义“只释放新句柄”的调用方不会释放新句柄的引用计数，缓冲会被延迟到 GC 回收，
+    /// 属内存滞留而非错误。升级源码后请改用 <see cref="Slice(Int32, Int32)"/>。</para>
+    /// </remarks>
+    [Obsolete("请改用 Slice(offset, count)；切片已统一为引用计数共享语义")]
+    IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner);
+
     /// <summary>尝试获取当前片段的 <see cref="ArraySegment{T}"/>（不含链式后续）</summary>
     Boolean TryGetArray(out ArraySegment<Byte> segment);
 }

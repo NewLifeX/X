@@ -151,10 +151,11 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     #region 构造函数
     /// <summary>创建指定长度的内存包，从共享内存池借用缓冲区</summary>
     /// <param name="length">数据区长度</param>
-    /// <param name="reserve">前置预留头部字节数，供下游向前借位写入协议头（参考 <see cref="Serialization.SpanSerializer.HeaderReserve"/>）</param>
+    /// <param name="reserve">前置预留头部字节数，供下游向前借位写入协议头（参考 <see cref="Serialization.SpanSerializer.HeaderReserve"/>）。
+    /// <b>无默认值</b>：不需要预留时请用单参重载 <see cref="OwnerPacket(Int32)"/></param>
     /// <exception cref="ArgumentOutOfRangeException">长度为负数或预留为负数</exception>
     /// <remarks>实际分配的缓冲区可能大于请求长度，以适配内存池的分片策略；预留空间经 <see cref="FreeHeader"/> 查询</remarks>
-    public OwnerPacket(Int32 length, Int32 reserve = 0)
+    public OwnerPacket(Int32 length, Int32 reserve)
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
         if (reserve < 0) throw new ArgumentOutOfRangeException(nameof(reserve), "Reserve must be non-negative.");
@@ -165,6 +166,15 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         _length = length;
         _owner = new ArrayOwner(buffer, true);
     }
+
+    /// <summary>创建指定长度的内存包，从共享内存池借用缓冲区。<b>无</b>前置预留头部空间</summary>
+    /// <param name="length">数据区长度</param>
+    /// <remarks>
+    /// <para>等价于 <c>new OwnerPacket(length, 0)</c>；需要协议头借位空间时请显式使用 <see cref="OwnerPacket(Int32, Int32)"/> 指定预留量。</para>
+    /// <para>与双参重载并存：单参调用总是绑定到本重载（C# 规则——全部参数均有实参者优于需要可选参数填充者），
+    /// 因此双参重载不设默认值，避免“单参调用吃默认值”的隐性语义。</para>
+    /// </remarks>
+    public OwnerPacket(Int32 length) : this(length, 0) { }
 
     /// <summary>创建内存包，使用现有缓冲区</summary>
     /// <param name="buffer">数据缓冲区</param>
@@ -461,6 +471,15 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// 线性交接场景直接传递句柄本身即可，无需切片。</para>
     /// <para><see cref="IPacket.Slice(Int32, Int32)"/> 与 <see cref="IOwnerPacket.Slice(Int32, Int32)"/> 是本方法的显式接口实现，经接口访问时分别返回各自声明类型。</para>
     /// </remarks>
+    /// <summary>切片得到新数据包（三参重载，仅为兼容旧二进制保留）</summary>
+    /// <param name="offset">相对当前包起始偏移</param>
+    /// <param name="count">个数。默认 -1 表示到末尾</param>
+    /// <param name="transferOwner">是否转移所有权。<b>已忽略</b></param>
+    /// <returns>共享底层缓冲区的拥有句柄，请使用 <c>using</c> 释放</returns>
+    /// <remarks>切片语义已统一为引用计数共享，<paramref name="transferOwner"/> 参数被忽略；详见 <see cref="IPacket.Slice(Int32, Int32, Boolean)"/>。</remarks>
+    [Obsolete("请改用 Slice(offset, count)；切片已统一为引用计数共享语义")]
+    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
+
     public OwnerPacket Slice(Int32 offset, Int32 count = -1)
     {
         if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));

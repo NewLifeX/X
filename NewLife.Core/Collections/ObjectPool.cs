@@ -40,6 +40,11 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <summary>空闲清理时间。最小个数之上的资源超过空闲时间时被清理，默认60s</summary>
     public Int32 IdleTime { get; set; } = 60;
 
+    /// <summary>所有连接的空闲时间（旧版名称，仅为兼容旧二进制保留）</summary>
+    /// <remarks>与 <see cref="IdleTime"/> 是同一设置项的读写代理</remarks>
+    [Obsolete("请改用 IdleTime")]
+    public Int32 AllIdleTime { get => IdleTime; set => IdleTime = value; }
+
     /// <summary>借出等待超时。默认15s，池满时阻塞等待。TimeSpan.Zero表示不等待，池满时立即抛出PoolFullException。</summary>
     public TimeSpan WaitTimeout { get; set; } = TimeSpan.FromSeconds(15);
 

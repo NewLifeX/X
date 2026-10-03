@@ -115,6 +115,9 @@ public struct MemoryPacket : IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
 
+    [Obsolete("请改用 Slice(offset, count)")]
+    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
+
     /// <summary>切片得到新数据包，共用内存块，无内存分配</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>

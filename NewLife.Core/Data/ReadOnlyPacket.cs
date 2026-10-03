@@ -100,6 +100,14 @@ public readonly record struct ReadOnlyPacket : IPacket
     /// <returns>新的只读数据包</returns>
     IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
 
+    /// <summary>切片得到新的只读数据包（三参重载，仅为兼容旧二进制保留）</summary>
+    /// <param name="offset">相对偏移</param>
+    /// <param name="count">数据长度，-1 表示到末尾</param>
+    /// <param name="transferOwner">是否转移所有权。<b>已忽略</b>（只读结构体视图本就无所有权）</param>
+    /// <returns>共享底层缓冲区的新数据包</returns>
+    [Obsolete("请改用 Slice(offset, count)")]
+    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
+
     /// <summary>切片得到新的只读数据包，无内存分配</summary>
     /// <param name="offset">相对偏移</param>
     /// <param name="count">数据长度，-1 表示到末尾</param>

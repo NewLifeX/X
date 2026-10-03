@@ -28,6 +28,11 @@ public ref struct SpanReader
     /// <summary>当前缓冲总容量（不代表完整数据总长度，若基于流扩容仅表示当前已缓存区大小）</summary>
     public readonly Int32 Capacity => _span.Length;
 
+    /// <summary>剩余可读字节数（旧版名称，仅为兼容旧二进制保留）</summary>
+    /// <remarks>等价于 <c>Capacity - Position</c>。若读取器基于流扩容，该值仅代表当前已缓存区的剩余量</remarks>
+    [Obsolete("请改用 Capacity - Position")]
+    public readonly Int32 FreeCapacity => Capacity - Position;
+
     /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
     public readonly Int32 Available => _span.Length - _index;
 
