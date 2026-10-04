@@ -38,16 +38,26 @@ public class AssemblyXTests
         var old = currentField.GetValue(null);
         try
         {
-            currentField.SetValue(null, null);
-
             var method = typeof(AssemblyX).GetMethod("OnAssemblyResolve", BindingFlags.NonPublic | BindingFlags.Static);
             Assert.NotNull(method);
 
             var args = new ResolveEventArgs("System.IO.FileSystem.Watcher.resources, Version=8.0.0.0, Culture=zh-CN, PublicKeyToken=b03f5f7f11d50a3a", typeof(FileSystemWatcher).Assembly);
-            var rs = method.Invoke(null, [null, args]);
 
-            Assert.Null(rs);
-            Assert.Null(currentField.GetValue(null));
+            // Config<Setting>._Current 是进程级共享状态，并行用例的 Setting.Current 会把它重建。
+            // 因此以小窗口重试：清空后触发解析，若未被其它线程抢先重建，即可确认解析过程没有初始化配置。
+            for (var i = 0; i < 20; i++)
+            {
+                currentField.SetValue(null, null);
+
+                var rs = method.Invoke(null, [null, args]);
+                Assert.Null(rs);
+
+                if (currentField.GetValue(null) == null) return;
+
+                Thread.Sleep(10);
+            }
+
+            Assert.Fail("解析资源程序集期间，Config<Setting>._Current 被初始化（20 次窗口内均未能观测到保持为 null）");
         }
         finally
         {
