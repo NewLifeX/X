@@ -85,6 +85,23 @@ public class NetServerTests
         Assert.False(server.Active);
     }
 
+    /// <summary>测试HTTPS只监听TCP</summary>
+    [Fact]
+    public void HttpsServerCreatesTcpOnly()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Https,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+
+        // HTTPS 不在 UDP 上提供服务，不应额外创建 UDP 服务器
+        var _ = server.Server;
+        Assert.Single(server.Servers);
+        Assert.IsType<TcpServer>(server.Servers[0]);
+    }
+
     /// <summary>测试服务器配置属性</summary>
     [Fact]
     public void ServerConfiguration()

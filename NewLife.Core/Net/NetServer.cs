@@ -772,8 +772,9 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         {
             case NetType.Tcp:
             case NetType.Http:
+            case NetType.Https:
             case NetType.WebSocket:
-                // HTTP/WebSocket 不在监听层区分：实际由 HttpServer.CreateHandler 在处理管道处理，此处与裸 TCP 同构
+                // HTTP/HTTPS/WebSocket 不在监听层区分：实际由 HttpServer.CreateHandler 在处理管道处理，此处与裸 TCP 同构
                 return CreateServer<TcpServer>(address, port, family);
             case NetType.Udp:
                 return CreateServer<UdpServer>(address, port, family);
