@@ -130,7 +130,7 @@ public class HttpRequest : HttpBase
         foreach (var item in Headers)
         {
             if (!item.Key.EqualIgnoreCase("Host"))
-                sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
+                sb.AppendFormat("{0}: {1}\r\n", SanitizeHeaderText(item.Key), SanitizeHeaderText(item.Value));
         }
 
         sb.Append("\r\n");

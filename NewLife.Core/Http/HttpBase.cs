@@ -70,6 +70,40 @@ public abstract class HttpBase : IDisposable
     /// 故请求侧置为 true（见 <see cref="HttpRequest" />），响应侧保持宽容以兼容历史服务器。</remarks>
     protected virtual Boolean StrictHeader => false;
 
+    /// <summary>清洗头部文本，剔除 CR/LF 与其它控制字符</summary>
+    /// <param name="text">原始文本（状态描述、字段名或字段值）</param>
+    /// <returns>清洗后的文本；不含非法字符时原样返回（零分配）</returns>
+    /// <remarks>
+    /// <para>RFC 9110 §5.5：字段值只能由可见字符与 SP/HTAB 组成，不得出现 CR/LF。异常消息等内容源自带换行时，
+    /// 直接写入会让一行裂成两行——接收方会把它解析成额外的头部（响应拆分/请求拆分），可被用来伪造
+    /// Content-Length、Location、Set-Cookie 等头部。</para>
+    /// <para>CR/LF 替换为空格（保留可读描述），其它控制字符（不含 HTAB）剔除；可见字符与非 ASCII 原样保留。</para>
+    /// </remarks>
+    internal static String SanitizeHeaderText(String text)
+    {
+        if (text.IsNullOrEmpty()) return text;
+
+        // 快路径：无控制字符时原样返回，不产生分配
+        var dirty = false;
+        foreach (var ch in text)
+        {
+            if (ch < ' ' || ch == (Char)0x7F) { dirty = true; break; }
+        }
+        if (!dirty) return text;
+
+        var sb = Pool.StringBuilder.Get();
+        foreach (var ch in text)
+        {
+            // CR/LF 换成空格；其它控制字符（含 DEL，HTAB 除外）剔除
+            if (ch == '\r' || ch == '\n')
+                sb.Append(' ');
+            else if (ch == '\t' || (ch >= ' ' && ch != (Char)0x7F))
+                sb.Append(ch);
+        }
+
+        return sb.Return(true);
+    }
+
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析请求头。主体以共享切片截取，不释放入参</summary>

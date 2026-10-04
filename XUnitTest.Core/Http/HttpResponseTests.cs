@@ -49,6 +49,54 @@ public class HttpResponseTests
         Assert.EndsWith("\r\nBad Request", text);
     }
 
+    [Fact(DisplayName = "Build 状态描述含CRLF：不裂出伪造响应头")]
+    public void Build_StatusDescription_Crlf_NotInjected()
+    {
+        // 异常消息等来源可能夹带 CR/LF：直接写进状态行会让接收方解析出额外头部（响应拆分）
+        var resp = new HttpResponse
+        {
+            StatusCode = HttpStatusCode.InternalServerError,
+            StatusDescription = "boom\r\nX-Injected: yes",
+        };
+
+        var text = resp.Build().ToStr();
+        var headEnd = text.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+        var head = text[..headEnd];
+        var firstLine = head[..head.IndexOf("\r\n", StringComparison.Ordinal)];
+
+        // 状态行只剩一行，CR/LF 被压成空格；注入的头部只出现在**体**里（体不是头部，不构成响应拆分）
+        Assert.StartsWith("HTTP/1.1 500 boom", firstLine);
+        Assert.Contains("X-Injected: yes", firstLine);
+        Assert.DoesNotContain("\r\nX-Injected", head);
+    }
+
+    [Fact(DisplayName = "Build 头部值含CRLF：不裂出伪造响应头（字段名同样清洗）")]
+    public void Build_HeaderValue_Crlf_NotInjected()
+    {
+        var resp = new HttpResponse();
+        resp.Headers["X-Test"] = "a\r\nX-Evil: 1\r\nContent-Length: 0";
+        resp.Headers["X-Na\r\nme"] = "v";
+
+        var text = resp.Build().ToStr();
+        var headEnd = text.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+        var head = text[..headEnd];
+
+        Assert.DoesNotContain("\r\nX-Evil", head);
+        Assert.DoesNotContain("X-Na\r\n", head);
+        Assert.Contains("X-Test: a  X-Evil: 1  Content-Length: 0\r\n", head);
+    }
+
+    [Fact(DisplayName = "Build 头部无控制字符：原样输出（清洗不改动正常头部）")]
+    public void Build_HeaderWithoutControlChars_Unchanged()
+    {
+        var resp = new HttpResponse();
+        resp.Headers["X-Test"] = "正常值 with SP and\tTAB";
+
+        var text = resp.Build().ToStr();
+
+        Assert.Contains("X-Test: 正常值 with SP and\tTAB\r\n", text);
+    }
+
     [Fact]
     public void Build_Response_SetsContentLengthZeroWhenNoBody()
     {

@@ -80,7 +80,8 @@ public class HttpResponse : HttpBase
     {
         // 构建头部
         var sb = Pool.StringBuilder.Get();
-        sb.AppendFormat("HTTP/{2} {0} {1}\r\n", (Int32)StatusCode, StatusDescription ?? StatusCode.ToString(), Version);
+        // 状态描述可能来自异常消息（含用户输入），必须清洗 CR/LF 等控制字符，否则一行会裂成伪造的响应头
+        sb.AppendFormat("HTTP/{2} {0} {1}\r\n", (Int32)StatusCode, SanitizeHeaderText(StatusDescription ?? StatusCode.ToString()), Version);
 
         //// cors
         //sb.AppendFormat("Access-Control-Allow-Origin:{0}\r\n", "*");
@@ -101,7 +102,8 @@ public class HttpResponse : HttpBase
 
         foreach (var item in Headers)
         {
-            sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
+            // 字段名与字段值同样清洗：任一处夹带 CR/LF 都会裂出伪造的头部（响应拆分）
+            sb.AppendFormat("{0}: {1}\r\n", SanitizeHeaderText(item.Key), SanitizeHeaderText(item.Value));
         }
 
         sb.Append("\r\n");
