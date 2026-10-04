@@ -790,9 +790,17 @@ public class OwnerPacketTests
     {
         var owner = LeakOne();
 
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
+        // 对象回收与析构执行分属不同线程且时机不确定（满载时可能滞后数百毫秒），
+        // 故在有限时间内重试 GC + 等待析构，仍有引用则判定析构未生效
+        var end = Environment.TickCount64 + 5_000;
+        while ((Int32)owner.GetValue("_refCount")! != 0 && Environment.TickCount64 < end)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            Thread.Sleep(20);
+        }
 
         // 析构已释放漏释放句柄的引用
         Assert.Equal(0, (Int32)owner.GetValue("_refCount")!);
