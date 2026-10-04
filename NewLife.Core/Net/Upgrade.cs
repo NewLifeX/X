@@ -42,6 +42,9 @@ public class Upgrade
 
     /// <summary>更新源文件</summary>
     public String? SourceFile { get; set; }
+
+    /// <summary>下载超时时间（毫秒）。默认30000，超时按失败处理</summary>
+    public Int32 DownloadTimeout { get; set; } = 30_000;
     #endregion
 
     #region 构造
@@ -147,7 +150,26 @@ public class Upgrade
 
         var file = !link.FullName.IsNullOrEmpty() ? UpdatePath.CombinePath(link.FullName).GetBasePath() : Path.GetTempFileName();
 
-        Task.Factory.StartNew(() => DownloadAsync(link.Url, file, link.Hash, default), TaskCreationOptions.LongRunning).Unwrap().Wait(30_000);
+        WaitDownload(ct => DownloadAsync(link.Url, file, link.Hash, ct), link.Url);
+    }
+
+    /// <summary>等待下载任务，超时按失败处理（取消后台任务并抛超时）</summary>
+    private void WaitDownload(Func<CancellationToken, Task> download, String url)
+    {
+        var timeout = DownloadTimeout > 0 ? DownloadTimeout : 30_000;
+
+        using var cts = new CancellationTokenSource();
+        var task = Task.Factory.StartNew(() => download(cts.Token), TaskCreationOptions.LongRunning).Unwrap();
+
+        if (!task.Wait(timeout))
+        {
+            // 超时按失败处理：取消后台下载并抛超时，避免未完成的文件被当成下载成功（日志误报“下载完成”）
+            cts.Cancel();
+            // 后台任务将因取消而异常结束，挂观察器避免未观测任务异常
+            _ = task.ContinueWith(t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
+
+            throw new TimeoutException($"Download timeout [{timeout}ms]: {url}");
+        }
     }
 
     /// <summary>开始更新</summary>
@@ -167,7 +189,7 @@ public class Upgrade
             var sw = Stopwatch.StartNew();
 
             var web = CreateClient();
-            Task.Factory.StartNew(() => web.DownloadFileAsync(url, file, default), TaskCreationOptions.LongRunning).Unwrap().Wait(30_000);
+            WaitDownload(ct => web.DownloadFileAsync(url, file, ct), url);
 
             sw.Stop();
             WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);

@@ -122,6 +122,67 @@ public class UpgradeTests
     /// <summary>构造含指定资源包链接的目录页 HTML</summary>
     private static String PackageHtml(String fileName) => $"<table><tr><td>2026-01-01 00:00:00</td><td>1K</td><td><a href=\"{fileName}\">{fileName}</a></td><td>-</td></tr></table>";
 
+    /// <summary>启动一个接受连接但不应答的本地服务，供下载超时用例使用</summary>
+    private static TcpListener StartHangServer(out Int32 port)
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                TcpClient client;
+                try
+                {
+                    client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    break;
+                }
+
+                _ = Task.Run(async () =>
+                {
+                    using (client)
+                    using (var ns = client.GetStream())
+                    {
+                        try
+                        {
+                            // 读走请求但不应答，保持连接直到用例结束
+                            await ns.ReadAsync(new Byte[1024], 0, 1024).ConfigureAwait(false);
+                            await Task.Delay(5_000).ConfigureAwait(false);
+                        }
+                        catch { }
+                    }
+                });
+            }
+        });
+
+        return listener;
+    }
+
+    [Fact(DisplayName = "下载超时_按失败处理并抛超时")]
+    public void Download_Timeout_Throws()
+    {
+        using var listener = StartHangServer(out var port);
+
+        var ug = new Upgrade
+        {
+            DownloadTimeout = 500,
+            UpdatePath = Path.GetTempPath().CombinePath("upgrade_timeout_" + Guid.NewGuid().ToString("N")),
+            Log = XTrace.Log,
+        };
+
+        var url = $"http://127.0.0.1:{port}/App_v9.zip";
+        var ex = Assert.Throws<TimeoutException>(() => ug.Download(url, "App_v9.zip"));
+        Assert.Contains("timeout", ex.Message, StringComparison.OrdinalIgnoreCase);
+
+        // 超时后不得把未完成的文件当成下载结果（旧实现继续执行并回写 SourceFile）
+        Assert.Null(ug.SourceFile);
+    }
+
     [Fact(DisplayName = "检查更新：首个地址无较新版本时继续检查后续镜像")]
     public void Check_FallsThroughToNextServer()
     {
