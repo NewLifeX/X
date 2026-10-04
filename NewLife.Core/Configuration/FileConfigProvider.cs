@@ -192,7 +192,7 @@ public abstract class FileConfigProvider : ConfigProvider
         {
             // File.Replace 仅 Windows 支持，Linux/macOS 抛 PlatformNotSupportedException，改用 Move 覆盖
             if (Runtime.Windows)
-                File.Replace(tmp, fileName, null, true);
+                ReplaceFile(tmp, fileName);
             else
 #if NET5_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
                 File.Move(tmp, fileName, true);
@@ -205,6 +205,29 @@ public abstract class FileConfigProvider : ConfigProvider
         }
         else
             File.Move(tmp, fileName);
+    }
+
+    /// <summary>原子替换目标文件</summary>
+    /// <remarks>
+    /// 杀毒软件、搜索索引器等外部程序会短暂持有目标文件句柄，此时 ReplaceFile 会以“无法删除要被替换的文件”失败。
+    /// 这类占用是瞬时的，做有限重试即可成功；重试仍失败则向上抛出，保持原有失败语义。
+    /// </remarks>
+    /// <param name="tmp">临时文件</param>
+    /// <param name="fileName">目标文件</param>
+    private static void ReplaceFile(String tmp, String fileName)
+    {
+        for (var i = 0; ; i++)
+        {
+            try
+            {
+                File.Replace(tmp, fileName, null, true);
+                return;
+            }
+            catch (IOException) when (i < 3)
+            {
+                Thread.Sleep(20 * (i + 1));
+            }
+        }
     }
 
     /// <summary>获取字符串形式</summary>
