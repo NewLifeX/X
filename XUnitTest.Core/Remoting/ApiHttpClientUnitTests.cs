@@ -913,6 +913,45 @@ public class ApiHttpClientUnitTests
         }
     }
 
+    /// <summary>可控顺序的失败客户端：service1 的异常要等 service2 的异常冒泡之后才放行</summary>
+    private class OrderedFailClient : ApiHttpClient
+    {
+        public readonly SemaphoreSlim FirstEntered = new(0);
+        public readonly SemaphoreSlim ReleaseFirst = new(0);
+
+        public OrderedFailClient(String urls) : base(urls) => LoadBalanceMode = LoadBalanceMode.RoundRobin;
+
+        protected override async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, ServiceEndpoint service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
+        {
+            if (service.Name == "service1")
+            {
+                FirstEntered.Release();
+                await ReleaseFirst.WaitAsync().ConfigureAwait(false);
+            }
+
+            throw new InvalidOperationException("boom-" + service.Name);
+        }
+    }
+
+    [Fact(DisplayName = "并发请求_错误归因不串节点")]
+    public async Task ConcurrentRequests_ErrorSourceNotCrossed()
+    {
+        var client = new OrderedFailClient("http://127.0.0.1:34567,http://127.0.0.1:34568");
+
+        // 第一个请求先选中 service1 并挂起
+        var t1 = Task.Run(() => client.InvokeAsync<String>("api/a", null));
+        await client.FirstEntered.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // 第二个请求此时选中 service2 并立即以异常结束，改写共享状态的机会点
+        var ex2 = await Assert.ThrowsAsync<InvalidOperationException>(() => client.InvokeAsync<String>("api/b", null));
+        Assert.Contains("34568", ex2.Source);
+
+        // 放行第一个请求：其归因必须仍指向 service1（旧实现读共享字段，会指向后来的 service2）
+        client.ReleaseFirst.Release();
+        var ex1 = await Assert.ThrowsAsync<InvalidOperationException>(() => t1);
+        Assert.Contains("34567", ex1.Source);
+    }
+
     [Fact(DisplayName = "空服务列表_抛带消息异常而不是静默成功")]
     public async Task EmptyServices_ThrowsWithMessage()
     {

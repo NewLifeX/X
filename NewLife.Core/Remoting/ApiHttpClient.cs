@@ -350,7 +350,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             var request = BuildRequest(method, action, args, returnType);
             onRequest?.Invoke(request);
 
-            var filter = Filter;
             try
             {
                 var msg = await SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -371,11 +370,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
                 span?.AppendTag(ex.Message);
 
                 while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
-                ex.Source = _currentService?.Address + "/" + action;
-
-                var client = _currentService?.Client;
-                if (client != null && filter != null)
-                    await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
 
                 // 网络异常时，自动切换到其它节点
                 if (ex is HttpRequestException or TaskCanceledException && i + 1 < svrs.Count) continue;
@@ -437,7 +431,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             // 建立请求
             var request = BuildRequest(HttpMethod.Get, requestUri, null, null);
 
-            var filter = Filter;
             try
             {
                 using var rs = await SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -457,11 +450,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
                 span?.AppendTag(ex.Message);
 
                 while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
-                ex.Source = _currentService?.Address + "/" + action;
-
-                var client = _currentService?.Client;
-                if (client != null && filter != null)
-                    await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
 
                 // 网络异常时，自动切换到其它节点
                 if (ex is HttpRequestException or TaskCanceledException && i + 1 < svrs.Count) continue;
@@ -548,6 +536,15 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         catch (Exception ex)
         {
             error = ex;
+
+            // 用本次调用实际使用的服务归因（此处 service 为局部变量，并发请求之间天然互不影响）
+            ex.Source = service.Address + "/" + request.RequestUri;
+
+            // 过滤器拦截也放在这里：拿到的必然是本次调用实际使用的客户端
+            var filter = Filter;
+            var client = service.Client;
+            if (client != null && filter != null)
+                await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
 
             throw;
         }
