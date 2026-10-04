@@ -106,13 +106,27 @@ public class UdpDatagramTests
         client.Client.ReceiveBufferSize = 8 << 20;
         client.Client.SendBufferSize = 8 << 20;
 
+        var remote = new IPEndPoint(IPAddress.Loopback, server.Port);
         var payload = new Byte[size];
         Random.Shared.NextBytes(payload);
 
-        await client.SendAsync(payload, payload.Length, new IPEndPoint(IPAddress.Loopback, server.Port));
-        var result = await client.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        // UDP 不可靠：超大报文在 IP 层被分片，任一碎片丢失即整个数据报丢失，并行满载时回环也会丢包。
+        // 故采用“丢包重发 + 轮询”，断言口径不变（仍逐字节校验，损坏的报文同样会被断言拦下）
+        Byte[]? received = null;
+        var end = Environment.TickCount64 + 10_000;
+        while (received == null && Environment.TickCount64 < end)
+        {
+            await client.SendAsync(payload, payload.Length, remote);
 
-        Assert.Equal(size, result.Buffer.Length);
-        Assert.Equal(payload, result.Buffer);
+            try
+            {
+                received = (await client.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(2))).Buffer;
+            }
+            catch (TimeoutException) { }
+        }
+
+        Assert.NotNull(received);
+        Assert.Equal(size, received!.Length);
+        Assert.Equal(payload, received);
     }
 }
