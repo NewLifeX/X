@@ -70,6 +70,110 @@ public class HttpServerTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
     }
 
+    [Fact(DisplayName = "HTTP服务端_WS握手与首帧同段到达_首帧不丢")]
+    public async Task WebSocketUpgrade_FirstFrameInSameSegment_NotLost()
+    {
+        var handler = new WsCaptureHandler(1);
+        _server.Map("/ws-same", handler);
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // RFC 6455 §4.1 允许客户端发完握手请求就发帧，两者常落在同一个 TCP 段/同一轮接收里。
+        // 升级后同轮剩余字节此前被直接丢弃，首帧静默消失（"连上了但第一条消息没到"）
+        var head = BuildHandshake("/ws-same");
+        var frame = BuildMaskedTextFrame("hello");
+        await ns.WriteAsync(head.Concat(frame).ToArray());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("101"));
+        Assert.Contains("101 SwitchingProtocols", resp);
+
+        await handler.Done.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(new[] { "hello" }, handler.Messages);
+    }
+
+    [Fact(DisplayName = "HTTP服务端_WS握手与两帧同段到达_两帧按序交付")]
+    public async Task WebSocketUpgrade_TwoFramesInSameSegment_BothDelivered()
+    {
+        var handler = new WsCaptureHandler(2);
+        _server.Map("/ws-two", handler);
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var data = new List<Byte>();
+        data.AddRange(BuildHandshake("/ws-two"));
+        data.AddRange(BuildMaskedTextFrame("one"));
+        data.AddRange(BuildMaskedTextFrame("two"));
+        await ns.WriteAsync(data.ToArray());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("101"));
+        Assert.Contains("101 SwitchingProtocols", resp);
+
+        // 同段多帧必须全部交付且保序（管道内完成粘包拆包）
+        await handler.Done.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(new[] { "one", "two" }, handler.Messages);
+    }
+
+    /// <summary>构造 WebSocket 握手请求（客户端方向）</summary>
+    private static Byte[] BuildHandshake(String path)
+    {
+        var key = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        var head = $"GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n" +
+                   $"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n";
+
+        return Encoding.ASCII.GetBytes(head);
+    }
+
+    /// <summary>构造带掩码的文本帧（客户端方向必须掩码，RFC 6455 §5.1）</summary>
+    private static Byte[] BuildMaskedTextFrame(String text)
+    {
+        var payload = Encoding.UTF8.GetBytes(text);
+        var frame = new Byte[payload.Length + 6];
+        frame[0] = 0x81;                          // FIN=1，opcode=1（文本）
+        frame[1] = (Byte)(0x80 | payload.Length); // MASK=1，短长度
+        var key = new Byte[] { 1, 2, 3, 4 };
+        key.CopyTo(frame, 2);
+        for (var i = 0; i < payload.Length; i++) frame[6 + i] = (Byte)(payload[i] ^ key[i % 4]);
+
+        return frame;
+    }
+
+    /// <summary>捕获 WebSocket 文本帧的处理器：收满预期条数后置位 <see cref="Done"/></summary>
+    private sealed class WsCaptureHandler : IHttpHandler
+    {
+        private readonly Int32 _expect;
+
+        public WsCaptureHandler(Int32 expect) => _expect = expect;
+
+        /// <summary>收到的文本帧（按到达顺序）</summary>
+        public List<String> Messages { get; } = [];
+
+        /// <summary>收满预期条数时完成</summary>
+        public TaskCompletionSource<Boolean> Done { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void ProcessRequest(IHttpContext context)
+        {
+            var ws = context.WebSocket;
+            if (ws == null) return;
+
+            ws.MessageHandler = (s, m) =>
+            {
+                if (m.Type != NewLife.Messaging.WebSocketMessageType.Text) return;
+
+                lock (Messages)
+                {
+                    Messages.Add(m.Payload?.ToStr() ?? "");
+                    if (Messages.Count >= _expect) Done.TrySetResult(true);
+                }
+            };
+        }
+    }
+
     [Fact(DisplayName = "HTTP服务端_主体分两轮到达且其后跟随其它字节_按Content-Length截断")]
     public async Task BodyTruncated_ByContentLength()
     {

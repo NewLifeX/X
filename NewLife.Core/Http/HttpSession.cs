@@ -293,8 +293,16 @@ public class HttpSession : INetHandler, IDisposable
 
                     if (!done) break;
 
+                    if (_session.Disposed) break;
+
                     // 终止块之后可能还有流水线请求：以剩余字节继续循环
-                    if (_session.Disposed || _websocket != null) break;
+                    // 已升级为 WebSocket 时，剩余字节是 WS 帧，交给 WS 解析（同非分块路径）
+                    if (_websocket != null)
+                    {
+                        if (chunkLeft != null && chunkLeft.Total > 0) _websocket.Process(chunkLeft);
+
+                        break;
+                    }
                     if (chunkLeft == null || chunkLeft.Total == 0) break;
 
                     left.TryDispose();
@@ -326,9 +334,32 @@ public class HttpSession : INetHandler, IDisposable
 
                 Deliver(request, data);
 
-                // 连接已关闭（拒绝、Connection: close、流式发送失败），或已升级为 WebSocket（剩余字节是帧，等下一轮处理）：
-                // 剩余字节不再按请求解析
-                if (_session.Disposed || _websocket != null) break;
+                // 连接已关闭（拒绝、Connection: close、流式发送失败）：剩余字节不再处理
+                if (_session.Disposed) break;
+
+                // 已升级为 WebSocket：头部之后的字节是 WS 帧（RFC 6455 §4.1 允许客户端发完握手请求就发帧，
+                // 两者常落在同一个 TCP 段/同一轮接收里），必须交给 WS 解析，不能丢弃——
+                // 丢弃会让首帧静默消失（表现为"连上了但第一条消息没到"）。
+                // 与客户端侧对称：WebSocketClient.HandshakeAsync 把 101 响应之后的字节投递进管道
+                if (_websocket != null)
+                {
+                    var extra = pk.Total - request.ConsumedLength;
+                    if (extra > 0)
+                    {
+                        // 切出独立句柄交给 WS（其内部再切片进入管道，所有权独立），本方法只负责自己这份
+                        var rest = pk.Slice(request.ConsumedLength, -1);
+                        try
+                        {
+                            _websocket.Process(rest);
+                        }
+                        finally
+                        {
+                            rest.TryDispose();
+                        }
+                    }
+
+                    break;
+                }
 
                 // 剩余字节属于后续流水线请求，切入共享句柄继续解析；本方法切出的句柄需自行释放，
                 // 入参句柄由框架在轮末按引用计数裁决，不得在此释放
