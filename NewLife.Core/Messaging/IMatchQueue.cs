@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using System.Collections.Concurrent;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Threading;
@@ -13,8 +14,8 @@ public interface IMatchQueue
     /// <param name="request">请求消息</param>
     /// <param name="msTimeout">超时取消时间</param>
     /// <param name="source">任务源。TaskCompletionSource 或 PooledValueTaskSource</param>
-    /// <remarks>超时取消由队列内部的定时器驱动，而定时器对回调目标只持弱引用：
-    /// 调用方在等待结束前必须保持对队列实例的引用，否则队列被回收后该请求的超时取消不再发生，等待方将一直悬挂</remarks>
+    /// <remarks>超时取消由队列内部的定时器驱动。队列在有请求未结束期间被该定时器持有，
+    /// 所以调用方即使不再引用队列实例，等待方仍会在超时后收到取消，不会永久悬挂</remarks>
     void Add(Object? owner, Object request, Int32 msTimeout, Object source);
 
     /// <summary>检查请求队列是否有匹配该响应的请求</summary>
@@ -55,6 +56,11 @@ public class DefaultMatchQueue : IMatchQueue
     private readonly ItemWrap[] Items;
     private Int32 _Count;
     private TimerX? _Timer;
+
+    // 定时器运行期间持有队列实例。TimerX 对回调目标只持弱引用，定时器会随目标被回收而静默摘除，
+    // 队列一旦被回收，超时检查就再也不会发生，等待方将永久悬挂。故在定时器运行期间（= 尚有请求未结束）
+    // 用静态集合持有队列，队列清空停表时立即移除，不留常驻引用
+    private static readonly ConcurrentDictionary<DefaultMatchQueue, Boolean> _activeQueues = new();
 
     // 追加一个游标，减少每次从0开始扫描导致的热点
     private Int32 _cursor;
@@ -141,6 +147,8 @@ public class DefaultMatchQueue : IMatchQueue
             // 等锁期间请求可能已被匹配/清理完（计数归零），此时无需启动
             if (Volatile.Read(ref _Count) <= 0) return;
 
+            _activeQueues[this] = true;
+
             _Timer = new TimerX(Check, null, 1000, 1000, "Match") { Async = true };
         }
     }
@@ -156,6 +164,8 @@ public class DefaultMatchQueue : IMatchQueue
 
             _Timer?.Dispose();
             _Timer = null;
+
+            _activeQueues.TryRemove(this, out _);
         }
     }
 

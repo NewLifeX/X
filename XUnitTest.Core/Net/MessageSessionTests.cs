@@ -2,6 +2,7 @@ using System.Buffers;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -62,13 +63,38 @@ public class MessageSessionTests
 
         var task = source.ValueTask.AsTask();
 
-        // 超时取消由 TimerX 驱动，而 TimerX 对回调目标只持弱引用：目标一旦被 GC 回收，该项会被静默摘除，
-        // 到期永不再取消，本用例就会偶发地以 TimeoutException（而非 OperationCanceledException）失败。
-        // 因此必须让 queue 活到用例最后——GC.KeepAlive 同时把局部变量提升到异步状态机，await 期间不会被回收。
-        // 上限给足余量：定时器是约 1 秒周期的共享表，回调还要经线程池调度
+        // 超时取消由队列内部约 1 秒周期的检查定时器驱动，回调还要经线程池调度，故上限给足余量。
+        // 队列在有请求未结束期间被定时器持有，用例不必额外保活（见 MatchQueue_QueueNotReferenced_StillCancels）
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => WithTimeout(task, 60_000));
+    }
 
-        GC.KeepAlive(queue);
+    [Fact]
+    [DisplayName("匹配队列_入队后失去引用_超时仍取消等待方")]
+    public async Task MatchQueue_QueueNotReferenced_StillCancels()
+    {
+        // 入队后队列即不可达，等待期间持续强制 GC 让它必定被回收
+        var task = EnqueueWithoutRoot(300);
+
+        for (var i = 0; i < 40 && !task.IsCompleted; i++)
+        {
+            // 只用第0代回收：队列是刚分配的年轻对象，足以回收仅被弱引用持有的队列，又不必整轮阻塞回收
+            GC.Collect(0);
+            await Task.Delay(50);
+        }
+
+        // 队列被自身定时器持有，超时照常取消；若定时器随队列一起被回收，这里会一直等到上限才以 TimeoutException 失败
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => WithTimeout(task, 30_000));
+    }
+
+    /// <summary>入队后就不再引用队列，返回等待方任务</summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static Task<Message> EnqueueWithoutRoot(Int32 msTimeout)
+    {
+        var queue = new DefaultMatchQueue();
+        var source = PooledValueTaskSource<Message>.Rent();
+        queue.Add(null, new DefaultMessage { Sequence = 9 }, msTimeout, source);
+
+        return source.ValueTask.AsTask();
     }
 
     [Fact]
