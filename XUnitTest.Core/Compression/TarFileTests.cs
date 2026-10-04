@@ -1,4 +1,5 @@
-﻿using NewLife;
+﻿using System.Text;
+using NewLife;
 using NewLife.Compression;
 using NewLife.Log;
 using Xunit;
@@ -193,18 +194,25 @@ public class TarFileTests
         Assert.Contains(longFileName, extractArchiver.Entries.Select(e => e.FileName).ToList());
     }
 
-    [Fact(DisplayName = "测试超长文件名2", Skip = "未测试通过")]
+    [Fact(DisplayName = "测试超长文件名2")]
     public void TestLongFileName2()
     {
-        using var tar = new TarFile(_testDir.CombinePath("../test_gnu.tar"));
-        Assert.NotEmpty(tar.Entries);
+        // 手工构造 GNU 格式长文件名归档（GNU tar 产出形态），验证外部归档的读取兼容性
+        var gnuFileName = new String('g', 190) + ".txt";
+        var gnuContent = "这是一个有很长文件名的测试文件";
+        var gnuFile = _testDir.CombinePath("../test_gnu.tar");
+        WriteGnuLongNameArchive(gnuFile, gnuFileName, gnuContent);
 
-        var entry = tar.Entries.First();
-        Assert.Equal("这是一个有很长文件名的测试文件", entry.Open().ReadBytes(entry.FileSize).ToStr());
+        using (var tar = new TarFile(gnuFile))
+        {
+            Assert.Single(tar.Entries);
 
-        //using var tar2 = new TarFile(_testDir.CombinePath("../test_pax.tar"));
-        //Assert.NotEmpty(tar2.Entries);
+            var entry = tar.Entries.First();
+            Assert.Equal(gnuFileName, entry.FileName);
+            Assert.Equal(gnuContent, entry.Open().ReadBytes(entry.FileSize).ToStr());
+        }
 
+        // 我写我读：归档 190 字符长文件名后解包
         var longFileName = new String('a', 190) + ".txt";
         var longFilePath = Path.Combine(_testDir, longFileName);
 
@@ -222,6 +230,71 @@ public class TarFileTests
 
         Assert.True(File.Exists(Path.Combine(_outputDir, longFileName)));
         Assert.Contains(longFileName, extractArchiver.Entries.Select(e => e.FileName).ToList());
+    }
+
+    /// <summary>手工构造 GNU 格式长文件名归档：长名元数据条目（类型 'L'）后跟真实文件头与内容。</summary>
+    /// <param name="path">归档文件路径</param>
+    /// <param name="fileName">超过 100 字节的长文件名</param>
+    /// <param name="content">文件内容</param>
+    private static void WriteGnuLongNameArchive(String path, String fileName, String content)
+    {
+        var name = Encoding.ASCII.GetBytes(fileName);
+        var data = Encoding.UTF8.GetBytes(content);
+
+        using var fs = File.Create(path);
+
+        // 长名元数据条目，名称固定为 ././@LongLink，数据区存放真实文件名
+        WriteGnuHeader(fs, "././@LongLink", (Byte)'L', name.Length);
+        fs.Write(name, 0, name.Length);
+        WriteGnuPadding(fs, name.Length);
+
+        // 真实文件头的名称被截断，读取方以元数据条目的长名为准
+        WriteGnuHeader(fs, fileName[..100], (Byte)'0', data.Length);
+        fs.Write(data, 0, data.Length);
+        WriteGnuPadding(fs, data.Length);
+
+        // 两个空块作为归档结束标志
+        fs.Write(new Byte[1024], 0, 1024);
+    }
+
+    private static void WriteGnuPadding(Stream stream, Int32 length)
+    {
+        var padding = (512 - length % 512) % 512;
+        if (padding > 0) stream.Write(new Byte[padding], 0, padding);
+    }
+
+    private static void WriteGnuHeader(Stream stream, String name, Byte type, Int32 size)
+    {
+        var header = new Byte[512];
+        Encoding.ASCII.GetBytes(name, 0, name.Length, header, 0);
+        Encoding.ASCII.GetBytes("0000644\0", 0, 8, header, 100);
+        Encoding.ASCII.GetBytes("0000000\0", 0, 8, header, 108);
+        Encoding.ASCII.GetBytes("0000000\0", 0, 8, header, 116);
+        WriteGnuOctal(header, 124, 12, size);
+        WriteGnuOctal(header, 136, 12, 0);
+        Array.Fill(header, (Byte)' ', 148, 8); // 校验和区域先填空格再累加
+        header[156] = type;
+        Encoding.ASCII.GetBytes("ustar\0", 0, 6, header, 257);
+        Encoding.ASCII.GetBytes("00", 0, 2, header, 263);
+
+        // 校验和：按空格参与累加，写入 6 位八进制 + NUL + 空格
+        Int64 sum = 0;
+        foreach (var item in header) sum += item;
+        WriteGnuOctal(header, 148, 7, sum);
+        header[155] = (Byte)' ';
+
+        stream.Write(header, 0, 512);
+    }
+
+    private static void WriteGnuOctal(Byte[] header, Int32 offset, Int32 length, Int64 value)
+    {
+        // 八进制数字右对齐，前置零填充，末字节留 NUL
+        for (var i = offset + length - 2; i >= offset; i--)
+        {
+            header[i] = (Byte)('0' + (value & 0x07));
+            value >>= 3;
+        }
+        header[offset + length - 1] = 0;
     }
 
     [Fact]
