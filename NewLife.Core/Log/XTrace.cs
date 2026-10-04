@@ -31,7 +31,7 @@ public static class XTrace
     private static ILog _Log = Logger.Null;
 
     /// <summary>日志提供者，默认使用文本文件日志</summary>
-    public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; } }
+    public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; _initFailed = false; } }
 
     /// <summary>输出日志</summary>
     /// <param name="msg">信息</param>
@@ -151,6 +151,7 @@ public static class XTrace
 
     private static readonly Object _lock = new();
     private static Int32 _initing = 0;
+    private static Boolean _initFailed;
 
     /// <summary>
     /// 2012.11.05 修正初次调用的时候，由于同步BUG，导致Log为空的问题。
@@ -168,6 +169,7 @@ public static class XTrace
          */
 
         if (_Log != null && _Log != Logger.Null) return true;
+        if (_initFailed) return false;
         if (_initing > 0 && _initing == Thread.CurrentThread.ManagedThreadId) return false;
 
         lock (_lock)
@@ -176,20 +178,33 @@ public static class XTrace
 
             _initing = Thread.CurrentThread.ManagedThreadId;
 
-            var set = Setting.Current;
-            if (LogPath.IsNullOrEmpty() || LogPath == "Log") LogPath = set.LogPath;
-            if (set.LogFileFormat.Contains("{1}"))
-                _Log = new LevelLog(LogPath, set.LogFileFormat);
-            else
-                _Log = TextFileLog.Create(LogPath);
-
-            if (!set.NetworkLog.IsNullOrEmpty())
+            try
             {
-                var nlog = new NetworkLog(set.NetworkLog);
-                _Log = new CompositeLog(_Log, nlog);
-            }
+                var set = Setting.Current;
+                if (LogPath.IsNullOrEmpty() || LogPath == "Log") LogPath = set.LogPath;
+                if (set.LogFileFormat.Contains("{1}"))
+                    _Log = new LevelLog(LogPath, set.LogFileFormat);
+                else
+                    _Log = TextFileLog.Create(LogPath);
 
-            _initing = 0;
+                if (!set.NetworkLog.IsNullOrEmpty())
+                {
+                    var nlog = new NetworkLog(set.NetworkLog);
+                    _Log = new CompositeLog(_Log, nlog);
+                }
+            }
+            catch
+            {
+                // 日志初始化会触发配置模块。配置异常时不能把异常抛给写日志的调用方：
+                // 调用方可能是线程池任务或终结器，异常一旦外抛会中断业务流程甚至杀死进程。
+                // 退化为静默日志且不再重试，与日志系统静态构造中的处理保持一致
+                _Log = Logger.Null;
+                _initFailed = true;
+            }
+            finally
+            {
+                _initing = 0;
+            }
         }
 
         //WriteVersion();
