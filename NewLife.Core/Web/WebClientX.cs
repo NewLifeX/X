@@ -85,6 +85,7 @@ public class WebClientX : DisposeBase
     }
 
     /// <summary>发送请求，获取响应</summary>
+    /// <remarks>返回的 <see cref="HttpContent"/> 所有权移交调用方，由调用方负责释放（内含连接归还语义）</remarks>
     /// <param name="address"></param>
     /// <param name="content"></param>
     /// <param name="cancellationToken"></param>
@@ -179,7 +180,7 @@ public class WebClientX : DisposeBase
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
+        using var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
         return await rs.ReadAsStringAsync().ConfigureAwait(false);
     }
 
@@ -191,7 +192,7 @@ public class WebClientX : DisposeBase
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
+        using var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
 
         // 使用系统临时目录生成随机临时文件名，跨平台可用
         var tempFile = Path.GetTempFileName();

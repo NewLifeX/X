@@ -256,4 +256,122 @@ public class HttpHelperTests
         Assert.DoesNotContain("Content-Length", text);
         Assert.Contains("Transfer-Encoding: chunked", text);
     }
+
+    #region 资源释放
+    /// <summary>带释放标记的响应</summary>
+    class TrackingResponse : HttpResponseMessage
+    {
+        public Boolean Disposed { get; private set; }
+
+        public TrackingResponse(HttpStatusCode code) : base(code) { }
+
+        protected override void Dispose(Boolean disposing)
+        {
+            Disposed = true;
+            base.Dispose(disposing);
+        }
+    }
+
+    /// <summary>带释放标记的流</summary>
+    class TrackingStream : MemoryStream
+    {
+        public Boolean Disposed { get; private set; }
+
+        protected override void Dispose(Boolean disposing)
+        {
+            Disposed = true;
+            base.Dispose(disposing);
+        }
+    }
+
+    /// <summary>把内部流直接作为读流的响应内容</summary>
+    class TrackingStreamContent : HttpContent
+    {
+        private readonly Stream _stream;
+
+        public TrackingStreamContent(Stream stream) => _stream = stream;
+
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext context) => _stream.CopyToAsync(stream);
+
+        protected override Boolean TryComputeLength(out Int64 length)
+        {
+            length = _stream.Length;
+            return true;
+        }
+
+        protected override Task<Stream> CreateContentReadStreamAsync() => Task.FromResult(_stream);
+    }
+
+    /// <summary>按工厂返回响应的处理器</summary>
+    class ResponseHandler : HttpMessageHandler
+    {
+        private readonly Func<HttpResponseMessage> _factory;
+
+        public ResponseHandler(Func<HttpResponseMessage> factory) => _factory = factory;
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(_factory());
+    }
+
+    [Fact(DisplayName = "HttpHelper_Post_响应被释放")]
+    public async Task PostAsync_DisposesResponse()
+    {
+        var response = new TrackingResponse(HttpStatusCode.OK) { Content = new StringContent("ok") };
+        var client = new HttpClient(new ResponseHandler(() => response));
+
+        var rs = await client.PostJsonAsync("http://x/y", new { a = 1 });
+
+        // 响应为本次调用独占，读取后立即释放（旧实现靠 GC，标记不会置位）
+        Assert.Equal("ok", rs);
+        Assert.True(response.Disposed);
+    }
+
+    [Fact(DisplayName = "HttpHelper_下载_响应流被释放")]
+    public async Task DownloadFile_DisposesResponseStream()
+    {
+        var stream = new TrackingStream();
+        stream.Write(Encoding.UTF8.GetBytes("hello"));
+        stream.Position = 0;
+
+        var content = new TrackingStreamContent(stream);
+        var client = new HttpClient(new ResponseHandler(() => new HttpResponseMessage(HttpStatusCode.OK) { Content = content }));
+
+        var file = Path.GetTempFileName();
+        try
+        {
+            await client.DownloadFileAsync("http://x/y", file);
+
+            // 下载完成即释放响应流，不等 GC
+            Assert.True(stream.Disposed);
+            Assert.Equal("hello", File.ReadAllText(file));
+        }
+        finally
+        {
+            if (File.Exists(file)) File.Delete(file);
+        }
+    }
+
+    [Fact(DisplayName = "HttpHelper_上传文件_文件句柄及时释放")]
+    public async Task UploadFile_ReleasesFileHandle()
+    {
+        var file = Path.GetTempFileName();
+        await File.WriteAllTextAsync(file, "hello");
+        try
+        {
+            var client = new HttpClient(new MyHandler());
+            var rs = await client.UploadFileAsync("http://x/up", file);
+            Assert.NotNull(rs);
+
+            // 上传完成后文件句柄必须已关闭：旧实现挂在未释放的 multipart 上等 GC，Windows 下持续占用文件
+            if (Runtime.Windows)
+            {
+                using var fs = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                Assert.True(fs.CanWrite);
+            }
+        }
+        finally
+        {
+            File.Delete(file);
+        }
+    }
+    #endregion
 }

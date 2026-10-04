@@ -88,8 +88,8 @@ public static class ApiHelper
 
         var returnType = typeof(TResult);
 
-        // 构建请求
-        var request = BuildRequest(method, action, args);
+        // 构建请求。请求对象为本次调用独占，发送完成后即可释放（请求释放会连带释放其内容）
+        using var request = BuildRequest(method, action, args);
 
         // 指定返回类型
         if (returnType == typeof(Byte[]) || returnType == typeof(IPacket))
@@ -109,10 +109,17 @@ public static class ApiHelper
             if (filter != null) await filter.OnRequest(client, request, null, cancellationToken).ConfigureAwait(false);
 
             var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                if (filter != null) await filter.OnResponse(client, response, request, cancellationToken).ConfigureAwait(false);
 
-            if (filter != null) await filter.OnResponse(client, response, request, cancellationToken).ConfigureAwait(false);
-
-            return await ProcessResponse<TResult>(response, null, dataName).ConfigureAwait(false);
+                return await ProcessResponse<TResult>(response, null, dataName).ConfigureAwait(false);
+            }
+            finally
+            {
+                // 调用方索取原始响应时所有权移交，不在此销毁；其余结果读取后立即释放，连接及时归还
+                if (typeof(TResult) != typeof(HttpResponseMessage)) response.Dispose();
+            }
         }
         catch (Exception ex)
         {

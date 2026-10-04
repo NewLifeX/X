@@ -57,4 +57,44 @@ public class WebClientTests
         var first = results[0];
         Assert.All(results, e => Assert.Same(first, e));
     }
+
+    #region 资源释放
+    /// <summary>带释放标记的内容</summary>
+    private class TrackingContent : StringContent
+    {
+        public Boolean Disposed { get; private set; }
+
+        public TrackingContent(String content) : base(content) { }
+
+        protected override void Dispose(Boolean disposing)
+        {
+            Disposed = true;
+            base.Dispose(disposing);
+        }
+    }
+
+    /// <summary>不发起真实请求，直接返回可控内容</summary>
+    private class TestWebClientX : WebClientX
+    {
+        public TrackingContent? Last;
+
+        public override Task<HttpContent> SendAsync(String address, HttpContent? content = null, CancellationToken cancellationToken = default)
+        {
+            Last = new TrackingContent("web-ok");
+            return Task.FromResult<HttpContent>(Last);
+        }
+    }
+
+    [Fact(DisplayName = "下载字符串_内容被释放")]
+    public async Task DownloadString_DisposesContent()
+    {
+        using var client = new TestWebClientX();
+
+        var rs = await client.DownloadStringAsync("http://x/y");
+
+        // SendAsync 返回的内容所有权在调用方，下载封装读取后必须释放
+        Assert.Equal("web-ok", rs);
+        Assert.True(client.Last!.Disposed);
+    }
+    #endregion
 }

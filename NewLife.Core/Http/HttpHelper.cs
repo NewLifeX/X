@@ -421,7 +421,8 @@ public static class HttpHelper
     /// <summary>内部统一 Post 发送逻辑，支持 Filter / Tracer</summary>
     private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
+        // 请求与响应均为本次调用独占：发送完成后即可释放，不再依赖 GC（请求释放会连带释放其内容）
+        using var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
         if (headers != null)
         {
             foreach (var item in headers)
@@ -446,7 +447,7 @@ public static class HttpHelper
         {
             if (filter != null) await filter.OnRequest(client, request, null, cancellationToken).ConfigureAwait(false);
 
-            var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (filter != null) await filter.OnResponse(client, response, request, cancellationToken).ConfigureAwait(false);
 
@@ -494,7 +495,7 @@ public static class HttpHelper
     {
         fileName = fileName.GetFullPath();
 
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 
         // 使用系统临时目录生成随机临时文件名，跨平台可用
         var tempFile = Path.GetTempFileName();
@@ -536,9 +537,9 @@ public static class HttpHelper
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
     {
 #if NET5_0_OR_GREATER
-        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
 #else
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 #endif
 
         await SaveFileAsync(rs, fileName, null, cancellationToken).ConfigureAwait(false);
@@ -576,9 +577,9 @@ public static class HttpHelper
         }
 
 #if NET5_0_OR_GREATER
-        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
 #else
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 #endif
 
         await SaveFileAsync(rs, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
@@ -663,7 +664,8 @@ public static class HttpHelper
     /// <param name="cancellationToken">取消通知</param>
     public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object? data = null, CancellationToken cancellationToken = default)
     {
-        var content = new MultipartFormDataContent();
+        // 内容容器由本方法释放（连带释放所持有的文件流），避免上传完成后文件句柄残留到 GC
+        using var content = new MultipartFormDataContent();
         if (!fileName.IsNullOrEmpty())
             content.Add(new StreamContent(fileName.AsFile().OpenRead()), "file", Path.GetFileName(fileName));
 

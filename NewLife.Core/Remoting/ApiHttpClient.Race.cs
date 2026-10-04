@@ -97,22 +97,30 @@ public partial class ApiHttpClient
                 using var request = BuildRequest(HttpMethod.Get, requestUri, null, null);
 
                 response = await SendOnServiceAsync(request, selectedService, client, false, cancellationToken).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
             }
 
             _currentService = selectedService;
             Source = selectedService.Name;
 
+            try
+            {
+                // HEAD 模式重新发起的 GET 需要确认状态码（GET 模式选取时已按成功状态过滤）
+                if (useHeadCheck) response.EnsureSuccessStatusCode();
+
 #if NET5_0_OR_GREATER
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 #else
-            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
 
-            await HttpHelper.SaveFileAsync(stream, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
-            Current = selectedService;
-
-            response.Dispose();
+                await HttpHelper.SaveFileAsync(stream, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
+                Current = selectedService;
+            }
+            finally
+            {
+                // 保存或校验失败也必须释放响应，避免连接池资源泄漏
+                response.Dispose();
+            }
         }
         catch (Exception ex)
         {

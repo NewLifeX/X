@@ -862,4 +862,77 @@ public class ApiHttpClientUnitTests
         resolver.Dispose();
     }
     #endregion
+
+    #region ApiHelper 扩展资源释放
+    [Fact(DisplayName = "HttpClient扩展_普通结果释放响应_原始响应所有权移交")]
+    public async Task ApiHelperInvoke_ResponseOwnership()
+    {
+        var normal = new TrackingContent("{\"code\":0,\"data\":\"ok\"}");
+        var raw = new TrackingContent("raw-ok");
+        var index = 0;
+        var handler = new MockHttpMessageHandler
+        {
+            Handler = _ => index++ == 0
+                ? new HttpResponseMessage(HttpStatusCode.OK) { Content = normal }
+                : new HttpResponseMessage(HttpStatusCode.OK) { Content = raw }
+        };
+        var client = new HttpClient(handler) { BaseAddress = new Uri("http://127.0.0.1:8080") };
+
+        // 普通结果：读取后立即释放响应
+        var rs = await client.InvokeAsync<String>(HttpMethod.Get, "api/info");
+        Assert.Equal("ok", rs);
+        Assert.True(normal.Disposed);
+
+        // 原始响应：所有权移交，不销毁
+        var msg = await client.InvokeAsync<HttpResponseMessage>(HttpMethod.Get, "api/raw");
+        Assert.NotNull(msg);
+        Assert.Equal("raw-ok", await msg.Content.ReadAsStringAsync());
+        Assert.False(raw.Disposed);
+    }
+    #endregion
+
+    #region 竞速下载资源释放
+    /// <summary>竞速下载专用：返回带哈希头的响应，内容与预期哈希不符以触发保存失败</summary>
+    private class RaceDownloadClient : ApiHttpClient
+    {
+        public ConcurrentDictionary<String, TrackingContent> Contents { get; } = new();
+
+        public RaceDownloadClient(String urls) : base(urls) => LoadBalanceMode = LoadBalanceMode.Race;
+
+        protected override async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, ServiceEndpoint service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
+        {
+            // 让第一个节点先返回，稳定选中它作为下载节点
+            if (service.Name != "service1") await Task.Delay(200, cancellationToken);
+
+            var content = new TrackingContent("payload");
+            Contents[service.Name] = content;
+
+            var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+            response.Content.Headers.TryAddWithoutValidation("Content-SHA256", "sha256$" + new String('0', 64));
+            return response;
+        }
+    }
+
+    [Fact(DisplayName = "竞速下载_保存失败_响应仍被释放")]
+    public async Task RaceDownload_SaveFailure_DisposesResponse()
+    {
+        var expectedHash = "sha256$" + new String('0', 64);
+        var client = new RaceDownloadClient("http://127.0.0.1:34567,http://127.0.0.1:34568");
+
+        var file = Path.GetTempFileName();
+        File.Delete(file);
+        try
+        {
+            await Assert.ThrowsAsync<IOException>(() => client.DownloadFileRaceAsync("file.bin", file, expectedHash));
+
+            // 内容哈希必然不符，保存走异常路径：选中响应必须已释放（旧实现 Dispose 在保存之后，失败即跳过）
+            Assert.True(client.Contents["service1"].Disposed);
+        }
+        finally
+        {
+            if (File.Exists(file)) File.Delete(file);
+            if (File.Exists(file + ".tmp")) File.Delete(file + ".tmp");
+        }
+    }
+    #endregion
 }
