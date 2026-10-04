@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using NewLife.Data;
 using NewLife.Security;
@@ -53,8 +53,18 @@ public class JwtBuilder : IExtend
     /// <summary>标识</summary>
     public String? Id { get; set; }
 
-    /// <summary>算法。默认HS256</summary>
-    public String Algorithm { get; set; } = "HS256";
+    /// <summary>算法。默认HS256。显式设置后作为验证时的期望算法，令牌声明的算法不一致将验证失败（防算法混淆）</summary>
+    public String Algorithm
+    {
+        get => _algorithm;
+        set { _algorithm = value; _algorithmByUser = true; }
+    }
+
+    private String _algorithm = "HS256";
+    private Boolean _algorithmByUser;
+
+    /// <summary>令牌声明的算法。由 <see cref="Parse"/> 从令牌头部解析得到，只读，便于调用方核对</summary>
+    public String? TokenAlgorithm { get; private set; }
 
     /// <summary>令牌类型。默认JWT</summary>
     public String? Type { get; set; }
@@ -142,6 +152,7 @@ public class JwtBuilder : IExtend
     }
 
     /// <summary>分析令牌</summary>
+    /// <remarks>解析头部与载荷；令牌声明的算法写入 <see cref="TokenAlgorithm"/>，未显式指定 <see cref="Algorithm"/> 时同步采用该算法</remarks>
     /// <param name="token"></param>
     /// <returns></returns>
     public String[]? Parse(String token)
@@ -149,11 +160,19 @@ public class JwtBuilder : IExtend
         var ts = token.Split('.');
         if (ts.Length != 3) return null;
 
+        TokenAlgorithm = null;
+
         // 头部
         var header = ts[0].ToBase64().ToStr().DecodeJson();
         if (header == null) return null;
 
-        if (header.TryGetValue("alg", out var alg) && alg != null) Algorithm = alg + "";
+        if (header.TryGetValue("alg", out var alg) && alg != null)
+        {
+            TokenAlgorithm = alg + "";
+            // 未显式指定算法时采用令牌声明的算法（自动识别，向后兼容）；
+            // 显式指定则保持不变，TryDecode 校验两者一致，防止令牌降级算法绕过验证
+            if (!_algorithmByUser) _algorithm = alg + "";
+        }
         if (header.TryGetValue("typ", out var typ)) Type = typ + "";
 
         // 主体
@@ -205,6 +224,21 @@ public class JwtBuilder : IExtend
             return false;
         }
 
+        // 算法钉死：显式指定算法后，令牌声明的算法必须一致，防止攻击者用降级算法绕过验证
+        var tokenAlg = TokenAlgorithm ?? Algorithm;
+        if (_algorithmByUser && !tokenAlg.EqualIgnoreCase(Algorithm))
+        {
+            message = $"算法不匹配：令牌算法[{tokenAlg}]，期望算法[{Algorithm}]";
+            return false;
+        }
+
+        // 防算法混淆：对称算法以非对称密钥材料（PEM/XML/JWK 形式的公钥）作 HMAC 密钥时，公开的公钥即可伪造签名（RS256→HS256 降级攻击）
+        if (tokenAlg.StartsWithIgnoreCase("HS") && LooksAsymmetricKey(Secret))
+        {
+            message = "算法混淆：对称算法不得使用非对称密钥作为密钥";
+            return false;
+        }
+
         message = null;
 
         // 验证签名
@@ -252,6 +286,14 @@ public class JwtBuilder : IExtend
 
         throw new InvalidOperationException($"Unsupported algorithm [{Algorithm}]");
     }
+    #endregion
+
+    #region 辅助
+    /// <summary>判断密钥是否像非对称密钥材料（PEM / .NET XML / JWK）。仅用于识别"公钥被当对称密钥"的算法混淆场景</summary>
+    /// <param name="secret">密钥</param>
+    /// <returns></returns>
+    private static Boolean LooksAsymmetricKey(String secret)
+        => secret.Contains("-----BEGIN") || secret.Contains("<RSAKeyValue") || secret.Contains("\"kty\"");
     #endregion
 
     #region 算法管理
