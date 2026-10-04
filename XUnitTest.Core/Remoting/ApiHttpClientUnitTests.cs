@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -6,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
+using NewLife.Configuration;
 using NewLife.Remoting;
 using NewLife.Serialization;
 using Xunit;
@@ -749,6 +751,115 @@ public class ApiHttpClientUnitTests
         // 竞速选中并返回的响应必须可读（旧实现 finally 里无条件释放）
         var body = await msg.Content.ReadAsStringAsync();
         Assert.Equal("race-ok", body);
+    }
+    #endregion
+
+    #region 客户端生命周期
+    /// <summary>带释放标记的处理器，用于观察 HttpClient 是否被释放</summary>
+    private class TrackingHandler : HttpMessageHandler
+    {
+        public Boolean Disposed { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+        protected override void Dispose(Boolean disposing)
+        {
+            Disposed = true;
+            base.Dispose(disposing);
+        }
+    }
+
+    [Fact(DisplayName = "负载均衡_轮换节点_旧客户端被释放")]
+    public void LoadBalancer_Rotation_DisposesOldClient()
+    {
+        var handler = new TrackingHandler();
+        var svc = new ServiceEndpoint("s1", "http://127.0.0.1:8080")
+        {
+            Client = new HttpClient(handler),
+            CreateTime = DateTime.Now.AddMinutes(-11),
+        };
+
+        var lb = new FailoverLoadBalancer();
+        lb.PutService([svc], svc, null);
+
+        // 10 分钟到期轮换：重建之前必须释放旧客户端，避免连接池资源随节点丢弃而泄漏
+        Assert.Null(svc.Client);
+        Assert.True(handler.Disposed);
+    }
+
+    [Fact(DisplayName = "设置服务端地址_替换节点_旧客户端被释放")]
+    public void SetServer_Replacement_DisposesOldClient()
+    {
+        var handler = new TrackingHandler();
+        var client = new ApiHttpClient("http://127.0.0.1:8080");
+        client.Services[0].Client = new HttpClient(handler);
+
+        client.SetServer("http://127.0.0.1:9090");
+
+        Assert.True(handler.Disposed);
+        Assert.Single(client.Services);
+        Assert.Equal("http://127.0.0.1:9090/", client.Services[0].Address + "");
+    }
+
+    /// <summary>带释放标记的 ApiHttpClient</summary>
+    private class TrackingApiClient : ApiHttpClient
+    {
+        public Boolean DisposedFlag { get; private set; }
+
+        protected override void Dispose(Boolean disposing)
+        {
+            DisposedFlag = true;
+            base.Dispose(disposing);
+        }
+    }
+
+    /// <summary>制造并发首访窗口的服务解析器：第一个工厂调用挂起，等第二个进入后再放行</summary>
+    private class RacingResolver : ConfigServiceResolver
+    {
+        private readonly SemaphoreSlim _entered = new(0);
+        private readonly SemaphoreSlim _release = new(0);
+        private Int32 _count;
+
+        public ConcurrentBag<TrackingApiClient> Created { get; } = new();
+
+        public RacingResolver() : base((IConfigProvider)null!) => Servers = "http://127.0.0.1:8080/";
+
+        protected override IApiClient CreateClient(String serviceName, String? tag)
+        {
+            var client = new TrackingApiClient();
+            Created.Add(client);
+
+            if (Interlocked.Increment(ref _count) == 1)
+            {
+                _entered.Release();
+                _release.Wait(TimeSpan.FromSeconds(10));
+            }
+            else
+            {
+                _entered.Wait(TimeSpan.FromSeconds(10));
+                _release.Release();
+            }
+
+            return client;
+        }
+    }
+
+    [Fact(DisplayName = "服务解析器_并发首访_败者客户端被释放")]
+    public async Task ServiceResolver_ConcurrentFirstAccess_DisposesLoser()
+    {
+        var resolver = new RacingResolver();
+
+        var t1 = Task.Run(() => resolver.GetClientAsync("svc"));
+        var t2 = Task.Run(() => resolver.GetClientAsync("svc"));
+        var clients = await Task.WhenAll(t1, t2);
+
+        // 两次调用必须拿到同一个客户端；工厂跑过两次，败者要就地释放而不是静默丢弃
+        Assert.Same(clients[0], clients[1]);
+        Assert.Equal(2, resolver.Created.Count);
+        Assert.Equal(1, resolver.Created.Count(e => e.DisposedFlag));
+
+        resolver.Dispose();
     }
     #endregion
 }

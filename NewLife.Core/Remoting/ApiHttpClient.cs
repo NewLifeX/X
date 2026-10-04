@@ -235,6 +235,10 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             {
                 if (!ss[i].IsNullOrEmpty()) ParseAndAdd(services, "service" + (i + 1), ss[i]);
             }
+
+            // 替换前释放旧节点缓存的 HttpClient（含连接池），避免节点被换出后资源无人回收
+            foreach (var svc in Services) svc.Client?.Dispose();
+
             Services = services;
             _lastUrls = urls;
         }
