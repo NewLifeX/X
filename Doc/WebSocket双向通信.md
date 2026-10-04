@@ -172,7 +172,9 @@ public class WebSocketCodec : Handler
   |  [WebSocket双向帧传输]                |
 ```
 
-握手完全由 `WebSocketCodec.Open` 和 `WebSocketSession.HandeShake` 自动处理，无需应用层介入。
+握手由服务端 `WebSocket.Handshake`（`HttpSession` 命中路由后调用，四要素校验见 RFC 6455 §4.2）与客户端 `WebSocketClient.HandshakeAsync`（Open 阶段自动调用）完成，无需应用层介入。
+
+> **升级请求同段的帧不丢失**：RFC 6455 §4.1 允许客户端发完握手请求就直接发帧，两者常落在同一个 TCP 段／同一轮接收里。服务端处理升级请求时会把头部之后的字节一并交给 WebSocket 解析（与客户端侧把 101 响应之后的字节投递进管道的处理对称）；此前这部分字节被直接丢弃，表现为"连上了但第一条消息没到"。
 
 ## 使用场景
 
