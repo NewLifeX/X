@@ -35,6 +35,9 @@ public class HttpRouter
     /// <param name="path">请求路径（不含查询字符串）</param>
     /// <param name="parameters">输出参数字典（不为null）</param>
     /// <returns>匹配到的处理器；未匹配返回null</returns>
+    /// <remarks>候选路由的参数先在临时字典试算，匹配成功才合并进 <paramref name="parameters"/>。
+    /// 直接写调用方字典时，失败候选（如字面段不匹配）留下的 {id} 等键会被成功路由一并带走，
+    /// 而路由参数在请求处理链最后合并，会覆盖同名查询串/表单参数</remarks>
     public IHttpHandler? Match(String path, IDictionary<String, Object?> parameters)
     {
         if (path.IsNullOrEmpty()) return null;
@@ -44,10 +47,20 @@ public class HttpRouter
 
         var pathSegs = path.Split('/');
 
+        // 多候选之间复用同一个临时字典（无参数化路由注册时不分配）
+        Dictionary<String, Object?>? candidates = null;
+
         foreach (var entry in _routes)
         {
-            if (TryMatch(entry, pathSegs, parameters))
-                return entry.Handler;
+            var ps = candidates ??= new Dictionary<String, Object?>();
+            ps.Clear();
+
+            if (!TryMatch(entry, pathSegs, ps)) continue;
+
+            foreach (var kv in ps)
+                parameters[kv.Key] = kv.Value;
+
+            return entry.Handler;
         }
 
         return null;

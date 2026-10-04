@@ -35,6 +35,23 @@ public class HttpRouterTests
         Assert.Equal("info", ps["action"]);
     }
 
+    [Fact(DisplayName = "路由器_失败候选参数不残留_不污染命中路由")]
+    public void FailedCandidate_NoStaleParameters()
+    {
+        var hit = new StubHandler();
+        var router = new HttpRouter();
+        // 先注册的候选会先写入 id=5，再因字面段 detail 不匹配 info 而失败
+        router.Register("/api/{id}/detail", new StubHandler());
+        router.Register("/api/{ver}/info", hit);
+
+        var ps = new Dictionary<String, Object?>();
+        Assert.Same(hit, router.Match("/api/5/info", ps));
+
+        // 失败候选残留的 {id} 不得出现在参数字典：它会在路由参数最后合并时覆盖同名查询参数
+        Assert.False(ps.ContainsKey("id"));
+        Assert.Equal("5", ps["ver"]);
+    }
+
     [Fact(DisplayName = "路由器_{id?}可选参数段_省略时命中且参数为空")]
     public void OptionalRoute_MatchesWithoutSegment()
     {

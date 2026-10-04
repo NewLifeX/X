@@ -412,6 +412,19 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 200", resp);
     }
 
+    [Fact(DisplayName = "HTTP服务端_失败候选路由参数_不覆盖同名查询参数")]
+    public async Task FailedRouteCandidate_DoesNotShadowQueryParameter()
+    {
+        // 先注册的候选会写入 {id}=5 再因字面段 detail/info 不匹配而失败；命中路由只带 {ver}。
+        // 失败候选残留的 id 在路由参数（最后合并）阶段会覆盖 ?id=999
+        _server.MapGet<IHttpContext, String>("/api/{id}/detail", _ => "detail");
+        _server.MapGet<IHttpContext, String>("/api/{ver}/info", ctx => ctx.Parameters["id"]?.ToString() ?? "none");
+
+        using var client = new HttpClient { BaseAddress = _baseUri };
+        var txt = await client.GetStringAsync("/api/5/info?id=999");
+        Assert.Equal("999", txt);
+    }
+
     [Fact(DisplayName = "HTTP服务端_重复Content-Length_回400")]
     public async Task DuplicateContentLength_Rejected()    {
         // 同名头部就地覆盖只会剩最后一个值，与前置代理（通常取第一个）理解不一致，构成 CL.CL 走私面；
