@@ -345,6 +345,17 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
 
     static ConfigProvider()
     {
+        // 先注册内建提供者，再解析默认提供者名称。
+        // 解析过程会初始化 Runtime，其中的 Type.GetType 会触发程序集解析回调，
+        // 回调可能同步递归访问配置；若此时注册表为空，递归调用会抛出“找不到内建提供者”，
+        // 且被毒化的 Config<T> 类型初始化永久失败
+        Register<IniConfigProvider>("ini");
+        Register<XmlConfigProvider>("xml");
+        Register<JsonConfigProvider>("json");
+        Register<HttpConfigProvider>("http");
+
+        Register<XmlConfigProvider>("config");
+
         // 支持从命令行参数和环境变量设定默认配置提供者
         var str = "";
         var args = Environment.GetCommandLineArgs();
@@ -358,13 +369,6 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         }
         if (str.IsNullOrEmpty()) str = NewLife.Runtime.GetEnvironmentVariable("DefaultConfig");
         if (!str.IsNullOrEmpty()) DefaultProvider = str;
-
-        Register<IniConfigProvider>("ini");
-        Register<XmlConfigProvider>("xml");
-        Register<JsonConfigProvider>("json");
-        Register<HttpConfigProvider>("http");
-
-        Register<XmlConfigProvider>("config");
     }
 
     private static readonly ConcurrentDictionary<String, Type> _providers = new(StringComparer.OrdinalIgnoreCase);
