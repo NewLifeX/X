@@ -690,6 +690,15 @@ public class HttpServerTests : IDisposable
         Random.Shared.NextBytes(payload);
         _server.Map("/slow", new StreamTestHandler { Payload = payload });
 
+        // 客户端停读期间内核发送缓冲填满，服务端的流式发送会在“单块写”上挂起；
+        // 网络层按块计时（SessionBase.Timeout 默认 3 s），挂起超过预算即按发送超时断开连接（设计行为）。
+        // 本用例关注“背压不截断数据”，停顿窗口必须远小于发送预算；满载下 1 s 停顿可能被放大数倍，
+        // 故仅为本用例服务端放宽预算，默认预算下的超时断开行为由网络层用例覆盖
+        _server.NewSession += (s, e) =>
+        {
+            if (e.Session?.Session is TcpSession tcp) tcp.Timeout = 30_000;
+        };
+
         using var client = new TcpClient { NoDelay = true };
         await client.ConnectAsync(IPAddress.Loopback, _server.Port);
         using var ns = client.GetStream();
