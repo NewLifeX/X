@@ -599,7 +599,19 @@ public class HttpServerTests : IDisposable
         }
         finally
         {
-            Directory.Delete(dir, true);
+            // 零拷贝发送在响应体读完后可能仍在收尾，文件句柄被短暂占用，Windows 下删除会 IOException；限次重试
+            for (var i = 0; i < 10; i++)
+            {
+                try
+                {
+                    Directory.Delete(dir, true);
+                    break;
+                }
+                catch (IOException) when (i < 9)
+                {
+                    await Task.Delay(100);
+                }
+            }
         }
     }
 
@@ -1143,15 +1155,23 @@ Content-Type: application/octet-stream
 
         using var ms = new MemoryStream();
         var buf = new Byte[4096];
-        // 读取一点足够解析头
-        await Task.Delay(50); // 微等待服务端响应
-        while (ns.DataAvailable)
+        // 固定 50ms 微等待在并行满载下可能早于响应到达，改为轮询读取到响应体出现为止（上限 5 秒）
+        var resp = String.Empty;
+        for (var i = 0; i < 500; i++)
         {
-            var n = await ns.ReadAsync(buf, 0, buf.Length);
-            if (n <= 0) break;
-            ms.Write(buf, 0, n);
+            while (ns.DataAvailable)
+            {
+                var n = await ns.ReadAsync(buf, 0, buf.Length);
+                if (n <= 0) break;
+
+                ms.Write(buf, 0, n);
+            }
+
+            resp = Encoding.ASCII.GetString(ms.ToArray());
+            if (resp.Contains("alive", StringComparison.OrdinalIgnoreCase)) break;
+
+            await Task.Delay(10);
         }
-        var resp = Encoding.ASCII.GetString(ms.ToArray());
         Assert.Contains("Connection: close", resp, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("alive", resp);
     }

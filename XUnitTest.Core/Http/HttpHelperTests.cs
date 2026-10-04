@@ -173,7 +173,11 @@ public class HttpHelperTests
     {
         var url = "http://star.newlifex.com/cube/info";
 
+        // 外部网络用例：断网或代理异常时请求会长时间挂起，先做限时可达性探测
+        if (!TestNetworkHelper.IsReachable("star.newlifex.com", 80)) return;
+
         var client = DefaultTracer.Instance.CreateHttpClient();
+        client.Timeout = TimeSpan.FromSeconds(10);
         var rs = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
 
         Assert.NotNull(rs);
@@ -186,7 +190,11 @@ public class HttpHelperTests
     {
         var url = "https://sso.newlifex.com/cube/info";
 
+        // 外部网络用例：断网或代理异常时请求会长时间挂起，先做限时可达性探测
+        if (!TestNetworkHelper.IsReachable("sso.newlifex.com", 443)) return;
+
         var client = DefaultTracer.Instance.CreateHttpClient();
+        client.Timeout = TimeSpan.FromSeconds(10);
         var rs = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
 
         Assert.NotNull(rs);

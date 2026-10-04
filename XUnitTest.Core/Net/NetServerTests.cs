@@ -13,7 +13,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>NetServer网络服务器单元测试</summary>
-[Collection("Net")]
+[Collection("Net.B")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetServerTests
 {
@@ -432,9 +432,10 @@ public class NetServerTests
     #region 管道测试
     /// <summary>测试标准编解码器</summary>
     [Fact]
-    public void StandardCodecTest()
+    public async Task StandardCodecTest()
     {
         var receivedMessage = new ManualResetEventSlim(false);
+        var replied = new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
         Object? received = null;
 
         using var server = new NetServer
@@ -447,14 +448,25 @@ public class NetServerTests
         server.Protocol = new SrmpCodec();
         server.Received += async (s, e) =>
         {
-            received = e.Message ?? e.Packet;
-            receivedMessage.Set();
-
-            if (s is INetSession session && e.Message is DefaultMessage m)
+            // async void 处理器的异常无人观察，会直接终止测试宿主；
+            // 且处理器在事件返回后才完成，必须把完成/异常交给用例等待，销毁服务器前不得仍在执行
+            try
             {
-                var reply = m.CreateReply();
-                if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
-                session.SendMessage(reply);
+                received = e.Message ?? e.Packet;
+                receivedMessage.Set();
+
+                if (s is INetSession session && e.Message is DefaultMessage m)
+                {
+                    var reply = m.CreateReply();
+                    if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                    session.SendMessage(reply);
+                }
+
+                replied.TrySetResult(true);
+            }
+            catch (Exception ex)
+            {
+                replied.TrySetException(ex);
             }
         };
 
@@ -473,6 +485,9 @@ public class NetServerTests
         // 等待接收
         Assert.True(receivedMessage.Wait(3000));
         Assert.NotNull(received);
+
+        // 等处理器写完回复再收尾，避免销毁服务器后处理器继续执行
+        await replied.Task.WaitAsync(TimeSpan.FromSeconds(3));
 
         client.Close("Test");
     }

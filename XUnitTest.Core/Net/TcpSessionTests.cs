@@ -11,7 +11,7 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
-[Collection("Net")]
+[Collection("Net.B")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class TcpSessionTests
 {
@@ -91,10 +91,15 @@ public class TcpSessionTests
         var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => e.IsIPv4() && !IPAddress.IsLoopback(e));
         Assert.NotNull(addr);
 
-        var uri = new NetUri(NetType.Udp, addr, 12345);
-        var client = uri.CreateClient();
+        // 端口 0 由系统分配：固定端口 12345 在多测试宿主并发（多目标框架/VS 并行运行）时互相抢占，
+        // 且原用例不释放客户端，端口会被一直占住，导致后续运行的同类用例报“地址已在使用”
+        var uri = new NetUri(NetType.Udp, addr, 0);
+        using var client = uri.CreateClient();
         client.Log = XTrace.Log;
         client.Open();
+
+        Assert.Equal(addr, client.Local.Address);
+        Assert.NotEqual(0, client.Local.Port);
     }
 
     [Fact]

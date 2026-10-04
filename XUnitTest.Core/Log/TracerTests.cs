@@ -291,9 +291,13 @@ public class TracerTests
     [Fact]
     public async Task TestHttpClient()
     {
+        // 外部网络用例：断网或代理异常时请求会长时间挂起，先做限时可达性探测
+        if (!TestNetworkHelper.IsReachable("newlifex.com", 443)) return;
+
         var tracer = new DefaultTracer();
 
         var http = tracer.CreateHttpClient();
+        http.Timeout = TimeSpan.FromSeconds(10);
         http.DefaultRequestHeaders.UserAgent.ParseAdd("tracer_test v1.3");
 
         await http.GetStringAsync("https://newlifex.com?id=1234");

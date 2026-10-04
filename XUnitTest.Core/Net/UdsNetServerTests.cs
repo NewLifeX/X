@@ -12,7 +12,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>Unix域套接字传输测试。依赖操作系统的AF_UNIX支持（Linux/macOS，Windows 10 1803+），不支持时静默跳过</summary>
-[Collection("Net")]
+[Collection("Net.D")]
 [DisplayName("Unix域套接字测试")]
 public class UdsNetServerTests
 {
@@ -315,7 +315,7 @@ public class UdsNetServerTests
 
             // 对端接受连接但永不读取：UDS 上内核零拷贝（sendfile/TransmitFile）会永不完成（TCP 同条件 0ms 返回），
             // 旧实现会在此挂死（无取消令牌时无限期占用发送线程）。修复后判定套接字类型走分块发送，1KB 直接入缓冲区完成
-            using var accepted = listener.Accept();
+            using var accepted = await listener.AcceptWithinAsync();
 
             using var cts = new CancellationTokenSource(5_000);
             Assert.Equal(1024, await client.SendFileAsync(file, cts.Token));

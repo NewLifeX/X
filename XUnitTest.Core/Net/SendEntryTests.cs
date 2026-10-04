@@ -14,7 +14,7 @@ namespace XUnitTest.Net;
 /// <para>观测手段：对端不读且收缩收发缓冲时，直发会堵在内核写阻塞上（同步 Send 不返回）；
 /// 对端开始读后数据完整到达。并发用例用“块内字节一致”检出交错。</para>
 /// </remarks>
-[Collection("Net")]
+[Collection("Net.D")]
 public class SendEntryTests
 {
     #region 工具
@@ -59,7 +59,7 @@ public class SendEntryTests
             client.Open();
             client.Client!.SendBufferSize = 16 * 1024;
 
-            using var peer = listener.Accept();
+            using var peer = await listener.AcceptWithinAsync();
             peer.ReceiveBufferSize = 8 * 1024;
             peer.ReceiveTimeout = 30_000;
 
@@ -124,7 +124,7 @@ public class SendEntryTests
         {
             client.Open();
 
-            using var peer = listener.Accept();
+            using var peer = await listener.AcceptWithinAsync();
             peer.ReceiveTimeout = 30_000;
 
             var total = writers * blocks * blockSize;
@@ -238,7 +238,7 @@ public class SendEntryTests
         {
             client.Open();
 
-            using var peer = listener.Accept();
+            using var peer = await listener.AcceptWithinAsync();
             peer.ReceiveTimeout = 30_000;
 
             var received = new MemoryStream();
@@ -282,7 +282,7 @@ public class SendEntryTests
         {
             client.Open();
 
-            using var peer = listener.Accept();
+            using var peer = await listener.AcceptWithinAsync();
             peer.ReceiveTimeout = 30_000;
 
             // 确定性制造发送失败：关掉发送方向后任何 Send 都立刻失败，

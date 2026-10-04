@@ -14,7 +14,7 @@ namespace XUnitTest.Net;
 /// <para>两条出口共用同一把写锁——只会损失消息之间的先后顺序，不会出现“块内字节交错”。</para>
 /// <para>观测手段：裸监听套接字 + 收缩收发缓冲，迫使内核缓冲吃满、队列积压到水位，从而验证入队等待与自动恢复。</para>
 /// </remarks>
-[Collection("Net")]
+[Collection("Net.C")]
 public class TcpSessionSendQueueTests
 {
     #region 工具
@@ -77,7 +77,7 @@ public class TcpSessionSendQueueTests
         try
         {
             client.Open();
-            using var peer = listener.Accept();
+            using var peer = await listener.AcceptWithinAsync();
             peer.ReceiveTimeout = 30_000;
 
             var expect = (Int64)blockSize * blockCount;
@@ -127,7 +127,7 @@ public class TcpSessionSendQueueTests
             client.Open();
             client.Client!.SendBufferSize = 8 * 1024;
 
-            using var peer = listener.Accept();
+            using var peer = await listener.AcceptWithinAsync();
             peer.ReceiveBufferSize = 8 * 1024;
             peer.ReceiveTimeout = 30_000;
 
@@ -176,7 +176,7 @@ public class TcpSessionSendQueueTests
         try
         {
             client.Open();
-            using var peer = listener.Accept();
+            using var peer = await listener.AcceptWithinAsync();
             peer.ReceiveTimeout = 30_000;
 
             var expect = (Int64)writers * 2 * blocks * blockSize;
@@ -247,7 +247,7 @@ public class TcpSessionSendQueueTests
             client.Open();
 
             Pipe queue1;
-            using (var peer1 = listener.Accept())
+            using (var peer1 = await listener.AcceptWithinAsync())
             {
                 peer1.ReceiveTimeout = 30_000;
 
@@ -258,9 +258,11 @@ public class TcpSessionSendQueueTests
                 var buf = new Byte[16];
                 Assert.Equal(3, peer1.Receive(buf));
                 Assert.Equal(new Byte[] { 1, 2, 3 }, buf[..3]);
-            }
 
-            client.Close("test");
+                // 必须由客户端先关，再释放对端：对端先关会让客户端接收环读到 FIN，
+                // 经 CheckClosed 判定“Finish”直接终结会话（Close + Dispose），后续重开失去前提
+                client.Close("test");
+            }
 
             // 等关闭收尾完成（入站管道与出站队列均复位）
             var sw = Stopwatch.StartNew();
@@ -270,6 +272,11 @@ public class TcpSessionSendQueueTests
                 await Task.Delay(10);
             }
 
+            // 首次 Open 会把系统分配的本地端口钉在 Local 上（便于断线重连复用端口），
+            // 本端主动关闭后该端口仍被上一连接的四元组占住，重开绑定即 EADDRINUSE，入队重连随之失败。
+            // 端口复用行为由 SessionReopenTests 专项覆盖，此处恢复自动分配端口，聚焦“关闭重开后队列与发送泵重建”
+            client.Local.Port = 0;
+
             // 客户端会话同一实例可重开：再次访问得到新队列（新发送泵）
             var queue2 = client.SendQueue;
             Assert.NotNull(queue2);
@@ -277,7 +284,9 @@ public class TcpSessionSendQueueTests
 
             // 入队会按需重连，数据送达新连接
             var sending = Task.Run(() => client.SendQueuedAsync(new ArrayPacket(new Byte[] { 4, 5, 6 })).AsTask());
-            using var peer2 = listener.Accept();
+            using var peer2 = await listener.AcceptWithinAsync(detail: () => sending.IsFaulted
+                ? $"入队任务异常：{sending.Exception?.GetBaseException().Message}"
+                : $"入队任务状态={sending.Status}，会话Active={client.Active}");
             peer2.ReceiveTimeout = 30_000;
 
             Assert.True(await sending.WaitAsync(TimeSpan.FromSeconds(10)));
@@ -323,7 +332,7 @@ public class TcpSessionSendQueueTests
             client.Open();
             client.Client!.SendBufferSize = 8 * 1024;
 
-            using var peer = listener.Accept();
+            using var peer = await listener.AcceptWithinAsync();
             peer.ReceiveBufferSize = 8 * 1024;
             peer.ReceiveTimeout = 30_000;
 
@@ -363,7 +372,7 @@ public class TcpSessionSendQueueTests
         try
         {
             client.Open();
-            using (var peer = listener.Accept())
+            using (var peer = await listener.AcceptWithinAsync())
             {
                 peer.ReceiveTimeout = 30_000;
 

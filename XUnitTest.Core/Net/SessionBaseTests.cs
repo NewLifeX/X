@@ -12,7 +12,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>SessionBase及相关类单元测试</summary>
-[Collection("Net")]
+[Collection("Net.D")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class SessionBaseTests
 {
@@ -328,7 +328,8 @@ public class SessionBaseTests
         var data = "Hello"u8.ToArray();
         client.Send(data, data.Length, new IPEndPoint(IPAddress.Loopback, server.Port));
 
-        Assert.True(sessionCreated.Wait(3000));
+        // 数据报由接收环异步处理；全量并行满载下调度延迟可能超过 3 秒，放宽等待上限（数据报未达仍会失败）
+        Assert.True(sessionCreated.Wait(10_000));
         Assert.NotNull(createdSession);
         Assert.IsType<UdpSession>(createdSession);
     }
