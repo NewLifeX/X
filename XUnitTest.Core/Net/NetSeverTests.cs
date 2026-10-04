@@ -20,6 +20,7 @@ namespace XUnitTest.Net
             var server = new NetServer
             {
                 Port = 0,
+                ProtocolType = NetType.Tcp,
 
                 Log = XTrace.Log,
                 SessionLog = XTrace.Log,

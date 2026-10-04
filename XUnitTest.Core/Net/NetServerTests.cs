@@ -66,9 +66,11 @@ public class NetServerTests
     [Fact]
     public void TcpUdpServerStartStop()
     {
+        // 显式指定端口（生产即如此使用）：避免 Port=0 时先启动协议选中的端口对另一协议不可绑
+        var port = TestPort.PickDual(22000);
         using var server = new NetServer
         {
-            Port = 0,
+            Port = port,
             ProtocolType = NetType.Unknown,
             AddressFamily = AddressFamily.InterNetwork,
             Log = XTrace.Log,
@@ -77,8 +79,9 @@ public class NetServerTests
         server.Start();
 
         Assert.True(server.Active);
-        Assert.True(server.Port > 0);
+        Assert.Equal(port, server.Port);
         Assert.Equal(2, server.Servers.Count); // TCP + UDP
+        Assert.All(server.Servers, e => Assert.Equal(port, e.Port));
 
         server.Stop("Test");
 

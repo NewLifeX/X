@@ -10,7 +10,7 @@ public class EchoNetServerTests
     [Fact]
     public void Echo32Bytes()
     {
-        using var server = new EchoNetServer { Port = 0 };
+        using var server = new EchoNetServer { Port = 0, ProtocolType = NetType.Tcp };
         server.Start();
 
         using var client = new NetUri($"tcp://127.0.0.1:{server.Port}").CreateRemote();

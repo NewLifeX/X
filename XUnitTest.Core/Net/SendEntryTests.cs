@@ -181,7 +181,7 @@ public class SendEntryTests
     [DisplayName("直发_Send与SendAsync保序送达")]
     public async Task SendAndSendAsync_DeliverInOrder()
     {
-        using var server = new NetServer { Port = 0 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp };
         server.Start();
 
         var wait = new ManualResetEventSlim();

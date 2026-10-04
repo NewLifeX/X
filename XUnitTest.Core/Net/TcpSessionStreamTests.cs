@@ -29,7 +29,7 @@ public class TcpSessionStreamTests
     /// <summary>建立回环连接并等待服务端会话</summary>
     private static async Task<(NetServer Server, TcpClient Client, TcpSession Session)> ConnectAsync()
     {
-        var server = new NetServer { Port = 0 };
+        var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp };
         server.Start();
 
         var wait = new ManualResetEventSlim();

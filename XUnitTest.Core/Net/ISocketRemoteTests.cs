@@ -19,7 +19,7 @@ public class ISocketRemoteTests
         var payload = Rand.NextBytes(100_000);
         using var src = new ShortReadStream(payload, 997);
 
-        using var svr = new NetServer { Port = 0 };
+        using var svr = new NetServer { Port = 0, ProtocolType = NetType.Tcp };
         var received = new MemoryStream();
         var total = 0L;
         var wait = new ManualResetEventSlim();

@@ -120,7 +120,7 @@ public class TcpServerAcceptRollbackTests
     [Fact(DisplayName = "接受回滚_创建处理器抛异常_网络会话与连接均被回收")]
     public async Task CreateHandlerThrows_SessionAndConnectionReleased()
     {
-        using var server = new ThrowingHandlerServer { Port = 0, Log = XTrace.Log };
+        using var server = new ThrowingHandlerServer { Port = 0, ProtocolType = NetType.Tcp, Log = XTrace.Log };
         server.Start();
 
         using var client = new TcpClient();

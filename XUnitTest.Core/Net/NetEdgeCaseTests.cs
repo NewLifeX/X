@@ -722,9 +722,11 @@ public class NetEdgeCaseTests
         var tcpReceived = new ManualResetEventSlim(false);
         var udpReceived = new ManualResetEventSlim(false);
 
+        // 显式指定端口（生产即如此使用）：避免 Port=0 时先启动协议选中的端口对另一协议不可绑
+        var port = TestPort.PickDual(23000);
         using var server = new NetServer
         {
-            Port = 0,
+            Port = port,
             ProtocolType = NetType.Unknown, // 同时监听TCP和UDP
             AddressFamily = AddressFamily.InterNetwork,
             Log = XTrace.Log,

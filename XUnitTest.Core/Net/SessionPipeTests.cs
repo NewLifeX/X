@@ -16,7 +16,7 @@ public class SessionPipeTests
     [DisplayName("会话管道_接收投递_帧泵流式读取")]
     public async Task SessionPipe_Frames()
     {
-        using var server = new NetServer { Port = 0 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp };
         server.Start();
 
         var wait = new ManualResetEventSlim();
@@ -62,7 +62,7 @@ public class SessionPipeTests
     [DisplayName("会话管道_关闭_通知消费方流结束")]
     public async Task SessionPipe_Close_CompletesReader()
     {
-        using var server = new NetServer { Port = 0 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp };
         server.Start();
 
         var wait = new ManualResetEventSlim();
@@ -94,7 +94,7 @@ public class SessionPipeTests
     [DisplayName("会话管道_背压_达到暂停水位后恢复")]
     public async Task SessionPipe_Backpressure_PauseResume()
     {
-        using var server = new NetServer { Port = 0 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp };
         server.Start();
 
         var wait = new ManualResetEventSlim();
@@ -165,7 +165,7 @@ public class SessionPipeTests
     [DisplayName("会话管道_整帧路径_超大帧凑齐不受暂停阻挡（读饥饿让位）")]
     public async Task SessionPipe_WholeFrameExceedsPauseThreshold_ReaderStarvationReleases()
     {
-        using var server = new NetServer { Port = 0 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp };
         server.Start();
 
         var wait = new ManualResetEventSlim();
@@ -228,7 +228,7 @@ public class SessionPipeTests
     [DisplayName("会话管道_背压_高频暂停恢复_多轮无丢唤醒")]
     public async Task SessionPipe_Backpressure_HighFrequencyPauseResume()
     {
-        using var server = new NetServer { Port = 0 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp };
         server.Start();
 
         var wait = new ManualResetEventSlim();
@@ -301,7 +301,7 @@ public class SessionPipeTests
     [DisplayName("会话管道_流式体短读_丢弃消息并关闭会话")]
     public async Task SessionPipe_StreamingBodyTruncated_Discards()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec(), MaxConcurrency = 2 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec(), MaxConcurrency = 2 };
         server.Start();
 
         var wait = new ManualResetEventSlim();

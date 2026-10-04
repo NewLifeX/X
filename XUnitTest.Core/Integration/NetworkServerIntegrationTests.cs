@@ -6,6 +6,7 @@ using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
+using XUnitTest.Net;
 using Xunit;
 
 namespace XUnitTest.Integration;
@@ -23,7 +24,7 @@ public class NetworkServerFixture : IDisposable
     {
         var server = new MyNetServer
         {
-            Port = 0,
+            Port = TestPort.PickDual(25000),
             AddressFamily = AddressFamily.InterNetwork,
             Log = ServerLog,
             SessionLog = ServerLog,

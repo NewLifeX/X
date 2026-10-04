@@ -208,7 +208,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_单帧分两段到达_接收方粘包重组")]
     public async Task SplitFrame_Reassembled()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         var got = NewTcs<Byte[]>();
@@ -250,7 +250,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_小消息往返_服务端应答")]
     public async Task SmallMessage_RoundTrip()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         var serverGot = NewTcs<(Int32 Sequence, Boolean OneWay, Byte[] Body)>();
@@ -310,7 +310,7 @@ public class MessageSessionTests
     {
         var payload = MakePayload(300_000);
 
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         var got = NewTcs<Byte[]>();
@@ -348,7 +348,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_单向消息_不等待响应")]
     public async Task OneWayMessage_NoReply()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         var got = NewTcs<Boolean>();
@@ -374,7 +374,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_请求响应_客户端等待匹配")]
     public async Task RequestResponse_ClientAwaits()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         var serverGot = NewTcs<Int32>();
@@ -427,7 +427,7 @@ public class MessageSessionTests
         // 服务端：回一个大负载（大于单次接收缓冲 → 分片到达 → 流式体）
         var payload = MakePayload(200_000);
 
-        using var server = new NetServer { Port = 0, Protocol = new LengthFieldCodec { Size = 4 } };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new LengthFieldCodec { Size = 4 } };
         server.Start();
 
         var serverGot = NewTcs<Int32>();
@@ -469,7 +469,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_请求响应_序列号超过255仍能配对")]
     public async Task RequestResponse_SequenceOver255_StillMatches()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         var serverGot = NewTcs<Int32>();
@@ -516,7 +516,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_请求响应_无应答超时取消")]
     public async Task RequestResponse_Timeout()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         // 服务端收到请求但不作答
@@ -546,7 +546,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_超限残余_会话被关闭")]
     public async Task GarbageData_ExceedsMaxCache_ClosesConnection()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec(), MaxCache = 256 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec(), MaxCache = 256 };
         server.Start();
 
         using var client = new NetClient($"tcp://127.0.0.1:{server.Port}") { AutoReconnect = false };
@@ -570,7 +570,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_流式发送_服务端收流式体")]
     public async Task StreamingSend_RoundTrip()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         var serverGot = NewTcs<Byte[]>();
@@ -634,7 +634,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_会话处理器_收到带消息的事件参数")]
     public async Task Protocol_NetHandler()
     {
-        using var server = new HandlerServer { Port = 0, Protocol = new SrmpCodec() };
+        using var server = new HandlerServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
         server.Start();
 
         using var client = new NetClient($"tcp://127.0.0.1:{server.Port}") { Protocol = new SrmpCodec() };
@@ -696,7 +696,7 @@ public class MessageSessionTests
     [DisplayName("协议模式_服务端并行_慢请求不阻塞快请求")]
     public async Task Server_Parallel_SlowRequest_DoesNotBlock()
     {
-        using var server = new NetServer { Port = 0, Protocol = new SrmpCodec(), MaxConcurrency = 8 };
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec(), MaxConcurrency = 8 };
         server.Start();
 
         var slowIn = NewTcs<Boolean>();
