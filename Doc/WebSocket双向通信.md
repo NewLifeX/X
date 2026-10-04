@@ -255,7 +255,7 @@ server.Received += (sender, e) =>
 - **Payload 零拷贝，生命周期短**：`WebSocketMessage.Payload` 直接切片自接收缓冲区，不能跨异步调用持有。需要延迟使用时，先 `payload.ToArray()` 深拷贝。
 - **掩码破坏性操作**：客户端服务端的帧带掩码，解帧时原地 XOR 解码，不要对同一缓冲重复解析。
 - **`KeepAlive` 默认 120 秒**：若服务器配置了更短的连接超时，应缩小 `KeepAlive` 以防断连。
-- **wss:// 需要 TLS 支持**：在 .NET Framework 上需要确保 TLS 可用（`SslStream`），且服务器证书有效。
+- **wss:// 自动启用 TLS**：`wss://` 方案即语义，客户端按地址方案自动启用 TLS（协议版本交给运行时协商，可用 TLS1.3）；需要固定版本时显式设置 `SslProtocol`。证书有效性与 .NET Framework 上的 `SslStream` 可用性仍需自行确认。
 - **服务端会话隔离**：每条连接对应一个 `WebSocketSession` 实例，不要在多个 Session 之间共享状态，否则需加锁。
 - **消息分片**：`Fin=false` 的数据帧按 RFC 6455 §5.4 累积，末片（FIN=1）合并为完整消息后交付；控制帧不可分片。应用层发送时无需自行分片。
 - **帧校验**：客户端帧必须带掩码，控制帧必须 `Fin=true` 且负载不超过 125 字节；RSV1~RSV3 非零或保留 opcode 视为损坏帧，连接以 1002 关闭。

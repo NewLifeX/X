@@ -509,19 +509,11 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
     public async Task Test10_WssEcho_SelfSigned()
     {
         // 自签证书启动 wss 服务端（随机端口）
-        var asm = typeof(WebSocketIntegrationTests).Assembly;
-        using var stream = asm.GetManifestResourceStream("XUnitTest.certs.newlifex.com.pfx")!;
-        var pfx = stream.ReadBytes(-1);
-#if NET9_0_OR_GREATER
-        var cert = X509CertificateLoader.LoadPkcs12(pfx, "123456");
-#else
-        var cert = new X509Certificate2(pfx, "123456", X509KeyStorageFlags.DefaultKeySet);
-#endif
         using var server = new HttpServer
         {
             Name = "wss集成测试服务器",
             Local = new NetUri(NetType.Https, IPAddress.Loopback, 0),
-            Certificate = cert,
+            Certificate = LoadSelfSignedCert(),
             SslProtocol = SslProtocols.Tls12,
             Log = XTrace.Log,
         };
@@ -762,6 +754,60 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
 
         await ws.CloseAsync(1000, "done");
         ws.Dispose();
+    }
+
+    /// <summary>
+    /// wss 自动 TLS：仅凭 wss 方案（不手工设置 SslProtocol）连接 TLS 服务端，且服务端端口非443。
+    /// 覆盖缺陷：非443端口的 https/wss 静默回落明文，调用方必须手工设置 SslProtocol 才能连上。
+    /// </summary>
+    [Fact(DisplayName = "20-wss方案自动启用TLS（非443端口，不手工设置SslProtocol）")]
+    public async Task Test20_WssScheme_AutoTls()
+    {
+        using var server = new HttpServer
+        {
+            Name = "wss自动TLS测试服务器",
+            Local = new NetUri(NetType.Https, IPAddress.Loopback, 0),
+            Certificate = LoadSelfSignedCert(),
+            SslProtocol = SslProtocols.Tls12,
+            Log = XTrace.Log,
+        };
+        server.Map("/ws", new WsEchoHandler());
+        server.Start();
+
+        var ws = new WebSocketClient($"wss://127.0.0.1:{server.Port}/ws") { Log = XTrace.Log };
+
+        // 方案即语义：wss 自动启用 TLS，无需调用方手工设置
+        Assert.NotEqual(SslProtocols.None, ws.SslProtocol);
+        Assert.True(await ws.OpenAsync(), "wss 建连与握手应成功");
+
+        var textWait = new TaskCompletionSource<String>();
+        ws.Received += (s, e) =>
+        {
+            if (e.Message is WsMessage m && m.Type == WebSocketMessageType.Text)
+                textWait.TrySetResult(m.Payload?.ToStr() ?? String.Empty);
+        };
+
+        var text = "auto-tls";
+        await ws.SendTextAsync(text);
+        var reply = await textWait.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal($"ws-echo:{text}", reply);
+
+        await ws.CloseAsync(1000, "done");
+        ws.Dispose();
+    }
+
+    /// <summary>加载测试自签证书（newlifex.com.pfx）</summary>
+    /// <returns></returns>
+    private static X509Certificate2 LoadSelfSignedCert()
+    {
+        var asm = typeof(WebSocketIntegrationTests).Assembly;
+        using var stream = asm.GetManifestResourceStream("XUnitTest.certs.newlifex.com.pfx")!;
+        var pfx = stream.ReadBytes(-1);
+#if NET9_0_OR_GREATER
+        return X509CertificateLoader.LoadPkcs12(pfx, "123456");
+#else
+        return new X509Certificate2(pfx, "123456", X509KeyStorageFlags.DefaultKeySet);
+#endif
     }
 
     /// <summary>构造客户端掩码原始帧（支持 126 扩展长度）</summary>

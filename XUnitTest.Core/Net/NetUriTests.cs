@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using NewLife;
 using NewLife.Net;
 using Xunit;
 
@@ -133,5 +135,63 @@ public class NetUriTests
         Assert.Equal(NetType.Unix, clone.Type);
         Assert.Equal("/tmp/a.sock", clone.Path);
         Assert.Equal("unix:///tmp/a.sock", clone.ToString());
+    }
+
+    [Fact]
+    [DisplayName("https/wss 安全语义：方案决定TLS，与端口解耦")]
+    public void SecureScheme()
+    {
+        // https 任意端口启用 TLS，非443端口不再静默回落明文
+        var https = new NetUri("https://127.0.0.1:8443");
+        Assert.Equal(NetType.Http, https.Type);
+        Assert.True(https.IsSecure);
+        Assert.Equal(8443, https.Port);
+        Assert.Equal("https://127.0.0.1:8443", https.ToString());
+        using (var client = https.CreateRemote())
+        {
+            Assert.NotEqual(SslProtocols.None, Assert.IsType<TcpSession>(client).SslProtocol);
+        }
+
+        // http 落在443端口保持明文，不再按端口号猜测启用 TLS
+        var http = new NetUri("http://127.0.0.1:443");
+        Assert.False(http.IsSecure);
+        Assert.Equal("http://127.0.0.1:443", http.ToString());
+        using (var client = http.CreateRemote())
+        {
+            Assert.Equal(SslProtocols.None, Assert.IsType<TcpSession>(client).SslProtocol);
+        }
+
+        // wss 任意端口启用 TLS
+        var wss = new NetUri("wss://127.0.0.1:8443/ws");
+        Assert.Equal(NetType.WebSocket, wss.Type);
+        Assert.True(wss.IsSecure);
+        Assert.Equal(8443, wss.Port);
+        Assert.Equal("wss://127.0.0.1:8443", wss.ToString());
+        using (var client = wss.CreateRemote())
+        {
+            Assert.NotEqual(SslProtocols.None, Assert.IsType<WebSocketClient>(client).SslProtocol);
+        }
+
+        // ws 落在443端口保持明文
+        var ws = new NetUri("ws://127.0.0.1:443");
+        Assert.False(ws.IsSecure);
+        Assert.Equal("ws://127.0.0.1:443", ws.ToString());
+        using (var client = ws.CreateRemote())
+        {
+            Assert.Equal(SslProtocols.None, Assert.IsType<WebSocketClient>(client).SslProtocol);
+        }
+
+        // 显式 NetType.Https 隐含安全，无需人工标记
+        using (var client = new NetUri(NetType.Https, "127.0.0.1", 8443).CreateRemote())
+        {
+            Assert.NotEqual(SslProtocols.None, Assert.IsType<TcpSession>(client).SslProtocol);
+        }
+
+        // 复用实例重新解析时安全标记不残留；Clone 保留
+        var uri = new NetUri("wss://127.0.0.1:8443");
+        Assert.True(uri.Clone().IsSecure);
+        uri.Parse("ws://127.0.0.1:8080");
+        Assert.False(uri.IsSecure);
+        Assert.Equal("ws://127.0.0.1:8080", uri.ToString());
     }
 }

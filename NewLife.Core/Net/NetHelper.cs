@@ -692,6 +692,7 @@ public static class NetHelper
     /// <summary>根据远程网络标识创建客户端</summary>
     /// <param name="remote"></param>
     /// <returns></returns>
+    /// <remarks>启用 TLS 由地址语义（<see cref="NetUri.IsSecure"/> 或 <see cref="NetType.Https"/>）决定，不按端口号猜测</remarks>
     public static ISocketClient CreateRemote(this NetUri remote)
     {
         return remote == null
@@ -701,8 +702,8 @@ public static class NetHelper
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
                 NetType.Unix => new TcpSession { Remote = remote },
-                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-                NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
+                NetType.Http or NetType.Https => new TcpSession { Remote = remote, SslProtocol = remote.IsSecure || remote.Type == NetType.Https ? DefaultSslProtocols : SslProtocols.None },
+                NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.IsSecure ? DefaultSslProtocols : SslProtocols.None },
                 _ => throw new NotSupportedException($"The {remote.Type} protocol is not supported"),
             };
     }
@@ -710,16 +711,22 @@ public static class NetHelper
     /// <summary>根据Uri创建客户端，主要支持Http/WebSocket</summary>
     /// <param name="uri"></param>
     /// <returns></returns>
+    /// <remarks>ws 为明文，wss 由 <see cref="WebSocketClient"/> 依据地址方案自动启用 TLS</remarks>
     /// <exception cref="NotSupportedException"></exception>
     public static ISocketClient CreateRemote(this Uri uri)
     {
-        return uri.Scheme switch
-        {
-            "wss" => new WebSocketClient(uri) { SslProtocol = SslProtocols.Tls12 },
-            "ws" => new WebSocketClient(uri),
-            _ => throw new NotSupportedException($"The {uri.Scheme} protocol is not supported"),
-        };
+        return uri.Scheme is "ws" or "wss"
+            ? new WebSocketClient(uri)
+            : throw new NotSupportedException($"The {uri.Scheme} protocol is not supported");
     }
+
+    /// <summary>启用 TLS 时使用的协议集合。固定 Tls12 会丢失 TLS1.3 与后续版本，现代框架交给运行时协商，旧框架仅 Tls12</summary>
+    internal static readonly SslProtocols DefaultSslProtocols =
+#if NETFRAMEWORK || NETSTANDARD
+        SslProtocols.Tls12;
+#else
+        SslProtocols.Tls12 | SslProtocols.Tls13;
+#endif
 
     internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 

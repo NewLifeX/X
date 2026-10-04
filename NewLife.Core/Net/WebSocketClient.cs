@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using NewLife.Data;
@@ -54,6 +55,9 @@ public class WebSocketClient : TcpSession
         Uri = uri;
 
         Remote = new NetUri(uri.ToString());
+
+        // 安全语义来自地址方案：wss 启用TLS。此前需调用方手工设置 SslProtocol，否则静默明文连接
+        if (Remote.IsSecure) SslProtocol = NetHelper.DefaultSslProtocols;
     }
 
     /// <summary>实例化</summary>
@@ -71,6 +75,9 @@ public class WebSocketClient : TcpSession
         {
             remote = Remote = new NetUri(Uri.ToString());
         }
+
+        // 安全语义优先于端口号：wss 启用TLS；调用方显式设置的 SslProtocol 不被覆盖
+        if (remote.IsSecure && SslProtocol == SslProtocols.None) SslProtocol = NetHelper.DefaultSslProtocols;
 
         var rs = await base.OnOpenAsync(cancellationToken).ConfigureAwait(false);
         if (!rs) return false;

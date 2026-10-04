@@ -50,6 +50,13 @@ public class NetUri
     /// <remarks>如 unix:///run/app.sock 中的 /run/app.sock</remarks>
     public String? Path { get; set; }
 
+    /// <summary>是否安全协议，表示在 <see cref="Type"/> 协议之上启用 TLS</summary>
+    /// <remarks>
+    /// <para>由地址方案的 https/wss 前缀解析得到，与 <see cref="Type"/> 正交：https 仍是 Http 协议、wss 仍是 WebSocket 协议，只是叠加传输层安全。</para>
+    /// <para>不把 https/wss 解析为独立协议类型，是为了不让 <see cref="Type"/> 的取值随方案变化——生态中大量按协议类型分支的代码（如把 WebSocket 类型映射到 WebSocket 客户端）会因此静默走错分支。</para>
+    /// </remarks>
+    public Boolean IsSecure { get; set; }
+
     /// <summary>地址</summary>
     /// <remarks>
     /// 域名多地址时的第一个。
@@ -165,6 +172,7 @@ public class NetUri
         Host = null;
         _EndPoint = null;
         Path = null;
+        IsSecure = false;
 
         // Unix域套接字使用完整路径作为地址，不做端口分析
         if (Type == NetType.Unix)
@@ -183,6 +191,7 @@ public class NetUri
             case "https":
             case "wss":
                 Port = 443;
+                IsSecure = true;
                 break;
         }
 
@@ -237,7 +246,7 @@ public class NetUri
 
     /// <summary>克隆</summary>
     /// <returns></returns>
-    public NetUri Clone() => new() { Type = Type, Host = Host, Port = Port, Address = Address, Path = Path };
+    public NetUri Clone() => new() { Type = Type, Host = Host, Port = Port, Address = Address, Path = Path, IsSecure = IsSecure };
     #endregion
 
     #region 辅助
@@ -264,7 +273,7 @@ public class NetUri
         }
     }
 
-    /// <summary>已重载。</summary>
+    /// <summary>已重载。输出 "协议://主机:端口"，https/wss 由 <see cref="IsSecure"/> 还原</summary>
     /// <returns></returns>
     public override String ToString()
     {
@@ -274,8 +283,11 @@ public class NetUri
             case NetType.Unknown:
                 protocol = "";
                 break;
+            case NetType.Http:
+                protocol = IsSecure ? "https" : "http";
+                break;
             case NetType.WebSocket:
-                protocol = Port == 443 ? "wss" : "ws";
+                protocol = IsSecure ? "wss" : "ws";
                 break;
             case NetType.Unix:
                 return $"unix://{Path}";
