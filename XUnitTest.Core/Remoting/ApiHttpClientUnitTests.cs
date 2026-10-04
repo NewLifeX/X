@@ -988,5 +988,56 @@ public class ApiHttpClientUnitTests
             if (File.Exists(file + ".tmp")) File.Delete(file + ".tmp");
         }
     }
+    [Fact(DisplayName = "节点令牌按选中节点附加，不再串门")]
+    public async Task NodeToken_AttachedPerNode()
+    {
+        var calls = new List<(Int32 Port, String? Auth)>();
+        var handler = new MockHttpMessageHandler
+        {
+            Handler = request =>
+            {
+                var port = request.RequestUri!.Port;
+                String? auth = request.Headers.Authorization?.ToString();
+                lock (calls) calls.Add((port, auth));
+
+                // 端口1视为故障节点，触发故障转移到端口99
+                if (port == 1) throw new HttpRequestException("connection refused");
+
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"code\":0,\"data\":\"ok\"}")
+                };
+            }
+        };
+
+        var client = new TestableApiHttpClient(handler, "http://127.0.0.1:1#token=AAA,http://127.0.0.1:99#token=BBB");
+        var rs = await client.InvokeAsync<Object>(HttpMethod.Get, "api/info", null);
+
+        Assert.Equal("ok", rs + "");
+        Assert.Equal(2, calls.Count);
+
+        // 第二个节点必须收到它自己的令牌，而不是上一个节点的
+        Assert.Equal(99, calls[1].Port);
+        Assert.Equal("Bearer BBB", calls[1].Auth);
+
+        // 节点令牌不再写进客户端级共享属性
+        Assert.Null(client.Token);
+    }
+
+    [Fact(DisplayName = "用户手动设置令牌不受节点令牌影响")]
+    public async Task UserToken_NotOverwritten()
+    {
+        var handler = new MockHttpMessageHandler();
+        var client = new TestableApiHttpClient(handler, "http://127.0.0.1:99")
+        {
+            Token = "USER"
+        };
+
+        var rs = await client.InvokeAsync<Object>(HttpMethod.Get, "api/info", null);
+
+        Assert.NotNull(rs);
+        Assert.Equal("Bearer USER", handler.LastRequest?.Headers.Authorization?.ToString());
+        Assert.Equal("USER", client.Token);
+    }
     #endregion
 }

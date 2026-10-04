@@ -570,6 +570,11 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <returns></returns>
     protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, ServiceEndpoint service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
     {
+        // 节点自带访问令牌（地址中的 #token=）在发送前按选中节点附加：
+        // 不再写进客户端级共享属性 Token，避免多节点各自带令牌时串门、或首个请求漏带令牌
+        if (request.Headers.Authorization == null && !service.Token.IsNullOrEmpty())
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", service.Token);
+
         var filter = Filter;
         if (filter != null) await filter.OnRequest(client, request, this, cancellationToken).ConfigureAwait(false);
 
@@ -599,7 +604,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             {
                 var c = CreateClient();
                 c.BaseAddress = service.Address;
-                if (!service.Token.IsNullOrEmpty()) Token = service.Token;
                 return c;
             });
             service.CreateTime = DateTime.Now;

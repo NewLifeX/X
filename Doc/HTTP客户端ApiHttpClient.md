@@ -127,6 +127,8 @@ client.Add("service1", "http://api1.example.com#token=token_for_api1");
 client.Add("service2", "http://api2.example.com#token=token_for_api2");
 ```
 
+> 节点自带的 Token 在发送时按**选中的节点**附加（`Authorization: Bearer ...`），互不串用；它不会写入 `client.Token` 属性，也不影响手动设置的 `Token`/`Authentication`（请求已带授权头时节点 Token 不再覆盖）。
+
 > **优先级**：`Token` 属性优先于 `Authentication` 属性。
 
 ## 响应解析
