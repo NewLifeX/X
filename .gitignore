@@ -30,3 +30,6 @@ BenchmarkDotNet.Artifacts/
 /Benchmark/NetLoadTest/results
 /*-wt/
 /.wt-*/
+
+# 审计/分析类临时产物（仅本地保留，不入库）
+/.tmp/
