@@ -913,6 +913,21 @@ public class ApiHttpClientUnitTests
         }
     }
 
+    [Fact(DisplayName = "空服务列表_抛带消息异常而不是静默成功")]
+    public async Task EmptyServices_ThrowsWithMessage()
+    {
+        var client = new ApiHttpClient();
+
+        // 普通调用：旧实现抛无消息 InvalidOperationException（注释还写“无法到达这里”）
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => client.InvokeAsync<String>("api/info", null));
+        Assert.Contains("service address", ex.Message);
+
+        // 下载：旧实现循环零次直接静默返回，调用方误以为成功
+        var file = Path.Combine(Path.GetTempPath(), "empty-dl.bin");
+        var ex2 = await Assert.ThrowsAsync<InvalidOperationException>(() => client.DownloadFileAsync("http://x/file", file, null));
+        Assert.Contains("service address", ex2.Message);
+    }
+
     [Fact(DisplayName = "竞速下载_保存失败_响应仍被释放")]
     public async Task RaceDownload_SaveFailure_DisposesResponse()
     {

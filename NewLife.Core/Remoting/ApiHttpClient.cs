@@ -339,6 +339,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     {
         var returnType = typeof(TResult);
         var svrs = Services;
+        if (svrs.Count == 0) throw new InvalidOperationException("No service address configured!");
 
         // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
         using var span = Tracer?.NewSpan(action, args);
@@ -423,6 +424,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     public virtual async Task DownloadFileAsync(String requestUri, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
     {
         var svrs = Services;
+        if (svrs.Count == 0) throw new InvalidOperationException("No service address configured!");
 
         // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
         var action = requestUri;
