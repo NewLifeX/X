@@ -1024,18 +1024,19 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     protected override Int32 OnSend(ReadOnlySpan<Byte> data) => DirectSend(data);
 
     #region 发送泵
-    private CancellationTokenSource? _pumpCts;
-    private Task? _pumpTask;
-    private Int32 _pumpThreadId;
+    // 发送泵（出站队列）与 SessionBase 的消息泵（入站定界）是两套独立机制，字段用 send 前缀与本类内的泵状态区分
+    private CancellationTokenSource? _sendPumpCts;
+    private Task? _sendPumpTask;
+    private Int32 _sendPumpThreadId;
 
     /// <summary>启动发送泵。专用线程（LongRunning）：同步泵不能占用线程池线程，否则同步入队方在等待水位时把线程池占满，泵与入队方会互相等待而死锁</summary>
     /// <param name="queue">发送队列</param>
     private void StartSendPump(Pipe queue)
     {
         var cts = new CancellationTokenSource();
-        _pumpCts = cts;
+        _sendPumpCts = cts;
 
-        _pumpTask = Task.Factory.StartNew(() => SendPumpLoop(queue, cts.Token), cts.Token,
+        _sendPumpTask = Task.Factory.StartNew(() => SendPumpLoop(queue, cts.Token), cts.Token,
             TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
     }
 
@@ -1047,9 +1048,9 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         // 结束写侧：挂起的 ReadAsync 立即返回完成，入队方的水位等待随之结束
         queue.Writer.Complete();
 
-        var task = _pumpTask;
+        var task = _sendPumpTask;
         if (task == null || task.IsCompleted) return;
-        if (Environment.CurrentManagedThreadId == _pumpThreadId) return;
+        if (Environment.CurrentManagedThreadId == _sendPumpThreadId) return;
 
         // 限时等待：泵可能正阻塞在写锁或慢对端的套接字写上。超时先中止泵再给一小段收尾时间，
         // 仍不退出就放手——残余缓冲随管道回收，泵持有的帧自带引用计数，不会读到已归还的内存。
@@ -1058,7 +1059,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         {
             if (!task.Wait(1000))
             {
-                _pumpCts?.Cancel();
+                _sendPumpCts?.Cancel();
                 task.Wait(1000);
             }
         }
@@ -1070,7 +1071,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     /// <param name="cancellationToken">取消令牌。会话关闭时触发</param>
     private void SendPumpLoop(Pipe queue, CancellationToken cancellationToken)
     {
-        _pumpThreadId = Environment.CurrentManagedThreadId;
+        _sendPumpThreadId = Environment.CurrentManagedThreadId;
 
         var reader = queue.Reader;
         try
