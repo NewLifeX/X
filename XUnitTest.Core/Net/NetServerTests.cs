@@ -67,7 +67,7 @@ public class NetServerTests
     public void TcpUdpServerStartStop()
     {
         // 显式指定端口（生产即如此使用）：避免 Port=0 时先启动协议选中的端口对另一协议不可绑
-        var port = TestPort.PickDual(22000);
+        var port = TestPort.PickDual(26000);
         using var server = new NetServer
         {
             Port = port,

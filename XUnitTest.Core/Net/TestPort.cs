@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using NewLife;
+using NewLife.Net;
 
 namespace XUnitTest.Net;
 
@@ -17,7 +19,11 @@ internal static class TestPort
     private static readonly Int32 _host = GetHostIndex();
 
     /// <summary>在用例专属候选段内取一个 TCP 与 UDP 均可绑定的显式端口</summary>
-    /// <param name="basePort">用例专属基址（取 2xxxx 低段，避开 Windows 高段动态/保留区）</param>
+    /// <remarks>
+    /// 候选段 = basePort + 宿主序号×100，宽 50。各用例基址以 500 为间隔取值（26xxx 低段，
+    /// 避开 Syncthing 22000 等常见服务与 Windows 高段动态/保留区），保证"用例 × 宿主"两两不相交。
+    /// </remarks>
+    /// <param name="basePort">用例专属基址</param>
     /// <returns>可同时用于 TCP 与 UDP 监听的端口</returns>
     public static Int32 PickDual(Int32 basePort)
     {
@@ -32,6 +38,13 @@ internal static class TestPort
 
     private static Boolean CanBind(Int32 port, SocketType type)
     {
+        var netType = type == SocketType.Stream ? NetType.Tcp : NetType.Udp;
+
+        // 与 NetServer.CreateServer 相同口径：已有监听者的端口一律跳过。
+        // 对端可能设置了 SO_REUSEADDR（如 Syncthing 等 Go 程序），此时裸 bind 探测会误判“可绑”，
+        // 而 NetServer 会按 CheckPort 拒绝该地址，导致“Failed to listen to all ports”
+        if (IPAddress.Any.CheckPort(netType, port)) return false;
+
         var protocol = type == SocketType.Stream ? System.Net.Sockets.ProtocolType.Tcp : System.Net.Sockets.ProtocolType.Udp;
         using var socket = new Socket(AddressFamily.InterNetwork, type, protocol);
         try

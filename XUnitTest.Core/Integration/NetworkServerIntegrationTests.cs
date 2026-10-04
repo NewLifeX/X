@@ -24,7 +24,7 @@ public class NetworkServerFixture : IDisposable
     {
         var server = new MyNetServer
         {
-            Port = TestPort.PickDual(25000),
+            Port = TestPort.PickDual(27500),
             AddressFamily = AddressFamily.InterNetwork,
             Log = ServerLog,
             SessionLog = ServerLog,

@@ -24,7 +24,7 @@ public class EchoServerFixture : IDisposable
     {
         var server = new EchoNetServer
         {
-            Port = TestPort.PickDual(24000),
+            Port = TestPort.PickDual(27000),
             AddressFamily = AddressFamily.InterNetwork,
             Log = ServerLog,
             SessionLog = ServerLog,
