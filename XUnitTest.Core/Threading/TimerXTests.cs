@@ -53,7 +53,8 @@ public class TimerXTests
 
         var ms = Runtime.TickCount64;
         ms = ms + 100 - timer.NextTick;
-        Assert.InRange(ms, 0, 5);
+        // Environment.TickCount64 在 Windows 上按系统时钟节拍（15.6ms）量化，测量误差最大可达一个节拍
+        Assert.InRange(ms, 0, 20);
 
         // 留一点时间让定时器至少触发一次
         Thread.Sleep(300);
@@ -77,7 +78,8 @@ public class TimerXTests
 
         var ms = Runtime.TickCount64;
         ms = ms + 100 - timer.NextTick;
-        Assert.InRange(ms, 0, 5);
+        // Environment.TickCount64 在 Windows 上按系统时钟节拍（15.6ms）量化，测量误差最大可达一个节拍
+        Assert.InRange(ms, 0, 20);
 
         // 留一点时间让定时器至少触发一次
         Thread.Sleep(300);
