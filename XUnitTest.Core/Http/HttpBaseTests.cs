@@ -38,6 +38,21 @@ public class HttpBaseTests
         Assert.Equal(expectInvalid, req.InvalidContentLength);
     }
 
+    [Fact(DisplayName = "Transfer-Encoding存在时_主体不按Content-Length截断")]
+    public void TransferEncoding_OverridesContentLength()
+    {
+        // RFC 9112 §6.1：TE 覆盖 CL。按 CL 截断会把同轮其余字节整段丢掉——服务端分块解码拿不到完整流
+        // （实测请求悬停），故 TE 存在时主体为头部之后的全部可用字节，消耗量即整包长度
+        var raw = "POST /cs HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\nContent-Length: 5\r\n\r\n5\r\nhello\r\n0\r\n\r\n";
+        var bytes = raw.GetBytes();
+
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket(bytes)));
+
+        Assert.Equal("5\r\nhello\r\n0\r\n\r\n", req.Body!.ToStr());
+        Assert.Equal(bytes.Length, req.ConsumedLength);
+    }
+
     [Fact(DisplayName = "请求同实例二次解析_上一条头部不残留")]
     public void Reparse_SameInstance_ClearsStaleHeaders()
     {

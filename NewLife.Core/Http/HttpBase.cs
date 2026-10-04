@@ -73,7 +73,8 @@ public abstract class HttpBase : IDisposable
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析请求头。主体以共享切片截取，不释放入参</summary>
-    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。头部可跨节点（链式帧/跨接收段）：前缀与空行均跨段查找，跨段时物化头部区域后解析。</remarks>
+    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。头部可跨节点（链式帧/跨接收段）：前缀与空行均跨段查找，跨段时物化头部区域后解析。
+    /// Transfer-Encoding 存在时不按 Content-Length 截断实体（RFC 9112 §6.1：TE 覆盖 CL），主体为头部之后的全部可用字节。</remarks>
     /// <param name="pk">数据包</param>
     /// <returns>是否解析成功</returns>
     public Boolean Parse(IPacket pk)
@@ -163,11 +164,13 @@ public abstract class HttpBase : IDisposable
 
         // 截取主体（跳过 CRLFCRLF 共4字节）：共享切片独立持有引用；入参句柄由调用方释放。
         // 声明了 Content-Length 时按它截断：同一轮数据里其后紧跟的字节（客户端多发、或同连接的下一请求）
-        // 不属于本请求，否则会被当业务参数/JSON 解析，并写进链路追踪
+        // 不属于本请求，否则会被当业务参数/JSON 解析，并写进链路追踪。
+        // Transfer-Encoding 存在时以它为准（RFC 9112 §6.1：TE 覆盖 Content-Length）：此时实体边界不由 CL 决定，
+        // 按 CL 截断会把同轮其余字节整段丢掉（服务端分块解码拿不到完整流、请求悬停）
         var bodyStart = p + 4;
         var available = pk.Total - bodyStart;
         // 声明长度小于本轮可用字节时只截取声明长度
-        var declared = ContentLength >= 0 && ContentLength < available;
+        var declared = Headers["Transfer-Encoding"].IsNullOrEmpty() && ContentLength >= 0 && ContentLength < available;
 
         // 旧主体可能是上一次解析（同实例复用）或调用方置入的拥有句柄：覆盖前先归还，
         // 否则它持有的池缓冲引用计数永不归零（与 Dispose 将 Body 视为拥有句柄的口径一致）

@@ -180,6 +180,29 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 200", text);
     }
 
+    [Fact(DisplayName = "HTTP服务端_分块体与ContentLength同现_单轮到达仍正常解码")]
+    public async Task ChunkedBody_WithContentLength_SingleRound_Decoded()
+    {
+        // RFC 9112 §6.1：TE 覆盖 CL。旧实现按 CL 截断实体，再把截断前缀当分块流解码，同轮其余字节被丢弃，
+        // 请求永久悬停（实测无响应）。本用例锁定既有决策「不拒绝、按 chunked 处理」真正成立
+        var tcs = new TaskCompletionSource<String>();
+        _server.MapPost("/chunked-cl", ctx => tcs.TrySetResult(ctx.Request.Body?.ToStr() ?? ""));
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var head = "POST /chunked-cl HTTP/1.1\r\nHost: 127.0.0.1\r\nTransfer-Encoding: chunked\r\nContent-Length: 5\r\n\r\n";
+        var body = "5\r\nhello\r\n0\r\n\r\n";
+        await ns.WriteAsync((head + body).GetBytes());
+        await ns.FlushAsync();
+
+        Assert.Equal("hello", await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+
+        var text = await ReadUntilAsync(ns, t => t.Contains("\r\n\r\n"));
+        Assert.StartsWith("HTTP/1.1 200", text);
+    }
+
     [Fact(DisplayName = "HTTP服务端_分块请求体_跨轮分片_解码后交付")]
     public async Task ChunkedBody_SplitAcrossRounds_Decoded()
     {
