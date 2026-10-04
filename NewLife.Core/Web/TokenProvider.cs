@@ -63,6 +63,7 @@ public class TokenProvider
     }
 
     /// <summary>尝试解码令牌，即使失败，也会返回用户信息和有效时间</summary>
+    /// <remarks>输入畸形（Base64 非法等）返回 false 而不抛异常</remarks>
     /// <param name="token">令牌</param>
     /// <param name="user">用户信息</param>
     /// <param name="expire">有效时间</param>
@@ -81,8 +82,21 @@ public class TokenProvider
             expire = default;
             return false;
         }
-        var data = token[..p].ToBase64();
-        var sig = token[(p + 1)..].ToBase64();
+
+        // Base64 畸形（非法字符/坏填充）按无效令牌处理：输入来自调用方或攻击者，不能让异常穿透
+        Byte[] data;
+        Byte[] sig;
+        try
+        {
+            data = token[..p].ToBase64();
+            sig = token[(p + 1)..].ToBase64();
+        }
+        catch (FormatException)
+        {
+            user = "";
+            expire = default;
+            return false;
+        }
 
         // 拆分数据和有效期
         var str = data.ToStr();

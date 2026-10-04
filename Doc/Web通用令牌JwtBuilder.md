@@ -169,6 +169,8 @@ public Boolean TryDecode(String token, out String? message)
 
 > **算法钉死**：显式设置 `Algorithm` 后，验证时以它为准，令牌头部声明的算法不一致直接失败；未显式设置时仍按令牌头部的 `alg` 自动识别（向后兼容）。使用 RS/ES 等非对称算法时**必须显式设置 `Algorithm`**，否则令牌可被降级为 HS256 并用公开的公钥伪造签名。解析出的令牌算法可通过只读属性 `TokenAlgorithm` 查看。
 
+> 令牌格式非法（三段式不成立、Base64 畸形、未知算法等）时返回 false 并给出失败消息，不抛异常。
+
 **示例**：
 ```csharp
 var builder = new JwtBuilder

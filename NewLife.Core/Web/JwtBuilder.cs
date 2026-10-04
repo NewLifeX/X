@@ -162,8 +162,20 @@ public class JwtBuilder : IExtend
 
         TokenAlgorithm = null;
 
+        // 头部与载荷。Base64/UTF8 畸形一律按"格式不正确"处理：令牌来自调用方或攻击者，不能让异常穿透
+        IDictionary<String, Object?>? header;
+        IDictionary<String, Object?>? body;
+        try
+        {
+            header = ts[0].ToBase64().ToStr().DecodeJson();
+            body = ts[1].ToBase64().ToStr().DecodeJson();
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+
         // 头部
-        var header = ts[0].ToBase64().ToStr().DecodeJson();
         if (header == null) return null;
 
         if (header.TryGetValue("alg", out var alg) && alg != null)
@@ -176,7 +188,6 @@ public class JwtBuilder : IExtend
         if (header.TryGetValue("typ", out var typ)) Type = typ + "";
 
         // 主体
-        var body = ts[1].ToBase64().ToStr().DecodeJson();
         if (body != null)
         {
             Items = body;
@@ -194,6 +205,7 @@ public class JwtBuilder : IExtend
     }
 
     /// <summary>解码令牌，得到目标对象</summary>
+    /// <remarks>输入畸形（Base64、未知算法等）不抛异常，一律返回 false 并给出失败消息</remarks>
     /// <param name="token"></param>
     /// <param name="message"></param>
     /// <returns></returns>
@@ -267,8 +279,20 @@ public class JwtBuilder : IExtend
         {
             if (dec != null)
             {
+                // 签名段可能畸形（攻击者可控），解码失败按格式不正确处理
+                Byte[] sig;
+                try
+                {
+                    sig = ts[2].ToBase64();
+                }
+                catch (FormatException)
+                {
+                    message = "JWT格式不正确";
+                    return false;
+                }
+
                 // 失败时给出具体消息，成功时保持 null（调用方约定）
-                var ok = dec(data, Secret, ts[2].ToBase64());
+                var ok = dec(data, Secret, sig);
                 if (!ok) message = "签名验证失败";
 
                 return ok;
@@ -284,7 +308,9 @@ public class JwtBuilder : IExtend
             }
         }
 
-        throw new InvalidOperationException($"Unsupported algorithm [{Algorithm}]");
+        // 未知算法按验证失败处理：令牌头部由攻击者可控，不能抛异常（Try 语义 + 避免未处理异常放大为 500）
+        message = $"不支持的算法[{Algorithm}]";
+        return false;
     }
     #endregion
 

@@ -107,6 +107,8 @@ public Boolean TryDecode(String token, out String? user, out DateTime expire)
 3. 使用公钥验证 DSA 签名
 4. 解析 `user,unixTimestamp`，检查过期时间
 
+> 输入畸形（缺少分隔符、Base64 非法等）时返回 false 而不抛异常，便于鉴权入口把它当作“无效令牌”处理。
+
 ## 部署模式
 
 ### 单机模式（私钥本地签发 + 验证）

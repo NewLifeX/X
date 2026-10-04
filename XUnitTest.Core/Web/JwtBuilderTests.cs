@@ -579,4 +579,35 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
         Assert.True(jwt.TryDecode(token, out _));
         Assert.Equal("HS256", jwt.TokenAlgorithm);
     }
+
+    [Fact(DisplayName = "畸形令牌不抛异常，一律返回失败")]
+    public void MalformedToken_NoThrow()
+    {
+        var jwt = new JwtBuilder { Secret = "1234567890" };
+        var h = "eyJhbGciOiJIUzI1NiJ9";
+        var cases = new[] { "abc", "a.b.c", "!!!.@@@.###", h + ".!!!.xxx", h + ".e30.", h + ".e30.@@@" };
+        foreach (var token in cases)
+        {
+            // Try 语义：非法 Base64 只应返回 false，不能抛 FormatException
+            var rs = jwt.TryDecode(token, out var msg);
+            Assert.False(rs);
+            Assert.NotNull(msg);
+        }
+    }
+
+    [Fact(DisplayName = "未知算法不抛异常，按验证失败处理")]
+    public void UnknownAlgorithm_NoThrow()
+    {
+        var jwt = new JwtBuilder { Secret = "1234567890" };
+        foreach (var alg in new[] { "none", "foo", "HS999" })
+        {
+            var header = $"{{\"alg\":\"{alg}\",\"typ\":\"JWT\"}}".GetBytes().ToUrlBase64();
+            var body = "{\"sub\":\"admin\",\"exp\":4102444800}".GetBytes().ToUrlBase64();
+            var token = $"{header}.{body}.AAAA";
+
+            var rs = jwt.TryDecode(token, out var msg);
+            Assert.False(rs);
+            Assert.NotNull(msg);
+        }
+    }
 }
