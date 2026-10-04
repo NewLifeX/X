@@ -262,3 +262,5 @@ server.Received += (sender, e) =>
 - **服务端会话隔离**：每条连接对应一个 `WebSocketSession` 实例，不要在多个 Session 之间共享状态，否则需加锁。
 - **消息分片**：`Fin=false` 的数据帧按 RFC 6455 §5.4 累积，末片（FIN=1）合并为完整消息后交付；控制帧不可分片。应用层发送时无需自行分片。
 - **帧校验**：客户端帧必须带掩码，控制帧必须 `Fin=true` 且负载不超过 125 字节；RSV1~RSV3 非零或保留 opcode 视为损坏帧，连接以 1002 关闭。
+- **关闭码按 RFC 口径区分**：协议错误（含孤立续片）回 `1002`、文本消息负载非法 UTF-8 回 `1007`、单帧或分片消息超上限回 `1009`；服务端的单帧上限（`WebSocket.MaxFrameSize`，默认 16M，0 为不限）对"整帧一次到达"的帧同样生效，客户端含 `WebSocketClient` 同口径。
+- **心跳与销毁**：`WebSocketClient` 的心跳 Ping 由 `TimerX` 驱动（`KeepAlive`，默认 120 秒；`PongTimeout` 大于 0 时检测 Pong 超时），连接关闭或客户端 `Dispose` 都会释放该定时器，释放后不再发送 Ping。
