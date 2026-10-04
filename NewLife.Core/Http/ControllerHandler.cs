@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Remoting;
@@ -97,7 +98,18 @@ public class ControllerHandler : IHttpHandler
         if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{type.FullName}]");
 
         var args = ParameterBinder.Bind(method, context);
-        var result = method.Invoke(controller, args);
+        Object? result;
+        try
+        {
+            result = method.Invoke(controller, args);
+        }
+        catch (TargetInvocationException tie) when (tie.InnerException != null)
+        {
+            // 同步方法里的业务异常会被反射包成 TargetInvocationException；
+            // 还原原始异常，让 ApiException/HttpException 的状态码映射与日志看到真实业务错误（异步路径经 awaiter 本来就是原始异常）
+            ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
+            throw;
+        }
         if (result is Task task) result = TaskHelper.GetTaskResult(task);
         if (result != null)
             context.Response.SetResult(result);

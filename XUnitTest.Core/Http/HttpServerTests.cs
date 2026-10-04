@@ -1700,6 +1700,60 @@ Content-Type: application/octet-stream
         /// <summary>与挂载前缀末段同名，用于验证方法名定位不按路径段序号猜测</summary>
         public String User() => "wrong";
     }
+
+    [Fact(DisplayName = "控制器_同步方法抛ApiException_状态码与消息不被反射包装")]
+    public async Task Controller_SyncApiException_Mapped()
+    {
+        _server.MapController<ThrowController>("/throw");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+
+        // 同步方法：反射调用包装过的异常必须还原，否则 404 会变成 500 + 包装消息
+        var res = await client.GetAsync("/throw/Sync");
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        Assert.Equal("user 123 not found", await res.Content.ReadAsStringAsync());
+
+        // 异步方法：经 awaiter 本来就是原始异常，作为回归保护
+        res = await client.GetAsync("/throw/Async");
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        Assert.Equal("user 123 not found", await res.Content.ReadAsStringAsync());
+    }
+
+    [Fact(DisplayName = "控制器_同步方法抛HttpException_按状态码返回")]
+    public async Task Controller_SyncHttpException_Mapped()
+    {
+        _server.MapController<ThrowController>("/throw");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+
+        var res = await client.GetAsync("/throw/Forbidden");
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact(DisplayName = "委托_同步抛ApiException_状态码映射")]
+    public async Task Delegate_SyncApiException_Mapped()
+    {
+        _server.MapGet<String>("/boom-del", () => throw new ApiException(404, "delegate not found"));
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+
+        var res = await client.GetAsync("/boom-del");
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        Assert.Equal("delegate not found", await res.Content.ReadAsStringAsync());
+    }
+
+    class ThrowController
+    {
+        public String Sync() => throw new ApiException(404, "user 123 not found");
+
+        public async Task<String> Async()
+        {
+            await Task.Yield();
+            throw new ApiException(404, "user 123 not found");
+        }
+
+        public String Forbidden() => throw new HttpException(HttpStatusCode.Forbidden, "forbidden");
+    }
     #endregion
 
     #endregion

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -50,11 +51,21 @@ public class DelegateHandler : IHttpHandler
     {
         var mi = handler.Method;
         var pis = mi.GetParameters();
-        if (pis.Length == 0) return handler.DynamicInvoke();
+        try
+        {
+            if (pis.Length == 0) return handler.DynamicInvoke();
 
-        var args = ParameterBinder.Bind(mi, context);
+            var args = ParameterBinder.Bind(mi, context);
 
-        return handler.DynamicInvoke(args);
+            return handler.DynamicInvoke(args);
+        }
+        catch (TargetInvocationException tie) when (tie.InnerException != null)
+        {
+            // 同步委托抛出的业务异常会被 DynamicInvoke 包成 TargetInvocationException；
+            // 还原原始异常，让 ApiException/HttpException 的状态码映射与日志看到真实业务错误
+            ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
+            throw;
+        }
     }
 }
 
