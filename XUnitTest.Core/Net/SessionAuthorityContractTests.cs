@@ -14,7 +14,7 @@ namespace XUnitTest.Net;
 /// Disposed 是终态权威、Sessions 是存在性权威、Active 只表示传输可用；
 /// “Active=false 但未释放、仍在集合里”只能是必然收敛的瞬态。
 /// </remarks>
-[Collection("Net")]
+[Collection("Net.B")]
 public class SessionAuthorityContractTests
 {
     #region 工具

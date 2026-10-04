@@ -12,7 +12,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>网络异步操作测试</summary>
-[Collection("Net")]
+[Collection("Net.A")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetAsyncTests
 {

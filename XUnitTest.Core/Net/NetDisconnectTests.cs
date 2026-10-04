@@ -9,7 +9,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>连接断开路径测试：服务端踢出、对端 RST 强制重置、拉取等待中对端断开</summary>
-[Collection("Net")]
+[Collection("Net.C")]
 public class NetDisconnectTests
 {
     /// <summary>服务端主动关闭会话，客户端应确定性感知断开</summary>

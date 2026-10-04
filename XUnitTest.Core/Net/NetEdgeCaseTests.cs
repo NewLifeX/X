@@ -11,7 +11,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>网络库边界条件和并发测试</summary>
-[Collection("Net")]
+[Collection("Net.C")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetEdgeCaseTests
 {

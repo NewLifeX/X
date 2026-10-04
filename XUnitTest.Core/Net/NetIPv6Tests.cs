@@ -8,7 +8,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>IPv6 回环测试：TCP 大报文回显与 UDP 回显</summary>
-[Collection("Net")]
+[Collection("Net.C")]
 public class NetIPv6Tests
 {
     /// <summary>::1 上 1MB TCP 回显，逐字节一致</summary>

@@ -11,7 +11,7 @@ using Xunit;
 namespace XUnitTest.Net
 {
     /// <summary>裸 Socket 层基础收发冒烟测试</summary>
-    [Collection("Net")]
+    [Collection("Net.D")]
     public class NetSeverTests
     {
         [Fact(DisplayName = "裸Tcp_客户端发字节_服务端回显一致")]

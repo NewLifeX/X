@@ -11,7 +11,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>TcpSession 流式收发（出站单出口/流式发送/关闭排空）回环测试</summary>
-[Collection("Net")]
+[Collection("Net.A")]
 public class TcpSessionStreamTests
 {
     #region 工具

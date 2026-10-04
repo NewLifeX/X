@@ -9,7 +9,7 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
-[Collection("Net")]
+[Collection("Net.D")]
 public class ISocketRemoteTests
 {
     [Fact(DisplayName = "发送流_短读流_不截断且完整到达")]

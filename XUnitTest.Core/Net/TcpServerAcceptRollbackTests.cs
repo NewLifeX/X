@@ -12,7 +12,7 @@ namespace XUnitTest.Net;
 /// 会话入集合后，业务回调（CreateHandler/Init/Connected）或会话启动（SSL认证、启动接收环）抛异常时，
 /// 会话必须立即移出集合并释放；否则它会一直留在集合里、Disconnected 永不触发、连接悬挂到会话超时。
 /// </remarks>
-[Collection("Net")]
+[Collection("Net.B")]
 public class TcpServerAcceptRollbackTests
 {
     #region 工具

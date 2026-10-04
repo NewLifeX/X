@@ -8,7 +8,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>NetHelper 缓存隔离测试</summary>
-[Collection("Net")]
+[Collection("Net.A")]
 public class NetHelperTests
 {
     [Fact(DisplayName = "网络变化只清自己的缓存_不动全局缓存")]

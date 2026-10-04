@@ -13,7 +13,7 @@ namespace XUnitTest.Net;
 /// 服务端在会话入集合之前先 Start 并触发 NewSession（用户代码在此订阅 Received），
 /// 这两步抛异常时会话既不在集合、也无人释放；同一端点的每个数据报都会再新建一个，形成持续泄漏。
 /// </remarks>
-[Collection("Net")]
+[Collection("Net.C")]
 public class UdpServerCreateSessionRollbackTests
 {
     #region 工具

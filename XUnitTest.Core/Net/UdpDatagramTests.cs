@@ -9,7 +9,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>UDP 报文完整性测试：大报文与 MTU 边界回环回显，逐字节校验</summary>
-[Collection("Net")]
+[Collection("Net.D")]
 public class UdpDatagramTests
 {
     [Fact(DisplayName = "UDP空数据报_不关闭服务端_后续收发正常")]

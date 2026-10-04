@@ -9,7 +9,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>会话数据管道（IStreamSession.Pipe 流式接收）测试</summary>
-[Collection("Net")]
+[Collection("Net.B")]
 public class SessionPipeTests
 {
     [Fact]

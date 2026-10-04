@@ -14,7 +14,7 @@ namespace XUnitTest.Http;
 /// <para>分块响应体默认走发送队列出口（承载会话是活动 TcpSession 时），句柄所有权随入队转移给管道。</para>
 /// <para>其余情形退化为借用语义的直发：句柄不转移，必须由本层归还，否则每块泄漏一个池缓冲。UDP 承载的 HttpSession 即走此路（UdpSession 不是 TcpSession）。</para>
 /// </remarks>
-[Collection("Net")]
+[Collection("Net.D")]
 public class HttpChunkedSendTests
 {
     #region 辅助

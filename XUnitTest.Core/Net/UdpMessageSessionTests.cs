@@ -13,7 +13,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>UDP 协议模式（数据报定界 + 消息分发）实网测试</summary>
-[Collection("Net")]
+[Collection("Net.C")]
 public class UdpMessageSessionTests
 {
     #region 宿主

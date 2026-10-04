@@ -13,7 +13,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>WebSocket 客户端握手（打开链路内异步直读、超时失败）测试</summary>
-[Collection("Net")]
+[Collection("Net.D")]
 public class WebSocketHandshakeTests
 {
     [Fact]

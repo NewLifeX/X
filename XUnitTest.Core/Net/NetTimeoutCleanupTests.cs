@@ -10,7 +10,7 @@ namespace XUnitTest.Net;
 
 /// <summary>会话资源回收测试：不活动会话超时后由会话集合自动清理，连接资源得到释放</summary>
 /// <remarks>通过把 ClearPeriod 缩小到 1 秒缩短等待，避免默认 10 秒清理周期拖慢用例</remarks>
-[Collection("Net")]
+[Collection("Net.B")]
 public class NetTimeoutCleanupTests
 {
     /// <summary>UDP：客户端停止发包后，超时不活动会话应从会话集合清除</summary>

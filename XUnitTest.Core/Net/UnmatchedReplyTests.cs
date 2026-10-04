@@ -12,7 +12,7 @@ namespace XUnitTest.Net;
 /// 服务端主动推送 Reply=true 的应答，而客户端没有挂起请求（匹配队列为空）时：
 /// 事件仍全量可见，匹配未命中路径必须安全归还拥有缓冲，不能出现二次归还或状态污染。
 /// </remarks>
-[Collection("Net")]
+[Collection("Net.A")]
 public class UnmatchedReplyTests
 {
     [Theory(DisplayName = "无等待方应答：事件全量可见且缓冲安全归还")]

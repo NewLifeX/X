@@ -11,7 +11,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>NetClient 应用层网络客户端单元测试</summary>
-[Collection("Net")]
+[Collection("Net.A")]
 public class NetClientTests
 {
     #region 构造与属性

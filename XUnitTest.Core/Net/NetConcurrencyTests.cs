@@ -8,7 +8,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>并发连接规模测试：多客户端并行建立连接并回环收发</summary>
-[Collection("Net")]
+[Collection("Net.A")]
 public class NetConcurrencyTests
 {
     /// <summary>100 个客户端并行连接并 echo，全部成功且服务端保持可用</summary>

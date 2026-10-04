@@ -8,7 +8,7 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>裸 Socket 层鲁棒性测试：全双工大流量互发、载荷边界矩阵、反复断开后服务可用性</summary>
-[Collection("Net")]
+[Collection("Net.D")]
 public class NetRobustnessTests
 {
     #region 全双工

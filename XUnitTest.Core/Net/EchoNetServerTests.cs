@@ -4,7 +4,7 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
-[Collection("Net")]
+[Collection("Net.D")]
 public class EchoNetServerTests
 {
     [Fact]
