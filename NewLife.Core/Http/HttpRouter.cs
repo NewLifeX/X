@@ -1,8 +1,11 @@
 ﻿namespace NewLife.Http;
 
+using System.Web;
+
 /// <summary>参数化HTTP路由器，支持 {param}、{param?}、{*path} 路由模式</summary>
 /// <remarks>
-/// 路由优先级：精确匹配 &gt; 参数化匹配 &gt; 通配符匹配。
+/// 路由优先级：精确匹配 &gt; 参数化匹配 &gt; 通配符匹配；同类模式之间按**字面段数量从多到少**排序，
+/// 字面段相同则保持注册顺序（先注册优先）。因此 <c>/api/{controller}/{id}</c> 不会遮住后注册的 <c>/api/users/{id}</c>。
 /// 
 /// 路由模式示例：
 /// - /api/users/{id}          → 匹配 /api/users/123，参数 id=123
@@ -10,6 +13,7 @@
 /// - /api/files/{*path}       → 匹配 /api/files/a/b/c，参数 path=a/b/c
 /// - /api/{controller}/{action} → 匹配 /api/user/info，参数 controller=user, action=info
 /// </remarks>
+/// <remarks>路由参数值按百分号解码（与查询串参数口径一致）；通配参数逐段解码后以 <c>/</c> 连接，段内的 <c>%2F</c> 不会改变段边界</remarks>
 public class HttpRouter
 {
     private readonly List<RouteEntry> _routes = [];
@@ -17,6 +21,8 @@ public class HttpRouter
     /// <summary>注册路由</summary>
     /// <param name="pattern">路由模式，如 /api/users/{id}</param>
     /// <param name="handler">关联的处理器</param>
+    /// <remarks>按“字面段数量从多到少”插入，字面段相同者保持注册顺序（先注册优先）：
+    /// 更具体的路由先参与匹配，避免先注册的宽泛模式（如 /api/{controller}/{id}）遮住后注册的具体模式</remarks>
     public void Register(String pattern, IHttpHandler handler)
     {
         if (pattern.IsNullOrEmpty()) throw new ArgumentNullException(nameof(pattern));
@@ -28,7 +34,21 @@ public class HttpRouter
         // 解析路由段
         var segments = ParsePattern(pattern);
 
-        _routes.Add(new RouteEntry(pattern, segments, handler));
+        var entry = new RouteEntry(pattern, segments, handler);
+
+        // 插入排序：占位段（参数/通配）越少越具体，越靠前；同具体度稳定在后（保持注册顺序）
+        var rank = entry.LiteralCount;
+        var index = _routes.Count;
+        for (var i = 0; i < _routes.Count; i++)
+        {
+            if (_routes[i].LiteralCount < rank)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        _routes.Insert(index, entry);
     }
 
     /// <summary>匹配路径并提取参数</summary>
@@ -127,9 +147,11 @@ public class HttpRouter
 
             if (seg.IsWildcard)
             {
-                // 捕获剩余所有段
-                var remaining = String.Join("/", pathSegs, i, pathSegs.Length - i);
-                parameters[seg.Name] = remaining;
+                // 捕获剩余所有段：逐段解码后以 / 连接（段内 %2F 不改变段边界）
+                var parts = new String[pathSegs.Length - i];
+                for (var k = 0; k < parts.Length; k++) parts[k] = HttpUtility.UrlDecode(pathSegs[i + k]);
+
+                parameters[seg.Name] = String.Join("/", parts);
                 return true;
             }
 
@@ -148,8 +170,8 @@ public class HttpRouter
 
             if (seg.IsParameter)
             {
-                // 捕获参数值
-                parameters[seg.Name] = pathSeg.Length > 0 ? pathSeg : null;
+                // 捕获参数值：按百分号解码，与查询串参数口径一致（此前路径参数是未解码原文）
+                parameters[seg.Name] = pathSeg.Length > 0 ? HttpUtility.UrlDecode(pathSeg) : null;
             }
             else
             {
@@ -173,11 +195,21 @@ public class HttpRouter
         public List<RouteSegment> Segments { get; }
         public IHttpHandler Handler { get; }
 
+        /// <summary>字面段数量。越多越具体，匹配时优先</summary>
+        public Int32 LiteralCount { get; }
+
         public RouteEntry(String pattern, List<RouteSegment> segments, IHttpHandler handler)
         {
             Pattern = pattern;
             Segments = segments;
             Handler = handler;
+
+            var count = 0;
+            foreach (var seg in segments)
+            {
+                if (!seg.IsParameter && !seg.IsWildcard) count++;
+            }
+            LiteralCount = count;
         }
     }
 
