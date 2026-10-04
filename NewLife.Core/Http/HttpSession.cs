@@ -47,8 +47,15 @@ public class HttpSession : INetHandler, IDisposable
         "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
     ];
 
-    /// <summary>请求头跨轮分片缓存上限。超出丢弃，防止无效数据持续占用内存</summary>
-    private const Int32 MaxHeadLength = 64 * 1024;
+    /// <summary>请求头长度上限。默认64KB，小于等于0按默认值处理</summary>
+    /// <remarks>头部连同跨轮分片缓存超过此长度即按无效请求回 400 并关闭，防止无效数据持续占用内存与连接</remarks>
+    public Int32 MaxHeadLength
+    {
+        get => _maxHeadLength;
+        set => _maxHeadLength = value > 0 ? value : 64 * 1024;
+    }
+
+    private Int32 _maxHeadLength = 64 * 1024;
 
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
 
@@ -68,11 +75,24 @@ public class HttpSession : INetHandler, IDisposable
     /// <summary>判断本轮数据是否像 HTTP 头部开头且尚不完整（无空行）：需要缓存等待后续分片</summary>
     /// <param name="pk">本轮数据包</param>
     /// <returns>是否应缓存等待后续分片</returns>
-    private static Boolean IsIncompleteHead(IPacket pk)
+    private Boolean IsIncompleteHead(IPacket pk)
     {
         // 首行断言跨段前缀拼读；总长与空行查找均链式感知
         Span<Byte> buf = stackalloc Byte[10];
         return HttpBase.FastValidHeader(pk.GetPrefix(buf, 10)) && pk.Total <= MaxHeadLength && pk.IndexOf(NewLine2) < 0;
+    }
+
+    /// <summary>数据已足够长却明确不像 HTTP 头部开头（前10字节无空格）：不可能再补齐成合法请求头</summary>
+    /// <remarks>HTTP 首行必定在请求方法（或响应版本）之后出现空格，故前10字节内没有空格即已定型；
+    /// 不足10字节时判不出结果，应缓存等待后续分片而不是丢弃</remarks>
+    /// <param name="pk">数据包</param>
+    /// <returns></returns>
+    private static Boolean IsNotHttpHead(IPacket pk)
+    {
+        if (pk.Total < 10) return false;
+
+        Span<Byte> buf = stackalloc Byte[10];
+        return !HttpBase.FastValidHeader(pk.GetPrefix(buf, 10));
     }
     #endregion
 
@@ -161,8 +181,10 @@ public class HttpSession : INetHandler, IDisposable
                     // 请求头未解析成功：缓存不完整头部等待后续分片（头部跨轮），或按无效请求拒绝
                     if (_headCache != null)
                     {
-                        // 缓存的头部片加本轮数据仍不能成头：超限，或含完整空行仍解析失败（无效请求头）——都按 400 拒绝并关闭
-                        if (_headCache.Length > MaxHeadLength || pk.IndexOf(NewLine2) >= 0)
+                        // 缓存的头部片加本轮数据仍不能成头：超限、含完整空行仍解析失败（无效请求头）、
+                        // 或前缀已足够长却不像 HTTP 开头——都按 400 拒绝并关闭
+                        var head = new ArrayPacket(_headCache.GetBuffer(), 0, (Int32)_headCache.Length);
+                        if (_headCache.Length > MaxHeadLength || pk.IndexOf(NewLine2) >= 0 || IsNotHttpHead(head))
                         {
                             _headCache = null;
 
@@ -180,6 +202,20 @@ public class HttpSession : INetHandler, IDisposable
                         // 头部已完整（含空行）却解析失败：聘形请求行或无效头部。
                         // 按 400 拒绝并关闭；此前既不回响应也不关连接，客户端只能等到超时
                         Reject(HttpStatusCode.BadRequest);
+                    }
+                    else if (IsNotHttpHead(pk) || pk.Total > MaxHeadLength)
+                    {
+                        // 无空行，且已足够长却不像 HTTP 开头、或头部已超过长度上限：不可能再补齐成合法请求。
+                        // 旧实现直接丢弃这些字节：既不回响应也不关连接，也不进缓存（停滞判定看不到），
+                        // 对端可用「大块垃圾 + 定期活动」零成本占住连接名额
+                        Reject(HttpStatusCode.BadRequest);
+                    }
+                    else
+                    {
+                        // 前缀不足10字节还判断不出是否为 HTTP 开头：缓存等待后续分片。
+                        // 直接丢弃会让后续补齐的合法头部与残缺前缀之间失步（连接边界前移）
+                        _headCache = new MemoryStream();
+                        pk.CopyTo(_headCache);
                     }
 
                     break;

@@ -346,9 +346,74 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
     }
 
-    [Fact(DisplayName = "HTTP服务端_重复Content-Length_回400")]
-    public async Task DuplicateContentLength_Rejected()
+    [Fact(DisplayName = "HTTP服务端_首行不像HTTP且无空行_回400而非静默丢弃")]
+    public async Task NotHttpHead_ReturnsBadRequest()
     {
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 前10字节内既无空格也无空行：不可能再补齐成合法请求头。
+        // 旧实现直接丢弃这些字节——既不回响应也不关连接，字节也不进缓存（停滞判定看不到），
+        // 对端可用「大块垃圾 + 定期活动」零成本占住连接名额
+        await ns.WriteAsync("NOT_A_HTTP_REQUEST_GARBAGE"u8.ToArray());
+        await ns.FlushAsync();
+
+        var buf = new Byte[4096];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
+    }
+
+    [Fact(DisplayName = "HTTP服务端_单包头部超限且无空行_回400")]
+    public async Task OversizeHead_ReturnsBadRequest()
+    {
+        // 头部上限调到 32 字节：单包即超限（默认 64KB 需要十余万字节才能触发同一分支）
+        using var server = new SmallHeadHttpServer { Port = 0, Log = XTrace.Log };
+        server.Start();
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, server.Port);
+        using var ns = client.GetStream();
+
+        // 像 HTTP 开头但没有空行、单包已超过上限：不可能再补齐成合法请求头，必须回 400 并关闭。
+        // 旧实现直接丢弃这些字节，连接被静默占住
+        await ns.WriteAsync("GET /big HTTP/1.1\r\nHost: 127.0.0.1\r\nX: 1\r\n"u8.ToArray());
+        await ns.FlushAsync();
+
+        var buf = new Byte[4096];
+        var n = await ns.ReadAsync(buf.AsMemory()).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
+    }
+
+    class SmallHeadHttpServer : HttpServer
+    {
+        public Int32 HeadLimit { get; set; } = 32;
+        public override INetHandler? CreateHandler(INetSession session) => new HttpSession { MaxHeadLength = HeadLimit };
+    }
+
+    [Fact(DisplayName = "HTTP服务端_请求行在首个空格前分片_不丢字节")]
+    public async Task SplitBeforeFirstSpace_NotLost()
+    {
+        _server.MapGet("/split", () => "OK");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 首个分片不足10字节且未出现空格，还判断不出是否为 HTTP → 缓存等待后续分片。
+        // 旧实现丢弃该分片，后续补齐的合法请求与残缺前缀之间失步，请求变成无效请求
+        await ns.WriteAsync("GET"u8.ToArray());
+        await ns.FlushAsync();
+        await Task.Delay(100);
+        await ns.WriteAsync(" /split HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"u8.ToArray());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("\r\n\r\n"));
+        Assert.StartsWith("HTTP/1.1 200", resp);
+    }
+
+    [Fact(DisplayName = "HTTP服务端_重复Content-Length_回400")]
+    public async Task DuplicateContentLength_Rejected()    {
         // 同名头部就地覆盖只会剩最后一个值，与前置代理（通常取第一个）理解不一致，构成 CL.CL 走私面；
         // 出现两个 Content-Length（不论大小写、值是否相同）即按协议错误回 400
         _server.MapPost<IHttpContext, String>("/dup", ctx => ctx.Request.Body?.ToStr() ?? "");
