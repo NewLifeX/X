@@ -102,6 +102,9 @@ public class WebSocketClient : TcpSession
             return false;
         }
 
+        // 重开复位关闭标记（连接关闭后本会话可再次打开）
+        SetOpened();
+
         // 订阅 Received 事件以跟踪 Pong 响应（仅事件模式有效）。
         // 先退订再订阅：重连会再次执行本方法，重复订阅会让每个 Pong 触发多次回调
         Received -= OnReceivedPong;
@@ -127,7 +130,7 @@ public class WebSocketClient : TcpSession
         Received -= OnReceivedPong;
 
         // 唤醒接收等待者（连接关闭，ReceiveMessageAsync 返回 null）
-        _receivedSignal?.TrySetResult(false);
+        SetClosed();
 
         return base.OnCloseAsync(reason, cancellationToken);
     }
@@ -139,7 +142,38 @@ public class WebSocketClient : TcpSession
         base.Dispose(disposing);
 
         while (_received.TryDequeue(out var msg)) msg.TryDispose();
-        _receivedSignal?.TrySetResult(false);
+
+        SetClosed();
+    }
+
+    /// <summary>等待信号与关闭标记的互斥锁。等待登记与关闭置位同锁互斥，保证关闭瞬间不丢唤醒</summary>
+    private readonly Object _signalLock = new();
+
+    /// <summary>是否已关闭。关闭后不再登记新的等待，已在等待的立即唤醒</summary>
+    private Boolean _closed;
+
+    /// <summary>标记关闭并唤醒等待者（连接关闭、销毁时调用）</summary>
+    /// <remarks>
+    /// <para>置位与 <see cref="ReceiveMessageAsync"/> 的等待登记同锁互斥：等待者要么在登记时看到 <see cref="_closed"/> 直接返回，
+    /// 要么其信号必然被本次置位看到并唤醒，不会出现“登记晚了一步却没人再唤醒”的永久挂起。</para>
+    /// <para>唤醒在锁外执行，避免 net45 的同步续体（无 RunContinuationsAsynchronously）在锁内跑用户代码。</para>
+    /// </remarks>
+    private void SetClosed()
+    {
+        TaskCompletionSource<Boolean>? tcs;
+        lock (_signalLock)
+        {
+            _closed = true;
+            tcs = _receivedSignal;
+        }
+
+        tcs?.TrySetResult(false);
+    }
+
+    /// <summary>标记重新打开，复位关闭标记</summary>
+    private void SetOpened()
+    {
+        lock (_signalLock) _closed = false;
     }
 
     /// <summary>设置请求头。ws握手时可以传递Token</summary>
@@ -157,6 +191,7 @@ public class WebSocketClient : TcpSession
     /// <remarks>
     /// <para>接收经消息泵事件驱动：已到达消息进入内部队列，本方法出队返回；无消息时异步等待，连接关闭或取消时返回 null。</para>
     /// <para>返回消息的负载为物化拷贝（与事件流解耦，调用方完全拥有）；支持流水线收取，不丢失粘包中的后续帧。</para>
+    /// <para>等待登记与关闭置位同锁互斥：连接恰在登记等待瞬间关闭时，等待也会立即返回 null，不会因丢唤醒永久挂起（无取消令牌同样成立）。</para>
     /// </remarks>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>消息；连接关闭或取消时返回 null</returns>
@@ -170,14 +205,21 @@ public class WebSocketClient : TcpSession
             // 连接已关闭：不再等待
             if (Disposed || !Active) return null;
 
-            // 等待新消息信号或取消；信号触发后重试出队
+            TaskCompletionSource<Boolean> tcs;
+            lock (_signalLock)
+            {
+                // 关闭可能刚发生在上面两道检查之间：此处双检，避免登记出一个不会再被唤醒的等待
+                if (_closed) return null;
+
+                // 等待新消息信号或取消；信号触发后重试出队
 #if NET45
-            // net45 没有 RunContinuationsAsynchronously，接受同步续体
-            _receivedSignal ??= new TaskCompletionSource<Boolean>();
+                // net45 没有 RunContinuationsAsynchronously，接受同步续体
+                tcs = _receivedSignal ??= new TaskCompletionSource<Boolean>();
 #else
-            _receivedSignal ??= new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
+                tcs = _receivedSignal ??= new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
 #endif
-            var tcs = _receivedSignal;
+            }
+
             var signal = tcs.Task;
 
             // 赋值间隙到达的消息可能读不到信号（入队方见 null 不唤醒），重查一次兜底
