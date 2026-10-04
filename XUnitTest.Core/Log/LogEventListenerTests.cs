@@ -7,6 +7,22 @@ namespace XUnitTest.Log;
 /// <summary>日志事件监听器测试</summary>
 public class LogEventListenerTests
 {
+    /// <summary>等待日志消息满足条件</summary>
+    /// <remarks>EventSource 事件由监听器在独立线程异步派发，固定等待在满载并行时不够用，这里改为有界轮询</remarks>
+    private static void WaitFor(List<String> messages, Func<String, Boolean> predicate, Int32 timeoutMs = 5_000)
+    {
+        var end = Environment.TickCount64 + timeoutMs;
+        while (Environment.TickCount64 < end)
+        {
+            lock (messages)
+            {
+                if (messages.Exists(m => predicate(m))) return;
+            }
+
+            Thread.Sleep(20);
+        }
+    }
+
     [Fact(DisplayName = "构造时不抛异常")]
     public void ConstructorDoesNotThrow()
     {
@@ -40,8 +56,8 @@ public class LogEventListenerTests
             // 写入事件
             testSource.Write("TestEvent", new { Data = "Hello" });
 
-            // 等待一小段时间让事件处理完成
-            System.Threading.Thread.Sleep(100);
+            // 等待事件派发完成
+            WaitFor(messages, m => m.Contains("MyTestSource"));
 
             // 日志中应该包含事件源名称和事件信息。事件线程可能并发写入，需在锁内断言
             lock (messages)
@@ -83,7 +99,9 @@ public class LogEventListenerTests
             sourceB.Write("Event2", new { Value = 2 });
             sourceC.Write("Event3", new { Value = 3 });
 
-            System.Threading.Thread.Sleep(100);
+            // 等待事件派发完成
+            WaitFor(messages, m => m.Contains("SourceA"));
+            WaitFor(messages, m => m.Contains("SourceB"));
 
             // 应包含 SourceA 和 SourceB 的事件。事件线程可能并发写入，需在锁内断言
             lock (messages)
