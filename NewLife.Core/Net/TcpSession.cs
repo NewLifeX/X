@@ -130,24 +130,88 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             sock.ReceiveTimeout = timeout;
         }
 
-        // 服务端SSL
+        // 服务端SSL：异步认证。同步握手会在受理线程上阻塞，慢/恶意客户端可长时间占住受理槽位
+        // （MaxAsync 个慢握手即让新连接受理停摆）
         var cert = Certificate;
         if (sock != null && cert != null)
         {
+            // 先占写锁再发起握手：握手期间到达的业务发送会在锁上等待，不会把明文写进TLS流；
+            // 锁由握手任务在结束后释放，故此处不能省略
+            _writeLock.Wait();
+            _ = StartSslAsync(sock, cert, timeout);
+
+            return;
+        }
+
+        StartReceiveFlow();
+    }
+
+    /// <summary>服务端SSL认证（异步），完成后启动接收环</summary>
+    /// <remarks>
+    /// <para>握手写持有写锁（由 <see cref="Start"/> 抢占）：握手期间到达的业务发送会等待锁，不会把明文写进TLS流。</para>
+    /// <para>握手不占受理槽位：慢/恶意客户端挂着不完成握手时，新连接仍可被受理（旧实现在受理线程上同步握手）。</para>
+    /// <para>握手失败（超时、证书错误、明文请求打到TLS端口）即释放会话，避免其滞留会话集合直到超时。</para>
+    /// </remarks>
+    /// <param name="sock">已接受的套接字</param>
+    /// <param name="cert">服务端证书</param>
+    /// <param name="timeout">认证超时（毫秒），小于等于零表示不启用</param>
+    private async Task StartSslAsync(Socket sock, X509Certificate cert, Int32 timeout)
+    {
+        Exception? error = null;
+        SslStream? sslStream = null;
+        try
+        {
             var ns = new NetworkStream(sock);
-            var sslStream = new SslStream(ns, false);
+            sslStream = new SslStream(ns, false);
 
             var sp = SslProtocol;
             if (sp == SslProtocols.None) sp = SslProtocols.Tls12;
 
             WriteLog("服务端SSL认证，SslProtocol={0}，Issuer: {1}", sp, cert.Issuer);
 
-            //var cert = new X509Certificate2("file", "pass");
-            sslStream.AuthenticateAsServer(cert, false, sp, false);
+            await AuthenticateAsServerAsync(sslStream, sock, cert, sp, timeout).ConfigureAwait(false);
 
             _Stream = sslStream;
         }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            // 握手结束即释放写锁；其后的失败处理（含会话释放）可能触发用户回调，必须在锁外执行
+            _writeLock.Release();
+        }
 
+        if (error != null)
+        {
+            WriteLog("服务端SSL认证失败，释放会话 {0}", error.Message);
+            if (!Disposed && !error.IsDisposed()) OnError("SslAuthenticate", error);
+
+            sslStream?.TryDispose();
+            Dispose();
+
+            return;
+        }
+
+        try
+        {
+            StartReceiveFlow();
+        }
+        catch (Exception ex)
+        {
+            // 启动接收环失败。同步路径由受理流程捕获后释放会话，异步路径必须自行兜底，
+            // 否则会话留在集合里既不收数据也不断开
+            WriteLog("服务端会话启动失败，释放会话 {0}", ex.Message);
+            if (!Disposed && !ex.IsDisposed()) OnError("Start", ex);
+
+            Dispose();
+        }
+    }
+
+    /// <summary>启动接收环与消息泵（服务端会话由服务器统一接管接收）</summary>
+    private void StartReceiveFlow()
+    {
         // 服务端会话由服务器统一接管，必须启动接收环（事件模式），不支持拉取模式。
         // 这里直接置位而不是读取配置：子类若在 CreateSession 里设 AutoReceive=false，
         // 旧的"条件启动"会让属性与实际接收模式不一致（事件照收、拉取却被拒），必须在启动时收敛为 true
@@ -158,6 +222,44 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
         StartReceive();
     }
+
+    /// <summary>服务端SSL认证，支持超时</summary>
+    /// <param name="sslStream">SSL流</param>
+    /// <param name="sock">底层套接字（旧框架超时后关闭以中止挂起的握手读）</param>
+    /// <param name="cert">服务端证书</param>
+    /// <param name="protocols">协议版本</param>
+    /// <param name="timeout">超时（毫秒），小于等于零表示不启用</param>
+#if NETCOREAPP
+    private static async Task AuthenticateAsServerAsync(SslStream sslStream, Socket sock, X509Certificate cert, SslProtocols protocols, Int32 timeout)
+    {
+        using var source = timeout > 0 ? new CancellationTokenSource(timeout) : new CancellationTokenSource();
+        await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+        {
+            ServerCertificate = cert,
+            EnabledSslProtocols = protocols,
+            CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+        }, source.Token).ConfigureAwait(false);
+    }
+#else
+    private static async Task AuthenticateAsServerAsync(SslStream sslStream, Socket sock, X509Certificate cert, SslProtocols protocols, Int32 timeout)
+    {
+        var task = sslStream.AuthenticateAsServerAsync(cert, false, protocols, false);
+        if (timeout > 0)
+        {
+            // 旧框架不支持取消耗时认证。超时后先关闭套接字中止挂起的握手读，再等待任务结束以观测其异常
+            var completed = await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false);
+            if (completed != task)
+            {
+                sock.Close();
+                try { await task.ConfigureAwait(false); } catch { }
+
+                throw new TimeoutException($"服务端SSL认证超时！[{timeout}ms]");
+            }
+        }
+
+        await task.ConfigureAwait(false);
+    }
+#endif
 
     /// <summary>打开</summary>
     /// <param name="cancellationToken">取消通知</param>
@@ -262,7 +364,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
 #if NETCOREAPP
-                using var source = new CancellationTokenSource(timeout);
+                using var source = timeout > 0 ? new CancellationTokenSource(timeout) : new CancellationTokenSource();
                 await sslStream.AuthenticateAsClientAsync(
                     new SslClientAuthenticationOptions
                     {
@@ -444,8 +546,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
     #region 发送
     // 发送出口：默认直发，另有可选的发送队列作第二出口。两者共用一把写锁，任一时刻只有一位写者在写套接字。
-    // 例外：SSL 握手写（AuthenticateAsServer / AuthenticateAsClientAsync）不经写锁——握手发生在打开流程内，
-    // 此时会话尚未对业务可用、不可能有并发发送；若将来允许握手期间发送数据，必须把握手写纳入写锁。
+    // 例外：SSL 握手写不经写锁（客户端握手发生在打开流程内，此时会话尚未对业务可用、不可能有并发发送）；
+    // 服务端握手则由 TcpSession.StartSslAsync 抢占写锁后才发起，握手期间到达的发送会等待，避免明文写进TLS流。
     //   Send(IPacket/byte[]/Span)  锁内同步直写：0 分配 0 拷贝，写完才返回，失败返回 -1
     //   SendAsync(IPacket)         锁内异步直写：0 分配 0 拷贝，等待可写期间不占线程
     //   SendAsync(Stream)          流式：读一块 → 写完（或挂起）再读下一块，内核缓冲即背压，内存有界
