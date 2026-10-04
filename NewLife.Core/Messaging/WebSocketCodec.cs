@@ -145,6 +145,58 @@ public class WebSocketCodec : IMessageCodec
     #endregion
 
     #region 辅助
+    /// <summary>校验消息负载是否为合法 UTF-8（跨段连续）</summary>
+    /// <param name="payload">负载；null 视为合法</param>
+    /// <returns>是否合法</returns>
+    /// <remarks>
+    /// <para>RFC 6455 §8.1：文本消息的负载必须是合法 UTF-8，畸变数据按 1007（Invalid frame payload data）失败连接——
+    /// 直接交给业务会让对端拿到乱码而不自知。合法 UTF-8（RFC 3629）需同时满足：续字节形态正确、
+    /// 无过长编码（overlong）、不落在代理区 U+D800~U+DFFF、不超过 U+10FFFF。</para>
+    /// <para>分片消息的负载是各片字节的连续体，故按链式负载跨段连续校验（多字节序列可跨片/跨段）。</para>
+    /// </remarks>
+    public static Boolean IsValidUtf8(IPacket? payload)
+    {
+        if (payload == null) return true;
+
+        // 状态：need 为待续字节数（>0 表示上一序列未收尾，跨段时出现），min 为本序列允许的最小码点（overlong 判据）
+        var need = 0;
+        var cp = 0u;
+        var min = 0u;
+
+        for (var pk = payload; pk != null; pk = pk.Next)
+        {
+            var span = pk.GetSpan();
+            for (var i = 0; i < span.Length; i++)
+            {
+                var b = span[i];
+
+                // 续字节
+                if (need > 0)
+                {
+                    if ((b & 0xC0) != 0x80) return false;
+
+                    cp = (cp << 6) | (UInt32)(b & 0x3F);
+                    if (--need > 0) continue;
+
+                    // 序列收尾：校验过短编码（overlong）、代理区与码点上限
+                    if (cp < min || (cp >= 0xD800 && cp <= 0xDFFF) || cp > 0x10FFFF) return false;
+
+                    continue;
+                }
+
+                if (b < 0x80) continue;
+
+                if ((b & 0xE0) == 0xC0) { need = 1; cp = (UInt32)(b & 0x1F); min = 0x80; }
+                else if ((b & 0xF0) == 0xE0) { need = 2; cp = (UInt32)(b & 0x0F); min = 0x800; }
+                else if ((b & 0xF8) == 0xF0) { need = 3; cp = (UInt32)(b & 0x07); min = 0x10000; }
+                else return false;
+            }
+        }
+
+        // 序列未收尾（负载截断在多字节字符中间）
+        return need == 0;
+    }
+
     /// <summary>判断关闭状态码是否允许出现在线路上（RFC 6455 §7.4.1）</summary>
     /// <param name="closeStatus">关闭状态码</param>
     /// <returns>可发送返回 true</returns>

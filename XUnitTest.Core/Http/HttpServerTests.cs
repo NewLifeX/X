@@ -119,6 +119,103 @@ public class HttpServerTests : IDisposable
         Assert.Equal(new[] { "one", "two" }, handler.Messages);
     }
 
+    [Fact(DisplayName = "HTTP服务端_WS单帧超限_按1009关闭")]
+    public async Task WebSocket_OversizeFrame_ClosesWith1009()
+    {
+        // 单帧上限是整帧模式的内存安全阀；超限属“消息过大”（1009），此前一律按协议错误（1002）关闭
+        var handler = new WsCaptureHandler(1) { MaxFrameSize = 64 };
+        _server.Map("/ws-big", handler);
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        var head = BuildHandshake("/ws-big");
+        await ns.WriteAsync(head);
+        await ns.FlushAsync();
+        var resp = await ReadUntilAsync(ns, s => s.Contains("101"));
+        Assert.Contains("101 SwitchingProtocols", resp);
+
+        // 100 字节文本帧 > 64 字节上限（整帧一次到达，上限对已完整帧同样生效）
+        await ns.WriteAsync(BuildMaskedFrame(0x1, new Byte[100]));
+        await ns.FlushAsync();
+
+        Assert.Equal(1009, await ReadCloseStatusAsync(ns));
+    }
+
+    [Fact(DisplayName = "HTTP服务端_WS孤立续片_按1002关闭")]
+    public async Task WebSocket_StrayContinuation_ClosesWith1002()
+    {
+        // 无首片的续片（opcode=0）属协议错误（RFC 6455 §5.4）：静默忽略会让对端以为消息已送达
+        var handler = new WsCaptureHandler(1);
+        _server.Map("/ws-stray", handler);
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync(BuildHandshake("/ws-stray"));
+        await ns.FlushAsync();
+        var resp = await ReadUntilAsync(ns, s => s.Contains("101"));
+        Assert.Contains("101 SwitchingProtocols", resp);
+
+        await ns.WriteAsync(BuildMaskedFrame(0x0, "tail".GetBytes()));
+        await ns.FlushAsync();
+
+        Assert.Equal(1002, await ReadCloseStatusAsync(ns));
+    }
+
+    [Fact(DisplayName = "HTTP服务端_WS文本帧非法UTF8_按1007关闭")]
+    public async Task WebSocket_InvalidUtf8Text_ClosesWith1007()
+    {
+        // RFC 6455 §8.1：文本消息必须是合法 UTF-8（0xFF 不是），畸变数据按 1007 失败连接，不能交给业务
+        var handler = new WsCaptureHandler(1);
+        _server.Map("/ws-utf8", handler);
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync(BuildHandshake("/ws-utf8"));
+        await ns.FlushAsync();
+        var resp = await ReadUntilAsync(ns, s => s.Contains("101"));
+        Assert.Contains("101 SwitchingProtocols", resp);
+
+        await ns.WriteAsync(BuildMaskedFrame(0x1, new Byte[] { 0x41, 0xFF, 0x42 }));
+        await ns.FlushAsync();
+
+        Assert.Equal(1007, await ReadCloseStatusAsync(ns));
+        Assert.Empty(handler.Messages);
+    }
+
+    /// <summary>读取服务端下发的关闭帧状态码（服务端帧不带掩码）</summary>
+    private static async Task<Int32> ReadCloseStatusAsync(NetworkStream ns)
+    {
+        var head = await ReadExactAsync(ns, 2);
+        Assert.Equal(0x88, head[0]);                    // FIN=1 + opcode=8（Close）
+
+        var len = head[1] & 0x7F;
+        var payload = await ReadExactAsync(ns, len);
+
+        return payload.Length >= 2 ? (payload[0] << 8) | payload[1] : 0;
+    }
+
+    /// <summary>读满指定字节数（TCP 可能分片到达）</summary>
+    private static async Task<Byte[]> ReadExactAsync(NetworkStream ns, Int32 count)
+    {
+        var buf = new Byte[count];
+        var read = 0;
+        while (read < count)
+        {
+            var n = await ns.ReadAsync(buf.AsMemory(read, count - read)).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            if (n <= 0) break;
+
+            read += n;
+        }
+
+        return buf;
+    }
+
     /// <summary>构造 WebSocket 握手请求（客户端方向）</summary>
     private static Byte[] BuildHandshake(String path)
     {
@@ -130,11 +227,13 @@ public class HttpServerTests : IDisposable
     }
 
     /// <summary>构造带掩码的文本帧（客户端方向必须掩码，RFC 6455 §5.1）</summary>
-    private static Byte[] BuildMaskedTextFrame(String text)
+    private static Byte[] BuildMaskedTextFrame(String text) => BuildMaskedFrame(0x1, Encoding.UTF8.GetBytes(text));
+
+    /// <summary>构造带掩码的 WebSocket 帧（客户端方向必须掩码，RFC 6455 §5.1）</summary>
+    private static Byte[] BuildMaskedFrame(Int32 opCode, Byte[] payload)
     {
-        var payload = Encoding.UTF8.GetBytes(text);
         var frame = new Byte[payload.Length + 6];
-        frame[0] = 0x81;                          // FIN=1，opcode=1（文本）
+        frame[0] = (Byte)(0x80 | opCode);         // FIN=1，opcode
         frame[1] = (Byte)(0x80 | payload.Length); // MASK=1，短长度
         var key = new Byte[] { 1, 2, 3, 4 };
         key.CopyTo(frame, 2);
@@ -150,6 +249,9 @@ public class HttpServerTests : IDisposable
 
         public WsCaptureHandler(Int32 expect) => _expect = expect;
 
+        /// <summary>单帧长度上限（大于 0 时写入 WebSocket 会话）</summary>
+        public Int32 MaxFrameSize { get; set; }
+
         /// <summary>收到的文本帧（按到达顺序）</summary>
         public List<String> Messages { get; } = [];
 
@@ -160,6 +262,8 @@ public class HttpServerTests : IDisposable
         {
             var ws = context.WebSocket;
             if (ws == null) return;
+
+            if (MaxFrameSize > 0) ws.MaxFrameSize = MaxFrameSize;
 
             ws.MessageHandler = (s, m) =>
             {

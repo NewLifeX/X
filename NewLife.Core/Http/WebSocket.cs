@@ -145,15 +145,17 @@ public class WebSocket : IDisposable
         {
             ReadFrames(pump);
         }
+        catch (FrameTooLargeException ex)
+        {
+            // 单帧超限：RFC 6455 §7.4.1 用 1009（Message Too Big），与帧损坏（1002）区分
+            NewLife.Log.XTrace.WriteLine("WebSocket 帧超限，关闭连接：{0}", ex.Message);
+            FailConnection(1009, "message too big");
+        }
         catch (InvalidOperationException ex)
         {
             // 协议帧损坏：残片无法恢复，留在管道会让后续每个包重复解析同一坏帧，直接关闭连接
             NewLife.Log.XTrace.WriteLine("WebSocket 帧损坏，关闭连接：{0}", ex.Message);
-            try { Close(1002, "protocol error"); } catch { }
-
-            Context?.Connection?.TryDispose();
-            Context?.Socket?.TryDispose();
-            Connected = false;
+            FailConnection(1002, "protocol error");
         }
     }
 
@@ -191,9 +193,47 @@ public class WebSocket : IDisposable
                 }
                 if (ws.Type == WebSocketMessageType.Data)
                 {
-                    if (_fragment.Append(ws.Fin, ws.Payload) is { } whole) Process(whole);
+                    var whole = _fragment.Append(ws.Fin, ws.Payload);
+
+                    // 无首片的孤立续片（分片序列未开始或已结束）：RFC 6455 §5.4 属协议错误，
+                    // 静默忽略会让对端以为已送达
+                    if (whole == null && !_fragment.Active)
+                    {
+                        if (_fragment.TooBig) { FailConnection(1009, "message too big"); return; }
+
+                        FailConnection(1002, "unexpected continuation frame");
+                        return;
+                    }
+
+                    if (whole != null)
+                    {
+                        try
+                        {
+                            // RFC 6455 §8.1：文本消息必须是合法 UTF-8（分片消息在重组完成后校验，多字节序列可跨片）
+                            if (whole.Type == WebSocketMessageType.Text && !WebSocketCodec.IsValidUtf8(whole.Payload))
+                            {
+                                FailConnection(1007, "invalid utf-8");
+                                return;
+                            }
+
+                            Process(whole);
+                        }
+                        finally
+                        {
+                            // 与单帧路径同口径：回调返回后消息收尾
+                            whole.TryDispose();
+                        }
+                    }
+
                     if (_fragment.TooBig) { FailConnection(1009, "message too big"); return; }
                     continue;
+                }
+
+                // RFC 6455 §8.1：文本消息的负载必须是合法 UTF-8，畸变数据按 1007 失败连接（不能让业务拿到乱码）
+                if (ws.Type == WebSocketMessageType.Text && !WebSocketCodec.IsValidUtf8(ws.Payload))
+                {
+                    FailConnection(1007, "invalid utf-8");
+                    return;
                 }
 
                 // 消息化入口：业务回调直达（负载已解码），协议帧处理内联

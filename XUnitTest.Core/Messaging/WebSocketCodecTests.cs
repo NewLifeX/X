@@ -473,6 +473,46 @@ public class WebSocketCodecTests
         plain.Dispose();
     }
 
+    #region UTF-8 校验（RFC 6455 §8.1）
+    [Fact]
+    [DisplayName("WS编解码_UTF8校验_合法序列通过")]
+    public void IsValidUtf8_ValidPasses()
+    {
+        Assert.True(WebSocketCodec.IsValidUtf8(null));
+        Assert.True(WebSocketCodec.IsValidUtf8((ArrayPacket)"hello".GetBytes()));
+        Assert.True(WebSocketCodec.IsValidUtf8((ArrayPacket)"中文测试".GetBytes()));
+        // 4 字节序列（emoji）与码点边界
+        Assert.True(WebSocketCodec.IsValidUtf8((ArrayPacket)"😀".GetBytes()));
+        Assert.True(WebSocketCodec.IsValidUtf8((ArrayPacket)new Byte[] { 0xF4, 0x8F, 0xBF, 0xBF })); // U+10FFFF
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_UTF8校验_链式负载跨段连续")]
+    public void IsValidUtf8_ChainSpansSegments()
+    {
+        // 一个 3 字节序列被切成两个段：跨段仍应判定合法（按段分别校验会把合法数据判成非法）
+        var chain = new ArrayPacket(new Byte[] { 0xE4, 0xB8 }) { Next = new ArrayPacket(new Byte[] { 0xAD }) };
+        Assert.True(WebSocketCodec.IsValidUtf8(chain));
+
+        // 跨段截断的多字节序列：非法
+        var broken = new ArrayPacket(new Byte[] { 0xE4, 0xB8 }) { Next = new ArrayPacket(new Byte[] { 0x41 }) };
+        Assert.False(WebSocketCodec.IsValidUtf8(broken));
+    }
+
+    [Theory]
+    [DisplayName("WS编解码_UTF8校验_非法序列被拒")]
+    // 孤立续字节、过长编码（overlong）、代理区、超过 U+10FFFF、非法前导、截断序列
+    [InlineData(new Byte[] { 0x80 })]
+    [InlineData(new Byte[] { 0xC0, 0x80 })]
+    [InlineData(new Byte[] { 0xE0, 0x80, 0x80 })]
+    [InlineData(new Byte[] { 0xED, 0xA0, 0x80 })]
+    [InlineData(new Byte[] { 0xF5, 0x80, 0x80, 0x80 })]
+    [InlineData(new Byte[] { 0xFF })]
+    [InlineData(new Byte[] { 0xE4, 0xB8 })]
+    [InlineData(new Byte[] { 0xC3, 0x28 })]
+    public void IsValidUtf8_InvalidRejected(Byte[] data) => Assert.False(WebSocketCodec.IsValidUtf8((ArrayPacket)data));
+    #endregion
+
     #region 辅助
     #endregion
 }

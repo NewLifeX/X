@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.ComponentModel;
 using System.IO;
 using NewLife;
@@ -706,7 +706,7 @@ public class MessagePumpTests
         var frame = BuildFrame(new Byte[1000]);
         pipe.Writer.Append(new ArrayPacket(frame[..4]));
 
-        var ex = Assert.Throws<InvalidOperationException>(() => pump.TryRead(pipe.Reader, out _));
+        var ex = Assert.Throws<FrameTooLargeException>(() => pump.TryRead(pipe.Reader, out _));
         Assert.Contains("超过上限", ex.Message);
         Assert.Equal(4, pipe.UnconsumedLength);
 
@@ -816,7 +816,7 @@ public class MessagePumpTests
         var frame = BuildPreBoundFrame(1000);
         pipe.Writer.Append(new ArrayPacket(frame, 0, 4));
 
-        var ex = Assert.Throws<InvalidOperationException>(() => pump.TryRead(pipe.Reader, out _));
+        var ex = Assert.Throws<FrameTooLargeException>(() => pump.TryRead(pipe.Reader, out _));
         Assert.Contains("超过上限", ex.Message);
         Assert.Equal(4, pipe.UnconsumedLength);
 

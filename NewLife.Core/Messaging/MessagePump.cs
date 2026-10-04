@@ -73,7 +73,8 @@ public class MessagePump
     /// <param name="reader">数据包读取器</param>
     /// <param name="message">解析出的消息（成功时有效；头部字段就位、体已绑定）</param>
     /// <returns>是否读取到消息；头部不足或窗口内仅有无消息帧时返回 false（窗口不动，等追加）</returns>
-    /// <exception cref="InvalidOperationException"><see cref="Codec"/> 未设置；或协议帧损坏（头部已完整但长度字段非法）；或整帧模式下单帧超过 <see cref="MaxFrameSize"/></exception>
+    /// <exception cref="InvalidOperationException"><see cref="Codec"/> 未设置；或协议帧损坏（头部已完整但长度字段非法）</exception>
+    /// <exception cref="FrameTooLargeException">整帧模式下单帧超过 <see cref="MaxFrameSize"/></exception>
     /// <remarks>协议返回无消息帧（<see cref="IMessageCodec.TryParse"/> 成功但消息为 null）时消费该帧并继续解析下一帧，直到产出消息或数据不足。</remarks>
     public Boolean TryRead(PipeReader reader, out IMessage? message) => TryReadCore(reader, out message, out _);
 
@@ -111,7 +112,7 @@ public class MessagePump
 
                 // 单帧长度超上限立即报错：否则对端只需声明一个超大帧，就能让本连接的内存无限增长
                 if (MaxFrameSize > 0 && frameLength > MaxFrameSize)
-                    throw new InvalidOperationException($"帧长度 {frameLength} 超过上限 {MaxFrameSize}，拒绝为超大帧无限缓冲");
+                    throw new FrameTooLargeException(frameLength, MaxFrameSize);
 
                 return false;
             }
@@ -143,7 +144,7 @@ public class MessagePump
                     // 不报告帧长会被 ReadAsync 当作“无法定界的残余”，帧长超过 MaxCache 时把正常累积的大帧误判为坏数据而断连
                     frameLength = headerSize + bodyLength;
                     if (MaxFrameSize > 0 && frameLength > MaxFrameSize)
-                        throw new InvalidOperationException($"帧长度 {frameLength} 超过上限 {MaxFrameSize}，拒绝为超大帧无限缓冲");
+                        throw new FrameTooLargeException(frameLength, MaxFrameSize);
 
                     return false;
                 }
@@ -160,6 +161,14 @@ public class MessagePump
             // 帧已完整：零拷贝切出整帧，体为内存视图；否则绑定流式体，数据随管道到达
             if (headerSize + bodyLength <= buffer.Length)
             {
+                // 整帧模式下的单帧上限对“已完整帧”同样生效：否则对端把超限帧压在一轮里即可绕过上限
+                if (RequireFullFrame && MaxFrameSize > 0 && headerSize + bodyLength > MaxFrameSize)
+                {
+                    msg.Dispose();
+
+                    throw new FrameTooLargeException(headerSize + bodyLength, MaxFrameSize);
+                }
+
                 var frame = reader.TakeFrame(bodyLength);
                 msg.SetBody(frame);
             }
