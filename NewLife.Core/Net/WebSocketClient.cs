@@ -258,38 +258,29 @@ public class WebSocketClient : TcpSession
         _receivedSignal?.TrySetResult(true);
     }
 
-    /// <summary>发送文本</summary>
-    /// <param name="data"></param>
-    /// <param name="cancellationToken"></param>
+    /// <summary>发送文本帧。拥有句柄所有权转移：发送返回即已消费/释放，不得再使用；视图（ArrayPacket 等）无所有权、不被释放</summary>
+    /// <remarks>
+    /// <para>与 <see cref="IMessage"/> 的 SetBody 既定语义一致：容器持有传入的负载句柄，发送帧构建（客户端方向会拷入掩码帧）
+    /// 与写出完成后随容器一并释放。旧实现不释放容器，按转移语义传入的拥有句柄无人归还——池化负载引用永久截留
+    /// （DEBUG 每次发送告警、发布版丢池缓冲）。需要发送后继续持有原句柄时，请先 <c>Slice</c> 切出独立句柄再传入。</para>
+    /// </remarks>
+    /// <param name="data">负载数据包</param>
+    /// <param name="cancellationToken">取消通知（同步发送形态，保留参数兼容）</param>
     /// <returns></returns>
     public Task SendTextAsync(IPacket data, CancellationToken cancellationToken = default)
     {
-        var ws = new WsMessage
-        {
-            Type = WebSocketMessageType.Text,
-            MaskKey = MaskKey,
-        };
-        ws.SetBody(data);
-
-        SendMessage(ws);
+        SendFrame(data, WebSocketMessageType.Text);
 
         return TaskEx.CompletedTask;
     }
 
-    /// <summary>发送文本</summary>
-    /// <param name="data"></param>
-    /// <param name="cancellationToken"></param>
+    /// <summary>发送文本帧</summary>
+    /// <param name="data">负载（视图，无所有权）</param>
+    /// <param name="cancellationToken">取消通知（同步发送形态，保留参数兼容）</param>
     /// <returns></returns>
     public Task SendTextAsync(Byte[] data, CancellationToken cancellationToken = default)
     {
-        var ws = new WsMessage
-        {
-            Type = WebSocketMessageType.Text,
-            MaskKey = MaskKey,
-        };
-        ws.SetBody((ArrayPacket)data);
-
-        SendMessage(ws);
+        SendFrame((ArrayPacket)data, WebSocketMessageType.Text);
 
         return TaskEx.CompletedTask;
     }
@@ -300,22 +291,38 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     public Task SendTextAsync(String text, CancellationToken cancellationToken = default) => SendTextAsync(text.GetBytes(), cancellationToken);
 
-    /// <summary>发送二进制数据</summary>
-    /// <param name="data"></param>
-    /// <param name="cancellationToken"></param>
+    /// <summary>发送二进制帧。拥有句柄所有权转移：发送返回即已消费/释放，不得再使用；视图（ArrayPacket 等）无所有权、不被释放</summary>
+    /// <param name="data">负载数据包</param>
+    /// <param name="cancellationToken">取消通知（同步发送形态，保留参数兼容）</param>
     /// <returns></returns>
     public Task SendBinaryAsync(IPacket data, CancellationToken cancellationToken = default)
     {
-        var ws = new WsMessage
-        {
-            Type = WebSocketMessageType.Binary,
-            MaskKey = MaskKey,
-        };
-        ws.SetBody(data);
-
-        SendMessage(ws);
+        SendFrame(data, WebSocketMessageType.Binary);
 
         return TaskEx.CompletedTask;
+    }
+
+    /// <summary>发送帧。负载所有权转移（随帧容器释放）；客户端方向构建时已把负载拷入掩码帧，释放不会影响已发出的数据</summary>
+    /// <param name="data">负载。拥有句柄发送后即释放；视图无所有权，释放为空操作</param>
+    /// <param name="type">帧类型</param>
+    private void SendFrame(IPacket data, WebSocketMessageType type)
+    {
+        var ws = new WsMessage
+        {
+            Type = type,
+            MaskKey = MaskKey,
+        };
+        try
+        {
+            // 容器接管负载句柄（SetBody 的既定语义），发送完成后随容器释放，调用方不再持有
+            ws.SetBody(data);
+
+            SendMessage(ws);
+        }
+        finally
+        {
+            ws.TryDispose();
+        }
     }
 
     /// <summary>发送关闭帧并关闭连接</summary>
@@ -363,14 +370,7 @@ public class WebSocketClient : TcpSession
             }
         }
 
-        var ws = new WsMessage
-        {
-            Type = WebSocketMessageType.Ping,
-            MaskKey = MaskKey,
-        };
-        ws.SetBody((ArrayPacket)$"Ping {now.ToFullString()}");
-
-        SendMessage(ws);
+        SendFrame((ArrayPacket)$"Ping {now.ToFullString()}", WebSocketMessageType.Ping);
 
         _lastPingTime = now;
 

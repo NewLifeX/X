@@ -734,6 +734,36 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         Assert.True(fixture.Server.Active, "服务器应保持可用");
     }
 
+    [Fact(DisplayName = "19-发送拥有句柄负载_所有权转移_发送返回即释放容器")]
+    public async Task Test19_SendOwnedPayload_OwnershipTransferred_HandleReleasedBySender()
+    {
+        var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws");
+        Assert.True(await ws.OpenAsync());
+
+        var bytes = "owned-payload-transfer".GetBytes();
+        var payload = new OwnerPacket(bytes.Length);
+        bytes.CopyTo(payload.GetSpan());
+
+        Assert.Equal(1, payload.RefCount);
+
+        await ws.SendTextAsync(payload);
+
+        // 所有权转移语义（与 IMessage.SetBody 既定口径一致）：帧容器接管负载句柄，发送返回即随容器释放。
+        // 旧实现不释放容器，负载句柄无人归还（RefCount 停在 1），池缓冲永久流失
+        Assert.Equal(0, payload.RefCount);
+
+        // 发送后补释放安全（调用方按旧习惯 Dispose 不出异常）
+        payload.Dispose();
+
+        // 负载在构建时已拷入掩码帧，释放不影响已发出的数据
+        var msg = await ws.ReceiveMessageAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.NotNull(msg);
+        Assert.Equal("ws-echo:owned-payload-transfer", msg.Payload?.ToStr());
+
+        await ws.CloseAsync(1000, "done");
+        ws.Dispose();
+    }
+
     /// <summary>构造客户端掩码原始帧（支持 126 扩展长度）</summary>
     /// <param name="opcode">操作码（1=Text，2=Binary，8=Close，9=Ping，10=Pong）</param>
     /// <param name="fin">是否末片</param>
