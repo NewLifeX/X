@@ -84,14 +84,17 @@ public class UdpMessageSessionTests
         return client;
     }
 
-    private static async Task<Boolean> WaitUntilAsync(Func<Boolean> condition, Int32 timeoutMs = 5_000)
+    /// <summary>轮询等待条件成立，必要时重复投递（UDP 在并行满载时可能丢包）</summary>
+    private static async Task<Boolean> WaitUntilAsync(Func<Boolean> condition, Action? resend = null, Int32 timeoutMs = 10_000)
     {
         var start = Environment.TickCount64;
         while (Environment.TickCount64 - start < timeoutMs)
         {
             if (condition()) return true;
 
-            await Task.Delay(20);
+            resend?.Invoke();
+
+            await Task.Delay(50);
         }
 
         return condition();
@@ -105,11 +108,16 @@ public class UdpMessageSessionTests
         using var server = NewServer();
         using var client = NewClient(server);
 
-        var msg = new Message();
-        msg.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes("hello")));
-        client.SendMessage(msg);
+        var payload = Encoding.UTF8.GetBytes("hello");
+        void Send()
+        {
+            var msg = new Message();
+            msg.SetBody(new ArrayPacket(payload));
+            client.SendMessage(msg);
+        }
+        Send();
 
-        Assert.True(await WaitUntilAsync(() => server.ReceivedLines.Contains("hello")));
+        Assert.True(await WaitUntilAsync(() => server.ReceivedLines.Contains("hello"), Send));
     }
 
     [Fact]
@@ -128,12 +136,26 @@ public class UdpMessageSessionTests
             if (line != null) received.TrySetResult(line);
         };
 
-        var msg = new Message();
-        msg.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes("ping")));
-        client.SendMessage(msg);
+        var payload = Encoding.UTF8.GetBytes("ping");
+        void Send()
+        {
+            var msg = new Message();
+            msg.SetBody(new ArrayPacket(payload));
+            client.SendMessage(msg);
+        }
+        Send();
 
-        var task = await Task.WhenAny(received.Task, Task.Delay(5_000));
-        Assert.True(task == received.Task, "客户端应在超时内收到回显消息");
+        // UDP 可能丢包，重发直到收到回显或超时
+        var end = Environment.TickCount64 + 10_000;
+        while (!received.Task.IsCompleted && Environment.TickCount64 < end)
+        {
+            var task = await Task.WhenAny(received.Task, Task.Delay(500));
+            if (task == received.Task) break;
+
+            Send();
+        }
+
+        Assert.True(received.Task.IsCompleted, "客户端应在超时内收到回显消息");
         Assert.Equal("echo:ping", await received.Task);
     }
 
@@ -145,9 +167,10 @@ public class UdpMessageSessionTests
         using var client = NewClient(server);
 
         // 原始字节发送：一个数据报内两帧行协议
-        client.Send(Encoding.UTF8.GetBytes("one\r\ntwo\r\n"));
+        var datagram = Encoding.UTF8.GetBytes("one\r\ntwo\r\n");
+        client.Send(datagram);
 
-        Assert.True(await WaitUntilAsync(() => server.ReceivedLines.Contains("one") && server.ReceivedLines.Contains("two")));
+        Assert.True(await WaitUntilAsync(() => server.ReceivedLines.Contains("one") && server.ReceivedLines.Contains("two"), () => client.Send(datagram)));
     }
 
     [Fact]
@@ -184,12 +207,17 @@ public class UdpMessageSessionTests
         };
         client.Open();
 
-        var msg = new DefaultMessage { Sequence = 1 };
-        msg.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes("compressed-body")));
-        client.SendMessage(msg);
+        var payload = Encoding.UTF8.GetBytes("compressed-body");
+        void Send()
+        {
+            var msg = new DefaultMessage { Sequence = 1 };
+            msg.SetBody(new ArrayPacket(payload));
+            client.SendMessage(msg);
+        }
+        Send();
 
         // 服务端应读到解压后的原文；
         // 修复前会被线上压缩字节覆盖（乱码），Contains 永不成立
-        Assert.True(await WaitUntilAsync(() => server.ReceivedLines.Contains("compressed-body")));
+        Assert.True(await WaitUntilAsync(() => server.ReceivedLines.Contains("compressed-body"), Send));
     }
 }

@@ -659,7 +659,24 @@ public class MachineInfoTests
         var file = Path.GetTempPath().CombinePath("machine_info.json").GetFullPath();
         Assert.True(File.Exists(file));
 
-        var mi3 = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
+        // 该文件由产品写入系统临时目录，多目标框架并行运行时可能正被其它进程重写，
+        // 读到半截内容会解析失败，重试几次
+        MachineInfo? mi3 = null;
+        for (var i = 0; i < 10 && mi3 == null; i++)
+        {
+            try
+            {
+                mi3 = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
+            }
+            catch
+            {
+                // 忽略读取/解析失败，稍后重试
+            }
+
+            if (mi3 == null) await Task.Delay(100);
+        }
+
+        Assert.NotNull(mi3);
         Assert.Equal(mi.OSName, mi3.OSName);
         Assert.Equal(mi.UUID, mi3.UUID);
         Assert.Equal(mi.Guid, mi3.Guid);

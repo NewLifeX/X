@@ -406,9 +406,15 @@ public class SessionBaseTests
         Assert.True(client.Client!.Connected);
 
         var payload = "auto connect"u8.ToArray();
-        client.Send(payload);
+        // UDP 在并行满载时可能丢包，重发直到服务端收到（同一客户端，会话数不变）
+        var end = Environment.TickCount64 + 10_000;
+        while (!receivedEvent.IsSet && Environment.TickCount64 < end)
+        {
+            client.Send(payload);
+            receivedEvent.Wait(200);
+        }
 
-        Assert.True(receivedEvent.Wait(3000));
+        Assert.True(receivedEvent.IsSet, "服务端未收到 UDP 报文");
         Assert.Equal(payload, received);
         Assert.Single(server.Sessions);
     }

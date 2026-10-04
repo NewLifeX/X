@@ -462,9 +462,11 @@ public class ApiHttpClientRaceTests
         };
 
         client.Add("fast", "http://10.0.0.2:6680");
-        client.Services[0].Client = new HttpClient(new MockJsonHandler(20, """{"code":0,"data":"fast"}"""));
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(0, """{"code":0,"data":"fast"}"""));
 
-        var slowHandler = new CountingHandler(0, """{"code":0,"data":"slow"}""");
+        // 慢节点必须慢于竞速的错峰幅度（Score=序号×100ms）：
+        // 首节点瞬时返回时第二个节点根本不会被启动；万一被启动，慢节点也不会抢在首节点之前返回
+        var slowHandler = new CountingHandler(1000, """{"code":0,"data":"slow"}""");
         client.Add("slow", "http://slow.test");
         client.Services[1].Client = new HttpClient(slowHandler);
 

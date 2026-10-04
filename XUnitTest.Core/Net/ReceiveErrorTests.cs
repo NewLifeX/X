@@ -104,10 +104,24 @@ public class ReceiveErrorTests
         // 换一个客户端（新远端端点）发普通报文，必须仍能被接收并回显
         using var client = NetHelper.CreateUdpClient();
         var payload = new Byte[] { 9, 8, 7, 6 };
-        await client.SendAsync(payload, payload.Length, remote);
 
-        var result = await client.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Equal(payload, result.Buffer);
+        // UDP 在并行满载时可能丢包，重发直到收到回显
+        Byte[]? result = null;
+        var end = Environment.TickCount64 + 10_000;
+        while (result == null && Environment.TickCount64 < end)
+        {
+            await client.SendAsync(payload, payload.Length, remote);
+
+            try
+            {
+                var rs = await client.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500));
+                result = rs.Buffer;
+            }
+            catch (TimeoutException) { }
+        }
+
+        Assert.NotNull(result);
+        Assert.Equal(payload, result);
     }
 
     [Fact(DisplayName = "接收槽释放_同一事件参数重复释放_只生效一次")]

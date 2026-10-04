@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife;
@@ -15,6 +15,16 @@ namespace XUnitTest.Net;
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetSessionTests
 {
+    #region 工具
+    /// <summary>等待服务端创建会话。固定 Sleep 在并行满载时未必够用，改为轮询到超时</summary>
+    private static void WaitSession(Func<INetSession?> session, Int32 timeoutMs = 10_000)
+    {
+        var end = Environment.TickCount64 + timeoutMs;
+        while (session() == null && Environment.TickCount64 < end) Thread.Sleep(10);
+    }
+
+    #endregion
+
     #region 基础功能测试
     /// <summary>测试会话ID自增分配</summary>
     [Fact]
@@ -52,6 +62,10 @@ public class NetSessionTests
         }
 
         Thread.Sleep(500);
+
+        // 并行满载时服务端建会话可能滞后，轮询等待 5 个会话全部到位
+        var end = Environment.TickCount64 + 10_000;
+        while (sessionIds.Count < 5 && Environment.TickCount64 < end) Thread.Sleep(10);
 
         // 验证ID递增且唯一
         Assert.Equal(5, sessionIds.Count);
@@ -206,7 +220,7 @@ public class NetSessionTests
 
         var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         // 关闭客户端触发断开
         client.Close();
@@ -298,7 +312,10 @@ public class NetSessionTests
 
         // 主动关闭会话，Disconnected 应当且仅当触发一次
         createdSession!.Close("TestClose");
-        Thread.Sleep(200);
+
+        // 并行满载时断开回调可能滞后，轮询等待事件到达
+        var end = Environment.TickCount64 + 5_000;
+        while (Volatile.Read(ref count) == 0 && Environment.TickCount64 < end) Thread.Sleep(10);
 
         Assert.Equal(1, count);
     }
@@ -349,7 +366,7 @@ public class NetSessionTests
 
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         Assert.NotNull(createdSession);
 
@@ -389,7 +406,7 @@ public class NetSessionTests
 
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         Assert.NotNull(createdSession);
 
@@ -429,7 +446,7 @@ public class NetSessionTests
 
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         Assert.NotNull(createdSession);
 
@@ -508,7 +525,7 @@ public class NetSessionTests
 
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         Assert.NotNull(createdSession);
 

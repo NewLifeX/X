@@ -36,21 +36,44 @@ public class UpgradeTests
             return; // Skip test when server is not reachable
         }
 
-        //Directory.Delete("./Update", true);
+        // Upgrade.Extract 把更新包解压到系统临时目录下的同名子目录（staragent50），
+        // 多目标框架并行运行时会相互占用同一个解压目录，故用跨进程互斥串行执行
+        using var mutex = new Mutex(false, @"Global\NewLife.Core.UpgradeTests.CopyAndReplace");
+        var acquired = false;
+        try
+        {
+            try
+            {
+                acquired = mutex.WaitOne(TimeSpan.FromMinutes(5));
+            }
+            catch (AbandonedMutexException)
+            {
+                // 上一个持有者进程异常退出，互斥量已归本线程
+                acquired = true;
+            }
 
-        var url = "http://x.newlifex.com/star/staragent50.zip";
-        var fileName = Path.GetFileName(url);
-        //fileName = "Update".CombinePath(fileName).EnsureDirectory(true);
+            if (!acquired) return;
 
-        var ug = new Upgrade { Log = XTrace.Log };
-        ug.Download(url, fileName);
+            //Directory.Delete("./Update", true);
 
-        // 解压
-        var source = ug.Extract(ug.SourceFile);
+            var url = "http://x.newlifex.com/star/staragent50.zip";
+            var fileName = Path.GetFileName(url);
+            //fileName = "Update".CombinePath(fileName).EnsureDirectory(true);
 
-        // 覆盖
-        var dest = "./updateTest";
-        ug.CopyAndReplace(source, dest);
+            var ug = new Upgrade { Log = XTrace.Log };
+            ug.Download(url, fileName);
+
+            // 解压
+            var source = ug.Extract(ug.SourceFile);
+
+            // 覆盖
+            var dest = "./updateTest";
+            ug.CopyAndReplace(source, dest);
+        }
+        finally
+        {
+            if (acquired) mutex.ReleaseMutex();
+        }
     }
 
     /// <summary>启动一个固定返回指定 HTML 的本地 HTTP 服务，供检查更新用例使用</summary>
