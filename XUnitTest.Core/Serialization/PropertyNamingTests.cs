@@ -311,8 +311,8 @@ public class PropertyNamingTests
         var sysJson = new SystemJson().Write(model, options);
 
         // 解析两者的 key
-        var fastKeys = JsonParser.Decode(fastJson)?.Keys.Order().ToArray();
-        var sysKeys = JsonParser.Decode(sysJson)?.Keys.Order().ToArray();
+        var fastKeys = JsonParser.Decode(fastJson)?.Keys.OrderBy(e => e).ToArray();
+        var sysKeys = JsonParser.Decode(sysJson)?.Keys.OrderBy(e => e).ToArray();
 
         Assert.NotNull(fastKeys);
         Assert.NotNull(sysKeys);
