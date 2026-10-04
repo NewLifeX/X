@@ -355,8 +355,8 @@ public partial class ApiHttpClient
             }
             finally
             {
-                // 释放选中的响应，避免连接池资源泄漏
-                selectedResponse.Dispose();
+                // 释放选中的响应，避免连接池资源泄漏；调用方索取原始响应时所有权移交，不在此销毁
+                if (typeof(TResult) != typeof(HttpResponseMessage)) selectedResponse.Dispose();
             }
         }
         catch (Exception ex)

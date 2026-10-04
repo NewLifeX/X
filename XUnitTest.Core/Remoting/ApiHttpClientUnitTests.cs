@@ -666,4 +666,89 @@ public class ApiHttpClientUnitTests
         Assert.Equal("application/octet-stream", capturedAccept);
     }
     #endregion
+
+    #region 原始响应所有权
+    /// <summary>带释放标记的内容，用于观察响应是否被销毁</summary>
+    private class TrackingContent : StringContent
+    {
+        public Boolean Disposed { get; private set; }
+
+        public TrackingContent(String content) : base(content) { }
+
+        protected override void Dispose(Boolean disposing)
+        {
+            Disposed = true;
+            base.Dispose(disposing);
+        }
+    }
+
+    [Fact(DisplayName = "原始响应_所有权移交_内容不销毁")]
+    public async Task RawResponseMessage_ContentReadable()
+    {
+        var content = new TrackingContent("raw-ok");
+        var handler = new MockHttpMessageHandler
+        {
+            Handler = _ => new HttpResponseMessage(HttpStatusCode.OK) { Content = content }
+        };
+        var client = new TestableApiHttpClient(handler, "http://127.0.0.1:8080");
+
+        var msg = await client.GetAsync<HttpResponseMessage>("api/raw");
+        Assert.NotNull(msg);
+        Assert.Equal(HttpStatusCode.OK, msg.StatusCode);
+
+        // 所有权移交调用方：内容必须保持可用（旧实现返回前已释放，这里 ObjectDisposedException 或标记变红）
+        var body = await msg.Content.ReadAsStringAsync();
+        Assert.Equal("raw-ok", body);
+        Assert.False(content.Disposed);
+    }
+
+    [Fact(DisplayName = "普通结果_读取后响应仍被释放")]
+    public async Task NormalResult_ResponseDisposed()
+    {
+        var content = new TrackingContent("{\"code\":0,\"data\":\"ok\"}");
+        var handler = new MockHttpMessageHandler
+        {
+            Handler = _ => new HttpResponseMessage(HttpStatusCode.OK) { Content = content }
+        };
+        var client = new TestableApiHttpClient(handler, "http://127.0.0.1:8080");
+
+        var rs = await client.GetAsync<String>("api/info");
+        Assert.Equal("ok", rs);
+
+        // 普通结果读取后立即释放，连接及时归还（条件分支不能把正常路径也放走）
+        Assert.True(content.Disposed);
+    }
+
+    /// <summary>竞速专用：直接返回可控响应，跳过真实网络</summary>
+    private class RaceTestableClient : ApiHttpClient
+    {
+        private Int32 _n;
+        public TrackingContent? First;
+        public TrackingContent? Second;
+
+        public RaceTestableClient(String urls) : base(urls) => LoadBalanceMode = LoadBalanceMode.Race;
+
+        protected override Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, ServiceEndpoint service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
+        {
+            var content = new TrackingContent("race-ok");
+            if (Interlocked.Increment(ref _n) == 1) First = content;
+            else Second = content;
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = content });
+        }
+    }
+
+    [Fact(DisplayName = "竞速调用_原始响应_内容不销毁")]
+    public async Task Race_RawResponseMessage_ContentReadable()
+    {
+        var client = new RaceTestableClient("http://127.0.0.1:34567,http://127.0.0.1:34568");
+
+        var msg = await client.InvokeRaceAsync<HttpResponseMessage>(HttpMethod.Get, "api/raw");
+        Assert.NotNull(msg);
+
+        // 竞速选中并返回的响应必须可读（旧实现 finally 里无条件释放）
+        var body = await msg.Content.ReadAsStringAsync();
+        Assert.Equal("race-ok", body);
+    }
+    #endregion
 }

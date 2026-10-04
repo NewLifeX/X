@@ -348,10 +348,18 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             var filter = Filter;
             try
             {
-                using var msg = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+                var msg = await SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 var jsonHost = JsonHost ?? ServiceProvider?.GetService<IJsonHost>() ?? JsonHelper.Default;
-                return await ApiHelper.ProcessResponse<TResult>(msg, CodeName, DataName, jsonHost).ConfigureAwait(false);
+                try
+                {
+                    return await ApiHelper.ProcessResponse<TResult>(msg, CodeName, DataName, jsonHost).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // 调用方索取原始响应时所有权移交，不在此销毁；其余结果读取后立即释放，连接及时归还
+                    if (typeof(TResult) != typeof(HttpResponseMessage)) msg.Dispose();
+                }
             }
             catch (Exception ex)
             {

@@ -232,6 +232,7 @@ public static class ApiHelper
     public static Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String dataName = "data") => ProcessResponse<TResult>(response, null, dataName);
 
     /// <summary>处理响应。统一识别code/message</summary>
+    /// <remarks>返回 HttpResponseMessage（原始响应）时不做解析、原样透传，所有权随之移交调用方；其余类型读取内容后由调用方负责释放响应。</remarks>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
     /// <param name="codeName">状态码字段名</param>
     /// <param name="response">Http响应消息</param>
