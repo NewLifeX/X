@@ -275,7 +275,8 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
             var remote = ParseAddressAndPort(parts[2]);
             //var pid = GetProcessIdFromInode(parts[9]);
             var info = new TcpConnectionInformation2(local, remote, state, 0);
-            info.Node = parts[9];
+            // inode 位于第10列；短行（截断输入）没有该列，留空而不是越界
+            if (parts.Length > 9) info.Node = parts[9];
 
             list.Add(info);
         }

@@ -35,4 +35,25 @@ public class NetHelperTests
             global.Remove("NetHelperTests:sentinel");
         }
     }
+
+    [Fact(DisplayName = "分析终结点：畸形与非典型地址返回 null 或正常值，不抛异常")]
+    public void ParseEndPoint_EdgeCases()
+    {
+        // 常规形态
+        Assert.Equal("127.0.0.1:8080", NetHelper.ParseEndPoint("127.0.0.1:8080") + "");
+        Assert.Equal("127.0.0.1:80", NetHelper.ParseEndPoint("127.0.0.1", 80) + "");
+
+        // 带协议前缀与路径：端口后不要带路径
+        Assert.Equal("127.0.0.1:8080", NetHelper.ParseEndPoint("http://127.0.0.1:8080/api") + "");
+
+        // IPv6 各种形态
+        Assert.Equal("[::1]:80", NetHelper.ParseEndPoint("::1", 80) + "");
+        Assert.Equal("[::1]:80", NetHelper.ParseEndPoint("[::1]", 80) + "");
+        Assert.Equal("[::1]:8080", NetHelper.ParseEndPoint("[::1]:8080") + "");
+
+        // 畸形：不抛异常，返回 null
+        Assert.Null(NetHelper.ParseEndPoint("127.0.0.1:abc"));
+        Assert.Null(NetHelper.ParseEndPoint("[::1"));
+        Assert.Null(NetHelper.ParseEndPoint("[::1]x:80"));
+    }
 }

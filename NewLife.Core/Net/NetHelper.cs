@@ -102,6 +102,10 @@ public static class NetHelper
     }
 
     /// <summary>分析网络终结点</summary>
+    /// <remarks>
+    /// 地址可带协议前缀与路径（自动剥离），可不带端口；支持域名、IPv4、IPv6（含方括号形态）。
+    /// 格式非法（坏端口、方括号不闭合等）返回 null；域名解析失败沿用 <see cref="NetUri.ParseAddress"/> 的抛异常口径。
+    /// </remarks>
     /// <param name="address">地址，可以不带端口</param>
     /// <param name="defaultPort">地址不带端口时指定的默认端口</param>
     /// <returns></returns>
@@ -112,19 +116,42 @@ public static class NetHelper
         var p = address.IndexOf("://");
         if (p >= 0) address = address[(p + 3)..];
 
-        var port = 0;
-        p = address.LastIndexOf(':');
-        IPAddress? addr = null;
-        if (p > 0)
+        // 去掉路径、查询与片段，只保留主机部分
+        p = address.IndexOfAny(['/', '?', '#']);
+        if (p >= 0) address = address[..p];
+
+        var port = defaultPort;
+        var host = address;
+
+        if (address.StartsWith("["))
         {
-            addr = address[..p].ParseAddress();
-            port = Int32.Parse(address[(p + 1)..]);
+            // [IPv6] 或 [IPv6]:port
+            var end = address.IndexOf(']');
+            if (end < 0) return null;
+
+            host = address[1..end];
+            var rest = address[(end + 1)..];
+            if (rest.StartsWith(":"))
+            {
+                if (!Int32.TryParse(rest[1..], out port)) return null;
+            }
+            else if (!rest.IsNullOrEmpty())
+            {
+                return null;
+            }
         }
         else
         {
-            addr = address.ParseAddress();
-            port = defaultPort;
+            // 冒号唯一才是"主机:端口"；多冒号视为不带端口的裸 IPv6
+            var idx = address.IndexOf(':');
+            if (idx > 0 && idx == address.LastIndexOf(':'))
+            {
+                host = address[..idx];
+                if (!Int32.TryParse(address[(idx + 1)..], out port)) return null;
+            }
         }
+
+        var addr = host.ParseAddress();
         if (addr == null) return null;
 
         return new IPEndPoint(addr, port);
