@@ -518,6 +518,50 @@ public class HttpServerTests : IDisposable
         Assert.Contains("P2OK", resp);
     }
 
+    [Fact(DisplayName = "HTTP服务端_流水线两条GET都无长度_两个请求都得到响应")]
+    public async Task PipelinedGets_WithoutContentLength_BothAnswered()
+    {
+        _server.MapGet("/pa", () => "AAA");
+        _server.MapGet("/pb", () => "BBB");
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        // 两条普通 GET（无 Content-Length）一次发出：GET 按 RFC 9112 §6.3 没有实体，
+        // 头部之后的字节属于第二个请求。按实体吞掉时第二个请求被静默丢弃——既不回响应也不关连接，
+        // 客户端只能等自身超时
+        await ns.WriteAsync(("GET /pa HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n" +
+                             "GET /pb HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n").GetBytes());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("AAA") && s.Contains("BBB"));
+
+        Assert.Contains("AAA", resp);
+        Assert.Contains("BBB", resp);
+
+        // 响应顺序与请求顺序一致（HTTP/1.1 流水线要求）
+        Assert.True(resp.IndexOf("AAA", StringComparison.Ordinal) < resp.IndexOf("BBB", StringComparison.Ordinal), "响应顺序必须与请求顺序一致");
+        Assert.Equal(2, resp.Split("HTTP/1.1 200").Length - 1);
+    }
+
+    [Fact(DisplayName = "HTTP服务端_HTTP1.0的POST无长度_实体仍按连接内容读取")]
+    public async Task Http10Post_WithoutContentLength_BodyStillRead()
+    {
+        // 老式客户端以连接关闭定界实体、不发 Content-Length，兼容语义不能随流水线修正一并去掉
+        _server.MapPost<IHttpContext, String>("/legacy", ctx => "GOT:" + (ctx.Request.Body?.ToStr() ?? ""));
+
+        using var client = new TcpClient { NoDelay = true };
+        await client.ConnectAsync(IPAddress.Loopback, _server.Port);
+        using var ns = client.GetStream();
+
+        await ns.WriteAsync("POST /legacy HTTP/1.0\r\nHost: 127.0.0.1\r\n\r\nhello".GetBytes());
+        await ns.FlushAsync();
+
+        var resp = await ReadUntilAsync(ns, s => s.Contains("GOT:"));
+        Assert.Contains("GOT:hello", resp);
+    }
+
     [Fact(DisplayName = "HTTP服务端_实体跨轮收满后紧跟完整请求_后者也得到响应")]
     public async Task PipelinedAfterBody_SecondAnswered()
     {

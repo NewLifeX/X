@@ -27,6 +27,15 @@ public class HttpRequest : HttpBase
     /// <summary>是否严格校验头部行。请求侧强制：字段名含空白、或续行折叠一律拒绝（RFC 7230 §3.2.4）</summary>
     protected override Boolean StrictHeader => true;
 
+    /// <summary>未声明长度时是否把头部之后的字节按实体处理</summary>
+    /// <remarks>
+    /// <para>RFC 9112 §6.3：请求无 Content-Length 且无 Transfer-Encoding 时没有实体，头部之后的字节属于同连接的
+    /// 下一个请求（HTTP/1.1 流水线）；一律当实体吞掉会让第二个请求静默丢失（不回响应也不关连接，客户端挂到超时）。</para>
+    /// <para>例外保留：HTTP/1.0 的 POST/PUT/PATCH——老式客户端以“连接关闭”定界实体、不发 Content-Length，
+    /// 兼容语义不能一并去掉。</para>
+    /// </remarks>
+    protected override Boolean BodyWithoutLength => Version != "1.1" && Method.EqualIgnoreCase("POST", "PUT", "PATCH");
+
     /// <summary>分析第一行</summary>
     /// <param name="firstLine"></param>
     protected override Boolean OnParse(String firstLine)

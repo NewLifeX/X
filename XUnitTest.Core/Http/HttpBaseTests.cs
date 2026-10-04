@@ -53,6 +53,38 @@ public class HttpBaseTests
         Assert.Equal(bytes.Length, req.ConsumedLength);
     }
 
+    [Fact(DisplayName = "无长度请求_主体为空且消耗只含头部")]
+    public void Parse_RequestWithoutLength_HasNoBody()
+    {
+        // RFC 9112 §6.3：请求既无 CL 也无 TE 时没有实体，头部之后的字节属于同连接的下一个请求（流水线）。
+        // 按实体吞掉会让第二个请求静默丢失（不回响应也不关连接）
+        var first = "GET /a HTTP/1.1\r\nHost: a\r\n\r\n";
+        var raw = first + "GET /b HTTP/1.1\r\nHost: b\r\n\r\n";
+
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket(raw.GetBytes())));
+
+        Assert.Null(req.Body);
+        Assert.Equal(-1, req.ContentLength);
+        Assert.Equal(first.Length, req.ConsumedLength);
+    }
+
+    [Fact(DisplayName = "HTTP1.0的POST无长度_保留读到的都是实体的兼容语义")]
+    public void Parse_Http10PostWithoutLength_KeepsBodyCompat()
+    {
+        // 老式客户端以连接关闭定界实体、不发 Content-Length，兼容语义按方法保留（HTTP/1.0 的 POST/PUT/PATCH）
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket("POST /a HTTP/1.0\r\nHost: a\r\n\r\nhello".GetBytes())));
+
+        Assert.Equal("hello", req.Body!.ToStr());
+
+        // HTTP/1.1 的 POST 不再按实体处理（同上，无长度即无实体）
+        var req2 = new HttpRequest();
+        Assert.True(req2.Parse(new ArrayPacket("POST /a HTTP/1.1\r\nHost: a\r\n\r\nhello".GetBytes())));
+
+        Assert.Null(req2.Body);
+    }
+
     [Fact(DisplayName = "请求同实例二次解析_上一条头部不残留")]
     public void Reparse_SameInstance_ClearsStaleHeaders()
     {

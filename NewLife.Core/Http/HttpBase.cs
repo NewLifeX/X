@@ -196,6 +196,10 @@ public abstract class HttpBase : IDisposable
 
         ContentType = Headers["Content-Type"];
 
+        // 分析第一行。提前到主体切片之前：主体策略取决于请求方法与协议版本（见 BodyWithoutLength），
+        // 且解析失败时不再需要先切主体（少一次切片与归还）
+        if (!OnParse(firstLine)) return false;
+
         // 截取主体（跳过 CRLFCRLF 共4字节）：共享切片独立持有引用；入参句柄由调用方释放。
         // 声明了 Content-Length 时按它截断：同一轮数据里其后紧跟的字节（客户端多发、或同连接的下一请求）
         // 不属于本请求，否则会被当业务参数/JSON 解析，并写进链路追踪。
@@ -205,24 +209,36 @@ public abstract class HttpBase : IDisposable
         var available = pk.Total - bodyStart;
         // 声明长度小于本轮可用字节时只截取声明长度
         var declared = Headers["Transfer-Encoding"].IsNullOrEmpty() && ContentLength >= 0 && ContentLength < available;
+        // 未声明长度：请求侧默认“没有实体”，头部之后的字节属于同连接的下一个请求（流水线）；
+        // 响应侧与老式请求保留“读到的就是实体”的兼容语义，见 BodyWithoutLength
+        var noLength = !declared && Headers["Transfer-Encoding"].IsNullOrEmpty() && ContentLength < 0 && !BodyWithoutLength;
 
         // 旧主体可能是上一次解析（同实例复用）或调用方置入的拥有句柄：覆盖前先归还，
         // 否则它持有的池缓冲引用计数永不归零（与 Dispose 将 Body 视为拥有句柄的口径一致）
         Body.TryDispose();
 
-        Body = declared
-            ? pk.Slice(bodyStart, ContentLength)
-            : pk.Slice(bodyStart, -1);
+        Body = noLength
+            ? null
+            : declared
+                ? pk.Slice(bodyStart, ContentLength)
+                : pk.Slice(bodyStart, -1);
 
         // 本请求占用的字节数，其后多出的字节属于后续请求（HTTP/1.1 流水线），调用方据此切分保留。
-        // 未声明 Content-Length 时头部之后全部按实体处理，消耗量即整包长度
-        ConsumedLength = bodyStart + (declared ? ContentLength : available);
-
-        // 分析第一行
-        if (!OnParse(firstLine)) return false;
+        // 未声明长度且按无实体处理时，消耗量只含头部与分隔空行，剩余字节留给调用方继续解析
+        ConsumedLength = bodyStart + (noLength ? 0 : declared ? ContentLength : available);
 
         return true;
     }
+
+    /// <summary>未声明 Content-Length 与 Transfer-Encoding 时，是否把头部之后的可用字节按实体处理</summary>
+    /// <remarks>
+    /// <para>RFC 9112 §6.3：请求既无 Content-Length 也无 Transfer-Encoding 时**没有实体**，头部之后的字节属于
+    /// 同连接的下一个请求（HTTP/1.1 流水线）。若一律按实体吞掉，同轮里的第二个请求会被静默丢弃：既不回响应
+    /// 也不关闭连接，客户端只能等到自身超时；与前置代理共存时两侧对同一段字节的理解还会不一致。</para>
+    /// <para>老式客户端（HTTP/1.0）以“连接关闭”定界实体、不发送 Content-Length，故该兼容语义按方法判定保留，
+    /// 见 <see cref="HttpRequest" />；响应无长度时实体本就以连接关闭定界，保持原样。</para>
+    /// </remarks>
+    protected virtual Boolean BodyWithoutLength => true;
 
     /// <summary>分析第一行</summary>
     /// <param name="firstLine"></param>
