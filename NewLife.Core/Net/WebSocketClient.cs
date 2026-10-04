@@ -135,11 +135,16 @@ public class WebSocketClient : TcpSession
         return base.OnCloseAsync(reason, cancellationToken);
     }
 
-    /// <summary>销毁。清空未取走的接收消息，避免负载滞留</summary>
+    /// <summary>销毁。释放心跳定时器并清空未取走的接收消息，避免负载滞留</summary>
     /// <param name="disposing"></param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
+
+        // 心跳定时器一并释放：CloseAsync 在未激活（无连接）时直接返回、不走 OnCloseAsync，
+        // "打开过程中被销毁"这类路径会留下定时器——TimerX 持有会话对象，且每次到期都在已释放会话上发送 Ping
+        _timer?.Dispose();
+        _timer = null;
 
         while (_received.TryDequeue(out var msg)) msg.TryDispose();
 
@@ -279,21 +284,27 @@ public class WebSocketClient : TcpSession
         {
             _fragment.Begin(msg.Type, msg.Payload);
 
-            // RFC 6455 §7.4.1：分片超限应失败连接并回 1009（Message Too Big），而非静默丢弃让服务端以为已送达。
-            // 本处为同步事件路径无法 await，关闭异常只记日志
-            if (_fragment.TooBig) _ = CloseAsync(1009, "message too big").ContinueWith(
-                t => { if (t.IsFaulted) NewLife.Log.XTrace.WriteException(t.Exception!.GetBaseException()); },
-                CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            // RFC 6455 §7.4.1：分片超限应失败连接并回 1009（Message Too Big），而非静默丢弃让服务端以为已送达
+            if (_fragment.TooBig) CloseWithError(1009, "message too big");
 
             return;
         }
         if (msg.Type == WebSocketMessageType.Data)
         {
-            if (_fragment.Append(msg.Fin, msg.Payload) is not { } whole)
+            var whole = _fragment.Append(msg.Fin, msg.Payload);
+
+            // 无首片的孤立续片（分片序列未开始或已结束）：RFC 6455 §5.4 属协议错误，静默忽略会让服务端以为已送达
+            if (whole == null && !_fragment.Active)
             {
-                if (_fragment.TooBig) _ = CloseAsync(1009, "message too big").ContinueWith(
-                    t => { if (t.IsFaulted) NewLife.Log.XTrace.WriteException(t.Exception!.GetBaseException()); },
-                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                CloseWithError(_fragment.TooBig ? 1009 : 1002, _fragment.TooBig ? "message too big" : "unexpected continuation frame");
+
+                return;
+            }
+
+            // 分片序列进行中：等后续片
+            if (whole == null)
+            {
+                if (_fragment.TooBig) CloseWithError(1009, "message too big");
 
                 return;
             }
@@ -301,11 +312,29 @@ public class WebSocketClient : TcpSession
             msg = whole;
         }
 
+        // RFC 6455 §8.1：文本消息的负载必须是合法 UTF-8（分片消息在重组后校验），畸变数据按 1007 失败连接
+        if (msg.Type == WebSocketMessageType.Text && !WebSocketCodec.IsValidUtf8(msg.Payload))
+        {
+            msg.TryDispose();
+
+            CloseWithError(1007, "invalid utf-8");
+
+            return;
+        }
+
         _received.Enqueue(msg);
 
         // 唤醒等待者（无等待者时静默）
         _receivedSignal?.TrySetResult(true);
     }
+
+    /// <summary>协议错误时关闭连接（同步事件路径无法 await，关闭异常只记日志）</summary>
+    /// <param name="closeStatus">关闭状态码，如 1002 协议错误、1007 负载非法、1009 消息过大</param>
+    /// <param name="reason">关闭描述</param>
+    private void CloseWithError(Int32 closeStatus, String reason) =>
+        _ = CloseAsync(closeStatus, reason).ContinueWith(
+            t => { if (t.IsFaulted) NewLife.Log.XTrace.WriteException(t.Exception!.GetBaseException()); },
+            CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
     /// <summary>发送文本帧。拥有句柄所有权转移：发送返回即已消费/释放，不得再使用；视图（ArrayPacket 等）无所有权、不被释放</summary>
     /// <remarks>

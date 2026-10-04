@@ -68,4 +68,52 @@ public class WebSocketPullTests
         var msg = await client.ReceiveMessageAsync(cts.Token).WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Null(msg);
     }
+
+    /// <summary>可直接执行打开流程的探针客户端（不置 Active）</summary>
+    /// <remarks>用于构造“握手完成、心跳定时器已建，但会话仍未激活”的状态：OpenAsync 要到 OnOpenAsync 返回后才置位 Active</remarks>
+    private sealed class RawOpenClient : WebSocketClient
+    {
+        public RawOpenClient(Uri uri) : base(uri) { }
+
+        public Task<Boolean> OpenRawAsync(CancellationToken cancellationToken = default) => OnOpenAsync(cancellationToken);
+    }
+
+    [Fact]
+    [DisplayName("ws客户端_未激活时销毁_心跳定时器一并释放")]
+    public async Task DisposeBeforeActive_ReleasesHeartbeatTimer()
+    {
+        // 服务端：接受 WebSocket 握手
+        var server = new NewLife.Http.HttpServer { Port = 0 };
+        server.Map("/ws", new NewLife.Http.WebSocketHandler());
+        server.Start();
+
+        try
+        {
+            var client = new RawOpenClient(new Uri($"ws://127.0.0.1:{server.Port}/ws"));
+
+            // 握手完成、定时器已建，但 Active 仍为 false（OpenAsync 才会置位）
+            Assert.True(await client.OpenRawAsync());
+            Assert.False(client.Active);
+
+            var timer = GetHeartbeatTimer(client);
+            Assert.NotNull(timer);
+            Assert.NotEqual(0, timer!.Id);      // 已注册进调度器
+
+            client.Dispose();
+
+            // 定时器必须一并释放：否则 TimerX 持有会话对象，且每次到期都在已释放会话上发送 Ping
+            Assert.Equal(0, timer.Id);          // 已从调度器摘除
+            Assert.Null(GetHeartbeatTimer(client));
+        }
+        finally
+        {
+            server.Dispose();
+        }
+    }
+
+    /// <summary>反射读取心跳定时器（私有字段，仅用于验证释放语义）</summary>
+    private static NewLife.Threading.TimerX? GetHeartbeatTimer(WebSocketClient client) =>
+        (NewLife.Threading.TimerX?)typeof(WebSocketClient)
+            .GetField("_timer", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?.GetValue(client);
 }
