@@ -115,12 +115,14 @@ public class TarFileTests
     [Fact(DisplayName = "测试空目录创建Tar")]
     public void TestCreateTarFromEmptyDirectory()
     {
-        var emptyDir = Path.Combine(Path.GetTempPath(), "EmptyTarTest");
-        if (Directory.Exists(emptyDir)) Directory.Delete(emptyDir, true);
+        // 测试工程的多个目标框架会并行运行，固定名称会在系统临时目录互相踩踏，用进程号隔离
+        var root = Path.Combine(Path.GetTempPath(), "EmptyTarTest_" + Environment.ProcessId);
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+
+        var emptyDir = Path.Combine(root, "EmptyTarTest");
         Directory.CreateDirectory(emptyDir);
 
-        var emptyTarFile = Path.Combine(Path.GetTempPath(), "empty.tar");
-        if (File.Exists(emptyTarFile)) File.Delete(emptyTarFile);
+        var emptyTarFile = Path.Combine(root, "empty.tar");
 
         using var archiver = new TarFile(emptyTarFile, true);
         archiver.CreateFromDirectory(emptyDir);

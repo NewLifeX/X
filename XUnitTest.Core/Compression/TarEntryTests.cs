@@ -53,12 +53,17 @@ public class TarEntryTests
     [Fact]
     public void Test1()
     {
+        // 随机条目类型。排除 LongLink/LongPath：GNU 长路径元数据条目会被 Read 消费，
+        // TypeFlag 改写为 RegularFile（见 TarEntry.Read 的长文件名处理），不属于原样往返的类型
+        var type = (TarEntryType)Rand.Next(0, 256);
+        if (type is TarEntryType.LongLink or TarEntryType.LongPath) type = TarEntryType.RegularFile;
+
         // 创建一个TarHeader
         var header = new TarEntry
         {
             FileName = Rand.NextString(32),
             FileSize = Rand.Next(),
-            TypeFlag = (TarEntryType)Rand.Next(0, 256),
+            TypeFlag = type,
             Magic = Rand.NextString(8),
         };
 
