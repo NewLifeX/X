@@ -54,7 +54,7 @@
   - “共享底层”切片得到新包（引用计数共享）。默认 `count=-1` 表示直到末尾。
 
 - `IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner)`
-  - **v12 破坏性变更：已删除**（原为忽略 `transferOwner` 的 `[Obsolete]` 兼容重载）。旧版编译的三参调用方会抛 `MissingMethodException`，需改用两参重载并重新编译。
+  - **v12 兼容处置：保留**（忽略 `transferOwner` 的 `[Obsolete]` 兼容重载仍在接口与全部实现上，供旧二进制加载）。旧语义“只释放新句柄”会让原句柄引用滞留（延迟到 GC，非错误）；源码请改用两参重载并重新编译。
 
 - `OwnerPacket.Slice(Int32 offset, Int32 count = -1)`（公开方法，返回具体类型 `OwnerPacket`）
   - 返回拥有句柄，可以自然 `using` 释放；`IPacket.Slice` 与 `IOwnerPacket.Slice` 是其显式接口实现，经接口访问分别返回 `IPacket`/`IOwnerPacket`。
@@ -88,7 +88,7 @@
 - 设计决策：切片只保留共享一种语义（历史“转移/借用”三参形态已废弃）——接收层轮末按 `RefCount` 裁决缓冲复用，前提是“一切逃逸必须计数可见”；取出子窗口后不再使用原句柄时应随即释放（等价旧的移动切片）。
 - 每个句柄都必须 `Dispose`（共享≠免释放）；漏释放会让缓冲无法回池，开发期由析构兜底告警（`#if DEBUG || OWNERPACKET_FINALIZER`）。
 - `OwnerPacket.Detach()`：脱手（放弃本句柄引用但不归还缓冲，仅计数为 1 时可用），供接收层在会话关闭时把常驻缓冲的归还责任交给释放路径。
-- `Free()` 与三参 `Slice` 的 `[Obsolete]` 兼容壳**已在 v12 删除**（原分别转发 `Detach()` 与两参重载）；旧二进制会抛 `MissingMethodException`，需重新编译。
+- `Free()` 的 `[Obsolete]` 兼容壳已随 v12 删除（由 `Detach()` 取代）；三参 `Slice` 壳**保留**（转发两参重载、`transferOwner` 被忽略，二进制兼容面），源码请改用两参 `Slice`。
 
 ---
 
