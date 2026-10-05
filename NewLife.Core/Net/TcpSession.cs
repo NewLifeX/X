@@ -364,7 +364,9 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
 #if NETCOREAPP
-                using var source = timeout > 0 ? new CancellationTokenSource(timeout) : new CancellationTokenSource();
+                // 超时预算 + 调用方取消：两者任一触发都中止握手（超时以 OperationCanceledException 呈现，与建连口径一致）
+                using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                if (timeout > 0) source.CancelAfter(timeout);
                 await sslStream.AuthenticateAsClientAsync(
                     new SslClientAuthenticationOptions
                     {
@@ -375,7 +377,23 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                     },
                     source.Token).ConfigureAwait(false);
 #else
-                await sslStream.AuthenticateAsClientAsync(host, certs, sp, false).ConfigureAwait(false);
+                // 旧框架不支持取消耗时认证：超时/取消后先关闭套接字中止挂起的握手读，再等待任务结束以观测其异常
+                var authTask = sslStream.AuthenticateAsClientAsync(host, certs, sp, false);
+                if (timeout > 0 || cancellationToken.CanBeCanceled)
+                {
+                    var completed = await Task.WhenAny(authTask, Task.Delay(timeout > 0 ? timeout : System.Threading.Timeout.Infinite, cancellationToken)).ConfigureAwait(false);
+                    if (completed != authTask)
+                    {
+                        sock.Close();
+                        try { await authTask.ConfigureAwait(false); } catch { }
+
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        throw new TimeoutException($"客户端SSL认证超时！[{timeout}ms]");
+                    }
+                }
+
+                await authTask.ConfigureAwait(false);
 #endif
 
                 _Stream = sslStream;
