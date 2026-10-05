@@ -258,6 +258,10 @@ public class WebSocketClient : TcpSession
         // Close 帧：从负载解析状态码与描述（在负载物化前）
         if (ws.Type == WebSocketMessageType.Close) ws.TryReadCloseStatus();
 
+        // RFC 6455 §5.5.2/§5.5.3：服务端 Ping 必须回应 Pong，且回传同一 Application Data。
+        // 消息照常入队，拉取 API 行为不变；会话关闭中不回应，避免 Send 的自动打开把连接重新拉起
+        if (ws.Type == WebSocketMessageType.Ping) ReplyPong(ws.Payload);
+
         // 物化拷贝：与事件流解耦，拉取方完全拥有（含负载）
         var msg = new WsMessage
         {
@@ -326,6 +330,26 @@ public class WebSocketClient : TcpSession
 
         // 唤醒等待者（无等待者时静默）
         _receivedSignal?.TrySetResult(true);
+    }
+
+    /// <summary>回应服务端 Ping。RFC 6455 §5.5.3：Pong 必须回传 Ping 的 Application Data</summary>
+    /// <param name="payload">Ping 的负载（与消息同生命周期，本方法同步消费）</param>
+    private void ReplyPong(IPacket? payload)
+    {
+        // 会话正在关闭时不回写：Send 在未打开时会自动重连，心跳回写不得把已关闭的连接拉起
+        if (Disposed || !Active) return;
+
+        try
+        {
+            // 拥有句柄切出共享引用交给容器（发送链路随即掩码拷贝，随后容器释放该引用，原消息负载不受影响）；
+            // 视图无所有权、在本同步链路内有效，可直接借用；空负载 Ping 回空负载 Pong
+            SendFrame(payload is IOwnerPacket owner ? owner.Slice(0, -1) : payload ?? new ArrayPacket([]), WebSocketMessageType.Pong);
+        }
+        catch (Exception ex)
+        {
+            // 回写失败不打断接收链：连接故障由发送链路按既有口径上报并关闭会话
+            WriteLog("发送 Pong 失败：" + ex.Message);
+        }
     }
 
     /// <summary>协议错误时关闭连接（同步事件路径无法 await，关闭异常只记日志）</summary>
