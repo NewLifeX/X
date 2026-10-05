@@ -164,7 +164,16 @@ public class HttpChunkedSendTests
 
         var session = server.Captured!;
 
-        // 分块直发是同步的，句柄按序进入捕获列表；连续两次采样不再增长即视为整条响应已写完
+        // 分块直发是同步的，句柄按序进入捕获列表。
+        // 先等到响应至少写出「头 + 首块」：仅以"计数不再增长"判断完成，会在"响应尚未开始写"时
+        // 误判为已完成（并行负载下线程调度延迟可达数十毫秒），得到 0 个句柄而断言失败
+        while (session.Count < 2)
+        {
+            Assert.True(sw.ElapsedMilliseconds < 20_000, "等待分块响应开始写出超时");
+            await Task.Delay(20);
+        }
+
+        // 再等整条响应写完：连续两次采样不再增长
         Int32 last;
         do
         {
