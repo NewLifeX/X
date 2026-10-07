@@ -244,6 +244,41 @@ public class WebSocketClient : TcpSession
     /// 必须整帧交付，否则大帧会在事件内同步等待后续数据，占用线程池线程</summary>
     protected override Boolean RequireFullFrame => true;
 
+    /// <summary>收到消息。重写以先做接收侧协议校验，违规帧不进入事件链与拉取队列，按协议错误失败连接</summary>
+    /// <param name="message">消息（头部字段就位、体已绑定）</param>
+    /// <remarks>
+    /// <para>校验与服务端帧循环（<c>Http/WebSocket.ReadFrames</c>）逐条对齐，缺一不可：</para>
+    /// <list type="bullet">
+    /// <item>RFC 6455 §5.1：服务端发往客户端的帧不得带掩码，检出即必须失败连接——不校验会把未解码的掩码负载当业务数据交付，
+    /// 对端违规时业务侧拿到乱码却没有任何信号</item>
+    /// <item>RFC 6455 §5.5：控制帧（Close/Ping/Pong）必须 FIN=1 且负载不超过 125 字节——不校验会让超大 Ping 触发等量 Pong 回显（反射放大），
+    /// 分片 Ping 还会被按不完整负载提前应答</item>
+    /// </list>
+    /// <para>违规帧不进入事件链与拉取队列，由帧泵按交付收尾统一丢弃负载并释放；失败连接后不再处理后续帧。</para>
+    /// </remarks>
+    protected override void OnMessage(IMessage message)
+    {
+        if (message is WsMessage ws)
+        {
+            // RFC 6455 §5.1：客户端检出服务端带掩码的帧必须失败连接
+            if (ws.MaskKey != null)
+            {
+                CloseWithError(1002, "masked frame from server");
+                return;
+            }
+
+            // RFC 6455 §5.5：控制帧必须 FIN=1 且负载不超过 125 字节
+            if (ws.Type is WebSocketMessageType.Close or WebSocketMessageType.Ping or WebSocketMessageType.Pong
+                && (!ws.Fin || ws.Payload?.Total > 125))
+            {
+                CloseWithError(1002, "invalid control frame");
+                return;
+            }
+        }
+
+        base.OnMessage(message);
+    }
+
     /// <summary>待收消息队列（拉取 API）</summary>
     private readonly ConcurrentQueue<WsMessage> _received = new();
 
@@ -355,10 +390,16 @@ public class WebSocketClient : TcpSession
     /// <summary>协议错误时关闭连接（同步事件路径无法 await，关闭异常只记日志）</summary>
     /// <param name="closeStatus">关闭状态码，如 1002 协议错误、1007 负载非法、1009 消息过大</param>
     /// <param name="reason">关闭描述</param>
-    private void CloseWithError(Int32 closeStatus, String reason) =>
+    private void CloseWithError(Int32 closeStatus, String reason)
+    {
+        // 会话正在关闭/已释放时不回写：发送关闭帧会走 Send 的自动打开（OpenAsync 重连并重新握手），
+        // 把已关闭的连接重新拉起。连接已在收尾，对端无需额外的关闭帧
+        if (Disposed || !Active) return;
+
         _ = CloseAsync(closeStatus, reason).ContinueWith(
             t => { if (t.IsFaulted) NewLife.Log.XTrace.WriteException(t.Exception!.GetBaseException()); },
             CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+    }
 
     /// <summary>发送文本帧。拥有句柄所有权转移：发送返回即已消费/释放，不得再使用；视图（ArrayPacket 等）无所有权、不被释放</summary>
     /// <remarks>
