@@ -14,9 +14,18 @@
 
 ## 框架概述
 
-​	NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持从 .NET 2.0 到 .NET 10.0 的多个 .NET 版本，从而在不同环境中实现广泛的兼容性。
+​	NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持 net45~net10.0 多目标框架（.NET Framework 4.5 至 .NET 10.0），从而在不同环境中实现广泛的兼容性。
 
 
+
+## 文档索引
+
+仓库 `Doc/` 目录维护能力文档体系（需求定义 → 功能追踪 → 架构设计）：
+
+- [需求文档](Doc/需求文档.md)：愿景、核心目标与功能需求
+- [功能清单](Doc/功能清单.md)：全部功能点的实现/测试/注释状态追踪
+- [架构设计](Doc/架构设计.md)：分层、模块组件与关键设计决策
+- [核心库目录](Doc/核心库目录.md)：核心组件文章索引
 
 ## 快速拥有
 
@@ -89,7 +98,7 @@ dotnet run
 |                  | [轻量级应用主机Host](https://newlifex.com/core/host)                         | 简化应用托管，轻松构建长时间运行的后台服务。     |
 |                  | [插件框架IPlugin](https://newlifex.com/core/plugin)                          | 提供标准化的插件管理机制，实现应用模块化开发。   |
 |                  | [并行模型Actor](https://newlifex.com/core/actor)                             | 简化的并发编程模型，通过消息队列处理提升吞吐。   |
-|                  | [管道模型Pipeline](/core/pipeline)                                           | 双向处理链模型，统一Read/Write/Open/Close流程。  |
+|                  | [管道模型Pipeline](/core/pipeline) ⚠️ 已退役，由协议模式（帧泵）取代                                           | 双向处理链模型，统一Read/Write/Open/Close流程。  |
 |                  | [延迟队列DeferredQueue](/core/deferred_queue)                                | 聚合高频变更并批处理落地，降低写入放大。         |
 |                  | [事件总线EventBus](/core/eventbus)                                           | 进程内事件分发，支持主题路由和队列式消息。       |
 |                  | [弱引用委托WeakAction](https://newlifex.com/core/weak_action)                | 解决事件订阅内存泄漏问题，实现安全的事件处理。   |
