@@ -62,6 +62,7 @@ PoC 形态：`[SgService(typeof(IFoo))] class Foo` → 生成 `GeneratedServices
 | SG-5 | 收口：IMP-24 剩余面处置决策（哪些改源生成器、哪些保留注解/静音）、文档与使用指引 | 文档 + 冒烟回归 16/16 |
 | SG-6 | Http 分发静态化：扫描 `MapController` 注册点（泛型与 `typeof` 形式），为控制器生成"方法名 → 强类型调用"委托（参数绑定编译期展开、方法直接调用、异步/值类型结果强类型写回），运行时 `HttpDispatchTable` 优先命中 | JIT + AOT 双环境实测 + 单测。**→ ✅ 已落地：`HttpDispatchTable` + `ControllerHandler` 接入（命中分发表则零反射，未命中回退原路径）+ 生成器 + 单测 4 项；冒烟 21 场景 JIT/AOT 21/21（含"Http 控制器静态分发""Http 静态分发优先级"两场景）；负向验证：关闭生成器即变红；绑定语义镜像 `ParameterBinder`（按名取值转换 → 显式默认值 → 上下文注入 → 缺失值类型抛必填异常），重载歧义/泛型方法/ref 参数/`ValueTask` 等方法自动跳过** |
 | SG-7 | 序列化/映射辅助路径静态化（甄别）：逐个评估成员枚举消费者，选择最强可达机制（生成器 > 保留注解 > 记录边界） | 实测。**→ ✅ 已落地（2026-10-08）：甄别结论为"注解优先"——`CsvDb<T>` 类泛型参数、`DbTable.WriteModels/Cast/ReadModels`（泛型与 Type 入口）补保留注解（冒烟 23/23，CsvDb 负向验证到红）；`SpanSerializer` 入口此前已覆盖；`SerialHelper.GetJsonPropertyMap`、`IReflect` 拷贝/填充、`Rand`、`CollectionHelper` 的实例成员枚举属运行时类型无法静态表达，记录为边界（与直调 `MapTo` 同类）** |
+| SG-8 | 类型发现静态化（甄别）：`AssemblyX` 程序集扫描面的静态清单能力 | 实测/甄别。**→ ✅ 甄别完成（2026-10-08）：库内唯一扫描型消费者为插件发现（AOT 设计性不支持）与系统诊断；核心生态（Remoting/XCode/Agent 无引用，Stardust 仅 `GetCompileTime`）无真实类型发现场景——不新增"标记 + 静态清单"公共 API（零消费者），结论登记为边界（见《AOT兼容性分析》§7）** |
 
 每个切片独立提交、独立验收（JIT + AOT + 单测三证）。
 

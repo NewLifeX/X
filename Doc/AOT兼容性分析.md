@@ -125,6 +125,17 @@
 - **遇到 `RequiresDynamicCode` 警告**：该功能（脚本/插件/动态对象）不可用于 AOT，改用静态注册或替代实现。
 - **排障提示**：网络/日志异常默认走 `Log`/`SessionLog`（默认 `Logger.Null` 静默）；AOT 排障时务必先接上日志（文件日志在 AOT 下可用）。
 
+## 7. 已知边界与收口记录（只增不删）
+
+本清单登记**已决策不处理**的 AOT 边界项，防重复报告；出现新证据/新代码时取出重评并向用户再议：
+
+| 项 | 位置 | 处置与理由 |
+|----|------|-----------|
+| 实例成员枚举无法静态表达 | 直调 `ConfigHelper.MapTo/MapFrom`、`SerialHelper.GetJsonPropertyMap`、`IReflect` 拷贝/填充、`Rand`、`CollectionHelper` 的成员枚举 | 参数为 `Object` 或运行时 `Type`，保留要求无处表达（`Object` 参数上 DAM 无效，见 §2.3）；经标准泛型入口（`Load<T>`/`Bind<T>`、`CsvDb<T>`、`DbTable` 等）使用即自动保留。翻案条件：出现真实 AOT 需求 → 按入口评估 RUC 声明或生成器承接 |
+| 程序集/类型发现面 | `AssemblyX.FindAllPlugins`、`IPlugin` 插件系统、`ScriptEngine`/`PluginHelper` | AOT 下**设计性不支持**（动态加载/运行时代码生成），已由 RUC 与动态能力守卫声明；SG-8 甄别：库内唯一扫描型消费者为插件发现与诊断，核心生态（Remoting/XCode/Agent 无引用，Stardust 仅用 `GetCompileTime` 读取编译时间）无真实类型发现场景，暂不新增"标记 + 静态清单"公共 API（零消费者） |
+| `IReflect`/`AssemblyX` 宽面注解（IMP-24 剩余面） | `Reflect.GetProperties/GetFields` 等 Type 参数入口 | 主动注解会在库内新增 30+ 条传导告警、下游升级后出现同类新警告（更正确但更吵）；主链已全部覆盖，按真实需求分入口治理 |
+| 控制器 `ValueTask` 方法 | SG-6 生成器的跳过项（`ControllerHandler`） | 原反射路径对 `ValueTask` 返回值的语义可疑（盒装对象写入响应），保持原样不生成；翻案条件：出现真实需求并明确期望语义 |
+
 ## 附录：复现方法
 
 ```powershell
