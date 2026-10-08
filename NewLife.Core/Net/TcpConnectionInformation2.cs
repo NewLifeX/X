@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
@@ -139,18 +140,27 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
                 var list = new List<TcpConnectionInformation2>();
 
                 // get the number of entries in the table
+#if NET45
                 var tab =
                     (MIB_TCPTABLE_OWNER_PID)Marshal.PtrToStructure(
                         buffTable,
                         typeof(MIB_TCPTABLE_OWNER_PID))!;
+#else
+                var tab = Marshal.PtrToStructure<MIB_TCPTABLE_OWNER_PID>(buffTable);
+#endif
                 var rowPtr = (IntPtr)((Int64)buffTable +
                     Marshal.SizeOf(tab.dwNumEntries));
                 //tTable = new MIB_TCPROW_OWNER_PID[tab.dwNumEntries];
 
                 for (var i = 0; i < tab.dwNumEntries; i++)
                 {
-                    var tcpRow = (MIB_TCPROW_OWNER_PID)Marshal
+                    var tcpRow =
+#if NET45
+                        (MIB_TCPROW_OWNER_PID)Marshal
                         .PtrToStructure(rowPtr, typeof(MIB_TCPROW_OWNER_PID))!;
+#else
+                        Marshal.PtrToStructure<MIB_TCPROW_OWNER_PID>(rowPtr);
+#endif
                     //tTable[i] = tcpRow;
                     list.Add(new TcpConnectionInformation2(tcpRow));
 

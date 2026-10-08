@@ -99,6 +99,7 @@ internal static class TaskHelper
     /// <param name="task">已完成的Task</param>
     /// <returns>Task的Result属性值；若Task无返回值则返回null</returns>
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<>))]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "按运行时泛型实参反射读取任务结果；AOT 下请使用泛型等待入口")]
     public static Object? GetResult(Task task)
     {
         var taskType = task.GetType();

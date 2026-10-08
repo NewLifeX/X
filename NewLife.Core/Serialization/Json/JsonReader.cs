@@ -91,6 +91,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "按运行时类型动态构造集合；AOT 下请使用泛型读写入口")]
     private IList? ParseList(IList<Object> vlist, Type type, Object? target)
     {
         var elmType = type.GetGenericArguments().FirstOrDefault();
@@ -122,6 +123,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "按运行时类型动态构造数组；AOT 下请使用泛型读写入口")]
     private Array ParseArray(IList<Object> list, Type type, Object? target)
     {
         var elmType = type?.GetElementTypeEx();
@@ -153,6 +155,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "按运行时类型动态构造字典；AOT 下请使用泛型读写入口")]
     private IDictionary? ParseDictionary(IDictionary<String, Object> dic, Type type, IDictionary? target)
     {
         var types = type.GetGenericArguments();

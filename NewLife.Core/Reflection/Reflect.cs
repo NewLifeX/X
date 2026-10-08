@@ -175,6 +175,7 @@ public static class Reflect
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
     [DebuggerHidden]
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "按运行时 Type 反射创建实例；AOT 下请使用 CreateInstance<T>() 泛型入口")]
     public static Object? CreateInstance(this Type type, params Object?[] parameters)
     {
         if (type == null) throw new ArgumentNullException(nameof(type));

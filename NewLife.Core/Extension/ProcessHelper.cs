@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -201,6 +202,7 @@ public static class ProcessHelper
         }
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "调试用进程内存读取依赖结构体反射布局；AOT 下不受支持")]
     private static Boolean ReadStruct<T>(IntPtr hProcess, IntPtr lpBaseAddress, out T val)
     {
         val = default!;

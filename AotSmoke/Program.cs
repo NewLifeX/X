@@ -5,6 +5,7 @@
 // 说明：AOT 能力验收冒烟件，由 .github/workflows/test.yml 的 aot job 自动执行（非 0 退出码即失败）。
 // 背景与实测结论见 Doc/AOT兼容性分析.md。
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -332,24 +333,8 @@ Run("ObjectContainer 服务解析", () =>
 
 Run("动态能力守卫 PluginHelper", () =>
 {
-    // JIT 下：未提供 dll 时查不到类型返回 null；NativeAOT 下应抛明确的 PlatformNotSupportedException（而非晦涩崩溃）
-    if (RuntimeFeature.IsDynamicCodeSupported)
-    {
-        var t = PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
-        if (t != null) throw new Exception("意外解析到类型: " + t.FullName);
-    }
-    else
-    {
-        try
-        {
-            PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
-            throw new Exception("AOT 下插件动态加载竟然可用");
-        }
-        catch (PlatformNotSupportedException ex)
-        {
-            if (!ex.Message.Contains("插件动态加载")) throw new Exception("异常信息不明确: " + ex.Message);
-        }
-    }
+    // 冒烟刻意调用带 RequiresUnreferencedCode/RequiresDynamicCode 声明的守卫 API，验证其降级行为
+    PluginGuardProbe.Run();
 });
 
 Run("源生成器服务工厂", () =>
@@ -531,4 +516,33 @@ public class SmokeCsvRow
     public String Name { get; set; } = "";
 
     public Int32 Level { get; set; }
+}
+
+/// <summary>插件守卫探针。冒烟刻意调用带 RequiresUnreferencedCode/RequiresDynamicCode 声明的 API，验证其降级行为</summary>
+public static class PluginGuardProbe
+{
+    /// <summary>验证插件动态加载在 JIT/AOT 两种形态下的行为</summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "冒烟刻意调用带 RequiresUnreferencedCode 声明的插件守卫 API，验证其降级行为")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "冒烟刻意调用带 RequiresDynamicCode 声明的插件守卫 API，验证其降级行为")]
+    public static void Run()
+    {
+        // JIT 下：未提供 dll 时查不到类型返回 null；NativeAOT 下应抛明确的 PlatformNotSupportedException（而非晦涩崩溃）
+        if (RuntimeFeature.IsDynamicCodeSupported)
+        {
+            var t = PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
+            if (t != null) throw new Exception("意外解析到类型: " + t.FullName);
+        }
+        else
+        {
+            try
+            {
+                PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
+                throw new Exception("AOT 下插件动态加载竟然可用");
+            }
+            catch (PlatformNotSupportedException ex)
+            {
+                if (!ex.Message.Contains("插件动态加载")) throw new Exception("异常信息不明确: " + ex.Message);
+            }
+        }
+    }
 }

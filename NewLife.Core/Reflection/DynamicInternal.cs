@@ -26,6 +26,7 @@ public class DynamicInternal : DynamicObject
     /// <param name="binder"></param>
     /// <param name="result"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "DLR 动态成员访问天然依赖运行时反射；AOT 下请使用强类型 API")]
     public override Boolean TryGetMember(GetMemberBinder binder, out Object? result)
     {
         if (Real == null) throw new ArgumentNullException(nameof(Real));
@@ -48,6 +49,7 @@ public class DynamicInternal : DynamicObject
     /// <param name="args"></param>
     /// <param name="result"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "DLR 动态成员调用天然依赖运行时反射；AOT 下请使用强类型 API")]
     public override Boolean TryInvokeMember(InvokeMemberBinder binder, Object?[]? args, out Object? result)
     {
         if (Real == null) throw new ArgumentNullException(nameof(Real));

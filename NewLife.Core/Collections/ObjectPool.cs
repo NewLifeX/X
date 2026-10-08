@@ -355,6 +355,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     #region 重载
     /// <summary>创建实例。默认使用 AOT 安全的泛型工厂创建，可在子类中重写以自定义创建策略。</summary>
     /// <returns>新建对象实例；允许返回 null（将抛出异常）</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "无工厂委托时使用无参构造创建对象；AOT 下裁剪可能移除无参构造，应传入工厂委托")]
     protected virtual T? OnCreate() => Activator.CreateInstance<T>();
 
     /// <summary>异步创建实例；默认调用同步 <see cref="OnCreate"/>，子类可重写以支持异步初始化</summary>

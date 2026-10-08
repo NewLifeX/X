@@ -149,6 +149,7 @@ public class Pool<T> : IPool<T> where T : class
 
     /// <summary>清空对象池，返回被清理的对象数量</summary>
     /// <returns>清理的数量</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     public virtual Int32 Clear()
     {
         var count = 0;
@@ -186,6 +187,7 @@ public class Pool<T> : IPool<T> where T : class
     /// （网络接收链路 ReceivedEventArgs 每包必炸、网络栈瘫痪的根因），故改用泛型工厂。
     /// </remarks>
     /// <returns>新建对象实例；允许返回 null（将抛出异常）</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "无工厂委托时使用无参构造创建对象；AOT 下裁剪可能移除无参构造，应传入工厂委托")]
     protected virtual T? OnCreate() => Activator.CreateInstance<T>();
     #endregion
 }

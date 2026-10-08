@@ -377,6 +377,8 @@ public partial class MachineInfo : IExtend
 
     /// <summary>获取设备信息。用于Xamarin</summary>
     /// <returns>设备信息字典</returns>
+    /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "设备信息经 WMI/系统对象反射读取（运行时类型）；读取失败降级为空，不参与业务主链")]
     public static IDictionary<String, String?> ReadDeviceInfo()
     {
         var dic = new Dictionary<String, String?>();
@@ -428,6 +430,8 @@ public partial class MachineInfo : IExtend
 
     /// <summary>获取设备电量。用于 Xamarin</summary>
     /// <returns>设备电量信息字典</returns>
+    /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "电池/设备信息经 WMI 对象反射读取（运行时类型）；读取失败降级为空，不参与业务主链")]
     public static IDictionary<String, Object?> ReadDeviceBattery()
     {
         var dic = new Dictionary<String, Object?>();

@@ -857,6 +857,7 @@ public static class StringHelper
 
     /// <summary>语音提示操作</summary>
     /// <param name="value"></param>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "语音合成经动态加载实现；AOT 下不受支持")]
     public static void SpeechTip(this String value)
     {
         if (!EnableSpeechTip) return;

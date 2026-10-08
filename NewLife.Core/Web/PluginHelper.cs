@@ -19,6 +19,7 @@ public static class PluginHelper
     /// <returns></returns>
     [RequiresDynamicCode("插件动态加载依赖运行时加载程序集，NativeAOT 下不可用")]
     [RequiresUnreferencedCode("插件类型经反射加载，裁剪下类型成员可能缺失")]
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "插件目录扫描依赖程序集物理位置；单文件/AOT 下 Location 为空即视为无插件，属设计性不支持（见分析稿 §5）")]
     public static Type? LoadPlugin(String typeName, String? disname, String? dll, String? linkName, String? urls = null)
     {
         if (typeName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(typeName));

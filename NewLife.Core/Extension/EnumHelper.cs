@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace NewLife;
@@ -81,6 +82,7 @@ public static class EnumHelper
     /// <summary>获取枚举类型的所有字段描述</summary>
     /// <param name="enumType">枚举类型</param>
     /// <returns>包含枚举值（Int32）与其描述的字典</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "按运行时枚举类型反射读取描述；AOT 下请使用泛型入口 GetDescriptions<T>()")]
     public static Dictionary<Int32, String> GetDescriptions(Type enumType)
     {
         var result = new Dictionary<Int32, String>();

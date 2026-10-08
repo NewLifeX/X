@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -210,6 +211,7 @@ public class ObjectContainer : IObjectContainer
     /// <param name="factory">工厂方法</param>
     /// <param name="throwOnError">失败时是否抛出异常</param>
     /// <returns>类型实例</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "容器按运行时类型反射构造实例；AOT 下请使用泛型注册（构造函数保留由泛型入口传递）")]
     internal static Object? CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object>? factory, Boolean throwOnError)
     {
         if (factory != null) return factory(provider);

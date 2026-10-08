@@ -10,7 +10,12 @@ public class LevelLog : Logger
     /// <param name="fileFormat"></param>
     public LevelLog(String logPath, String fileFormat)
     {
-        foreach (var item in Enum.GetValues(typeof(LogLevel)))
+        foreach (var item in
+#if NET5_0_OR_GREATER
+            Enum.GetValues<LogLevel>())
+#else
+            Enum.GetValues(typeof(LogLevel)))
+#endif
         {
             if (item is LogLevel level && level is > LogLevel.All and < LogLevel.Off)
             {

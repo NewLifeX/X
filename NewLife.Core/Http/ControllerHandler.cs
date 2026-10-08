@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
@@ -51,6 +52,7 @@ public class ControllerHandler : IHttpHandler
     /// <summary>异步处理请求</summary>
     /// <param name="context">Http上下文</param>
     /// <returns>处理任务</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "控制器动作经反射查找与调用；AOT 下请使用源生成 HttpDispatch 动作注册表（见分析稿 §3）")]
     public virtual async Task ProcessRequestAsync(IHttpContext context)
     {
         var type = ControllerType;

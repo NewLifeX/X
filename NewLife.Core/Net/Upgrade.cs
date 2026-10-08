@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
 using NewLife.Http;
@@ -261,7 +262,12 @@ public class Upgrade
     public void Run()
     {
         // 启动进程
+        // 单文件与 AOT 发布下 EntryAssembly.Location 为空，改用进程路径
+#if NET6_0_OR_GREATER
+        var exe = Environment.ProcessPath;
+#else
         var exe = Assembly.GetEntryAssembly()?.Location;
+#endif
         if (exe.IsNullOrEmpty()) return;
 
         WriteLog("启动进程 {0}", exe);

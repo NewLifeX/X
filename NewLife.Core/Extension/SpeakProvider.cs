@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -9,6 +10,8 @@ class SpeakProvider
     private static readonly String typeName = "System.Speech.Synthesis.SpeechSynthesizer";
     private Type? _type;
 
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "语音合成经类型名字符串动态加载；AOT 下不受支持")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "语音合成经类型名字符串动态加载；AOT 下不受支持")]
     public SpeakProvider()
     {
         try
