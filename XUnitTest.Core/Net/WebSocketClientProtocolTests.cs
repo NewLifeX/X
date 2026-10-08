@@ -9,8 +9,9 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
-/// <summary>WebSocket 客户端接收侧协议校验测试。RFC 6455 §5.1/§5.5 要求客户端检出违规帧时失败连接（1002），
-/// 且不得把违规帧交付业务、不得按违规内容回写。使用裸套接字服务端构造违规帧，不依赖自家服务端实现</summary>
+/// <summary>WebSocket 客户端接收侧协议行为测试。RFC 6455 §5.1/§5.5 要求客户端检出违规帧时失败连接（1002），
+/// 且不得把违规帧交付业务、不得按违规内容回写；§5.5.1 要求收到 Close 时回写关闭帧并关闭连接。
+/// 使用裸套接字服务端构造帧，不依赖自家服务端实现</summary>
 [Collection("Net.D")]
 public class WebSocketClientProtocolTests
 {
@@ -82,6 +83,94 @@ public class WebSocketClientProtocolTests
         Assert.Equal(1002, status);
     }
 
+    [Fact]
+    [DisplayName("ws关闭_服务端发Close_客户端回显同码并关闭，拉取先得Close消息再得null")]
+    public async Task ServerClose_ClientRepliesEchoAndCloses()
+    {
+        using var listener = StartListener(out var port);
+
+        // 服务端 Close(1000, "bye")：FIN=1 + Close，长度 5（2 字节状态码 + 3 字节描述）
+        var close = new Byte[] { 0x88, 0x05, 0x03, 0xE8, (Byte)'b', (Byte)'y', (Byte)'e' };
+        var server = AcceptAndReplyAsync(listener, close);
+
+        using var client = new WebSocketClient($"ws://127.0.0.1:{port}/ws") { Timeout = 5_000 };
+        Assert.True(await client.OpenAsync());
+
+        var (opcode, status) = await server.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // 客户端必须回写关闭帧并回显状态码（RFC 6455 §5.5.1）
+        Assert.Equal(0x88, opcode);
+        Assert.Equal(1000, status);
+
+        // 拉取 API 仍能先观察到 Close 消息，随后连接关闭返回 null
+        var msg = await client.ReceiveMessageAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.NotNull(msg);
+        Assert.Equal(NewLife.Messaging.WebSocketMessageType.Close, msg!.Type);
+        Assert.Equal(1000, msg.CloseStatus);
+
+        Assert.Null(await client.ReceiveMessageAsync().WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+
+    [Fact]
+    [DisplayName("ws关闭_服务端空Close_客户端回空负载关闭帧")]
+    public async Task ServerEmptyClose_ClientRepliesEmptyClose()
+    {
+        using var listener = StartListener(out var port);
+
+        // 无状态码关闭帧：{FIN=1 + Close, 长度 0}
+        var close = new Byte[] { 0x88, 0x00 };
+        var server = AcceptAndReplyAsync(listener, close);
+
+        using var client = new WebSocketClient($"ws://127.0.0.1:{port}/ws") { Timeout = 5_000 };
+        Assert.True(await client.OpenAsync());
+
+        var (opcode, status) = await server.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // 回写空负载关闭帧：不得把 1005 等保留值发到线上（RFC 6455 §7.4.1）
+        Assert.Equal(0x88, opcode);
+        Assert.Equal(0, status);
+    }
+
+    [Fact]
+    [DisplayName("ws关闭_服务端保留码Close_客户端回1002")]
+    public async Task ServerCloseWithReservedCode_ClientReplies1002()
+    {
+        using var listener = StartListener(out var port);
+
+        // 保留状态码 1005（RFC 6455 §7.4.1 禁止出现在线路上）：{FIN=1 + Close, 长度 2, 1005}
+        var close = new Byte[] { 0x88, 0x02, 0x03, 0xED };
+        var server = AcceptAndReplyAsync(listener, close);
+
+        using var client = new WebSocketClient($"ws://127.0.0.1:{port}/ws") { Timeout = 5_000 };
+        Assert.True(await client.OpenAsync());
+
+        var (opcode, status) = await server.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Equal(0x88, opcode);
+        Assert.Equal(1002, status);
+    }
+
+    [Fact]
+    [DisplayName("ws关闭_应用主动Close_客户端只发一帧关闭帧并关闭")]
+    public async Task AppInitiatedClose_SendsSingleCloseFrame()
+    {
+        using var listener = StartListener(out var port);
+
+        // 服务端只握手：读取客户端主动发出的关闭帧，再确认连接随后关闭（无第二帧）
+        var server = AcceptAndExpectSingleCloseAsync(listener);
+
+        using var client = new WebSocketClient($"ws://127.0.0.1:{port}/ws") { Timeout = 5_000 };
+        Assert.True(await client.OpenAsync());
+
+        await client.CloseAsync(1000, "app");
+
+        var (opcode, status, hasMore) = await server.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Equal(0x88, opcode);
+        Assert.Equal(1000, status);
+        Assert.False(hasMore, "会话关闭后不得再发送任何帧");
+    }
+
     private static Socket StartListener(out Int32 port)
     {
         var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -99,6 +188,45 @@ public class WebSocketClientProtocolTests
         socket.NoDelay = true;
         using var ns = new NetworkStream(socket);
 
+        await HandshakeAsync(ns);
+
+        // 发送违规帧
+        await ns.WriteAsync(frame);
+        await ns.FlushAsync();
+
+        // 读取客户端应答的首帧（客户端所有帧都带掩码）
+        return await ReadFrameAsync(ns);
+    }
+
+    /// <summary>接受一个连接，完成握手，读取客户端主动发出的关闭帧，并确认随后连接关闭、无后续帧</summary>
+    private static async Task<(Int32 Opcode, Int32 CloseStatus, Boolean HasMore)> AcceptAndExpectSingleCloseAsync(Socket listener)
+    {
+        using var socket = await listener.AcceptWithinAsync();
+        socket.NoDelay = true;
+        using var ns = new NetworkStream(socket);
+
+        await HandshakeAsync(ns);
+
+        var (opcode, status) = await ReadFrameAsync(ns);
+
+        // 确认没有第二帧：连接关闭（EOF）或静默超时视为正常，读到任何字节视为多余发送
+        var hasMore = false;
+        try
+        {
+            using var cts = new CancellationTokenSource(1_000);
+            var buffer = new Byte[16];
+            var n = await ns.ReadAsync(buffer, cts.Token);
+            hasMore = n > 0;
+        }
+        catch (OperationCanceledException) { }
+        catch (IOException) { }
+
+        return (opcode, status, hasMore);
+    }
+
+    /// <summary>完成 WebSocket 服务端握手（读取请求头、回写 101 响应）</summary>
+    private static async Task HandshakeAsync(NetworkStream ns)
+    {
         // 读握手请求直到空行
         var buf = new Byte[4096];
         var total = 0;
@@ -125,12 +253,11 @@ public class WebSocketClientProtocolTests
         var head = $"HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {accept}\r\n\r\n";
         await ns.WriteAsync(Encoding.ASCII.GetBytes(head));
         await ns.FlushAsync();
+    }
 
-        // 发送违规帧
-        await ns.WriteAsync(frame);
-        await ns.FlushAsync();
-
-        // 读取客户端应答的首帧（客户端所有帧都带掩码）
+    /// <summary>读取一帧（客户端帧带掩码），返回 opcode 与关闭状态码（非 Close 帧或无状态码时为 0）</summary>
+    private static async Task<(Int32 Opcode, Int32 CloseStatus)> ReadFrameAsync(NetworkStream ns)
+    {
         var header = await ReadExactlyAsync(ns, 2);
         var opcode = header[0];
         var masked = (header[1] & 0x80) != 0;

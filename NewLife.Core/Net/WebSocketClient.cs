@@ -365,6 +365,41 @@ public class WebSocketClient : TcpSession
 
         // 唤醒等待者（无等待者时静默）
         _receivedSignal?.TrySetResult(true);
+
+        // RFC 6455 §5.5.1：收到 Close 须回写关闭帧（本端未发送过时）并关闭连接。
+        // 放在入队与唤醒之后：拉取方仍能先观察到这条 Close 消息，随后 ReceiveMessageAsync 返回 null
+        if (msg.Type == WebSocketMessageType.Close) ReplyClose(ws);
+    }
+
+    /// <summary>关闭帧发送标记。关闭应答（自动回写）与应用主动关闭可能并发，同一会话只允许发出一帧关闭帧</summary>
+    private Int32 _closeSent;
+
+    /// <summary>回应服务端 Close 帧（RFC 6455 §5.5.1：未发送过关闭帧时必须回写）并关闭连接</summary>
+    /// <param name="message">收到的 Close 消息（状态码与描述已解析）</param>
+    /// <remarks>
+    /// <para>策略与服务端帧循环（<c>Http/WebSocket.Process</c>）一致：可发送状态码回显同码同描述；保留/未分配码按协议错误回 1002；无状态码回空负载关闭帧。</para>
+    /// <para>会话已关闭/销毁时不回写，避免 Send 的自动打开（OpenAsync 重连并重新握手）把已关闭的连接重新拉起；
+    /// 本端已发送过关闭帧时不重复发送，由关闭帧发送处的原子去重保证。</para>
+    /// <para>本方法运行在同步接收事件链内，关闭动作点火后由续体观察异常（同 <see cref="CloseWithError"/>）。</para>
+    /// </remarks>
+    private void ReplyClose(WsMessage message)
+    {
+        if (Disposed || !Active) return;
+
+        var status = message.CloseStatus;
+        var desc = message.StatusDescription;
+
+        // RFC 6455 §7.4.1：1005/1006/1015 等保留值与未分配码禁止出现在线路上，收到即按协议错误处理
+        if (status > 0 && !WebSocketCodec.IsSendableCloseStatus(status))
+        {
+            status = 1002;
+            desc = "invalid close code";
+        }
+
+        // status 为 0 表示对端未带状态码：回空负载关闭帧（禁止把 1005 之类的保留值发到线上）
+        _ = CloseCoreAsync(status > 0 ? status : null, status > 0 ? desc ?? "Finished" : null, default).ContinueWith(
+            t => { if (t.IsFaulted) NewLife.Log.XTrace.WriteException(t.Exception!.GetBaseException()); },
+            CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
     }
 
     /// <summary>回应服务端 Ping。RFC 6455 §5.5.3：Pong 必须回传 Ping 的 Application Data</summary>
@@ -472,23 +507,36 @@ public class WebSocketClient : TcpSession
     /// <param name="closeStatus">关闭状态码</param>
     /// <param name="statusDescription">关闭描述</param>
     /// <param name="cancellationToken">取消通知</param>
-    /// <remarks>与基类的 CloseAsync(String, CancellationToken) 语义一致：关闭帧发出后即关闭会话</remarks>
-    public async Task CloseAsync(Int32 closeStatus, String? statusDescription = null, CancellationToken cancellationToken = default)
-    {
-        var ws = new WsMessage { Type = WebSocketMessageType.Close };
-        try
-        {
-            ws.SetBody(WebSocketCodec.BuildClosePayload(closeStatus, statusDescription));
+    /// <remarks>与基类的 CloseAsync(String, CancellationToken) 语义一致：关闭帧发出后即关闭会话；
+    /// 本端此前已发出过关闭帧（含自动回写、重复调用）时不重复发送，只保证会话关闭</remarks>
+    public Task CloseAsync(Int32 closeStatus, String? statusDescription = null, CancellationToken cancellationToken = default)
+        => CloseCoreAsync(closeStatus, statusDescription, cancellationToken);
 
-            SendMessage(ws);
-        }
-        catch (Exception ex)
+    /// <summary>关闭核心。关闭帧原子去重后发送（本端先发为准），随后关闭会话</summary>
+    /// <param name="closeStatus">关闭状态码；null 表示发送无状态码的空负载关闭帧</param>
+    /// <param name="statusDescription">关闭描述</param>
+    /// <param name="cancellationToken">取消通知</param>
+    private async Task CloseCoreAsync(Int32? closeStatus, String? statusDescription, CancellationToken cancellationToken)
+    {
+        // 关闭帧去重：关闭应答（自动回写）与应用主动关闭可能并发，同一会话只允许发出一帧关闭帧。
+        // 发送失败不重试：会话已在收尾，对端收不到关闭帧时连接关闭本身即为终态
+        if (Interlocked.Exchange(ref _closeSent, 1) == 0)
         {
-            WriteLog("发送 WebSocket 关闭帧失败：" + ex.Message);
-        }
-        finally
-        {
-            ws.TryDispose();
+            var ws = new WsMessage { Type = WebSocketMessageType.Close };
+            try
+            {
+                if (closeStatus is { } cs) ws.SetBody(WebSocketCodec.BuildClosePayload(cs, statusDescription));
+
+                SendMessage(ws);
+            }
+            catch (Exception ex)
+            {
+                WriteLog("发送 WebSocket 关闭帧失败：" + ex.Message);
+            }
+            finally
+            {
+                ws.TryDispose();
+            }
         }
 
         // 关闭帧发出后关闭会话：旧实现只发帧就返回，会话保持 Active、心跳定时器继续运行，
