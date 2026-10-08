@@ -244,6 +244,16 @@ Run("动态能力守卫 PluginHelper", () =>
     }
 });
 
+Run("源生成器服务工厂", () =>
+{
+    // 编译期由源生成器扫描容器注册调用点，为唯一公开无参构造的实现类型注册静态工厂
+    if (ServiceFactoryTable.TryGet(typeof(SmokeSvc)) == null) throw new Exception("未生成 SmokeSvc 工厂");
+
+    var ioc = ObjectContainer.Current;
+    var svc = ioc.GetService<ISmokeSvc>();
+    if (svc == null || svc.GetType() != typeof(SmokeSvc)) throw new Exception("解析失败");
+});
+
 Console.WriteLine("=== summary ===");
 var failed = 0;
 foreach (var r in results)

@@ -214,6 +214,9 @@ public class ObjectContainer : IObjectContainer
     {
         if (factory != null) return factory(provider);
 
+        // 源生成器预生成的无参构造工厂（NativeAOT 首选路径，避免反射构造与表达式编译）
+        if (ServiceFactoryTable.TryGet(type) is { } generatedFactory) return generatedFactory();
+
         // 初始化默认值字典
         if (_defs == null)
         {
