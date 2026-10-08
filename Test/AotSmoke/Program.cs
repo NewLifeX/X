@@ -14,6 +14,7 @@ using NewLife.Buffers;
 using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Http;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
@@ -257,6 +258,34 @@ Run("Http 控制器静态分发", () =>
     if (sum != "7") throw new Exception($"值类型返回值不一致: {sum}");
 });
 
+Run("CsvDb 读写往返", () =>
+{
+    // CsvDb<T> 的泛型参数带保留注解，AOT 下模型公开属性元数据按需保留
+    var file = Path.Combine(Path.GetTempPath(), $"nlcsv_{Guid.NewGuid():N}.csv");
+    try
+    {
+        var models = new[] { new SmokeCsvRow { Name = "a", Level = 1 }, new SmokeCsvRow { Name = "b", Level = 2 } };
+        using (var db = new CsvDb<SmokeCsvRow> { FileName = file }) db.Write(models, false);
+
+        using var db2 = new CsvDb<SmokeCsvRow> { FileName = file };
+        var list = db2.FindAll().ToList();
+        if (list.Count != 2 || list[0].Name != "a" || list[1].Name != "b" || list[1].Level != 2) throw new Exception($"CSV 往返不一致: count={list.Count} first={list.FirstOrDefault()?.Name ?? "null"}");
+    }
+    finally
+    {
+        try { File.Delete(file); } catch { }
+    }
+});
+
+Run("DbTable 模型读写往返", () =>
+{
+    // DbTable 的泛型/Type 入口带保留注解，AOT 下模型公开属性元数据按需保留
+    var table = new DbTable();
+    table.WriteModels(new[] { new SmokeCsvRow { Name = "x", Level = 3 } });
+    var list = table.ReadModels<SmokeCsvRow>().ToList();
+    if (list.Count != 1 || list[0].Name != "x" || list[0].Level != 3) throw new Exception($"DbTable 往返不一致: count={list.Count} first={list.FirstOrDefault()?.Name ?? "null"}");
+});
+
 Run("Http 静态分发优先级", () =>
 {
     // 手工装配 ControllerHandler（绕过 MapController，生成器不会为该类型生成分发表），
@@ -459,4 +488,11 @@ public class SmokeProbeController
 {
     /// <summary>反射回退路径的返回值（若优先命中静态分发表则不会被调用）</summary>
     public String Hit() => "reflection-hit";
+}
+
+public class SmokeCsvRow
+{
+    public String Name { get; set; } = "";
+
+    public Int32 Level { get; set; }
 }

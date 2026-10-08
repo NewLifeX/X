@@ -7,9 +7,9 @@
 
 ## 1. 结论摘要
 
-**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（21/21）；剩余工作集中在反射宽面注解治理与源生成器体系（档 C）。**
+**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（23/23）；剩余工作集中在反射宽面注解治理与源生成器体系（档 C）。**
 
-- 实测（21 场景冒烟）：JIT 基线 14/14 → **AOT 修复前 4/13 → 修复后 14/14**（2026-10-08 波次 1 落地）→ **源生成器后 17/17**（SG-2/SG-3/SG-4 新增"源生成器服务工厂""源生成器 Json 成员访问""源生成器配置绑定"场景，JIT/AOT 双通）→ **异步委托修复后 19/19**（新增"Http 异步委托返回值""Http 控制器异步操作方法"场景）→ **SG-6 后 21/21**（新增"Http 控制器静态分发""Http 静态分发优先级"场景）。
+- 实测（23 场景冒烟）：JIT 基线 14/14 → **AOT 修复前 4/13 → 修复后 14/14**（2026-10-08 波次 1 落地）→ **源生成器后 17/17**（SG-2/SG-3/SG-4 新增"源生成器服务工厂""源生成器 Json 成员访问""源生成器配置绑定"场景，JIT/AOT 双通）→ **异步委托修复后 19/19**（新增"Http 异步委托返回值""Http 控制器异步操作方法"场景）→ **SG-6 后 21/21**（新增"Http 控制器静态分发""Http 静态分发优先级"场景）→ **SG-7 后 23/23**（新增"CsvDb 读写往返""DbTable 模型读写往返"场景，CsvDb 注解经负向验证）。
 - 失败不是散点，而是三类机制（见 §2.3）：**反射构造成员在 AOT 裁剪后丢失**、**反射契约注解缺位**、**动态能力设计性不支持**。
 - **咽喉修复已入代码**：`Pool<T>` 泛型工厂（`e561198fc`）+ 注解属性 Stub 垫片（`341bcc10a`）+ 主链保留契约注解（`1e2050372`/`229f71949`/`5d11e19ce`）+ 低成本反射替换（`4e9a59415`）+ 动态能力守卫（`277c9a85a`）→ 冒烟 14/14；冒烟工程与 CI job 已入仓（`c8ac1d228`）。改造杠杆集中、成本可控。
 - 档位与推荐见 §5；剩余切片见 §5.1。
@@ -47,7 +47,7 @@
 | 13 | ObjectContainer 服务解析 | ✅ | ❌ | ✅ |
 | 14 | 动态能力守卫 PluginHelper（AOT 下抛明确异常） | ✅ | ❌ | ✅ |
 
-> 合计：JIT 14/14；AOT 修复前 4/13（场景 14 为修复后新增）；**修复后 14/14**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`、`4e9a59415`、`277c9a85a`；冒烟入仓 `c8ac1d228`）；**SG-4 后 17/17**（SG-1 `4b9f703ff`、主包内嵌分发、SG-2 扫描式 DI 生成器、SG-3 Json 成员访问生成器、SG-4 配置绑定生成器）；**异步委托修复后 19/19**（`TaskHelper` 开放泛型 `DynamicDependency` + `MapController` 契约注解，负向验证：移除修复后两场景均变红）；**SG-6 后 21/21**（控制器静态分发表 + 分发优先级锚定，负向验证：关闭生成器即变红）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
+> 合计：JIT 14/14；AOT 修复前 4/13（场景 14 为修复后新增）；**修复后 14/14**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`、`4e9a59415`、`277c9a85a`；冒烟入仓 `c8ac1d228`）；**SG-4 后 17/17**（SG-1 `4b9f703ff`、主包内嵌分发、SG-2 扫描式 DI 生成器、SG-3 Json 成员访问生成器、SG-4 配置绑定生成器）；**异步委托修复后 19/19**（`TaskHelper` 开放泛型 `DynamicDependency` + `MapController` 契约注解，负向验证：移除修复后两场景均变红）；**SG-6 后 21/21**（控制器静态分发表 + 分发优先级锚定，负向验证：关闭生成器即变红）；**SG-7 后 23/23**（`CsvDb<T>` 与 `DbTable` 入口补保留注解，CsvDb 负向验证：移除注解后 AOT 静默丢数据 count=0）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
 
 ### 2.3 失败机制解析（附实证）
 
@@ -110,6 +110,7 @@
 3. 低成本等价替换：`XmlHelper` → `switch(TypeCode)`；`MemoryCache`/`DbTable` → TypeCode 映射；`ExcelWriter`/`ProcessHelper` → 泛型重载；`TaskHelper` → 强类型。**→ ✅ 已落地（`4e9a59415`：TypeCodeHelper 六处替换、XmlConvert 显式分发、Marshal 泛型化）；`TaskHelper` 的"契约注解"经 SG-4 复查为非法放置（IL2098，AOT 下不生效），2026-10-08 已改用开放泛型 `DynamicDependency(PublicProperties, typeof(Task<>))` 并实测通过（冒烟 18/19 场景）**
 4. 动态能力声明 + 运行期守卫：`ScriptEngine`/`PluginHelper`/`AssemblyX.LoadFrom`/`DynamicXml`/`SpeakProvider`。**→ ✅ 已落地（`277c9a85a`：类/方法级声明 + DynamicCodeHelper 明确异常；AssemblyX 无公开入口、SpeakProvider 已有优雅降级，保持现状）**
 5. CI 防回归：冒烟工程（13 场景）入库 + `test.yml` 增加 win-x64 `PublishAot` 冒烟 job；net8+ TFM 开关分析器并清零/登记基线。**→ ✅ 已落地（`c8ac1d228`：冒烟扩至 14 场景入仓 `Test/AotSmoke`，`test.yml` aot job 含分析器报告（不阻断）与 AOT 冒烟断言）**
+6. 序列化/映射辅助路径甄别（SG-7）：逐一评估成员枚举消费者，选最强可达机制（生成器 > 保留注解 > 记录边界）。**→ ✅ 已落地（2026-10-08）：`CsvDb<T>` 类泛型参数与 `DbTable.WriteModels/Cast/ReadModels`（泛型与 Type 入口）补保留注解并实测（冒烟 23/23，CsvDb 负向验证到红）；`SpanSerializer` 入口此前已注解；`SerialHelper.GetJsonPropertyMap`（调用方为 STJ 传入的运行时类型）、`IReflect` 拷贝/填充、`Rand`、`CollectionHelper` 的实例成员枚举**无法静态表达保留要求**（`Object`/运行时 Type 参数），与直调 `MapTo` 同类——需调用方保证元数据或避免该路径**
 
 > 波次 2（源生成器体系）设计见[《AOT源生成器设计》](AOT源生成器设计.md)。**进展（2026-10-08）**：SG-1（骨架 + 主包内嵌分发）与 SG-2（扫描式 DI 注册生成器）已落地——分析器随 `NewLife.Core` 主包分发（`analyzers/dotnet/cs`，不新增包）；编译期扫描容器注册调用点，为"唯一公开无参构造"的实现类型生成静态工厂，容器解析优先命中；下游注册代码零改动，未生成场景自动回退原路径（语义不变）。
 
