@@ -49,7 +49,7 @@ jobs:
         if (-not ($names -match '^lib/net8.0/NewLife.Core.dll')) { throw '主包缺少 lib/net8.0/NewLife.Core.dll' }
         Write-Host ($names -join "`n")
 
-  # AOT 防回归：23 场景 NativeAOT 冒烟（能力基线见 Doc/AOT兼容性分析.md）
+  # AOT 防回归：24 场景 NativeAOT 冒烟（能力基线见 Doc/AOT兼容性分析.md）
   aot:
     runs-on: windows-latest
 

@@ -7,6 +7,8 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>AotSmoke</RootNamespace>
     <PublishAot>true</PublishAot>
+    <!-- 严格 AOT 姿态：关闭 STJ 反射序列化，验证全链路依赖源生成/自有解析器 -->
+    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />

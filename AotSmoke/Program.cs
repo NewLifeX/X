@@ -28,6 +28,7 @@ try { Console.OutputEncoding = Encoding.UTF8; } catch { }
 Console.WriteLine("=== NewLife.Core AOT smoke ===");
 Console.WriteLine($"framework={RuntimeInformation.FrameworkDescription}");
 Console.WriteLine($"IsDynamicCodeSupported={RuntimeFeature.IsDynamicCodeSupported} IsDynamicCodeCompiled={RuntimeFeature.IsDynamicCodeCompiled}");
+Console.WriteLine($"STJ reflection enabled={System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault}");
 
 var results = new List<(String Name, Boolean Ok, String Error)>();
 void Run(String name, Action action)
@@ -389,6 +390,21 @@ Run("源生成器配置绑定", () =>
     var model2 = new SmokeSetting();
     provider.Root.MapTo(model2, provider);
     if (model2.Host != "1.2.3.4" || model2.Port != 8080) throw new Exception($"MapTo 绑定不一致: {model2.Host}:{model2.Port}");
+});
+
+Run("SystemJson 上下文透传", () =>
+{
+    // 源生成上下文提供成员元数据，运行时类型（Object 入口）路径据此完成序列化与反序列化
+    var model = new SmokeJsonModel { Name = "ctx", Count = 7, Note = "n" };
+
+    var json = new SystemJson(SmokeJsonContext.Default);
+    var text = json.Write(model);
+    var back = json.Read(text, typeof(SmokeJsonModel)) as SmokeJsonModel;
+    if (back == null || back.Name != "ctx" || back.Count != 7 || back.Note != "n") throw new Exception("上下文往返失败: " + text);
+
+    // 未在上下文声明的类型：回退默认解析器，行为不变
+    var fb = json.Read(json.Write(new SmokeConfig { Name = "fb", Level = 3 }), typeof(SmokeConfig)) as SmokeConfig;
+    if (fb == null || fb.Name != "fb" || fb.Level != 3) throw new Exception("未声明类型回退失败");
 });
 
 Console.WriteLine("=== summary ===");

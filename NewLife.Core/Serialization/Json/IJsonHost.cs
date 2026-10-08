@@ -413,19 +413,36 @@ public class SystemJson : IJsonHost
 
     #region 构造
     /// <summary>实例化</summary>
-    public SystemJson()
+    public SystemJson() => SerializerOptions = CreateSerializerOptions();
+
+#if NET7_0_OR_GREATER
+    /// <summary>实例化，并叠加源生成元数据。传入的 <see cref="JsonSerializerContext"/> 置于类型元数据解析链首位，用于 AOT 下经运行时类型（非泛型入口）完成序列化与反序列化</summary>
+    /// <param name="contexts">源生成上下文。为空或空数组时等同无参构造；未在上下文中声明的类型自动回退默认解析器</param>
+    /// <remarks>上下文提供类型成员元数据（AOT 剪裁后仍可解析）；命名策略、字段包含等行为以本实例的 <see cref="SerializerOptions"/> 为准，未在上下文中声明的类型自动回退默认解析器</remarks>
+    public SystemJson(params JsonSerializerContext[] contexts) => SerializerOptions = CreateSerializerOptions(contexts);
+#endif
+
+    // 构建序列化选项：默认配置叠加数据成员与服务类型解析器；传入上下文时优先参与解析
+#if NET7_0_OR_GREATER
+    private JsonSerializerOptions CreateSerializerOptions(JsonSerializerContext[]? contexts = null)
+#else
+    private JsonSerializerOptions CreateSerializerOptions()
+#endif
     {
         var opt = GetDefaultOptions();
 #if NET7_0_OR_GREATER
-        opt.TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver
+        var resolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver
         {
             Modifiers = {
                 DataMemberResolver.Modifier,
                 new ServiceTypeResolver{ GetServiceProvider = () => ServiceProvider }.Modifier,
             }
         };
+        opt.TypeInfoResolver = contexts == null || contexts.Length == 0
+            ? resolver
+            : System.Text.Json.Serialization.Metadata.JsonTypeInfoResolver.Combine([.. contexts, resolver]);
 #endif
-        SerializerOptions = opt;
+        return opt;
     }
     #endregion
 
