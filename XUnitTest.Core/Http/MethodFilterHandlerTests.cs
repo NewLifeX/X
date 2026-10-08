@@ -12,11 +12,16 @@ public class MethodFilterHandlerTests
     {
         public Boolean Called { get; private set; }
 
-        public void ProcessRequest(IHttpContext context) => Called = true;
+        public Task ProcessRequestAsync(IHttpContext context)
+        {
+            Called = true;
+
+            return TaskEx.CompletedTask;
+        }
     }
 
     [Fact(DisplayName = "方法过滤器_请求为空_按不匹配拒绝而非放行")]
-    public void NullRequest_Rejects()
+    public async Task NullRequest_Rejects()
     {
         // 旧写法 `!context.Request?.Method.EqualIgnoreCase(Method) == true` 在 Request 为 null 时整体为 null，
         // 条件不成立会直接放行到业务处理器，方法校验被绕过
@@ -24,7 +29,7 @@ public class MethodFilterHandlerTests
         var handler = new MethodFilterHandler("GET", inner);
         var context = new DefaultHttpContext((ISocketRemote)null!, null!, "/x", null);
 
-        handler.ProcessRequest(context);
+        await handler.ProcessRequestAsync(context);
 
         Assert.False(inner.Called);
         Assert.Equal(HttpStatusCode.MethodNotAllowed, context.Response.StatusCode);
@@ -32,25 +37,25 @@ public class MethodFilterHandlerTests
     }
 
     [Fact(DisplayName = "方法过滤器_方法匹配_放行到实际处理器")]
-    public void MatchedMethod_Passes()
+    public async Task MatchedMethod_Passes()
     {
         var inner = new StubHandler();
         var handler = new MethodFilterHandler("GET", inner);
         var context = new DefaultHttpContext((ISocketRemote)null!, new HttpRequest { Method = "GET" }, "/x", null);
 
-        handler.ProcessRequest(context);
+        await handler.ProcessRequestAsync(context);
 
         Assert.True(inner.Called);
     }
 
     [Fact(DisplayName = "方法过滤器_方法不匹配_回405且不进业务")]
-    public void MismatchedMethod_Rejects()
+    public async Task MismatchedMethod_Rejects()
     {
         var inner = new StubHandler();
         var handler = new MethodFilterHandler("GET", inner);
         var context = new DefaultHttpContext((ISocketRemote)null!, new HttpRequest { Method = "POST" }, "/x", null);
 
-        handler.ProcessRequest(context);
+        await handler.ProcessRequestAsync(context);
 
         Assert.False(inner.Called);
         Assert.Equal(HttpStatusCode.MethodNotAllowed, context.Response.StatusCode);

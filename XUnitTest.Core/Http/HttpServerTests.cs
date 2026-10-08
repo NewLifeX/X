@@ -258,10 +258,10 @@ public class HttpServerTests : IDisposable
         /// <summary>收满预期条数时完成</summary>
         public TaskCompletionSource<Boolean> Done { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             var ws = context.WebSocket;
-            if (ws == null) return;
+            if (ws == null) return TaskEx.CompletedTask;
 
             if (MaxFrameSize > 0) ws.MaxFrameSize = MaxFrameSize;
 
@@ -275,6 +275,8 @@ public class HttpServerTests : IDisposable
                     if (Messages.Count >= _expect) Done.TrySetResult(true);
                 }
             };
+
+            return TaskEx.CompletedTask;
         }
     }
 
@@ -1116,13 +1118,15 @@ public class HttpServerTests : IDisposable
 
         public Boolean NonSeekable { get; set; }
 
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             Stream stream = new MemoryStream(Payload);
             if (NonSeekable) stream = new NonSeekableStream(stream);
 
             context.Response.ContentType = "application/octet-stream";
             context.Response.BodyStream = stream;
+
+            return TaskEx.CompletedTask;
         }
     }
 
@@ -1147,7 +1151,7 @@ public class HttpServerTests : IDisposable
     {
         public Byte[] Payload { get; set; } = [];
 
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             var path = Path.Combine(Path.GetTempPath(), "nl_delfile_" + Guid.NewGuid().ToString("N"));
             File.WriteAllBytes(path, Payload);
@@ -1158,6 +1162,8 @@ public class HttpServerTests : IDisposable
 
             context.Response.ContentType = "application/octet-stream";
             context.Response.BodyStream = fs;
+
+            return TaskEx.CompletedTask;
         }
     }
 
@@ -1174,11 +1180,13 @@ public class HttpServerTests : IDisposable
 
     class MyHttpHandler : IHttpHandler
     {
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             var name = context.Parameters["name"];
             var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
             context.Response.SetResult(html);
+
+            return TaskEx.CompletedTask;
         }
     }
 
@@ -1217,7 +1225,7 @@ public class HttpServerTests : IDisposable
 
     class MyHttpHandler2 : IHttpHandler
     {
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             Assert.Equal(8 * 1024 * 2, context.Request.ContentLength);
 
@@ -1228,6 +1236,8 @@ public class HttpServerTests : IDisposable
             var name = context.Parameters["name"];
             var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
             context.Response.SetResult(html);
+
+            return TaskEx.CompletedTask;
         }
     }
 
@@ -1470,10 +1480,12 @@ Content-Type: application/octet-stream
 
     class CustomServerHeaderHandler : IHttpHandler
     {
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             context.Response.Headers["Server"] = "CustomServer";
             context.Response.SetResult("ok");
+
+            return TaskEx.CompletedTask;
         }
     }
 

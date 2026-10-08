@@ -8,7 +8,7 @@ public class HttpRouterTests
 {
     private sealed class StubHandler : IHttpHandler
     {
-        public void ProcessRequest(IHttpContext context) { }
+        public Task ProcessRequestAsync(IHttpContext context) => TaskEx.CompletedTask;
     }
 
     [Fact(DisplayName = "路由器_{id}参数段_命中并提取参数")]

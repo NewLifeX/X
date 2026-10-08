@@ -20,7 +20,7 @@ public class StaticFilesHandlerTests
     private static DefaultHttpContext CreateContext(String path, StaticFilesHandler handler) => new((INetSession?)null, new HttpRequest(), path, handler);
 
     [Fact(DisplayName = "静态文件_同前缀兄弟目录_拒绝访问")]
-    public void ProcessRequest_SiblingDirectorySamePrefix_NotFound()
+    public async Task ProcessRequest_SiblingDirectorySamePrefix_NotFound()
     {
         var root = CreateTempRoot();
         var js = Path.Combine(root, "js");
@@ -36,7 +36,7 @@ public class StaticFilesHandlerTests
 
             // 内容目录 ...\js 与 ...\js2 是同前缀兄弟目录：只按字符串前缀比对会放行而穿透，
             // 基路径补上目录分隔符后必须拒绝
-            Assert.Throws<ApiException>(() => handler.ProcessRequest(ctx));
+            await Assert.ThrowsAsync<ApiException>(() => handler.ProcessRequestAsync(ctx));
         }
         finally
         {
@@ -45,7 +45,7 @@ public class StaticFilesHandlerTests
     }
 
     [Fact(DisplayName = "静态文件_百分号编码的父目录_不穿越")]
-    public void ProcessRequest_EncodedParentDirectory_NotTraversed()
+    public async Task ProcessRequest_EncodedParentDirectory_NotTraversed()
     {
         var root = CreateTempRoot();
         var js = Path.Combine(root, "js");
@@ -59,7 +59,7 @@ public class StaticFilesHandlerTests
             // 路径全程未做百分号解码：%2e%2e%2f 不会还原成 ".."，只会落到"文件不存在"
             var ctx = CreateContext("/js/%2e%2e%2fsecret.txt", handler);
 
-            Assert.Throws<ApiException>(() => handler.ProcessRequest(ctx));
+            await Assert.ThrowsAsync<ApiException>(() => handler.ProcessRequestAsync(ctx));
             Assert.Null(ctx.Response.BodyStream);
         }
         finally
@@ -81,7 +81,7 @@ public class StaticFilesHandlerTests
             var handler = new StaticFilesHandler { Path = "/js/", ContentPath = js };
             var ctx = CreateContext("/js/a.js", handler);
 
-            handler.ProcessRequest(ctx);
+            handler.ProcessRequestAsync(ctx).GetAwaiter().GetResult();
 
             // 回归护栏：补分隔符后不得把内容目录内的正常文件也挡在外面
             Assert.NotNull(ctx.Response.BodyStream);

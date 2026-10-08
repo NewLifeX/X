@@ -89,10 +89,12 @@ public class HttpStreamBenchmark : IDisposable
     {
         public Byte[] Payload { get; set; } = [];
 
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             context.Response.ContentType = "application/octet-stream";
             context.Response.BodyStream = new MemoryStream(Payload);
+
+            return TaskEx.CompletedTask;
         }
     }
 
@@ -101,9 +103,11 @@ public class HttpStreamBenchmark : IDisposable
     {
         public Byte[] Payload { get; set; } = [];
 
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             context.Response.SetResult(Payload);
+
+            return TaskEx.CompletedTask;
         }
     }
 }

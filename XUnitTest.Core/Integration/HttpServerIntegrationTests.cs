@@ -63,38 +63,44 @@ class IntegrationInfoController
 /// <summary>自定义 HttpHandler</summary>
 class IntegrationHttpHandler : IHttpHandler
 {
-    public void ProcessRequest(IHttpContext context)
+    public Task ProcessRequestAsync(IHttpContext context)
     {
         var name = context.Parameters["name"];
         var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
         context.Response.SetResult(html);
+
+        return TaskEx.CompletedTask;
     }
 }
 
 /// <summary>回显请求体处理器</summary>
 class EchoBodyHandler : IHttpHandler
 {
-    public void ProcessRequest(IHttpContext context)
+    public Task ProcessRequestAsync(IHttpContext context)
     {
         var body = context.Request.Body?.ToStr() ?? String.Empty;
         context.Response.SetResult(body);
+
+        return TaskEx.CompletedTask;
     }
 }
 
 /// <summary>表单回显处理器</summary>
 class FormEchoHandler : IHttpHandler
 {
-    public void ProcessRequest(IHttpContext context)
+    public Task ProcessRequestAsync(IHttpContext context)
     {
         var body = context.Request.Body?.ToStr() ?? String.Empty;
         context.Response.SetResult(body);
+
+        return TaskEx.CompletedTask;
     }
 }
 
 /// <summary>上传回显处理器</summary>
 class UploadEchoHandler : IHttpHandler
 {
-    public void ProcessRequest(IHttpContext context)
+    public Task ProcessRequestAsync(IHttpContext context)
     {
         var request = context.Request;
         var dic = request.ParseFormData();
@@ -104,6 +110,8 @@ class UploadEchoHandler : IHttpHandler
         var len = request.Body?.Total ?? 0;
 
         context.Response.SetResult($"files={count};name={name};body={len}");
+
+        return TaskEx.CompletedTask;
     }
 }
 
@@ -133,11 +141,13 @@ class IntegrationWebSocketHandler : WebSocketHandler
 /// <summary>状态码处理器：根据查询參数 code 返回指定 HTTP 状态码</summary>
 class StatusCodeHandler : IHttpHandler
 {
-    public void ProcessRequest(IHttpContext context)
+    public Task ProcessRequestAsync(IHttpContext context)
     {
         var code = context.Parameters["code"].ToInt(200);
         context.Response.StatusCode = (HttpStatusCode)code;
         context.Response.SetResult($"status={code}");
+
+        return TaskEx.CompletedTask;
     }
 }
 

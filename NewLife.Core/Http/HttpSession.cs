@@ -951,7 +951,7 @@ public class HttpSession : INetHandler, IDisposable
                 if (Host is HttpServer svr)
                     svr.ExecutePipeline(context, handler).GetAwaiter().GetResult();
                 else
-                    handler.ProcessRequest(context);
+                    handler.ProcessRequestAsync(context).GetAwaiter().GetResult();
             }
             else if (_websocket == null)
                 return new HttpResponse { StatusCode = HttpStatusCode.NotFound };

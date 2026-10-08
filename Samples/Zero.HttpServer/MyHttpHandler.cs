@@ -5,7 +5,7 @@ namespace Zero.HttpServer;
 /// <summary>自定义控制器。包含多个服务</summary>
 internal class MyHttpHandler : IHttpHandler
 {
-    public void ProcessRequest(IHttpContext context)
+    public Task ProcessRequestAsync(IHttpContext context)
     {
         // 获取请求参数
         var name = context.Parameters["name"];
@@ -25,5 +25,7 @@ internal class MyHttpHandler : IHttpHandler
 
         // 设置响应结果
         context.Response.SetResult(html);
+
+        return TaskEx.CompletedTask;
     }
 }

@@ -50,9 +50,9 @@ class WsEchoHandler : WebSocketHandler
     /// <summary>服务端直达回调收到的消息（协议模式 MessageHandler，WsMessage 原语）</summary>
     public static ConcurrentQueue<(WebSocketMessageType Type, Int32 Length)> DirectMessages { get; } = new();
 
-    public override void ProcessRequest(IHttpContext context)
+    public override async Task ProcessRequestAsync(IHttpContext context)
     {
-        base.ProcessRequest(context);
+        await base.ProcessRequestAsync(context);
 
         if (context.WebSocket is { } ws)
         {

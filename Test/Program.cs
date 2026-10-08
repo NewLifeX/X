@@ -308,7 +308,7 @@ public class Program
 
     private class MyHttpHandler : IHttpHandler
     {
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             var name = context.Parameters["name"];
             var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
@@ -322,6 +322,8 @@ public class Program
                 }
             }
             context.Response.SetResult(html);
+
+            return TaskEx.CompletedTask;
         }
     }
 

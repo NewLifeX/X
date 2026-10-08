@@ -60,6 +60,24 @@
 - HTTP 解析、请求/响应生命周期逻辑主要由 `HttpSession` 承担；
 - `HttpServer` 更聚焦在“路由表维护”和“匹配处理器”。
 
+### 3.2 异步处理器（`IHttpHandler`）
+
+处理器契约本身是异步的：实现接口只需一个方法，返回 `Task`。
+
+```csharp
+public interface IHttpHandler
+{
+    Task ProcessRequestAsync(IHttpContext context);
+}
+```
+
+- **同步实现**直接返回 `TaskEx.CompletedTask`（`System.Threading.Tasks` 命名空间，低版本 TFM 可用；不要用 `Task.CompletedTask`，它在 net45 不存在）。
+- **异步实现**正常 `await`：数据库 / 外部 HTTP / 文件 IO 等异步等待直接写在处理器里，不必再套同步桥。
+- **委托透传异步**：`DelegateHandler` 支持 `HttpProcessAsyncDelegate`（`Task (IHttpContext)`）、任意签名的 `async` 方法（返回 `Task`/`Task<T>`）与同步委托 `HttpProcessDelegate`；`Task<T>` 的结果在任务完成后再读 `Result`，不再同步阻塞取值。
+- **中间件本就是异步链**（`HttpMiddlewareDelegate(context, next)`），异步处理器可与之自由组合。
+- **当前边界**：`HttpSession` 仍在同步处理模型内等待整条管道（`ExecutePipeline(...).GetAwaiter().GetResult()`），会话级异步派发属下一阶段（需一并解决响应保序、请求体跨轮所有权与低版本上下文传递）。
+- **升级提示**：`ProcessRequest(IHttpContext)` 已由 `ProcessRequestAsync(IHttpContext)` 取代（返回类型由 `void` 改为 `Task`），既有实现者改名并返回任务即可，编译期可见（见 §11）。
+
 ---
 
 ## 4. 路由注册 API
@@ -277,6 +295,7 @@ server.Start();
 | WS 关闭码按 RFC 口径区分 | 协议错误回 **1002**、文本负载非法（非 UTF-8）回 **1007**、单帧或分片消息超上限回 **1009**（此前一律按 1002）；单帧上限对"整帧一次到达"的帧同样生效（此前只约束未完整帧，对端把超限帧压在一轮里即可绕过） |
 | `DefaultHttpContext.Current` 随异步上下文流动 | 由 `[ThreadStatic]` 改为 `AsyncLocal`（net45 降级为线程本地）：中间件 `await` 之后、处理器内 `Task.Run` 派生的任务里都能取到本请求上下文，此前会取到 null（同一请求内"随机"丢失） |
 | 路由同类内按具体度排序 + 路径参数解码 | 参数化路由之间按"字面段数量从多到少"排序（同具体度保持注册顺序），先注册的宽泛模式（如 `/api/{controller}/{id}`）不再遮住后注册的具体模式；路径参数与通配参数按百分号解码（与查询串口径一致），通配参数逐段解码后以 `/` 连接 |
+| 处理器契约异步化 | `IHttpHandler.ProcessRequest(IHttpContext)`（`void`）改为 `ProcessRequestAsync(IHttpContext)`（`Task`）。处理器实现者改名 + 返回 `TaskEx.CompletedTask`（同步实现）或 `await`（异步实现）即可；`DelegateHandler`、`ControllerHandler`、`MethodFilterHandler` 与中间件管道均按异步衔接，异步操作方法的结果在任务完成后再取 |
 ---
 
 ## 12. 能力边界（不做什么）

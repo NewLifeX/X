@@ -48,9 +48,10 @@ public class ControllerHandler : IHttpHandler
     private readonly ConcurrentDictionary<String, MethodInfo?> _methods = new();
     #endregion
 
-    /// <summary>处理请求</summary>
+    /// <summary>异步处理请求</summary>
     /// <param name="context">Http上下文</param>
-    public virtual void ProcessRequest(IHttpContext context)
+    /// <returns>处理任务</returns>
+    public virtual async Task ProcessRequestAsync(IHttpContext context)
     {
         var type = ControllerType;
         if (type == null) return;
@@ -110,7 +111,12 @@ public class ControllerHandler : IHttpHandler
             ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
             throw;
         }
-        if (result is Task task) result = TaskHelper.GetTaskResult(task);
+        if (result is Task task)
+        {
+            // 异步操作方法（含任意签名）：等任务完成后再取结果，不再同步阻塞等待
+            await task.ConfigureAwait(false);
+            result = TaskHelper.GetResult(task);
+        }
         if (result != null)
             context.Response.SetResult(result);
     }

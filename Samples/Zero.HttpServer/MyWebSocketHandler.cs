@@ -10,12 +10,14 @@ public class MyWebSocketHandler : IHttpHandler
 {
     /// <summary>处理请求</summary>
     /// <param name="context"></param>
-    public virtual void ProcessRequest(IHttpContext context)
+    public virtual Task ProcessRequestAsync(IHttpContext context)
     {
         var ws = context.WebSocket;
         ws.MessageHandler = ProcessMessage;
 
         WriteLog("WebSocket连接 {0}", context.Connection?.Remote);
+
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>处理消息</summary>

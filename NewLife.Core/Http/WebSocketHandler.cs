@@ -13,12 +13,15 @@ public class WebSocketHandler : IHttpHandler
 {
     /// <summary>处理请求。若为 WebSocket 升级请求则绑定消息处理委托。</summary>
     /// <param name="context">Http 上下文</param>
-    public virtual void ProcessRequest(IHttpContext context)
+    /// <returns>处理任务</returns>
+    public virtual Task ProcessRequestAsync(IHttpContext context)
     {
         var ws = context.WebSocket;
         ws?.MessageHandler = ProcessMessage;
 
         WriteLog(context, "WebSocket连接 {0}", context.Connection?.Remote);
+
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>处理消息。可在子类中重写。</summary>

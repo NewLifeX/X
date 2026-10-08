@@ -16,7 +16,7 @@ public class StaticFilesHandler : IHttpHandler
 
     /// <summary>处理请求</summary>
     /// <param name="context">Http上下文</param>
-    public virtual void ProcessRequest(IHttpContext context)
+    public virtual Task ProcessRequestAsync(IHttpContext context)
     {
         if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
@@ -38,6 +38,8 @@ public class StaticFilesHandler : IHttpHandler
         var fs = fi.OpenRead();
         context.Response.ContentType = contentType;
         context.Response.BodyStream = fs;
+
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>根据文件扩展名获取MIME类型</summary>

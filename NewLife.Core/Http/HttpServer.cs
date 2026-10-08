@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using NewLife.Net;
 
@@ -266,19 +266,11 @@ public class HttpServer : NetServer, IHttpHost
     /// <returns>可等待的任务</returns>
     internal Task ExecutePipeline(IHttpContext context, IHttpHandler? finalHandler)
     {
-        // 无中间件时直接执行处理器
-        if (_middlewares.Count == 0)
-        {
-            finalHandler?.ProcessRequest(context);
-            return TaskEx.CompletedTask;
-        }
+        // 无中间件时直接执行处理器（热路径，不构造管道闭包）
+        if (_middlewares.Count == 0) return InvokeHandlerAsync(finalHandler, context);
 
         // 构建管道链：middleware1 → middleware2 → ... → finalHandler
-        Func<Task> handler = () =>
-        {
-            finalHandler?.ProcessRequest(context);
-            return TaskEx.CompletedTask;
-        };
+        Func<Task> handler = () => InvokeHandlerAsync(finalHandler, context);
 
         // 反向构建：最内层是 handler，往外逐层包装中间件
         for (var i = _middlewares.Count - 1; i >= 0; i--)
@@ -290,6 +282,13 @@ public class HttpServer : NetServer, IHttpHost
 
         return handler();
     }
+
+    /// <summary>调用处理器</summary>
+    /// <param name="handler">处理器</param>
+    /// <param name="context">Http上下文</param>
+    /// <returns>处理任务</returns>
+    private static Task InvokeHandlerAsync(IHttpHandler? handler, IHttpContext context)
+        => handler == null ? TaskEx.CompletedTask : handler.ProcessRequestAsync(context);
     #endregion
 
     #region 路由匹配
