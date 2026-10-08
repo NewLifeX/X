@@ -1,7 +1,6 @@
 # NewLife.Core AOT 兼容性现状与边界
 
 > 基线：v12｜评估方式：**NativeAOT 真实编译 + 运行实测**（win-x64，.NET 10）｜冒烟工程：`AotSmoke/`
-> 配套：[《AOT源生成器设计》](AOT源生成器设计.md)——随包分发的编译期生成器体系。
 
 ---
 
@@ -38,7 +37,6 @@
 ### 2.2 编译期：AOT 分析器（`IsAotCompatible=true`，net10.0）
 
 - 当前 **328 条**（原始行数，未去重）｜`IL2098`（非法注解放置）**0 条**。
-- 主要分布：`IL3050`(84)、`IL2026`(58)、`IL2075`(56)、`IL2070`(40)、`IL2067`(26)、`IL3000`(20)、`IL2091`(18)、`IL2057`(12)，其余 8 条。
 - 三类含义：
   - **动态能力**（IL3050/IL2026/IL3000）：设计性不支持，已按 §5 声明与守卫；
   - **宽面反射入口**（IL2075/IL2070/IL2057）：未做注解治理，由调用方按需治理（§5）；
@@ -47,22 +45,37 @@
 
 ---
 
-## 3. 关键机制备忘
+## 3. 关键机制与生成器体系
+
+### 3.1 关键机制备忘
 
 1. **`DynamicallyAccessedMembers` 只对 `Type`/`String` 参数与泛型参数生效**；放在 `Object`/`Task` 等参数上会被 ILC 直接忽略（IL2098），属无效注解。
 2. **保留要求必须经「泛型/Type 入口」传导**：`Load<T>`/`Bind<T>`/`Save<T>`、`CsvDb<T>`、`DbTable.WriteModels<T>`、`MapController<T>` 等入口按下发要求；`Object` 参数入口（如直调 `MapTo`）表达不了，只能由其他入口先保留（§5）。
 3. **运行时未知泛型**用开放泛型依赖声明覆盖全部实例化：`[DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<>))]`（`TaskHelper.GetResult` 即此例）。低版本 TFM 由 `Stub` 中的 `DynamicDependencyAttribute` 垫片补齐。
 4. **动态能力不可改造**：以 `RequiresDynamicCode`/`RequiresUnreferencedCode` 声明 + `RuntimeFeature.IsDynamicCodeSupported` 守卫，运行期抛明确异常而非静默错。
 
+### 3.2 生成器体系（静态化通道）
+
+| 生成器 | 承接通道 | 生成物 |
+|---|---|---|
+| `ServiceRegistrarGenerator` | DI 注册（`AddTransient<TService,TImpl>` 等，限唯一公开无参构造） | `ServiceFactoryTable` 工厂注册 |
+| `JsonSerializableGenerator` | `JsonHelper` 泛型/Type 入口的成员访问 | `MemberAccessorTable` 读写委托 |
+| `ConfigModelGenerator` | `Config<T>` 子类配置绑定 | `ConfigProvider.DataRetrieval` 绑定器 |
+| `HttpControllerDispatchGenerator` | `MapController<T>` 控制器动作分发 | `HttpDispatchTable` 方法名→强类型调用 |
+
+- **非 AOT 条件编译**：生成物在 JIT 下同样生效（免反射、免表达式编译与暖机）；生成器缺席或未覆盖场景自动回退反射，语义不变。
+- **启动顺序**：生成物以 `[ModuleInitializer]` 注册，先于任何静态构造；分发形态为随主包 `analyzers/dotnet/cs` 分发，下游零配置。
+- **新增通道四件套**：运行期表 + 生成器 + 生成物单测（`XUnitTest.SourceGenerator`）+ 冒烟"生成/回退"双场景。
+
 ---
 
 ## 4. 下游使用指引
 
 - **启用方式**：`<PublishAot>true</PublishAot>` 写在**应用工程**属性组内；**不要**用命令行全局属性传入（`-p:PublishAot=true` 会波及多 TFM 依赖项目的 net45 等目标，报 `NETSDK1207`）。
-- **IoC 注册（源生成器，自动生效）**：`ObjectContainer.Register<TService, TImpl>()` / `RegisterSingleton<...>` 等调用点会自动生成服务工厂并注册进 `ServiceFactoryTable`；运行期先查表、未命中再回退 `Activator.CreateInstance`。生成器随 `NewLife.Core` 包自动分发（`analyzers/dotnet/cs`），无需应用侧额外引包。
+- **IoC 注册（源生成器，自动生效）**：`container.AddTransient<TService, TImpl>()` / `AddSingleton<...>` 等扩展方法注册调用点会自动生成服务工厂并注册进 `ServiceFactoryTable`（限"唯一公开无参构造"的实现类型）；运行期先查表、未命中再回退反射构造。生成器随 `NewLife.Core` 包自动分发（`analyzers/dotnet/cs`），无需应用侧额外引包。
 - **Json 序列化（源生成器，自动生效）**：类型经编译期已知泛型/`Type` 入口进入 `JsonHelper`（`ToJson`/`ToJsonEntity<T>`/反序列化泛型）时，成员访问器走 `MemberAccessorTable`，避免对 `PropertyInfo` 的引用被裁剪。
 - **配置绑定（源生成器 + 标准入口）**：配置类继承 `Config<T>` 后自动注册入 `ConfigProvider.DataRetrieval`（绑定器编译期生成）；`Config<T>.Current` 与 `IConfigProvider.Load<T>()` 均经泛型入口，AOT 下可正确绑定；**只有**显式用 `ConfigSetting`（`Object` 参数入口）绑定才依赖保留注解，建议改用泛型入口或 `provider.Load<T>()`。
-- **控制器静态分发（源生成器，自动生效）**：`HttpDispatchTable.RegisterController<TController>(...)` 的记录由生成器生成强类型分发委托（按方法名调用），`ControllerHandler` 命中分发表即零反射调用；未命中（如手工探针注册的私有方法）自动回退原反射路径。
+- **控制器静态分发（源生成器，自动生效）**：生成器扫描 `MapController<T>` 注册调用点，为控制器生成"方法名 → 强类型调用"委托并注册进 `HttpDispatchTable`；`ControllerHandler` 命中分发表即零反射调用；未命中（如手工装配的探针控制器）自动回退原反射路径。
 - **遇到 "不支持 AOT/裁剪" 警告**：1) 确认该 API 是否在主链路；2) 需要就用泛型入口/保留注解处理；3) 动态能力 API（脚本、插件、表达式编译）在 AOT 下必须关闭或规避（`RuntimeFeature.IsDynamicCodeSupported`）。
 - **遇到 `RequiresDynamicCode` 警告**：说明调用路径含运行时生成代码能力，AOT 下运行到会抛异常；按场景改用静态路径或加开关判断。
 - **排障提示**：`IsDynamicCodeSupported=False` 表示真 AOT；`Assembly.Location` 为空是 AOT 正常表现，不要用它判断目录。
@@ -90,5 +103,3 @@ dotnet run -c Release --project AotSmoke\AotSmoke.csproj                # JIT �
 dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # NativeAOT 真编译
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
-
-> 冒烟工程输出中文以验证 UTF-8 编码链路；时间戳打印用 `Runtime.TickCount64`（AOT 下高精度时间戳不可用）。
