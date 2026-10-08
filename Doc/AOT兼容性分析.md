@@ -6,16 +6,16 @@
 
 ## 1. 现状摘要
 
-- **核心链路实测全通**：24 场景冒烟 JIT/AOT 双通（§2.1），覆盖日志、网络（TCP/HTTP/WebSocket）、序列化（JSON/Binary/Span/STJ 源生成上下文）、配置、IoC、Http 控制器、CsvDb/DbTable。
+- **核心链路实测全通**：25 场景冒烟 JIT/AOT 双通（§2.1），覆盖日志、网络（TCP/HTTP/WebSocket）、序列化（JSON/Binary/Span/STJ 源生成上下文）、配置、IoC、Http 控制器、CsvDb/DbTable、反射泛型入口保留。
 - **支持方式**：主链路以「泛型/Type 入口的保留注解 + 源生成器静态表」达成——生成器承接 DI 注册、Json 成员访问、配置绑定、Http 分发四条通道；生成物未覆盖的场景自动回退原反射路径，运行语义不变（§4）。
 - **已知边界**：动态能力（脚本/插件/DLR/表达式编译）设计性不支持；部分只能经 `Object`/运行时类型进入的成员枚举路径无法静态表达保留要求（§5 收口记录）。
-- 编译期分析器警告是**已知面**（§2.2 分类），不以清零为目标：动不了的部分显式声明，能传导的按需传导。
+- **告警面已收敛**：编译期分析器与发布期 ILC 均 **0 条**告警（§2.2）。动态能力以声明与守卫承接，能静态表达的一律传导。
 
 ---
 
 ## 2. 实测数据
 
-### 2.1 运行期：24 场景冒烟（JIT/AOT 双通）
+### 2.1 运行期：25 场景冒烟（JIT/AOT 双通）
 
 | # | 场景 | # | 场景 |
 |---|------|---|------|
@@ -31,17 +31,18 @@
 | 10 | NetServer/NetClient TCP+SrmpCodec 回环 | 22 | CsvDb 读写往返 |
 | 11 | HttpServer+ApiHttpClient GET（含对象反序列化） | 23 | DbTable 模型读写往返 |
 | 12 | WebSocket 文本回显 | 24 | SystemJson 上下文透传 |
+| | | 25 | Reflect 泛型入口保留（`GetPropertyEx<T>`） |
 
 > AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT 自欺）。
 
-### 2.2 编译期：AOT 分析器（`IsAotCompatible=true`，net10.0）
+### 2.2 编译期：分析器与 ILC 告警
 
-- 当前 **328 条**（原始行数，未去重）｜`IL2098`（非法注解放置）**0 条**。
-- 三类含义：
-  - **动态能力**（IL3050/IL2026/IL3000）：设计性不支持，已按 §5 声明与守卫；
-  - **宽面反射入口**（IL2075/IL2070/IL2057）：未做注解治理，由调用方按需治理（§5）；
-  - **传导提示**（IL2067/IL2091/IL2095）：调用方按提示保留元数据即可，无需改库。
-- 集中文件：`IReflect.cs`、`AssemblyX.cs`、`ExtendableConverter.cs`、`MachineInfo*.cs`、`PluginHelper.cs`。
+- **当前均为 0 条**：`IsAotCompatible=true` 的分析器告警 0 条（net10.0）；AOT 发布的 ILC 告警 0 条（冒烟工程实测）。基线（改造前）为 164 条唯一告警。
+- 遗留告警的三类含义与处置方式：
+  - **动态能力**（IL3050/IL2026/IL3000）：设计性不支持 → 按 §5 用 `RequiresDynamicCode`/`RequiresUnreferencedCode` 声明 + 运行期守卫，或在边界方法上显式声明裁剪语义；
+  - **宽面反射入口**（IL2075/IL2070/IL2057）：运行时类型无法静态表达 → 提供泛型入口承载保留要求，非泛型重载显式声明；
+  - **传导提示**（IL2067/IL2091/IL2095）：能静态表达的通过泛型入口/注解传导，调用方按提示保留元数据即可。
+- 说明：ILC 只认 `UnconditionalSuppressMessage`，**不认 `#pragma warning disable`**——库内声明一律用特性，才能同时消掉分析器与发布期告警。
 
 ---
 
@@ -51,6 +52,7 @@
 
 1. **`DynamicallyAccessedMembers` 只对 `Type`/`String` 参数与泛型参数生效**；放在 `Object`/`Task` 等参数上会被 ILC 直接忽略（IL2098），属无效注解。
 2. **保留要求必须经「泛型/Type 入口」传导**：`Load<T>`/`Bind<T>`/`Save<T>`、`CsvDb<T>`、`DbTable.WriteModels<T>`、`MapController<T>` 等入口按下发要求；`Object` 参数入口（如直调 `MapTo`）表达不了，只能由其他入口先保留（§5）。
+   - 反射门面同理：`Reflect.GetPropertyEx<T>` / `GetMethodEx<T>` / `CreateInstance<T>` 把保留要求放在泛型参数上（`typeof(T)` 调用点天然保留）；对应的非泛型 `Type` 重载保持零注解（**给宽面 `Type` 参数加注解会让全库 60+ 文件、300+ 调用点弥散传导告警**），动态语义在该处显式声明。
 3. **运行时未知泛型**用开放泛型依赖声明覆盖全部实例化：`[DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<>))]`（`TaskHelper.GetResult` 即此例）。低版本 TFM 由 `Stub` 中的 `DynamicDependencyAttribute` 垫片补齐。
 4. **动态能力不可改造**：以 `RequiresDynamicCode`/`RequiresUnreferencedCode` 声明 + `RuntimeFeature.IsDynamicCodeSupported` 守卫，运行期抛明确异常而非静默错。
 
@@ -75,7 +77,7 @@
 - **IoC 注册（源生成器，自动生效）**：`container.AddTransient<TService, TImpl>()` / `AddSingleton<...>` 等扩展方法注册调用点会自动生成服务工厂并注册进 `ServiceFactoryTable`（限"唯一公开无参构造"的实现类型）；运行期先查表、未命中再回退反射构造。生成器随 `NewLife.Core` 包自动分发（`analyzers/dotnet/cs`），无需应用侧额外引包。
 - **Json 序列化（源生成器，自动生效）**：类型经编译期已知泛型/`Type` 入口进入 `JsonHelper`（`ToJson`/`ToJsonEntity<T>`/反序列化泛型）时，成员访问器走 `MemberAccessorTable`，避免对 `PropertyInfo` 的引用被裁剪。
 - **System.Text.Json 运行时类型路径（上下文透传）**：`SystemJson` 的 `Write(Object)`/`Read(json, Type)` 经运行时类型解析；把应用的 `JsonSerializerContext` 传入构造即可让这些类型由源生成元数据解析——`new SystemJson(MyContext.Default)`（可传多个，未声明类型自动回退默认解析器）。上下文只提供成员元数据，命名策略等行为以 `SystemJson` 自身选项为准。
-- **Type 参数 API 的使用指引**：容器注册、`Config<T>`、`CsvDb<T>` 等主链已由生成器与泛型入口覆盖；直接使用 `typeof(X).CreateInstance()`、`Reflect.GetPropertyEx/GetMethodEx`、`IReflect` 宽面成员访问等运行时类型 API 时，元数据能否保留取决于调用方——先用泛型入口触达目标类型（如 `Load<T>`、`GetService<T>`），或用 `DynamicDependency` 显式声明保留。
+- **Type 参数 API 的使用指引**：容器注册、`Config<T>`、`CsvDb<T>` 等主链已由生成器与泛型入口覆盖；直接使用 `typeof(X).CreateInstance()`、`Reflect.GetPropertyEx/GetMethodEx`、`IReflect` 宽面成员访问等运行时类型 API 时，元数据能否保留取决于调用方——先用泛型入口触达目标类型（如 `Load<T>`、`GetService<T>`、`Reflect.GetPropertyEx<T>`），或用 `DynamicDependency` 显式声明保留。
 - **配置绑定（源生成器 + 标准入口）**：配置类继承 `Config<T>` 后自动注册入 `ConfigProvider.DataRetrieval`（绑定器编译期生成）；`Config<T>.Current` 与 `IConfigProvider.Load<T>()` 均经泛型入口，AOT 下可正确绑定；**只有**显式用 `ConfigSetting`（`Object` 参数入口）绑定才依赖保留注解，建议改用泛型入口或 `provider.Load<T>()`。
 - **控制器静态分发（源生成器，自动生效）**：生成器扫描 `MapController<T>` 注册调用点，为控制器生成"方法名 → 强类型调用"委托并注册进 `HttpDispatchTable`；`ControllerHandler` 命中分发表即零反射调用；未命中（如手工装配的探针控制器）自动回退原反射路径。
 - **遇到 "不支持 AOT/裁剪" 警告**：1) 确认该 API 是否在主链路；2) 需要就用泛型入口/保留注解处理；3) 动态能力 API（脚本、插件、表达式编译）在 AOT 下必须关闭或规避（`RuntimeFeature.IsDynamicCodeSupported`）。
@@ -88,8 +90,10 @@
 
 | 项 | 位置 | 现状与理由 |
 |---|---|---|
-| 实例成员的运行时枚举（`IReflect` 拷贝/填充等宽面目标） | `Reflection/IReflect.cs` | 经 `Object` 参数进入，运行时才知目标是任意类型，**无法静态表达保留要求**；泛型入口（`Copy<T>` 等）已覆盖主场景。 |
-| 程序集与类型发现面（`AssemblyX.GetTypes` / `PluginHelper.Load`） | `Reflection/AssemblyX.cs`、`PluginHelper.cs` | 插件发现是 AOT 设计性不支持；`GetTypes` 已加 `RequiresUnreferencedCode` 声明，消费方按需裁剪。 |
+| 实例成员的运行时枚举（`IReflect` 拷贝/填充等宽面目标） | `Reflection/IReflect.cs` | 经 `Object` 参数进入，运行时才知目标是任意类型，**无法静态表达保留要求**；泛型入口（`Copy<T>` 等）已覆盖主场景；边界方法以特性显式声明裁剪语义。 |
+| 程序集与类型发现面（`AssemblyX` 全部方法、`PluginHelper.LoadPlugin`） | `Reflection/AssemblyX.cs`、`Web/PluginHelper.cs` | 插件发现是 AOT 设计性不支持（`PluginHelper.LoadPlugin` 已加 `RequiresDynamicCode`/`RequiresUnreferencedCode`）；`AssemblyX` 按方法声明动态加载语义，AOT 下按空值降级。 |
+| Windows 系统信息探测（WMI/注册表/COM/性能计数器） | `Common/MachineInfo*.cs` | 依赖 COM 与运行时反射绑定，AOT 下不受支持；探测失败按空值降级，不参与业务主链；可静态表达的（`Marshal.SizeOf<T>`）已改用泛型入口。 |
+| 动态语义边界（DLR 动态成员、运行时特性读取、服务定位、调试用内存读取等） | `Reflection/DynamicInternal.cs`、`AttributeX.cs`、`Model/ObjectContainer.cs`、`Extension/ProcessHelper.cs` 等 | 语义本身即运行时类型，逐方法显式声明裁剪语义（含替代入口指引），不逐点改造。 |
 | 控制器分发参数绑定（`ref/out/params`/`ValueTask` 等） | `HttpControllerDispatchGenerator` | 生成器主动跳过无法安全生成的签名（回退反射），未求穷尽。 |
 
 ---
@@ -97,11 +101,11 @@
 ## 6. 复现方法
 
 ```powershell
-# 1) 分析器全量警告（库自身编译）
+# 1) 分析器全量警告（库自身编译，期望 0 条）
 dotnet build NewLife.Core\NewLife.Core.csproj -f net10.0 -c Release -p:IsAotCompatible=true
 
-# 2) 冒烟实测（24 场景工程；PublishAot 写在工程文件内）
+# 2) 冒烟实测（25 场景工程；PublishAot 写在工程文件内）
 dotnet run -c Release --project AotSmoke\AotSmoke.csproj                # JIT 基线
-dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # NativeAOT 真编译
+dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # NativeAOT 真编译（期望 0 条 ILC 告警）
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
