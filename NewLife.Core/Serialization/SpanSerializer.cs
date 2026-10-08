@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using NewLife.Buffers;
@@ -211,10 +212,10 @@ public static class SpanSerializer
 
     #region 写入
     /// <summary>写入引用类型对象（含null标记）</summary>
-    /// <typeparam name="T">对象类型</typeparam>
+    /// <typeparam name="T">对象类型。AOT 下该类型的公开属性与字段将按需保留</typeparam>
     /// <param name="writer">Span写入器</param>
     /// <param name="value">目标对象，可为null</param>
-    public static void Write<T>(ref SpanWriter writer, T? value) where T : class
+    public static void Write<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(ref SpanWriter writer, T? value) where T : class
     {
         if (value == null)
         {
@@ -228,8 +229,8 @@ public static class SpanSerializer
     /// <summary>写入对象成员到SpanWriter（不含null标记）</summary>
     /// <param name="writer">Span写入器</param>
     /// <param name="value">目标对象，不可为null</param>
-    /// <param name="type">对象类型</param>
-    public static void WriteObject(ref SpanWriter writer, Object value, Type type)
+    /// <param name="type">对象类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    public static void WriteObject(ref SpanWriter writer, Object value, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type)
     {
         // ISpanSerializable 零反射快速路径
         if (value is ISpanSerializable ss)
@@ -355,10 +356,10 @@ public static class SpanSerializer
 
     #region 读取
     /// <summary>读取引用类型对象（含null标记）</summary>
-    /// <typeparam name="T">对象类型</typeparam>
+    /// <typeparam name="T">对象类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</typeparam>
     /// <param name="reader">Span读取器</param>
     /// <returns>反序列化的对象，可能为null</returns>
-    public static T? Read<T>(ref SpanReader reader) where T : class
+    public static T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicConstructors)] T>(ref SpanReader reader) where T : class
     {
         var flag = reader.ReadByte();
         if (flag == 0) return null;
@@ -368,9 +369,9 @@ public static class SpanSerializer
 
     /// <summary>从SpanReader读取对象成员（不含null标记）</summary>
     /// <param name="reader">Span读取器</param>
-    /// <param name="type">对象类型</param>
+    /// <param name="type">对象类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>反序列化的对象实例</returns>
-    public static Object ReadObject(ref SpanReader reader, Type type)
+    public static Object ReadObject(ref SpanReader reader, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
         var obj = type.CreateInstance()!;
 

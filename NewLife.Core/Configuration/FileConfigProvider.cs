@@ -1,4 +1,5 @@
-﻿using NewLife.Log;
+using System.Diagnostics.CodeAnalysis;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Configuration;
@@ -134,7 +135,7 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置</param>
     /// <returns>是否保存成功</returns>
-    public override Boolean Save<T>(T model, String? path = null)
+    public override Boolean Save<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, String? path = null)
     {
         if (model == null) return false;
 
@@ -242,7 +243,7 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    public override void Bind<T>(T model, Boolean autoReload = true, String? path = null)
+    public override void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, Boolean autoReload = true, String? path = null)
     {
         base.Bind(model, autoReload, path);
 
