@@ -27,6 +27,8 @@ jobs:
         dotnet build -c Release
     - name: Test
       # 使用单线程串行执行，避免测试间共享资源（端口/文件/静态状态）冲突失败
+      # 四个单元测试工程全部纳入：XUnitTest.Core（net8/9/10）、XUnitTest.Net6（库最低现代 TFM net6.0）、
+      # XUnitTest.Compat（低版本兼容底线 net462 与垫片转发 net8.0）、XUnitTest.SourceGenerator
       env:
         XUNIT_MAX_PARALLEL_THREADS: 1
       run: |
@@ -35,6 +37,10 @@ jobs:
         dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net9.0 --no-build
         dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net10.0 --no-build
         dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net10.0-windows --no-build
+        dotnet test XUnitTest.Net6\XUnitTest.Net6.csproj -f net6.0 --no-build
+        dotnet test XUnitTest.Net6\XUnitTest.Net6.csproj -f net6.0-windows --no-build
+        dotnet test XUnitTest.Compat\XUnitTest.Compat.csproj -f net462 --no-build
+        dotnet test XUnitTest.Compat\XUnitTest.Compat.csproj -f net8.0 --no-build
         dotnet test XUnitTest.SourceGenerator\XUnitTest.SourceGenerator.csproj --no-build
     - name: Pack 校验（源生成器随主包分发）
       # 校验主包 NewLife.Core 内含 analyzers/dotnet/cs 的分析器程序集，且 lib 正常
