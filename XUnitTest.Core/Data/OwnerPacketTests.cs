@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using NewLife;
 using NewLife.Data;
 using NewLife.Reflection;
@@ -784,10 +785,25 @@ public class OwnerPacketTests
     }
 
 #if DEBUG || OWNERPACKET_FINALIZER
-    // 注：本测试依赖 NewLife.Core 以相同条件编译析构兜底（默认 Debug 构建成立）
+    // 注：本测试依赖 NewLife.Core 以相同条件编译析构兜底（默认 Debug 构建成立），
+    // 故入口处先做前提校验，确认加载到的库确实含析构，避免产物错配被误判为“析构未生效”
     [Fact(DisplayName = "析构兜底：漏释放的句柄在 GC 时释放引用")]
     public void Finalizer_ShouldReleaseReference()
     {
+        // 前提校验：析构兜底按 #if DEBUG || OWNERPACKET_FINALIZER 条件编译，而 Bin\<tfm> 与 Bin\UnitTest\<tfm>
+        // 被 Debug/Release 共用；共享目录一旦被 Release 构建写入，Debug 测试就会加载到不含析构的库，
+        // 此时立即给出产物错配诊断，而不是空等重试后报“引用未释放”
+        var finalizer = typeof(OwnerPacket).GetMethod("Finalize", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+        if (finalizer == null)
+        {
+            var asm = typeof(OwnerPacket).Assembly;
+            var config = asm.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration + "";
+            Assert.Fail($"本次加载的 NewLife.Core 不含析构兜底（AssemblyConfiguration={config}，路径={asm.Location}），"
+                + "该用例依赖 Debug 或 OWNERPACKET_FINALIZER 构建的库；"
+                + "这一般是共享输出目录（Bin\\<tfm>、Bin\\UnitTest\\<tfm>）被 Release 产物覆盖所致，"
+                + "请用 Debug 配置重新生成 NewLife.Core 与测试工程后再运行。");
+        }
+
         var owner = LeakOne();
 
         // 对象回收与析构执行分属不同线程且时机不确定（满载时可能滞后数百毫秒），
