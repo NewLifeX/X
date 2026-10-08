@@ -316,6 +316,7 @@ public static class SpanSerializer
         }
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "复杂值类型来自序列化对象图（运行时来源）；AOT 元数据由调用方泛型入口或 SystemJson 上下文负责")]
     private static void WriteComplexValue(ref SpanWriter writer, Object? value, Type type)
     {
         // Guid - 16字节结构体
@@ -471,6 +472,7 @@ public static class SpanSerializer
         return result;
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "复杂值类型来自序列化对象图（运行时来源）；AOT 元数据由调用方泛型入口或 SystemJson 上下文负责")]
     private static Object? ReadComplexValue(ref SpanReader reader, Type type)
     {
         // Guid - 16字节结构体

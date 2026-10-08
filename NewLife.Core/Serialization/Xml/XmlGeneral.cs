@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Xml;
 using NewLife.Collections;
@@ -126,6 +127,7 @@ public class XmlGeneral : XmlHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "目标类型来自 XML 序列化描述（运行时来源）；接口元数据保留由调用方负责")]
     public override Boolean TryRead(Type type, ref Object? value)
     {
         if (type == null)

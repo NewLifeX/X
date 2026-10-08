@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -181,6 +182,7 @@ public static class ConfigHelper
         }
     }
 
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "配置绑定目标为运行时模型属性类型（配置数据驱动）；直调 MapTo 须先由泛型入口（Load<T>/Bind<T>/Save<T>）保留类型元数据，见 Doc/AOT兼容性分析.md §5")]
     private static void MapToDictionaryProperty(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         if (cfg.Childs == null) return;
@@ -238,6 +240,7 @@ public static class ConfigHelper
     /// <param name="model">目标模型</param>
     /// <param name="pi">属性信息</param>
     /// <param name="provider">配置提供者</param>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "配置绑定目标为运行时模型属性类型（配置数据驱动）；直调 MapTo 须先由泛型入口（Load<T>/Bind<T>/Save<T>）保留类型元数据，见 Doc/AOT兼容性分析.md §5")]
     private static void MapToComplexObject(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         var val = MemberAccessorTable.GetValue(model, model.GetType(), pi);
@@ -261,6 +264,7 @@ public static class ConfigHelper
     /// <param name="model">目标模型</param>
     /// <param name="pi">属性信息</param>
     /// <param name="provider">配置提供者</param>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "配置绑定目标为运行时模型属性类型（配置数据驱动）；直调 MapTo 须先由泛型入口（Load<T>/Bind<T>/Save<T>）保留类型元数据，见 Doc/AOT兼容性分析.md §5")]
     private static void MapToArray(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         if (section.Childs == null) return;
@@ -302,6 +306,7 @@ public static class ConfigHelper
     /// <param name="model">目标模型</param>
     /// <param name="pi">属性信息</param>
     /// <param name="provider">配置提供者</param>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "配置绑定目标为运行时模型属性类型（配置数据驱动）；直调 MapTo 须先由泛型入口（Load<T>/Bind<T>/Save<T>）保留类型元数据，见 Doc/AOT兼容性分析.md §5")]
     private static void MapToList(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         var elementType = pi.PropertyType.GetElementTypeEx();

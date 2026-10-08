@@ -1,4 +1,5 @@
 ﻿#if NET6_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -27,6 +28,9 @@ public class ExtendableConverter : JsonConverter<Object>
     /// <param name="typeToConvert"></param>
     /// <param name="options"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "IExtend 扩展对象按运行时类型读写动态成员，元数据无法静态表达；AOT 应用应通过 SystemJson 上下文透传声明类型元数据")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "IExtend 扩展对象按运行时类型读写动态成员，元数据无法静态表达；AOT 应用应通过 SystemJson 上下文透传声明类型元数据")]
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "扩展对象实例化目标为运行时类型，构造保留由 SystemJson 上下文或调用方负责")]
     public override Object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (!typeof(IExtend).IsAssignableFrom(typeToConvert))
@@ -54,6 +58,8 @@ public class ExtendableConverter : JsonConverter<Object>
     /// <param name="writer"></param>
     /// <param name="value"></param>
     /// <param name="options"></param>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "IExtend 扩展对象按运行时类型读写动态成员，元数据无法静态表达；AOT 应用应通过 SystemJson 上下文透传声明类型元数据")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "IExtend 扩展对象按运行时类型读写动态成员，元数据无法静态表达；AOT 应用应通过 SystemJson 上下文透传声明类型元数据")]
     public override void Write(Utf8JsonWriter writer, Object value, JsonSerializerOptions options)
     {
         if (value is not IExtend extendable)
@@ -105,6 +111,7 @@ public class ExtendableConverter : JsonConverter<Object>
     /// <param name="value">属性值</param>
     /// <param name="type">属性声明类型</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "默认值比较目标为运行时类型，构造保留由 SystemJson 上下文或调用方负责")]
     private static Boolean IsDefaultValue(Object? value, Type type)
     {
         if (value is null) return true;

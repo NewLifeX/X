@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Model;
@@ -285,6 +286,7 @@ public class JsonReader
         return sb.Return(true);
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "类型名来自 JSON 文本中的 $type 描述，属运行时加载；AOT 下目标类型若被静态引用或声明上下文则可用")]
     private Object? ChangeType(Object value, Type type)
     {
         // 支持可空类型

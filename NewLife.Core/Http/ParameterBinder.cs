@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -14,6 +15,7 @@ internal static class ParameterBinder
     /// <param name="method">目标方法</param>
     /// <param name="context">Http上下文</param>
     /// <returns>参数数组</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "绑定目标为控制器方法参数的复杂类型（运行时来源）；控制器路径已由 HttpControllerDispatchGenerator 静态化，手工装配路径由调用方负责保留元数据")]
     public static Object?[] Bind(MethodInfo method, IHttpContext context)
     {
         var pis = method.GetParameters();

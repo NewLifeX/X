@@ -423,6 +423,8 @@ public class SystemJson : IJsonHost
 #endif
 
     // 构建序列化选项：默认配置叠加数据成员与服务类型解析器；传入上下文时优先参与解析
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "默认解析器基于反射，属动态能力边界；AOT 应用经上下文参数获得源生成元数据")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "默认解析器基于反射，属动态能力边界；AOT 应用经上下文参数获得源生成元数据")]
 #if NET7_0_OR_GREATER
     private JsonSerializerOptions CreateSerializerOptions(JsonSerializerContext[]? contexts = null)
 #else
@@ -468,6 +470,7 @@ public class SystemJson : IJsonHost
     /// <summary>根据 <see cref="JsonOptions"/> 构建 <see cref="JsonSerializerOptions"/>。Write 和 Read 共享同一构建逻辑</summary>
     /// <param name="jsonOptions">序列化选项</param>
     /// <returns>新的 JsonSerializerOptions 实例</returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "JsonStringEnumConverter 枚举字符串转换依赖动态代码；AOT 应用应改用 JsonStringEnumConverter<T> 或避免启用 EnumString")]
     private JsonSerializerOptions BuildSerializerOptions(JsonOptions jsonOptions)
     {
         var opt = new JsonSerializerOptions(SerializerOptions)
@@ -633,6 +636,8 @@ public class SystemJson : IJsonHost
     /// <param name="value">待序列化的对象</param>
     /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
     /// <returns>Json字符串</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型序列化路径；AOT 元数据由 SystemJson(JsonSerializerContext) 透传或调用方保留负责")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "运行时类型序列化路径；AOT 元数据由 SystemJson(JsonSerializerContext) 透传或调用方保留负责")]
     public String Write(Object value, JsonOptions? jsonOptions) => JsonSerializer.Serialize(value, GetSerializerOptions(jsonOptions));
 
     /// <summary>从Json字符串中读取对象</summary>
@@ -646,6 +651,8 @@ public class SystemJson : IJsonHost
     /// <param name="type">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
     /// <returns>反序列化后的对象</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反序列化路径；AOT 元数据由 SystemJson(JsonSerializerContext) 透传或调用方保留负责")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "运行时类型反序列化路径；AOT 元数据由 SystemJson(JsonSerializerContext) 透传或调用方保留负责")]
     public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, JsonOptions? jsonOptions) => JsonSerializer.Deserialize(json, type, GetSerializerOptions(jsonOptions));
 
     /// <summary>从Json字符串中读取对象</summary>

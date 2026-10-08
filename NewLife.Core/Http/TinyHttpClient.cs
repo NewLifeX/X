@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using System.Net.Security;
@@ -640,7 +641,7 @@ public class TinyHttpClient : DisposeBase
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult?> InvokeAsync<TResult>(String method, String action, Object? args = null)
+    public async Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TResult>(String method, String action, Object? args = null)
     {
         var baseAddress = BaseAddress ?? throw new ArgumentNullException(nameof(BaseAddress));
         var request = BuildRequest(baseAddress, method, action, args);
@@ -688,7 +689,7 @@ public class TinyHttpClient : DisposeBase
         return req;
     }
 
-    private TResult? ProcessResponse<TResult>(IPacket rs)
+    private TResult? ProcessResponse<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TResult>(IPacket rs)
     {
         var str = rs.ToStr();
         if (typeof(TResult).IsBaseType()) return str.ChangeType<TResult>();

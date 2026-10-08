@@ -1,4 +1,5 @@
-﻿using NewLife.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using NewLife.Buffers;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -188,6 +189,7 @@ public class DefaultPacketEncoder : IPacketEncoder
     /// <remarks>
     /// 子类可重写此方法以实现自定义的字符串解码逻辑
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "解码目标类型由报文注册信息驱动，运行时才可知；元数据由 SystemJson 上下文或调用方负责保留")]
     protected virtual Object? OnDecode(String value, Type type)
     {
         var typeCode = type.GetTypeCode();

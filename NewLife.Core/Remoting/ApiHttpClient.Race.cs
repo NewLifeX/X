@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Model;
@@ -302,7 +303,7 @@ public partial class ApiHttpClient
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual async Task<TResult?> InvokeRaceAsync<TResult>(HttpMethod method, String action, Object? args = null, CancellationToken cancellationToken = default)
+    public virtual async Task<TResult?> InvokeRaceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TResult>(HttpMethod method, String action, Object? args = null, CancellationToken cancellationToken = default)
     {
         // 获取可用服务列表
         var available = await GetRaceServicesAsync(cancellationToken).ConfigureAwait(false);
@@ -385,7 +386,7 @@ public partial class ApiHttpClient
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public Task<TResult?> InvokeRaceAsync<TResult>(String action, Object? args = null, CancellationToken cancellationToken = default)
+    public Task<TResult?> InvokeRaceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TResult>(String action, Object? args = null, CancellationToken cancellationToken = default)
     {
         var method = HttpMethod.Post;
 #if NETCOREAPP || NETSTANDARD2_1

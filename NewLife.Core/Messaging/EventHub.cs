@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using NewLife.Data;
 using NewLife.Log;
@@ -19,7 +20,7 @@ namespace NewLife.Messaging;
 /// <para><b>典型应用</b>：作为 IoT 网关或 MQ Bridge，将网络层（如 WebSocket/TCP）收到的消息按 topic 投递到进程内订阅者。</para>
 /// </remarks>
 /// <typeparam name="TEvent">事件类型</typeparam>
-public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, ILogFeature, ITracerFeature
+public class EventHub<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TEvent> : IEventHandler<IPacket>, IEventHandler<String>, ILogFeature, ITracerFeature
 {
     #region 嵌套：事件信封
     /// <summary>协议解码的中间结果，承载主题/客户端/动作或事件三种语义</summary>

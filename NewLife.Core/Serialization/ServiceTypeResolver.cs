@@ -1,4 +1,5 @@
 ﻿#if NET7_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using NewLife.Model;
@@ -14,6 +15,7 @@ public class ServiceTypeResolver
 
     /// <summary>匹配修改</summary>
     /// <param name="typeInfo"></param>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "IList/IDictionary 接口集合的类型解析需要运行时泛型实例化；AOT 下未预编译的实例化将由运行时明确失败")]
     public void Modifier(JsonTypeInfo typeInfo)
     {
         if (typeInfo.Kind != JsonTypeInfoKind.Object) return;
