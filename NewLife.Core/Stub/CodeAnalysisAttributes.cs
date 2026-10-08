@@ -112,6 +112,52 @@ public sealed class UnconditionalSuppressMessageAttribute : Attribute
         CheckId = checkId;
     }
 }
+/// <summary>声明对指定类型成员的依赖，裁剪器/AOT 编译器据此保留元数据。适用于成员访问目标无法静态关联到调用点的场景（如运行时未知的泛型实例）</summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
+public sealed class DynamicDependencyAttribute : Attribute
+{
+    /// <summary>成员签名</summary>
+    public String? MemberSignature { get; }
+
+    /// <summary>需要保留的成员类型</summary>
+    public DynamicallyAccessedMemberTypes MemberTypes { get; }
+
+    /// <summary>类型</summary>
+    public Type? Type { get; }
+
+    /// <summary>类型名称</summary>
+    public String? TypeName { get; }
+
+    /// <summary>程序集名称</summary>
+    public String? AssemblyName { get; set; }
+
+    /// <summary>条件</summary>
+    public String? Condition { get; set; }
+
+    /// <summary>实例化。按成员签名声明</summary>
+    /// <param name="memberSignature">成员签名</param>
+    public DynamicDependencyAttribute(String memberSignature) => MemberSignature = memberSignature;
+
+    /// <summary>实例化。按类型与成员类别声明</summary>
+    /// <param name="memberTypes">需要保留的成员类型</param>
+    /// <param name="type">类型</param>
+    public DynamicDependencyAttribute(DynamicallyAccessedMemberTypes memberTypes, Type type)
+    {
+        MemberTypes = memberTypes;
+        Type = type;
+    }
+
+    /// <summary>实例化。按类型名称与成员签名声明</summary>
+    /// <param name="memberTypes">需要保留的成员类型</param>
+    /// <param name="typeName">类型名称</param>
+    /// <param name="memberSignature">成员签名</param>
+    public DynamicDependencyAttribute(DynamicallyAccessedMemberTypes memberTypes, String typeName, String memberSignature)
+    {
+        MemberTypes = memberTypes;
+        TypeName = typeName;
+        MemberSignature = memberSignature;
+    }
+}
 #endif
 
 // RequiresDynamicCode 从 net7 起才进入 BCL，net5/net6 也需补齐；

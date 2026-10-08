@@ -96,9 +96,10 @@ internal static class TaskHelper
     private static readonly ConcurrentDictionary<Type, PropertyInfo?> _resultCache = new();
 
     /// <summary>读取已完成Task的结果属性值，不等待。用于 await 之后取回结果</summary>
-    /// <param name="task">已完成的Task。AOT 下其运行时类型的公共属性将按需保留（用于读取 Result）</param>
+    /// <param name="task">已完成的Task</param>
     /// <returns>Task的Result属性值；若Task无返回值则返回null</returns>
-    public static Object? GetResult([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Task task)
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<>))]
+    public static Object? GetResult(Task task)
     {
         var taskType = task.GetType();
         if (!taskType.IsGenericType) return null;

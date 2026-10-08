@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(DynamicallyAccessedMemberTypes))]
 [assembly: TypeForwardedTo(typeof(RequiresUnreferencedCodeAttribute))]
 [assembly: TypeForwardedTo(typeof(UnconditionalSuppressMessageAttribute))]
+[assembly: TypeForwardedTo(typeof(DynamicDependencyAttribute))]
 #endif
 
 #if NET7_0_OR_GREATER

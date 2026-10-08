@@ -7,9 +7,9 @@
 
 ## 1. 结论摘要
 
-**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（17/17）；剩余工作集中在反射宽面注解治理与源生成器体系（档 C）。**
+**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（19/19）；剩余工作集中在反射宽面注解治理与源生成器体系（档 C）。**
 
-- 实测（17 场景冒烟）：JIT 基线 14/14 → **AOT 修复前 4/13 → 修复后 14/14**（2026-10-08 波次 1 落地）→ **源生成器后 17/17**（SG-2/SG-3/SG-4 新增"源生成器服务工厂""源生成器 Json 成员访问""源生成器配置绑定"场景，JIT/AOT 双通）。
+- 实测（19 场景冒烟）：JIT 基线 14/14 → **AOT 修复前 4/13 → 修复后 14/14**（2026-10-08 波次 1 落地）→ **源生成器后 17/17**（SG-2/SG-3/SG-4 新增"源生成器服务工厂""源生成器 Json 成员访问""源生成器配置绑定"场景，JIT/AOT 双通）→ **异步委托修复后 19/19**（新增"Http 异步委托返回值""Http 控制器异步操作方法"场景）。
 - 失败不是散点，而是三类机制（见 §2.3）：**反射构造成员在 AOT 裁剪后丢失**、**反射契约注解缺位**、**动态能力设计性不支持**。
 - **咽喉修复已入代码**：`Pool<T>` 泛型工厂（`e561198fc`）+ 注解属性 Stub 垫片（`341bcc10a`）+ 主链保留契约注解（`1e2050372`/`229f71949`/`5d11e19ce`）+ 低成本反射替换（`4e9a59415`）+ 动态能力守卫（`277c9a85a`）→ 冒烟 14/14；冒烟工程与 CI job 已入仓（`c8ac1d228`）。改造杠杆集中、成本可控。
 - 档位与推荐见 §5；剩余切片见 §5.1。
@@ -47,7 +47,7 @@
 | 13 | ObjectContainer 服务解析 | ✅ | ❌ | ✅ |
 | 14 | 动态能力守卫 PluginHelper（AOT 下抛明确异常） | ✅ | ❌ | ✅ |
 
-> 合计：JIT 14/14；AOT 修复前 4/13（场景 14 为修复后新增）；**修复后 14/14**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`、`4e9a59415`、`277c9a85a`；冒烟入仓 `c8ac1d228`）；**SG-4 后 17/17**（SG-1 `4b9f703ff`、主包内嵌分发、SG-2 扫描式 DI 生成器、SG-3 Json 成员访问生成器、SG-4 配置绑定生成器）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
+> 合计：JIT 14/14；AOT 修复前 4/13（场景 14 为修复后新增）；**修复后 14/14**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`、`4e9a59415`、`277c9a85a`；冒烟入仓 `c8ac1d228`）；**SG-4 后 17/17**（SG-1 `4b9f703ff`、主包内嵌分发、SG-2 扫描式 DI 生成器、SG-3 Json 成员访问生成器、SG-4 配置绑定生成器）；**异步委托修复后 19/19**（`TaskHelper` 开放泛型 `DynamicDependency` + `MapController` 契约注解，负向验证：移除修复后两场景均变红）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
 
 ### 2.3 失败机制解析（附实证）
 
@@ -58,6 +58,7 @@
 3. **Type 参数反射路径**
    `ObjectContainer`（构造函数扫描 + 参数解析）、`DbTable`/`MemoryCache`（`Type.GetType("System."+x)`）、`XmlHelper`（`"To"+type.Name` 方法名拼接查找）、`TaskHelper`（`Task<T>.Result` 反射）等；AOT 下或失效或需等价替换。
    **注解位置实证（2026-10-08 SG-4）**：`DynamicallyAccessedMembers` 仅对 `Type`/`String` 参数与泛型参数生效，放在 `Object`/`Task` 参数上会被 ILC 直接忽略（IL2098）；`ConfigHelper.MapTo/MapFrom` 的 `Object` 参数曾据此误标（已移除）。配置绑定的保留要求只能经 `Load<T>`/`Bind<T>`/`Save<T>` 等泛型入口传导——直调 `MapTo(Object)` 若该类型未经上述入口使用，AOT 下**静默不绑定**（JIT 正常）。
+   **动态运行时类型的处置（2026-10-08 同日修复）**：`TaskHelper.GetResult` 读取的是**运行时未知类型** `Task<T>`，无法用参数/泛型注解表达保留，改用开放泛型 `[DynamicDependency(PublicProperties, typeof(Task<>))]`（ILC 支持开放泛型，覆盖全部实例化）；`MapController<T>`/`MapController(Type)` 补 `PublicConstructors | PublicMethods` 注解。修复前 AOT 实测：异步委托返回值 `null`、控制器构造抛 `No parameterless constructor`。
 4. **动态能力（设计性不支持）**
    `ScriptEngine`（CodeDom/Emit 运行时代码生成）、`PluginHelper`/`AssemblyX.LoadFrom`（动态加载程序集）、`DynamicXml`/`DynamicInternal`（DLR 动态绑定）、`SpeakProvider`（动态加载语音组件）。这些在 AOT 下**无法通过改造解决**，应编译期注解声明 + 运行期明确报错。
 
@@ -105,8 +106,8 @@
 ### 5.1 咽喉点工作清单（改进候选切片）
 
 1. `Pool<T>` 泛型工厂（1 行级 + 语义对齐）→ 网络栈/控制台日志/事件总线全通（PoC 已证）。**→ ✅ 已落地（`e561198fc`）**
-2. 反射入口注解化：`Reflect`/`IReflect`/`ObjectContainer`/`JsonHelper`/`ConfigHelper`/`ApiHttpClient` 泛型路径加 DAM、Type 参数路径加 `Requires*`；低 TFM 用 Stub 垫片补齐 3 个注解属性。**→ 主链已完成（`341bcc10a`/`1e2050372`/`229f71949`/`5d11e19ce`：JSON/配置/Span/API/容器注册/`IReflect` 工厂）；`IReflect`/`AssemblyX`/`TypeX` 宽面成员访问与 `ParameterBinder`/`TaskHelper` 等 Type 参数路径待做（需先设计 RUC 传染治理，避免下游警告海啸）**
-3. 低成本等价替换：`XmlHelper` → `switch(TypeCode)`；`MemoryCache`/`DbTable` → TypeCode 映射；`ExcelWriter`/`ProcessHelper` → 泛型重载；`TaskHelper` → 强类型。**→ ✅ 已落地（`4e9a59415`：TypeCodeHelper 六处替换、XmlConvert 显式分发、Marshal 泛型化）；`TaskHelper` 的"契约注解"经 SG-4 复查为非法放置（IL2098，AOT 下不生效），已另立 FIX-129**
+2. 反射入口注解化：`Reflect`/`IReflect`/`ObjectContainer`/`JsonHelper`/`ConfigHelper`/`ApiHttpClient` 泛型路径加 DAM、Type 参数路径加 `Requires*`；低 TFM 用 Stub 垫片补齐 3 个注解属性。**→ 主链已完成（`341bcc10a`/`1e2050372`/`229f71949`/`5d11e19ce`：JSON/配置/Span/API/容器注册/`IReflect` 工厂）；`MapController` 入口补 `PublicConstructors|PublicMethods` 注解（2026-10-08，控制器 AOT 实测可用）；`IReflect`/`AssemblyX`/`TypeX` 宽面成员访问与 `ParameterBinder` 等 Type 参数路径待做（需先设计 RUC 传染治理，避免下游警告海啸）**
+3. 低成本等价替换：`XmlHelper` → `switch(TypeCode)`；`MemoryCache`/`DbTable` → TypeCode 映射；`ExcelWriter`/`ProcessHelper` → 泛型重载；`TaskHelper` → 强类型。**→ ✅ 已落地（`4e9a59415`：TypeCodeHelper 六处替换、XmlConvert 显式分发、Marshal 泛型化）；`TaskHelper` 的"契约注解"经 SG-4 复查为非法放置（IL2098，AOT 下不生效），2026-10-08 已改用开放泛型 `DynamicDependency(PublicProperties, typeof(Task<>))` 并实测通过（冒烟 18/19 场景）**
 4. 动态能力声明 + 运行期守卫：`ScriptEngine`/`PluginHelper`/`AssemblyX.LoadFrom`/`DynamicXml`/`SpeakProvider`。**→ ✅ 已落地（`277c9a85a`：类/方法级声明 + DynamicCodeHelper 明确异常；AssemblyX 无公开入口、SpeakProvider 已有优雅降级，保持现状）**
 5. CI 防回归：冒烟工程（13 场景）入库 + `test.yml` 增加 win-x64 `PublishAot` 冒烟 job；net8+ TFM 开关分析器并清零/登记基线。**→ ✅ 已落地（`c8ac1d228`：冒烟扩至 14 场景入仓 `Test/AotSmoke`，`test.yml` aot job 含分析器报告（不阻断）与 AOT 冒烟断言）**
 

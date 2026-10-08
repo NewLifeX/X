@@ -198,6 +198,34 @@ Run("HttpServer+ApiHttpClient GET", () =>
     if (r?.Msg != "pong-aot") throw new Exception($"ApiHttpClient 对象反序列化不一致: {r?.Msg ?? "null"}");
 });
 
+Run("Http 异步委托返回值", () =>
+{
+    using var server = new HttpServer { Port = 0 };
+    server.Log = XTrace.Log;
+    server.SessionLog = XTrace.Log;
+    // 异步委托走 OnInvoke → TaskHelper.GetResult（Task<T>.Result 反射取结果），验证 AOT 裁剪下返回值不丢
+    server.Map("/asyncobj", async () => { await Task.Yield(); return new SmokePing { Msg = "pong-async" }; });
+    server.Start();
+
+    var http = new NewLife.Remoting.ApiHttpClient($"http://127.0.0.1:{server.Port}");
+    var r = http.GetAsync<SmokePing>("/asyncobj").GetAwaiter().GetResult();
+    if (r?.Msg != "pong-async") throw new Exception($"异步委托返回值丢失: {r?.Msg ?? "null"}");
+});
+
+Run("Http 控制器异步操作方法", () =>
+{
+    using var server = new HttpServer { Port = 0 };
+    server.Log = XTrace.Log;
+    server.SessionLog = XTrace.Log;
+    // 控制器异步方法走 ControllerHandler → TaskHelper.GetResult，同上验证
+    server.MapController<SmokeAsyncController>("/api/smoke");
+    server.Start();
+
+    var http = new NewLife.Remoting.ApiHttpClient($"http://127.0.0.1:{server.Port}");
+    var r = http.GetAsync<SmokePing>("/api/smoke/asyncping").GetAwaiter().GetResult();
+    if (r?.Msg != "pong-controller-async") throw new Exception($"控制器异步方法返回值丢失: {r?.Msg ?? "null"}");
+});
+
 Run("WebSocket 文本回显", () =>
 {
     using var server = new HttpServer { Port = 0 };
@@ -350,4 +378,14 @@ public class SmokeSetting : Config<SmokeSetting>
 
 public class SmokeConfigProvider : ConfigProvider
 {
+}
+
+public class SmokeAsyncController
+{
+    /// <summary>异步操作方法，返回对象</summary>
+    public async Task<SmokePing> AsyncPing()
+    {
+        await Task.Yield();
+        return new SmokePing { Msg = "pong-controller-async" };
+    }
 }

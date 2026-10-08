@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Net;
 
 namespace NewLife.Http;
@@ -137,14 +138,14 @@ public class HttpServer : NetServer, IHttpHost
     public void MapDelete<TModel, TResult>(String path, Func<TModel, TResult> handler) => SetRoute(path, new MethodFilterHandler("DELETE", new DelegateHandler { Callback = handler }));
 
     /// <summary>映射控制器</summary>
-    /// <typeparam name="TController">控制器类型</typeparam>
+    /// <typeparam name="TController">控制器类型。AOT 下其公开构造与公开方法将按需保留</typeparam>
     /// <param name="path">可选起始路径，默认 /{ControllerName}</param>
-    public void MapController<TController>(String? path = null) => MapController(typeof(TController), path);
+    public void MapController<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TController>(String? path = null) => MapController(typeof(TController), path);
 
     /// <summary>映射控制器</summary>
-    /// <param name="controllerType">控制器类型</param>
+    /// <param name="controllerType">控制器类型。AOT 下其公开构造与公开方法将按需保留</param>
     /// <param name="path">可选起始路径，默认 /{ControllerName}</param>
-    public void MapController(Type controllerType, String? path = null)
+    public void MapController([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] Type controllerType, String? path = null)
     {
         if (controllerType == null) throw new ArgumentNullException(nameof(controllerType));
 
