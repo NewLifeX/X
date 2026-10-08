@@ -7,12 +7,12 @@
 
 ## 1. 结论摘要
 
-**一句话：库目前在 NativeAOT 下"可编译、发布成功、核心功能不可用"；但阻塞点高度集中，目标档位（声明式支持）可达，且咽喉点杠杆已在实验中验证。**
+**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（13/13）；剩余工作集中在反射宽面注解治理、低成本替换、CI 防回归与源生成器体系（档 C）。**
 
-- 实测（13 场景冒烟）：JIT 基线 13/13 → **AOT 4/13**；失败覆盖控制台日志、网络全栈（TCP/HTTP/WebSocket）、JSON/配置/Span 序列化往返、IoC 解析。
+- 实测（13 场景冒烟）：JIT 基线 13/13 → **AOT 修复前 4/13 → 修复后 13/13**（2026-10-08 波次 1 落地）。
 - 失败不是散点，而是三类机制（见 §2.3）：**反射构造成员在 AOT 裁剪后丢失**、**反射契约注解缺位**、**动态能力设计性不支持**。
-- **咽喉点实验（PoC，未入代码）**：`Pool<T>` 一行改为 `Activator.CreateInstance<T>()` + `ToJsonEntity<T>` 两处 `DynamicallyAccessedMembers` 注解 → **失败 9→1**（网络栈、日志、序列化全通）。改造杠杆集中、成本可控。
-- 档位与推荐见 §5。
+- **咽喉修复已入代码**：`Pool<T>` 泛型工厂（`e561198fc`）+ 注解属性 Stub 垫片（`341bcc10a`）+ 主链保留契约注解（`1e2050372`/`229f71949`/`5d11e19ce`）→ 冒烟 13/13。改造杠杆集中、成本可控。
+- 档位与推荐见 §5；剩余切片见 §5.1。
 
 ## 2. 实测数据（2026-10-08）
 
@@ -26,9 +26,11 @@
 集中文件：`IReflect.cs` 68、`AssemblyX.cs` 38、`ExtendableConverter.cs` 28、`MachineInfo.Windows.cs` 26、`PluginHelper.cs` 20、`DbTable.cs` 16、`IJsonHost.cs` 14、`JsonReader.cs` 10。
 按模块：Reflection 63、Serialization 46、Common 17、Web 10、Data 8、其余零星（去重后计）。
 
+> 2026-10-08 波次 1 修复后重跑：net10.0 360 条——IL2091（8→16）/IL2067（14→26）/IL2090/IL2062 等**传导类警告显性化**（+34），即新注解把库内尚未传导的调用点暴露出来；`IReflect.cs` 70、`AssemblyX.cs` 38 仍为主战场。剩余面规划见 §5.1。
+
 ### 2.2 运行期：13 场景冒烟实测
 
-| # | 场景 | JIT | AOT 现状 | 咽喉点 PoC 后 |
+| # | 场景 | JIT | AOT 修复前 | AOT 修复后 |
 |---|------|:---:|:---:|:---:|
 | 1 | 基础类型转换 Utility | ✅ | ✅ | ✅ |
 | 2 | `Type.GetTypeEx`（类型被静态引用） | ✅ | ✅ | ✅ |
@@ -40,11 +42,11 @@
 | 8 | SpanSerializer 往返 | ✅ | ❌ | ✅ |
 | 9 | Binary 写入 | ✅ | ✅ | ✅ |
 | 10 | NetServer/NetClient TCP+SrmpCodec 回环 | ✅ | ❌ | ✅ |
-| 11 | HttpServer（传输层 GET） | ✅ | ❌ | ✅ |
+| 11 | HttpServer+ApiHttpClient GET（含 `/obj` 对象反序列化断言） | ✅ | ❌ | ✅ |
 | 12 | WebSocket 文本回显 | ✅ | ❌ | ✅ |
-| 13 | ObjectContainer 服务解析 | ✅ | ❌ | ❌ |
+| 13 | ObjectContainer 服务解析 | ✅ | ❌ | ✅ |
 
-> 合计：JIT 13/13；AOT 现状 4/13；PoC 修复后 12/13。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
+> 合计：JIT 13/13；AOT 修复前 4/13；**修复后 13/13**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
 
 ### 2.3 失败机制解析（附实证）
 
@@ -58,6 +60,8 @@
    `ScriptEngine`（CodeDom/Emit 运行时代码生成）、`PluginHelper`/`AssemblyX.LoadFrom`（动态加载程序集）、`DynamicXml`/`DynamicInternal`（DLR 动态绑定）、`SpeakProvider`（动态加载语音组件）。这些在 AOT 下**无法通过改造解决**，应编译期注解声明 + 运行期明确报错。
 
 ## 3. 模块级能力矩阵
+
+> 2026-10-08 波次 1 修复后实测：Reflection（`CreateInstance` 工厂路径）、Serialization（JSON/配置/Span）、Net/Http/WebSocket、Log、Model（容器解析）核心路径已通过（§2.2）；下表为评估基线快照，剩余未冒烟模块待 §5.1 清单推进。
 
 | 模块 | AOT 现状 | 主要阻塞 | 修复类别 | 成本 |
 |------|---------|---------|---------|------|
@@ -87,6 +91,8 @@
 | **B：推荐·声明 + 咽喉修复** | A + `Pool<T>`/反射入口/序列化注解 + 低成本替换 + CI 冒烟 | 中 | **核心路径实测可用**（PoC 已验证等效路径）；服务器/客户端/工业边缘下游获得 AOT 准入 | 注解面广；CI 时长增加；需 CI 兜底防回退 |
 | C：激进·全面 AOT 化 | B + 源生成器体系（IoC/JSON/插件静态注册） | 高 | 极端裁剪场景更稳 | 成本高、下游需求未证实；现阶段不建议 |
 
+> **决策（2026-10-08）**：采用**档 C**（档 B + 源生成器体系），分两波落地——波次 1：咽喉修复、注解体系与 CI 防回归（IMP-23~27）；波次 2：源生成器体系设计与切片。波次 1 已完成咽喉修复与主链注解，冒烟 13/13（§2.2）。
+
 **推荐 B 的四点论证**：
 
 1. **为什么这样设计**：阻塞点集中在少数咽喉（PoC 实测 9 失败 → 1），先用泛型工厂/注解把"真实支持边界"变成编译期契约，符合核心库"约 90% 覆盖 + 扩展点"的取舍哲学。
@@ -96,11 +102,11 @@
 
 ### 5.1 咽喉点工作清单（改进候选切片）
 
-1. `Pool<T>` 泛型工厂（1 行级 + 语义对齐）→ 网络栈/控制台日志/事件总线全通（PoC 已证）。
-2. 反射入口注解化：`Reflect`/`IReflect`/`ObjectContainer`/`JsonHelper`/`ConfigHelper`/`ApiHttpClient` 泛型路径加 DAM、Type 参数路径加 `Requires*`；低 TFM 用 Stub 垫片补齐 3 个注解属性。
-3. 低成本等价替换：`XmlHelper` → `switch(TypeCode)`；`MemoryCache`/`DbTable` → TypeCode 映射；`ExcelWriter`/`ProcessHelper` → 泛型重载；`TaskHelper` → 强类型。
-4. 动态能力声明 + 运行期守卫：`ScriptEngine`/`PluginHelper`/`AssemblyX.LoadFrom`/`DynamicXml`/`SpeakProvider`。
-5. CI 防回归：冒烟工程（13 场景）入库 + `test.yml` 增加 win-x64 `PublishAot` 冒烟 job；net8+ TFM 开关分析器并清零/登记基线。
+1. `Pool<T>` 泛型工厂（1 行级 + 语义对齐）→ 网络栈/控制台日志/事件总线全通（PoC 已证）。**→ ✅ 已落地（`e561198fc`）**
+2. 反射入口注解化：`Reflect`/`IReflect`/`ObjectContainer`/`JsonHelper`/`ConfigHelper`/`ApiHttpClient` 泛型路径加 DAM、Type 参数路径加 `Requires*`；低 TFM 用 Stub 垫片补齐 3 个注解属性。**→ 主链已完成（`341bcc10a`/`1e2050372`/`229f71949`/`5d11e19ce`：JSON/配置/Span/API/容器注册/`IReflect` 工厂）；`IReflect`/`AssemblyX`/`TypeX` 宽面成员访问与 `ParameterBinder`/`TaskHelper` 等 Type 参数路径待做（需先设计 RUC 传染治理，避免下游警告海啸）**
+3. 低成本等价替换：`XmlHelper` → `switch(TypeCode)`；`MemoryCache`/`DbTable` → TypeCode 映射；`ExcelWriter`/`ProcessHelper` → 泛型重载；`TaskHelper` → 强类型。**→ 待做（IMP-25）**
+4. 动态能力声明 + 运行期守卫：`ScriptEngine`/`PluginHelper`/`AssemblyX.LoadFrom`/`DynamicXml`/`SpeakProvider`。**→ 待做（IMP-26）**
+5. CI 防回归：冒烟工程（13 场景）入库 + `test.yml` 增加 win-x64 `PublishAot` 冒烟 job；net8+ TFM 开关分析器并清零/登记基线。**→ 待做（IMP-27）**
 
 ## 6. 下游使用指引
 
