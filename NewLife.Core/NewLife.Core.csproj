@@ -46,6 +46,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  <!-- 源生成器：作为构建依赖（ReferenceOutputAssembly=false 不引用输出、不注入分析器），
+       SetTargetFramework 避免跨 TFM 协商；分析器程序集在主包打包时嵌入 analyzers/dotnet/cs，下游引用主包即自动获得 -->
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core.SourceGenerator\NewLife.Core.SourceGenerator.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" Private="false" />
+    <None Include="..\NewLife.Core.SourceGenerator\bin\$(Configuration)\netstandard2.0\NewLife.Core.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net45' or '$(TargetFramework)'=='net461' or '$(TargetFramework)'=='net462' or '$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows' or '$(TargetFramework)'=='net7.0-windows' or '$(TargetFramework)'=='net8.0-windows' or '$(TargetFramework)'=='net9.0-windows' or '$(TargetFramework)'=='net10.0-windows'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>

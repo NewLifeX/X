@@ -109,6 +109,8 @@
 4. 动态能力声明 + 运行期守卫：`ScriptEngine`/`PluginHelper`/`AssemblyX.LoadFrom`/`DynamicXml`/`SpeakProvider`。**→ ✅ 已落地（`277c9a85a`：类/方法级声明 + DynamicCodeHelper 明确异常；AssemblyX 无公开入口、SpeakProvider 已有优雅降级，保持现状）**
 5. CI 防回归：冒烟工程（13 场景）入库 + `test.yml` 增加 win-x64 `PublishAot` 冒烟 job；net8+ TFM 开关分析器并清零/登记基线。**→ ✅ 已落地（`c8ac1d228`：冒烟扩至 14 场景入仓 `Test/AotSmoke`，`test.yml` aot job 含分析器报告（不阻断）与 AOT 冒烟断言）**
 
+> 波次 2（源生成器体系）设计见[《AOT源生成器设计》](AOT源生成器设计.md)：最小链路 PoC 已通过 JIT + NativeAOT 双环境实测，切片计划 SG-1~SG-5。
+
 ## 6. 下游使用指引
 
 - **启用方式**：`<PublishAot>true</PublishAot>` 应写在**应用工程**属性组内；**不要**用命令行全局属性传入（`-p:PublishAot=true` 会波及多 TFM 依赖项目的 net45 等目标，报 `NETSDK1207`）。

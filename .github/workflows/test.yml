@@ -35,6 +35,19 @@ jobs:
         dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net9.0 --no-build
         dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net10.0 --no-build
         dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net10.0-windows --no-build
+        dotnet test XUnitTest.SourceGenerator\XUnitTest.SourceGenerator.csproj --no-build
+    - name: Pack 校验（源生成器随主包分发）
+      # 校验主包 NewLife.Core 内含 analyzers/dotnet/cs 的分析器程序集，且 lib 正常
+      run: |
+        dotnet pack NewLife.Core\NewLife.Core.csproj -c Release -o out-sg
+        $zip = Get-ChildItem out-sg\NewLife.Core.*.nupkg | Select-Object -First 1
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
+        $names = $archive.Entries | ForEach-Object { $_.FullName }
+        $archive.Dispose()
+        if (-not ($names -contains 'analyzers/dotnet/cs/NewLife.Core.SourceGenerator.dll')) { throw '主包缺少 analyzers/dotnet/cs/NewLife.Core.SourceGenerator.dll' }
+        if (-not ($names -match '^lib/net8.0/NewLife.Core.dll')) { throw '主包缺少 lib/net8.0/NewLife.Core.dll' }
+        Write-Host ($names -join "`n")
 
   # AOT 防回归：13 场景 NativeAOT 冒烟（能力基线见 Doc/AOT兼容性分析.md）
   aot:
