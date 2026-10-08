@@ -5,6 +5,7 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 
 namespace NewLife.Net;
@@ -409,11 +410,23 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         }
     }
 
-    /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
+    /// <summary>发送消息并等待匹配的响应。按远端查找/创建会话，由会话完成收发与配对</summary>
     /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
-    /// <returns></returns>
+    /// <returns>响应消息</returns>
+    /// <remarks>必须调用会话的发送，否则配对会失败：响应数据报按来源端点分派给会话，匹配队列在会话上</remarks>
     public override ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message, cancellationToken);
+
+    /// <summary>发送消息并等待匹配的响应。按远端查找/创建会话，由会话完成收发与配对</summary>
+    /// <param name="message">消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息</returns>
+    public override ValueTask<IMessage> SendMessageAsync(IMessage message, CancellationToken cancellationToken = default)
+    {
+        if (CreateSession(null, Remote.EndPoint) is not UdpSession session) throw new NotSupportedException($"会话类型不支持数据报请求-响应等待 [{Remote.EndPoint}]");
+
+        return session.SendMessageAsync(message, cancellationToken);
+    }
     #endregion
 
     #region 接收

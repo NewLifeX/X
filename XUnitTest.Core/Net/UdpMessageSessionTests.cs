@@ -42,7 +42,7 @@ public class UdpMessageSessionTests
             (Session as UdpSession)?.SendMessage(reply);
         }
 
-        internal static String? ReadBody(Message msg)
+        internal static String? ReadBody(IMessage msg)
         {
             var body = msg.Body;
             if (body == null) return null;
@@ -53,6 +53,57 @@ public class UdpMessageSessionTests
             data.TryDispose();
 
             return line;
+        }
+    }
+    /// <summary>UDP 消息宿主（SRMP）：请求-响应回显</summary>
+    public class UdpSrmpServer : NetServer<UdpSrmpSession>
+    {
+        /// <summary>收到的消息内容，线程安全</summary>
+        public ConcurrentQueue<String> ReceivedLines { get; } = new();
+
+        /// <summary>是否应答。置 false 时静默丢弃请求，用于验证等待超时</summary>
+        public Boolean Echo { get; set; } = true;
+    }
+
+    /// <summary>UDP 消息会话（SRMP）：按序列号应答</summary>
+    public class UdpSrmpSession : NetSession<UdpSrmpServer>
+    {
+        protected override void OnReceive(ReceivedEventArgs e)
+        {
+            if (e.Message is not DefaultMessage msg || msg.Reply) return;
+
+            var line = UdpMessageSession.ReadBody(msg);
+            if (line == null) return;
+
+            Host.ReceivedLines.Enqueue(line);
+
+            if (!Host.Echo) return;
+
+            var session = Session as UdpSession;
+            var seq = msg.Sequence;
+
+            // slow 开头延迟应答：让应答到达顺序与请求发出顺序相反，验证按序列号配对而非先到先得
+            if (line.StartsWith("slow", StringComparison.Ordinal))
+            {
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(300).ConfigureAwait(false);
+
+                    try
+                    {
+                        var slow = new DefaultMessage { Reply = true, Sequence = seq };
+                        slow.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes("echo:" + line)));
+                        session?.SendMessage(slow);
+                    }
+                    catch (ObjectDisposedException) { }
+                });
+
+                return;
+            }
+
+            var reply = new DefaultMessage { Reply = true, Sequence = seq };
+            reply.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes("echo:" + line)));
+            session?.SendMessage(reply);
         }
     }
     #endregion
@@ -82,6 +133,57 @@ public class UdpMessageSessionTests
         client.Open();
 
         return client;
+    }
+
+    private static UdpSrmpServer NewSrmpServer(UdpSrmpServer? server = null)
+    {
+        server ??= new UdpSrmpServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Udp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Protocol = new SrmpCodec();
+        server.Start();
+
+        return server;
+    }
+
+    private static NetClient NewSrmpClient(UdpSrmpServer server, Int32 matchTimeout = 2_000)
+    {
+        var client = new NetClient($"udp://127.0.0.1:{server.Port}")
+        {
+            Protocol = new SrmpCodec(),
+            MatchTimeout = matchTimeout,
+            AutoReconnect = false,
+        };
+        client.Open();
+
+        return client;
+    }
+
+    /// <summary>发起一次请求-响应调用。UDP 不可靠，等待超时后重试</summary>
+    private static async Task<String?> RpcAsync(NetClient client, Int32 sequence, String text, Int32 retries = 3)
+    {
+        for (var i = 0; ; i++)
+        {
+            try
+            {
+                var req = new DefaultMessage { Sequence = sequence };
+                req.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes(text)));
+
+                var resp = await client.SendMessageAsync(req);
+                try
+                {
+                    return UdpMessageSession.ReadBody(resp);
+                }
+                finally
+                {
+                    resp.TryDispose();
+                }
+            }
+            catch (OperationCanceledException) when (i < retries - 1) { }
+        }
     }
 
     /// <summary>轮询等待条件成立，必要时重复投递（UDP 在并行满载时可能丢包）</summary>
@@ -174,8 +276,75 @@ public class UdpMessageSessionTests
     }
 
     [Fact]
-    [DisplayName("UDP协议_请求响应等待_明确拒绝")]
-    public async Task RequestResponse_NotSupported()
+    [DisplayName("UDP协议_请求响应_按序列号匹配并交付")]
+    public async Task RequestResponse_RoundTrip()
+    {
+        using var server = NewSrmpServer();
+        using var client = NewSrmpClient(server);
+
+        var line = await RpcAsync(client, 1, "rpc");
+
+        Assert.Equal("echo:rpc", line);
+        Assert.Contains("rpc", server.ReceivedLines);
+    }
+
+    [Fact]
+    [DisplayName("UDP协议_请求响应_应答乱序到达仍各归其主")]
+    public async Task RequestResponse_MatchBySequence()
+    {
+        using var server = NewSrmpServer();
+        using var client = NewSrmpClient(server);
+
+        // 慢请求先发出、应答延迟300ms；快请求随后发出、立即应答。
+        // 应答到达顺序与请求发出顺序相反，只有按序列号配对才能各自取回自己的响应（先到先得的配对会张冠李戴）
+        var slowTask = RpcAsync(client, 1, "slow-1");
+        await Task.Delay(50);
+        var fastTask = RpcAsync(client, 2, "fast-2");
+
+        Assert.Equal("echo:fast-2", await fastTask);
+        Assert.Equal("echo:slow-1", await slowTask);
+    }
+
+    [Fact]
+    [DisplayName("UDP协议_请求响应_应答先经事件链再交付等待方")]
+    public async Task RequestResponse_DeliveryAfterEventChain()
+    {
+        using var server = NewSrmpServer();
+        using var client = NewSrmpClient(server);
+
+        // 事件链内先读空响应体，等待方仍须拿到完整响应（交付前体复位）
+        var observed = new ConcurrentQueue<String>();
+        client.Received += (s, e) =>
+        {
+            if (e.Message is not IMessage msg || !msg.Reply) return;
+
+            var text = UdpMessageSession.ReadBody(msg);
+            if (text != null) observed.Enqueue(text);
+        };
+
+        var line = await RpcAsync(client, 7, "visible");
+
+        Assert.Equal("echo:visible", line);
+        Assert.Contains("echo:visible", observed);
+    }
+
+    [Fact]
+    [DisplayName("UDP协议_请求响应_无应答时超时")]
+    public async Task RequestResponse_Timeout()
+    {
+        using var server = NewSrmpServer();
+        server.Echo = false;
+        using var client = NewSrmpClient(server, matchTimeout: 300);
+
+        var msg = new DefaultMessage { Sequence = 1 };
+        msg.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes("no-reply")));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => client.SendMessageAsync(msg).AsTask());
+    }
+
+    [Fact]
+    [DisplayName("UDP协议_请求响应_协议未实现配对_明确拒绝")]
+    public async Task RequestResponse_ProtocolWithoutMatcher_NotSupported()
     {
         using var server = NewServer();
         using var client = NewClient(server);

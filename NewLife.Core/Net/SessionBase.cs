@@ -111,14 +111,19 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>请求-响应匹配队列。协议模式下等待响应时使用，首次等待时自动创建，可注入共享或自定义实现</summary>
     public IMatchQueue? MatchQueue
     {
-        get => _matchQueue;
-        set => _matchQueue = value;
+        get => _matcher.Queue;
+        set => _matcher.Queue = value;
     }
 
-    private IMatchQueue? _matchQueue;
-
     /// <summary>请求-响应匹配等待超时（毫秒）。默认30_000</summary>
-    public Int32 MatchTimeout { get; set; } = 30_000;
+    public Int32 MatchTimeout
+    {
+        get => _matcher.Timeout;
+        set => _matcher.Timeout = value;
+    }
+
+    /// <summary>响应匹配器。等待登记、匹配交付与关闭清理与传输形态无关，流式与数据报会话共用</summary>
+    private readonly ResponseMatcher _matcher = new();
 
     /// <summary>最大并发处理数。协议模式下消息处理并发度：1=串行（默认，同连接依次处理）；大于1=并行派发（兼作并发上限）</summary>
     /// <remarks>
@@ -272,7 +277,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             StopMessagePump();
 
             // 取消挂起的请求-响应等待，避免调用方悬挂
-            MatchQueue?.Clear();
+            _matcher.Clear();
 
             var rs = await OnCloseAsync(reason ?? (GetType().Name + "Close"), cancellationToken).ConfigureAwait(false);
 
@@ -1144,16 +1149,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <see cref="ObjectDisposedException"/>，由收尾逻辑按正常时序忽略。</remarks>
     private SemaphoreSlim Concurrency => _concurrency ??= new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
 
-    /// <summary>取出协议的请求-响应配对能力。装饰协议（压缩/加密等）把配对能力留给内层，需逐层解包</summary>
-    /// <param name="codec">协议</param>
-    /// <returns>配对器；协议不支持配对时返回 null</returns>
-    private static IMessageMatcher? GetMatcher(IMessageCodec? codec) => codec switch
-    {
-        IMessageMatcher matcher => matcher,
-        IMessageCodecDecorator decorator => GetMatcher(decorator.Inner),
-        _ => null,
-    };
-
     /// <summary>尝试把响应消息匹配给等待中的请求（协议模式）。命中则交付等待方，跳过收尾</summary>
     /// <param name="message">收到的消息</param>
     /// <returns>是否已匹配交付</returns>
@@ -1163,18 +1158,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <para>流式负载在事件交付前物化为内存模式：事件链可观察读取，等待方在任意时机异步消费（一次拷贝换正确性）。
     /// 未命中时消息按普通流程收尾，负载随消息归还。</para>
     /// </remarks>
-    private Boolean TryMatchResponse(IMessage message)
-    {
-        var queue = MatchQueue;
-        if (queue == null) return false;
-
-        // 装饰协议的配对能力在内层，逐层解包后再比对
-        var matcher = GetMatcher(Protocol);
-        if (matcher == null) return false;
-
-        return queue.Match(this, message, message, (req, resp) =>
-            req is IMessage rq && resp is IMessage rs && matcher.Match(rq, rs));
-    }
+    private Boolean TryMatchResponse(IMessage message) => _matcher.TryMatch(this, Protocol, message);
 
     /// <summary>收到消息（异步）。协议模式（<see cref="Protocol"/> 非空）下由消息泵逐帧调用</summary>
     /// <param name="message">消息（头部字段就位、体已绑定）</param>
@@ -1264,25 +1248,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (request == null) throw new ArgumentNullException(nameof(request));
 
         var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
-        if (GetMatcher(codec) == null) throw new NotSupportedException($"协议 [{codec.GetType().Name}] 未实现请求-响应配对（IMessageMatcher），无法等待响应");
-        if (this is not IStreamSession) throw new NotSupportedException($"会话类型 [{GetType().Name}] 不支持请求-响应等待（响应匹配依赖消息泵，仅流式会话可用）");
+        if (ResponseMatcher.Resolve(codec) == null) throw new NotSupportedException($"协议 [{codec.GetType().Name}] 未实现请求-响应配对（IMessageMatcher），无法等待响应");
+        if (this is not IStreamSession) throw new NotSupportedException($"会话类型 [{GetType().Name}] 未接入响应匹配交付，不支持请求-响应等待（数据报会话请用 UdpServer/UdpSession）");
 
         var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", request);
-        var source = PooledValueTaskSource<IMessage>.Rent();
-        source.AttachSpan(span);
+        var source = _matcher.Register(this, request, span);
 
         try
         {
-            // 并发首用时只能有一个队列胜出：败者丢弃自建实例，否则请求会入队到无人匹配的队列，只能等超时
-            var queue = MatchQueue;
-            if (queue == null)
-            {
-                var created = new DefaultMatchQueue();
-                queue = Interlocked.CompareExchange(ref _matchQueue, created, null) ?? created;
-            }
-
-            queue.Add(this, request, MatchTimeout, source);
-
             SendMessage(request);
         }
         catch (Exception ex)
