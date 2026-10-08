@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Net.Sockets;
 using NewLife.Data;
+using NewLife.Messaging;
 
 namespace NewLife.Net;
 
@@ -515,6 +516,50 @@ partial class TcpSession
         }
 
         return total;
+    }
+
+    /// <summary>发送流式消息（协议模式）：先发协议头部（声明体长），再把数据流内容读一块写一块地送出</summary>
+    /// <param name="message">消息（头部字段就位）</param>
+    /// <param name="body">消息体数据流</param>
+    /// <param name="bodyLength">消息体字节数；负数时从可定位流推导（<see cref="Stream.CanSeek"/>）</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>已写出的流内容字节数</returns>
+    /// <remarks>
+    /// <para>头部与流内容在<strong>一次</strong>写锁持有期间写出（无交错），整条消息保持一条逻辑消息语义；大消息全程只在读块上驻留，不产生整段内存。</para>
+    /// <para>流提前结束（不足声明长度）或连接故障时抛出异常，已发出的部分不回退。</para>
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">未设置协议</exception>
+    /// <exception cref="ArgumentException">体长未知且流不可定位</exception>
+    public virtual async ValueTask<Int64> SendMessageAsync(IMessage message, Stream body, Int64 bodyLength = -1, CancellationToken cancellationToken = default)
+    {
+        if (message == null) throw new ArgumentNullException(nameof(message));
+        if (body == null) throw new ArgumentNullException(nameof(body));
+
+        var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
+
+        // 长度未知：从可定位流推导（协议头须先声明长度）
+        if (bodyLength < 0)
+        {
+            if (!body.CanSeek) throw new ArgumentException("无法预知流长度：请提供 bodyLength 或使用可定位流", nameof(bodyLength));
+            bodyLength = body.Length - body.Position;
+        }
+
+        // 头部先行：与流内容在一次写锁内（头体之间不会被其它写入者插入）
+        var header = codec.BuildHeader(message, bodyLength);
+        try
+        {
+            var rs = await SendMessageLockedAsync(header, body, bodyLength, cancellationToken).ConfigureAwait(false);
+
+            // 失败返回 -1：底层已记错误日志并按失败关闭会话，这里转成异常，保持本方法“失败即抛”的契约
+            if (rs < 0) throw new IOException($"Send message failed on [{Name}].");
+
+            return rs;
+        }
+        finally
+        {
+            // 写完才返回，此处释放头部构建产物
+            header.TryDispose();
+        }
     }
 
     /// <summary>锁内发送「头部 + 流内容」整条消息：一次加锁贯穿，头体之间不会被其它写入者插入</summary>

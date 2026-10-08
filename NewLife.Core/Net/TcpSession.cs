@@ -143,7 +143,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             return;
         }
 
-        StartReceiveFlow();
+        StartServerReceive();
     }
 
     /// <summary>服务端SSL认证（异步），完成后启动接收环</summary>
@@ -196,7 +196,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
         try
         {
-            StartReceiveFlow();
+            StartServerReceive();
         }
         catch (Exception ex)
         {
@@ -209,8 +209,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         }
     }
 
-    /// <summary>启动接收环与消息泵（服务端会话由服务器统一接管接收）</summary>
-    private void StartReceiveFlow()
+    /// <summary>启动服务端会话的接收环与消息泵（服务端会话由服务器统一接管接收）</summary>
+    private void StartServerReceive()
     {
         // 服务端会话由服务器统一接管，必须启动接收环（事件模式），不支持拉取模式。
         // 这里直接置位而不是读取配置：子类若在 CreateSession 里设 AutoReceive=false，
@@ -218,7 +218,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         AutoReceive = true;
 
         // 协议模式：数据经数据管道定界，启动消息泵（先于接收环，首个数据到达前就绪）
-        if (Protocol != null) StartMessagePump();
+        StartReceiveFlow();
 
         StartReceive();
     }

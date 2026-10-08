@@ -471,7 +471,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     /// <exception cref="NotSupportedException">内部客户端不支持协议模式流式发送</exception>
     public ValueTask<Int64> SendMessageAsync(Message message, Stream body, Int64 bodyLength = -1, CancellationToken cancellationToken = default)
     {
-        if (EnsureClient() is SessionBase session) return session.SendMessageAsync(message, body, bodyLength, cancellationToken);
+        if (EnsureClient() is TcpSession tcp) return tcp.SendMessageAsync(message, body, bodyLength, cancellationToken);
 
         throw new NotSupportedException($"内部客户端不支持协议模式流式发送 [{_client?.GetType().Name}]");
     }
