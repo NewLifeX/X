@@ -1,6 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using NewLife.Reflection;
 
 namespace NewLife.Collections;
 
@@ -180,11 +179,13 @@ public class Pool<T> : IPool<T> where T : class
     #endregion
 
     #region 重载
-    /// <summary>
-    /// 创建实例。默认使用反射创建，可在子类中重写以自定义创建策略。
-    /// 建议在高频场景中于子类缓存构造委托以降低反射开销。
-    /// </summary>
+    /// <summary>创建实例。默认使用 AOT 安全的泛型工厂创建，可在子类中重写以自定义创建策略。</summary>
+    /// <remarks>
+    /// 要求 T 具备公开无参构造。原实现 typeof(T).CreateInstance() 依赖运行时反射构造：
+    /// NativeAOT 下被池化类型的反射构造器会被裁剪，运行期抛 MissingMethodException
+    /// （网络接收链路 ReceivedEventArgs 每包必炸、网络栈瘫痪的根因），故改用泛型工厂。
+    /// </remarks>
     /// <returns>新建对象实例；允许返回 null（将抛出异常）</returns>
-    protected virtual T? OnCreate() => typeof(T).CreateInstance() as T;
+    protected virtual T? OnCreate() => Activator.CreateInstance<T>();
     #endregion
 }
