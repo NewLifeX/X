@@ -451,6 +451,17 @@ public class MachineInfoTests
     [Fact(DisplayName = "ReadWmic 查询测试")]
     public void ReadWmicTest()
     {
+        // wmic.exe 自 Windows 11 24H2 / Server 2025 起默认不再随系统安装（GitHub CI 环境亦无此命令）。
+        // 命令缺失时实现须降级为空结果且不抛异常；解析逻辑由 COM 路径的 ReadWmiComMultiTest 继续覆盖。
+        var wmicExe = Path.Combine(Environment.SystemDirectory, "wbem", "WMIC.exe");
+        if (!File.Exists(wmicExe))
+        {
+            var empty = MachineInfo.ReadWmic("os", "Caption", "Version");
+            Assert.NotNull(empty);
+            Assert.Empty(empty);
+            return;
+        }
+
         // 通过 wmic.exe 查询操作系统信息
         var dic = MachineInfo.ReadWmic("os", "Caption", "Version");
         Assert.NotNull(dic);
