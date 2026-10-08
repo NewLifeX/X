@@ -834,6 +834,7 @@ public static class StringHelper
 
     /// <summary>调用语音引擎说出指定话</summary>
     /// <param name="value"></param>
+    [RequiresUnreferencedCode("语音引擎经 Assembly.Load 动态加载，NativeAOT 与裁剪下不可用")]
     public static void Speak(this String value)
     {
         Init();
@@ -843,6 +844,7 @@ public static class StringHelper
 
     /// <summary>异步调用语音引擎说出指定话。可能导致后来的调用打断前面的语音</summary>
     /// <param name="value"></param>
+    [RequiresUnreferencedCode("语音引擎经 Assembly.Load 动态加载，NativeAOT 与裁剪下不可用")]
     public static void SpeakAsync(this String value)
     {
         Init();
@@ -862,6 +864,7 @@ public static class StringHelper
     }
 
     /// <summary>停止所有语音播报</summary>
+    [RequiresUnreferencedCode("语音引擎经 Assembly.Load 动态加载，NativeAOT 与裁剪下不可用")]
     public static String SpeakAsyncCancelAll(this String value)
     {
         Init();

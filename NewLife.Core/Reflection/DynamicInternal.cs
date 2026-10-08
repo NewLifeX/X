@@ -1,10 +1,12 @@
-﻿using System.Dynamic;
+using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.Globalization;
 using System.Reflection;
 
 namespace NewLife.Reflection;
 
 /// <summary>包装程序集内部类的动态对象</summary>
+[RequiresDynamicCode("动态对象依赖运行时绑定，NativeAOT 下不可用")]
 public class DynamicInternal : DynamicObject
 {
     private Object? Real { get; set; }

@@ -19,6 +19,7 @@ using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using NewLife.Web;
 
 try { Console.OutputEncoding = Encoding.UTF8; } catch { }
 
@@ -219,6 +220,28 @@ Run("ObjectContainer 服务解析", () =>
     ioc.AddTransient<ISmokeSvc, SmokeSvc>();
     var svc = ioc.GetService<ISmokeSvc>();
     if (svc == null || svc.GetType() != typeof(SmokeSvc)) throw new Exception("解析失败");
+});
+
+Run("动态能力守卫 PluginHelper", () =>
+{
+    // JIT 下：未提供 dll 时查不到类型返回 null；NativeAOT 下应抛明确的 PlatformNotSupportedException（而非晦涩崩溃）
+    if (RuntimeFeature.IsDynamicCodeSupported)
+    {
+        var t = PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
+        if (t != null) throw new Exception("意外解析到类型: " + t.FullName);
+    }
+    else
+    {
+        try
+        {
+            PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
+            throw new Exception("AOT 下插件动态加载竟然可用");
+        }
+        catch (PlatformNotSupportedException ex)
+        {
+            if (!ex.Message.Contains("插件动态加载")) throw new Exception("异常信息不明确: " + ex.Message);
+        }
+    }
 });
 
 Console.WriteLine("=== summary ===");

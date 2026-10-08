@@ -1,6 +1,6 @@
-#if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1
 namespace System.Diagnostics.CodeAnalysis;
 
+#if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1
 /// <summary>指定反射访问所需的成员类型，供裁剪器/AOT 编译器保留对应元数据。BCL 从 net5 起提供，低版本在此补齐</summary>
 [Flags]
 public enum DynamicallyAccessedMemberTypes
@@ -67,7 +67,7 @@ public sealed class DynamicallyAccessedMembersAttribute : Attribute
 }
 
 /// <summary>指示该方法在裁剪后可能失效（依赖被裁剪的代码），调用方需自行评估</summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Class, Inherited = false)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor, Inherited = false)]
 public sealed class RequiresUnreferencedCodeAttribute : Attribute
 {
     /// <summary>说明消息</summary>
@@ -79,21 +79,6 @@ public sealed class RequiresUnreferencedCodeAttribute : Attribute
     /// <summary>实例化</summary>
     /// <param name="message">说明消息</param>
     public RequiresUnreferencedCodeAttribute(String message) => Message = message;
-}
-
-/// <summary>指示该方法依赖运行时代码生成，NativeAOT 下不可用</summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Class, Inherited = false)]
-public sealed class RequiresDynamicCodeAttribute : Attribute
-{
-    /// <summary>说明消息</summary>
-    public String Message { get; }
-
-    /// <summary>相关文档地址</summary>
-    public String? Url { get; set; }
-
-    /// <summary>实例化</summary>
-    /// <param name="message">说明消息</param>
-    public RequiresDynamicCodeAttribute(String message) => Message = message;
 }
 
 /// <summary>无条件抑制指定的分析告警，且不依赖 SuppressMessage 的字符串条件</summary>
@@ -126,5 +111,24 @@ public sealed class UnconditionalSuppressMessageAttribute : Attribute
         Category = category;
         CheckId = checkId;
     }
+}
+#endif
+
+// RequiresDynamicCode 从 net7 起才进入 BCL，net5/net6 也需补齐；
+// DAM/RUC/USM 从 net5 起为 BCL 自带，不可在 net5+ 重复定义
+#if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1 || NET5_0 || NET6_0
+/// <summary>指示该方法依赖运行时代码生成，NativeAOT 下不可用</summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Class, Inherited = false)]
+public sealed class RequiresDynamicCodeAttribute : Attribute
+{
+    /// <summary>说明消息</summary>
+    public String Message { get; }
+
+    /// <summary>相关文档地址</summary>
+    public String? Url { get; set; }
+
+    /// <summary>实例化</summary>
+    /// <param name="message">说明消息</param>
+    public RequiresDynamicCodeAttribute(String message) => Message = message;
 }
 #endif

@@ -53,6 +53,7 @@ namespace NewLife.Reflection;
 /// Console.WriteLine("2*3={0}", n);
 /// </code>
 /// </example>
+[RequiresDynamicCode("脚本引擎依赖运行时代码编译，NativeAOT 下不可用")]
 public class ScriptEngine
 {
     #region 属性
@@ -118,6 +119,9 @@ public class ScriptEngine
     public static ScriptEngine Create(String code, Boolean isExpression = true)
     {
         if (String.IsNullOrEmpty(code)) throw new ArgumentNullException(nameof(code));
+
+        // NativeAOT 等环境明确报错，避免后续晦涩的编译/加载失败
+        DynamicCodeHelper.ThrowIfNotSupported("脚本引擎");
 
         var key = code + isExpression;
         return _cache.GetOrAdd(key, k => new ScriptEngine(code, isExpression));
