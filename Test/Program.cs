@@ -410,7 +410,7 @@ public class Program
 
         // 流式发送文件：头部先行声明长度，文件内容分块入发送管道（不整载内存）
         using var fs = fi.OpenRead();
-        var sent = ((SessionBase)client).SendMessageAsync(new DefaultMessage { OneWay = true }, fs, fi.Length).AsTask().GetAwaiter().GetResult();
+        var sent = ((TcpSession)client).SendMessageAsync(new DefaultMessage { OneWay = true }, fs, fi.Length).AsTask().GetAwaiter().GetResult();
         XTrace.WriteLine("发送：{0}", sent);
 
         var msg2 = new DefaultMessage { OneWay = true };
