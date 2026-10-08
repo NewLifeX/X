@@ -354,7 +354,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
             // 复杂类型写入类型字符串
             var tc = (TypeCode)binary.Read<Byte>();
             if (tc != TypeCode.Object)
-                ts[i] = Type.GetType("System." + tc) ?? typeof(Object);
+                ts[i] = TypeCodeHelper.GetType(tc) ?? typeof(Object);
             else if (ver >= 2)
                 ts[i] = Type.GetType(binary.Read<String>() + "") ?? typeof(Object);
         }
@@ -891,7 +891,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
             // 复杂类型写入类型字符串
             var tc = (TypeCode)reader.ReadByte();
             if (tc != TypeCode.Object)
-                ts[i] = Type.GetType("System." + tc) ?? typeof(Object);
+                ts[i] = TypeCodeHelper.GetType(tc) ?? typeof(Object);
             else if (ver >= 2)
                 ts[i] = Type.GetType(reader.ReadString() ?? "") ?? typeof(Object);
         }

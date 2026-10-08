@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using NewLife.Reflection;
@@ -75,9 +76,9 @@ internal static class TaskHelper
     private static readonly ConcurrentDictionary<Type, PropertyInfo?> _resultCache = new();
 
     /// <summary>同步获取Task的结果。仅用于简单Http处理场景</summary>
-    /// <param name="task">要获取结果的Task</param>
+    /// <param name="task">要获取结果的Task。AOT 下其运行时类型的公共属性将按需保留（用于读取 Result）</param>
     /// <returns>Task的Result属性值；若Task无返回值则返回null</returns>
-    public static Object? GetTaskResult(Task task)
+    public static Object? GetTaskResult([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Task task)
     {
         task.GetAwaiter().GetResult();
 

@@ -470,16 +470,10 @@ public class AssemblyX
         }
 
         // 加速基础类型识别，忽略大小写
-        if (!typeName.Contains('.'))
+        if (!typeName.Contains('.') && Enum.TryParse<TypeCode>(typeName, true, out var code))
         {
-            foreach (var item in Enum.GetNames(typeof(TypeCode)))
-            {
-                if (typeName.EqualIgnoreCase(item))
-                {
-                    type = Type.GetType("System." + item);
-                    if (type != null) return type;
-                }
-            }
+            type = TypeCodeHelper.GetType(code);
+            if (type != null) return type;
         }
 
         // 尝试本程序集

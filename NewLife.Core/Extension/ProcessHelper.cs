@@ -204,13 +204,22 @@ public static class ProcessHelper
     private static Boolean ReadStruct<T>(IntPtr hProcess, IntPtr lpBaseAddress, out T val)
     {
         val = default!;
+#if NET45
+        // net45 的 Marshal 尚无泛型重载（4.5.1 引入），该 TFM 不涉及 AOT，退回重载版本
         var size = Marshal.SizeOf(typeof(T));
+#else
+        var size = Marshal.SizeOf<T>();
+#endif
         var ptr = Marshal.AllocHGlobal(size);
         try
         {
             if (ReadProcessMemory(hProcess, lpBaseAddress, ptr, (UInt32)size, out var len) && len == size)
             {
+#if NET45
                 val = (T)Marshal.PtrToStructure(ptr, typeof(T))!;
+#else
+                val = Marshal.PtrToStructure<T>(ptr)!;
+#endif
                 return true;
             }
         }

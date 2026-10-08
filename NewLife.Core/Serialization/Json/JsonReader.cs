@@ -297,7 +297,8 @@ public class JsonReader
         if (type == typeof(Int32)) return value.ToInt();
         if (type == typeof(Int64)) return value.ToLong();
         if (type == typeof(String)) return value + "";
-        if (type == typeof(Type) && value is String str) return Type.GetType(str) ?? Type.GetType("System." + str);
+        if (type == typeof(Type) && value is String str)
+            return Type.GetType(str) ?? (Enum.TryParse<TypeCode>(str, true, out var code) ? TypeCodeHelper.GetType(code) : null);
 
         if (type.IsEnum) return Enum.Parse(type, value + "");
         if (type == typeof(DateTime)) return CreateDateTime(value);
