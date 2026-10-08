@@ -1,6 +1,6 @@
 # NewLife.Core AOT 兼容性现状与边界
 
-> 基线：v12｜评估方式：**NativeAOT 真实编译 + 运行实测**（win-x64，.NET 10）｜冒烟工程：`Test/AotSmoke`
+> 基线：v12｜评估方式：**NativeAOT 真实编译 + 运行实测**（win-x64，.NET 10）｜冒烟工程：`AotSmoke/`
 > 配套：[《AOT源生成器设计》](AOT源生成器设计.md)——随包分发的编译期生成器体系。
 
 ---
@@ -86,9 +86,9 @@
 dotnet build NewLife.Core\NewLife.Core.csproj -f net10.0 -c Release -p:IsAotCompatible=true
 
 # 2) 冒烟实测（23 场景工程；PublishAot 写在工程文件内）
-dotnet run -c Release --project Test\AotSmoke\AotSmoke.csproj                    # JIT 基线
-dotnet publish Test\AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out        # NativeAOT 真编译
-.\out\AotSmoke.exe                                                               # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
+dotnet run -c Release --project AotSmoke\AotSmoke.csproj                # JIT 基线
+dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # NativeAOT 真编译
+.\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
 
 > 冒烟工程输出中文以验证 UTF-8 编码链路；时间戳打印用 `Runtime.TickCount64`（AOT 下高精度时间戳不可用）。
