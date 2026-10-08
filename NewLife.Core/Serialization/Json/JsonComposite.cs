@@ -92,7 +92,7 @@ public class JsonComposite : JsonHandlerBase
             var mtype = member.GetMemberType();
             context.Member = Host.Member = member;
 
-            var v = value is IModel src ? src[member.Name] : JsonMemberTable.GetValue(value, type, member);
+            var v = value is IModel src ? src[member.Name] : MemberAccessorTable.GetValue(value, type, member);
             WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
 
             // 成员访问器优先
@@ -162,7 +162,7 @@ public class JsonComposite : JsonHandlerBase
             if (value is IModel dst)
                 dst[member.Name] = v;
             else
-                JsonMemberTable.SetValue(value, type, member, v);
+                MemberAccessorTable.SetValue(value, type, member, v);
         }
         Host.Hosts.Pop();
 

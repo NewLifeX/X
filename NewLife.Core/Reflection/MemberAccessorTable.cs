@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using NewLife.Reflection;
 
-namespace NewLife.Serialization;
+namespace NewLife.Reflection;
 
-/// <summary>Json 成员访问表。源生成器为 <c>[JsonSerializable]</c> 标记的类型预生成成员读写委托，序列化时优先使用，避免反射与表达式编译，NativeAOT 友好</summary>
+/// <summary>成员访问表。源生成器为标记类型预生成成员读写委托，序列化与配置绑定等场景优先使用，避免反射与表达式编译，NativeAOT 友好</summary>
 /// <remarks>
-/// 由 NewLife.Core 源生成器在编译期扫描 <c>[JsonSerializable(typeof(T))]</c> 后生成注册代码，为 T 的公开实例属性与字段生成直接访问委托。
+/// 由 NewLife.Core 源生成器在编译期扫描标记（如 <c>[JsonSerializable(typeof(T))]</c>、继承 <c>Config&lt;T&gt;</c> 的配置类）后生成注册代码。
 /// 表按"运行时类型 + 成员名"索引，命中时零反射；未命中（派生类实例、未标记类型等）自动回退原有反射路径，行为不变。
 /// </remarks>
-public static class JsonMemberTable
+public static class MemberAccessorTable
 {
     #region 属性
     private static readonly Object _lock = new();
@@ -19,7 +18,7 @@ public static class JsonMemberTable
 
     #region 方法
     /// <summary>注册成员访问器</summary>
-    /// <param name="type">成员所属类型（JsonSerializable 标记的类型）</param>
+    /// <param name="type">成员所属类型（生成器标记的类型）</param>
     /// <param name="name">成员名</param>
     /// <param name="getter">取值委托，null 表示不可读</param>
     /// <param name="setter">赋值委托，null 表示不可写</param>

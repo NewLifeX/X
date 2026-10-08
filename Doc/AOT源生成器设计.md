@@ -18,7 +18,7 @@
 | # | 场景 | 波次 1 后现状 | 源生成器方案 | 价值 | 归属 |
 |---|------|--------------|--------------|------|------|
 | 1 | IoC 服务注册/解析 | 泛型注册 DAM 保构造器，主链可用；实例构造仍走运行期构造器扫描 | 扫描容器注册调用点（`AddTransient<TService, TImpl>()` 等）→ 按唯一公开无参构造生成静态工厂，容器解析优先命中（**用户注册代码零改动**） | **高** | 本库 `ObjectContainer` |
-| 2 | JSON 序列化 | DAM 保成员可用；极端裁剪下成员仍可能缺失 | `[JsonSerializable]` 标记 → 生成成员读写委托表（`JsonMemberTable`），JsonHelper 序列化时优先命中，避免表达式编译与反射 | 中-高 | 本库 `JsonHelper` |
+| 2 | JSON 序列化 | DAM 保成员可用；极端裁剪下成员仍可能缺失 | `[JsonSerializable]` 标记 → 生成成员读写委托表（`MemberAccessorTable`），JsonHelper 序列化时优先命中，避免表达式编译与反射 | 中-高 | 本库 `JsonHelper` |
 | 3 | 配置模型绑定 | 泛型入口 DAM 可用 | 生成 `MapTo` 绑定代码 | 中 | 本库 `ConfigHelper` |
 | 4 | HTTP handler 参数绑定 | `ParameterBinder` 反射（ILC 警告遗留） | 生成参数绑定代码 | 中 | 本库 `HttpServer` |
 | 5 | XCode 数据实体 | （下游）反射 + 缓存 | 下游自建生成器，本库提供特性与约定参考 | 由下游 | XCode 仓 |
@@ -36,7 +36,7 @@
 ### 3.2 生成物策略
 
 - 生成**纯静态代码**：无任何反射调用，`new T(...)` / 属性直接访问 → 天然 AOT 安全（无需 DAM）
-- 生成物与运行时的关系：通过**运行时表**接入——SG-2 用 `ServiceFactoryTable`（容器 `CreateInstance` 在显式工厂之后、构造注入之前查表命中）；SG-3 用 `JsonMemberTable`（JsonWriter/JsonReader/JsonComposite 访问成员时优先命中）→ 均不改变既有语义与公共调用方式
+- 生成物与运行时的关系：通过**运行时表**接入——SG-2 用 `ServiceFactoryTable`（容器 `CreateInstance` 在显式工厂之后、构造注入之前查表命中）；SG-3 用 `MemberAccessorTable`（JsonWriter/JsonReader/JsonComposite 访问成员时优先命中）→ 均不改变既有语义与公共调用方式
 - SG-2 **不新增特性**（扫描式，见 §6 决策 4）；后续切片如需特性约定，新增在运行时包并仅承载元数据，JIT 下可忽略
 
 ### 3.3 PoC 实测（2026-10-08）
@@ -57,7 +57,7 @@ PoC 形态：`[SgService(typeof(IFoo))] class Foo` → 生成 `GeneratedServices
 |------|------|------|
 | SG-1 | 分析器项目骨架 + 打包规范 + 生成器单测工程 + 特性定义（运行时包） | 骨架包可被消费、CI 通过。**→ ✅ 已落地：分析器项目 + GeneratorTestHost 测试基建 + sln/CI 接入 + 主包内嵌分发（打包校验断言 analyzers/dotnet/cs 与无依赖泄漏）** |
 | SG-2 | DI 注册生成器：扫描容器注册调用点（`AddTransient<TService, TImpl>()` 等六类 + `typeof` 字面量形式）→ 唯一公开无参构造的实现类型生成静态工厂 | JIT + AOT 双环境实测 + 单测。**→ ✅ 已落地：`ServiceFactoryTable` + 容器接入 + 扫描生成器 + 生成器单测 3 项；冒烟 15 场景 JIT/AOT 15/15（含"源生成器服务工厂"场景断言工厂表命中）** |
-| SG-3 | Json 成员访问生成器：扫描 `[JsonSerializable(typeof(T))]` → 为 T 的公开实例属性/字段生成静态读写委托（`JsonMemberTable`），JsonWriter/JsonReader/JsonComposite 优先命中 | 往返一致性 + AOT 实测。**→ ✅ 已落地：生成器 + `JsonMemberTable` + 三处接入 + 生成器单测 3 项；冒烟 16 场景 JIT/AOT 16/16（含"源生成器 Json 成员访问"场景断言表命中 + 往返一致）** |
+| SG-3 | Json 成员访问生成器：扫描 `[JsonSerializable(typeof(T))]` → 为 T 的公开实例属性/字段生成静态读写委托（`MemberAccessorTable`），JsonWriter/JsonReader/JsonComposite 优先命中 | 往返一致性 + AOT 实测。**→ ✅ 已落地：生成器 + `MemberAccessorTable` + 三处接入 + 生成器单测 3 项；冒烟 16 场景 JIT/AOT 16/16（含"源生成器 Json 成员访问"场景断言表命中 + 往返一致）** |
 | SG-4 | 配置绑定生成器 | 绑定往返 + AOT 实测 |
 | SG-5 | 收口：IMP-24 剩余面处置决策（哪些改源生成器、哪些保留注解/静音）、文档与使用指引 | 文档 + 冒烟回归 16/16 |
 

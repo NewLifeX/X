@@ -11,9 +11,9 @@ public class JsonSerializableGeneratorTests
 {
     #region 测试源码
     private const String Stub = """
-namespace NewLife.Serialization
+namespace NewLife.Reflection
 {
-    public static class JsonMemberTable
+    public static class MemberAccessorTable
     {
         public static void Register(Type type, String name, Func<Object, Object?>? getter, Action<Object, Object?>? setter) { }
     }
@@ -65,7 +65,7 @@ public class DerivedModel : BaseModel
         var sources = GeneratorTestHost.GetGeneratedSources(result);
 
         var text = Assert.Single(sources).Value;
-        Assert.Contains("JsonMemberTable.Register", text);
+        Assert.Contains("MemberAccessorTable.Register", text);
 
         // 常规成员
         Assert.Contains("\"Name\"", text);

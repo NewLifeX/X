@@ -258,7 +258,7 @@ Run("源生成器服务工厂", () =>
 Run("源生成器 Json 成员访问", () =>
 {
     // 编译期由源生成器为 [JsonSerializable] 标记类型注册成员访问委托
-    if (JsonMemberTable.TryGetGetter(typeof(SmokeJsonModel), "Name") == null) throw new Exception("未生成 Json 成员访问器");
+    if (MemberAccessorTable.TryGetGetter(typeof(SmokeJsonModel), "Name") == null) throw new Exception("未生成 Json 成员访问器");
 
     var m = new SmokeJsonModel { Name = "sg", Count = 5, Note = "n" };
     var json = JsonHelper.ToJson(m);

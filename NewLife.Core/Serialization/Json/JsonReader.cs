@@ -231,17 +231,17 @@ public class JsonReader
 
             var pt = pi.PropertyType;
             if (pt.IsBaseType())
-                JsonMemberTable.SetValue(target, targetType, pi, ChangeType(v, pt));
+                MemberAccessorTable.SetValue(target, targetType, pi, ChangeType(v, pt));
             else
             {
-                var orig = JsonMemberTable.GetValue(target, targetType, pi);
+                var orig = MemberAccessorTable.GetValue(target, targetType, pi);
                 var val = ToObject(v, pt, orig);
                 if (val != orig)
                 {
                     if (target is IModel dst)
                         dst[pi.Name] = val;
                     else
-                        JsonMemberTable.SetValue(target, targetType, pi, val);
+                        MemberAccessorTable.SetValue(target, targetType, pi, val);
                 }
             }
         }

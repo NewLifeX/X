@@ -118,7 +118,7 @@ public sealed class JsonSerializableGenerator : IIncrementalGenerator
 
                 var getterText = getter ?? "null";
                 var setterText = setter ?? "null";
-                builder.Add($"global::NewLife.Serialization.JsonMemberTable.Register(typeof({typeName}), \"{member.Name}\", {getterText}, {setterText});");
+                builder.Add($"global::NewLife.Reflection.MemberAccessorTable.Register(typeof({typeName}), \"{member.Name}\", {getterText}, {setterText});");
             }
         }
     }

@@ -342,7 +342,7 @@ public class JsonWriter
         {
             if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
 
-            var value = obj is IModel src ? src[pi.Name] : JsonMemberTable.GetValue(obj, t, pi);
+            var value = obj is IModel src ? src[pi.Name] : MemberAccessorTable.GetValue(obj, t, pi);
             if (!Options.IgnoreNullValues || !IsNull(value))
             {
                 var name = FormatName(SerialHelper.GetName(pi));
