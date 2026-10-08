@@ -7,11 +7,11 @@
 
 ## 1. 结论摘要
 
-**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（13/13）；剩余工作集中在反射宽面注解治理、低成本替换、CI 防回归与源生成器体系（档 C）。**
+**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（14/14）；剩余工作集中在反射宽面注解治理与源生成器体系（档 C）。**
 
-- 实测（13 场景冒烟）：JIT 基线 13/13 → **AOT 修复前 4/13 → 修复后 13/13**（2026-10-08 波次 1 落地）。
+- 实测（14 场景冒烟）：JIT 基线 14/14 → **AOT 修复前 4/13 → 修复后 14/14**（2026-10-08 波次 1 落地）。
 - 失败不是散点，而是三类机制（见 §2.3）：**反射构造成员在 AOT 裁剪后丢失**、**反射契约注解缺位**、**动态能力设计性不支持**。
-- **咽喉修复已入代码**：`Pool<T>` 泛型工厂（`e561198fc`）+ 注解属性 Stub 垫片（`341bcc10a`）+ 主链保留契约注解（`1e2050372`/`229f71949`/`5d11e19ce`）→ 冒烟 13/13。改造杠杆集中、成本可控。
+- **咽喉修复已入代码**：`Pool<T>` 泛型工厂（`e561198fc`）+ 注解属性 Stub 垫片（`341bcc10a`）+ 主链保留契约注解（`1e2050372`/`229f71949`/`5d11e19ce`）+ 低成本反射替换（`4e9a59415`）+ 动态能力守卫（`277c9a85a`）→ 冒烟 14/14；冒烟工程与 CI job 已入仓（`c8ac1d228`）。改造杠杆集中、成本可控。
 - 档位与推荐见 §5；剩余切片见 §5.1。
 
 ## 2. 实测数据（2026-10-08）
@@ -45,8 +45,9 @@
 | 11 | HttpServer+ApiHttpClient GET（含 `/obj` 对象反序列化断言） | ✅ | ❌ | ✅ |
 | 12 | WebSocket 文本回显 | ✅ | ❌ | ✅ |
 | 13 | ObjectContainer 服务解析 | ✅ | ❌ | ✅ |
+| 14 | 动态能力守卫 PluginHelper（AOT 下抛明确异常） | ✅ | ❌ | ✅ |
 
-> 合计：JIT 13/13；AOT 修复前 4/13；**修复后 13/13**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
+> 合计：JIT 14/14；AOT 修复前 4/13（场景 14 为修复后新增）；**修复后 14/14**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`、`4e9a59415`、`277c9a85a`；冒烟入仓 `c8ac1d228`）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
 
 ### 2.3 失败机制解析（附实证）
 
@@ -81,7 +82,7 @@
 
 - **目标可用（按推荐档落地后实测验收）**：日志（全量）、TCP/UDP/HTTP/WebSocket 服务端与客户端、JSON（泛型路径）、配置（泛型路径）、二进制/Span 序列化、基础工具与运行时信息。
 - **需要调用方配合**：使用泛型 API 时，编译期分析器会提示需要保留的类型元数据（按提示处理即可）；Type 参数路径按警告提示选择替代或显式保留。
-- **明确不支持**：`ScriptEngine`（运行时编译 C#）、`PluginHelper`/`Assembly.LoadFrom` 插件加载、`DynamicXml`/`DynamicObject`（DLR）、语音组件动态加载——将提供编译期注解提示与运行期明确异常（`RuntimeFeature.IsDynamicCodeSupported` 守卫）。
+- **明确不支持**：`ScriptEngine`（运行时编译 C#）、`PluginHelper`/`Assembly.LoadFrom` 插件加载、`DynamicXml`/`DynamicObject`（DLR）、语音组件动态加载——已提供编译期注解提示（`RequiresDynamicCode`/`RequiresUnreferencedCode`）与运行期明确异常（`RuntimeFeature.IsDynamicCodeSupported` 守卫）。
 
 ## 5. 改进路线（三档投资）
 
@@ -104,9 +105,9 @@
 
 1. `Pool<T>` 泛型工厂（1 行级 + 语义对齐）→ 网络栈/控制台日志/事件总线全通（PoC 已证）。**→ ✅ 已落地（`e561198fc`）**
 2. 反射入口注解化：`Reflect`/`IReflect`/`ObjectContainer`/`JsonHelper`/`ConfigHelper`/`ApiHttpClient` 泛型路径加 DAM、Type 参数路径加 `Requires*`；低 TFM 用 Stub 垫片补齐 3 个注解属性。**→ 主链已完成（`341bcc10a`/`1e2050372`/`229f71949`/`5d11e19ce`：JSON/配置/Span/API/容器注册/`IReflect` 工厂）；`IReflect`/`AssemblyX`/`TypeX` 宽面成员访问与 `ParameterBinder`/`TaskHelper` 等 Type 参数路径待做（需先设计 RUC 传染治理，避免下游警告海啸）**
-3. 低成本等价替换：`XmlHelper` → `switch(TypeCode)`；`MemoryCache`/`DbTable` → TypeCode 映射；`ExcelWriter`/`ProcessHelper` → 泛型重载；`TaskHelper` → 强类型。**→ 待做（IMP-25）**
-4. 动态能力声明 + 运行期守卫：`ScriptEngine`/`PluginHelper`/`AssemblyX.LoadFrom`/`DynamicXml`/`SpeakProvider`。**→ 待做（IMP-26）**
-5. CI 防回归：冒烟工程（13 场景）入库 + `test.yml` 增加 win-x64 `PublishAot` 冒烟 job；net8+ TFM 开关分析器并清零/登记基线。**→ 待做（IMP-27）**
+3. 低成本等价替换：`XmlHelper` → `switch(TypeCode)`；`MemoryCache`/`DbTable` → TypeCode 映射；`ExcelWriter`/`ProcessHelper` → 泛型重载；`TaskHelper` → 强类型。**→ ✅ 已落地（`4e9a59415`：TypeCodeHelper 六处替换、XmlConvert 显式分发、Marshal 泛型化、TaskHelper 契约注解）**
+4. 动态能力声明 + 运行期守卫：`ScriptEngine`/`PluginHelper`/`AssemblyX.LoadFrom`/`DynamicXml`/`SpeakProvider`。**→ ✅ 已落地（`277c9a85a`：类/方法级声明 + DynamicCodeHelper 明确异常；AssemblyX 无公开入口、SpeakProvider 已有优雅降级，保持现状）**
+5. CI 防回归：冒烟工程（13 场景）入库 + `test.yml` 增加 win-x64 `PublishAot` 冒烟 job；net8+ TFM 开关分析器并清零/登记基线。**→ ✅ 已落地（`c8ac1d228`：冒烟扩至 14 场景入仓 `Test/AotSmoke`，`test.yml` aot job 含分析器报告（不阻断）与 AOT 冒烟断言）**
 
 ## 6. 下游使用指引
 
@@ -127,4 +128,4 @@ dotnet publish <冒烟工程> -c Release -r win-x64 -o out      # NativeAOT 真�
 .\out\<App>.exe                                              # AOT 运行，逐场景 PASS/FAIL
 ```
 
-> 2026-10-08 实测证据（分析器日志、JIT/AOT 运行记录、咽喉点 PoC 补丁）存于评估会话工作区；冒烟工程拟随 CI 防回归项一并入仓。
+> 2026-10-08 实测证据（分析器日志、JIT/AOT 运行记录、咽喉点 PoC 补丁）存于评估会话工作区；冒烟工程已入仓（`Test/AotSmoke`，CI 见 `.github/workflows/test.yml` 的 `aot` job）。
