@@ -266,6 +266,25 @@ Run("源生成器 Json 成员访问", () =>
     if (back?.Name != "sg" || back.Count != 5 || back.Note != "n") throw new Exception("往返不一致: " + json);
 });
 
+Run("源生成器配置绑定", () =>
+{
+    // 编译期由源生成器扫描 Config<T> 继承链，为配置模型注册成员访问委托
+    if (MemberAccessorTable.TryGetSetter(typeof(SmokeSetting), "Port") == null) throw new Exception("未生成配置成员访问器");
+
+    var provider = new SmokeConfigProvider();
+    provider["Host"] = "1.2.3.4";
+    provider["Port"] = "8080";
+
+    // 标准入口 Load<T> 的泛型参数带 DynamicallyAccessedMembers 注解，AOT 下按需保留模型公开属性元数据
+    var model = provider.Load<SmokeSetting>() ?? throw new Exception("Load<SmokeSetting> 返回 null");
+    if (model.Host != "1.2.3.4" || model.Port != 8080) throw new Exception($"Load 绑定不一致: {model.Host}:{model.Port}");
+
+    // 类型元数据一经标准入口保留，直接调用 MapTo 扩展同样可用
+    var model2 = new SmokeSetting();
+    provider.Root.MapTo(model2, provider);
+    if (model2.Host != "1.2.3.4" || model2.Port != 8080) throw new Exception($"MapTo 绑定不一致: {model2.Host}:{model2.Port}");
+});
+
 Console.WriteLine("=== summary ===");
 var failed = 0;
 foreach (var r in results)
@@ -321,4 +340,14 @@ public class SmokeJsonModel
     public String Name { get; set; } = "";
     public Int32 Count { get; set; }
     public String? Note { get; set; }
+}
+
+public class SmokeSetting : Config<SmokeSetting>
+{
+    public String Host { get; set; } = "";
+    public Int32 Port { get; set; }
+}
+
+public class SmokeConfigProvider : ConfigProvider
+{
 }

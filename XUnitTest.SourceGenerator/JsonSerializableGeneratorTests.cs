@@ -17,6 +17,11 @@ namespace NewLife.Reflection
     {
         public static void Register(Type type, String name, Func<Object, Object?>? getter, Action<Object, Object?>? setter) { }
     }
+
+    public static class Reflect
+    {
+        public static T? ChangeType<T>(Object? value) => default;
+    }
 }
 """;
 
@@ -83,9 +88,9 @@ public class DerivedModel : BaseModel
         Assert.DoesNotContain(".Fixed = ", text);
         Assert.DoesNotContain(".InitOnly = ", text);
 
-        // 值类型 setter 带 null 兜底；可空值类型无兜底
-        Assert.Contains("default(global::System.Int32)", text);
-        Assert.Contains("(global::System.Int32?)v!", text);
+        // setter 经 ChangeType 统一转换（同类型快路径、null 安全）
+        Assert.Contains("ChangeType<global::System.Int32>", text);
+        Assert.Contains("ChangeType<global::System.Int32?>", text);
 
         // 元组成员跳过（避免额外类型引用）
         Assert.DoesNotContain("Pair", text);
