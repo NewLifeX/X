@@ -226,6 +226,55 @@ Run("Http 控制器异步操作方法", () =>
     if (r?.Msg != "pong-controller-async") throw new Exception($"控制器异步方法返回值丢失: {r?.Msg ?? "null"}");
 });
 
+Run("Http 控制器静态分发", () =>
+{
+    // 生成器已为 MapController 注册的控制器产出"方法名 → 强类型调用"分发表
+    if (HttpDispatchTable.TryGet(typeof(SmokeAsyncController)) == null) throw new Exception("未生成控制器静态分发表");
+
+    using var server = new HttpServer { Port = 0 };
+    server.Log = XTrace.Log;
+    server.SessionLog = XTrace.Log;
+    server.MapController<SmokeAsyncController>("/api/smoke");
+    server.Start();
+
+    using var hc = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+    var url = $"http://127.0.0.1:{server.Port}/api/smoke";
+
+    // 参数按名绑定 + 缺省使用显式默认值
+    var echo = hc.GetStringAsync($"{url}/echo?name=abc").GetAwaiter().GetResult();
+    if (echo != "echo:abc:7") throw new Exception($"参数绑定不一致: {echo}");
+
+    // 参数按名绑定 + 显式传值
+    var echo2 = hc.GetStringAsync($"{url}/echo?name=xyz&level=9").GetAwaiter().GetResult();
+    if (echo2 != "echo:xyz:9") throw new Exception($"参数绑定不一致: {echo2}");
+
+    // 上下文注入（IHttpController.Context 在分发前由处理器写入）
+    var where = hc.GetStringAsync($"{url}/where").GetAwaiter().GetResult();
+    if (where != "/api/smoke/where") throw new Exception($"上下文注入不一致: {where}");
+
+    // 值类型返回值（装箱写回）
+    var sum = hc.GetStringAsync($"{url}/sum?a=3&b=4").GetAwaiter().GetResult();
+    if (sum != "7") throw new Exception($"值类型返回值不一致: {sum}");
+});
+
+Run("Http 静态分发优先级", () =>
+{
+    // 手工装配 ControllerHandler（绕过 MapController，生成器不会为该类型生成分发表），
+    // 手工注册的分发器返回固定文本，用于锚定"处理器优先命中静态分发表"这一集成契约
+    HttpDispatchTable.RegisterController(typeof(SmokeProbeController), new Dictionary<String, HttpDispatchTable.ControllerInvokeDelegate>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Hit"] = (controller, context) => { context.Response.SetResult("dispatch-hit"); return Task.CompletedTask; },
+    });
+
+    using var server = new HttpServer { Port = 0 };
+    server.Map("/probe/*", new ControllerHandler { ControllerType = typeof(SmokeProbeController), Path = "/probe/" });
+    server.Start();
+
+    using var hc = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+    var text = hc.GetStringAsync($"http://127.0.0.1:{server.Port}/probe/hit").GetAwaiter().GetResult();
+    if (text != "dispatch-hit") throw new Exception($"未优先命中静态分发表: {text}");
+});
+
 Run("WebSocket 文本回显", () =>
 {
     using var server = new HttpServer { Port = 0 };
@@ -380,12 +429,34 @@ public class SmokeConfigProvider : ConfigProvider
 {
 }
 
-public class SmokeAsyncController
+public class SmokeAsyncController : IHttpController
 {
+    /// <summary>上下文，由处理器在分发前注入</summary>
+    public IHttpContext? Context { get; set; }
+
     /// <summary>异步操作方法，返回对象</summary>
     public async Task<SmokePing> AsyncPing()
     {
         await Task.Yield();
         return new SmokePing { Msg = "pong-controller-async" };
     }
+
+    /// <summary>带参数方法：按名绑定 + 显式默认值</summary>
+    /// <param name="name">名称</param>
+    /// <param name="level">级别</param>
+    public String Echo(String name, Int32 level = 7) => $"echo:{name}:{level}";
+
+    /// <summary>读取注入的上下文路径</summary>
+    public String Where() => Context?.Path ?? "null";
+
+    /// <summary>值类型返回值</summary>
+    /// <param name="a">加数</param>
+    /// <param name="b">加数</param>
+    public Int32 Sum(Int32 a, Int32 b) => a + b;
+}
+
+public class SmokeProbeController
+{
+    /// <summary>反射回退路径的返回值（若优先命中静态分发表则不会被调用）</summary>
+    public String Hit() => "reflection-hit";
 }

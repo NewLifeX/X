@@ -7,9 +7,9 @@
 
 ## 1. 结论摘要
 
-**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（19/19）；剩余工作集中在反射宽面注解治理与源生成器体系（档 C）。**
+**一句话：咽喉修复已落地，库在 NativeAOT 下核心链路实测全通（21/21）；剩余工作集中在反射宽面注解治理与源生成器体系（档 C）。**
 
-- 实测（19 场景冒烟）：JIT 基线 14/14 → **AOT 修复前 4/13 → 修复后 14/14**（2026-10-08 波次 1 落地）→ **源生成器后 17/17**（SG-2/SG-3/SG-4 新增"源生成器服务工厂""源生成器 Json 成员访问""源生成器配置绑定"场景，JIT/AOT 双通）→ **异步委托修复后 19/19**（新增"Http 异步委托返回值""Http 控制器异步操作方法"场景）。
+- 实测（21 场景冒烟）：JIT 基线 14/14 → **AOT 修复前 4/13 → 修复后 14/14**（2026-10-08 波次 1 落地）→ **源生成器后 17/17**（SG-2/SG-3/SG-4 新增"源生成器服务工厂""源生成器 Json 成员访问""源生成器配置绑定"场景，JIT/AOT 双通）→ **异步委托修复后 19/19**（新增"Http 异步委托返回值""Http 控制器异步操作方法"场景）→ **SG-6 后 21/21**（新增"Http 控制器静态分发""Http 静态分发优先级"场景）。
 - 失败不是散点，而是三类机制（见 §2.3）：**反射构造成员在 AOT 裁剪后丢失**、**反射契约注解缺位**、**动态能力设计性不支持**。
 - **咽喉修复已入代码**：`Pool<T>` 泛型工厂（`e561198fc`）+ 注解属性 Stub 垫片（`341bcc10a`）+ 主链保留契约注解（`1e2050372`/`229f71949`/`5d11e19ce`）+ 低成本反射替换（`4e9a59415`）+ 动态能力守卫（`277c9a85a`）→ 冒烟 14/14；冒烟工程与 CI job 已入仓（`c8ac1d228`）。改造杠杆集中、成本可控。
 - 档位与推荐见 §5；剩余切片见 §5.1。
@@ -47,7 +47,7 @@
 | 13 | ObjectContainer 服务解析 | ✅ | ❌ | ✅ |
 | 14 | 动态能力守卫 PluginHelper（AOT 下抛明确异常） | ✅ | ❌ | ✅ |
 
-> 合计：JIT 14/14；AOT 修复前 4/13（场景 14 为修复后新增）；**修复后 14/14**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`、`4e9a59415`、`277c9a85a`；冒烟入仓 `c8ac1d228`）；**SG-4 后 17/17**（SG-1 `4b9f703ff`、主包内嵌分发、SG-2 扫描式 DI 生成器、SG-3 Json 成员访问生成器、SG-4 配置绑定生成器）；**异步委托修复后 19/19**（`TaskHelper` 开放泛型 `DynamicDependency` + `MapController` 契约注解，负向验证：移除修复后两场景均变红）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
+> 合计：JIT 14/14；AOT 修复前 4/13（场景 14 为修复后新增）；**修复后 14/14**（2026-10-08 波次 1：`e561198fc`、`341bcc10a`、`1e2050372`、`229f71949`、`5d11e19ce`、`4e9a59415`、`277c9a85a`；冒烟入仓 `c8ac1d228`）；**SG-4 后 17/17**（SG-1 `4b9f703ff`、主包内嵌分发、SG-2 扫描式 DI 生成器、SG-3 Json 成员访问生成器、SG-4 配置绑定生成器）；**异步委托修复后 19/19**（`TaskHelper` 开放泛型 `DynamicDependency` + `MapController` 契约注解，负向验证：移除修复后两场景均变红）；**SG-6 后 21/21**（控制器静态分发表 + 分发优先级锚定，负向验证：关闭生成器即变红）。AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT）。
 
 ### 2.3 失败机制解析（附实证）
 
@@ -106,7 +106,7 @@
 ### 5.1 咽喉点工作清单（改进候选切片）
 
 1. `Pool<T>` 泛型工厂（1 行级 + 语义对齐）→ 网络栈/控制台日志/事件总线全通（PoC 已证）。**→ ✅ 已落地（`e561198fc`）**
-2. 反射入口注解化：`Reflect`/`IReflect`/`ObjectContainer`/`JsonHelper`/`ConfigHelper`/`ApiHttpClient` 泛型路径加 DAM、Type 参数路径加 `Requires*`；低 TFM 用 Stub 垫片补齐 3 个注解属性。**→ 主链已完成（`341bcc10a`/`1e2050372`/`229f71949`/`5d11e19ce`：JSON/配置/Span/API/容器注册/`IReflect` 工厂）；`MapController` 入口补 `PublicConstructors|PublicMethods` 注解（2026-10-08，控制器 AOT 实测可用）；`IReflect`/`AssemblyX`/`TypeX` 宽面成员访问与 `ParameterBinder` 等 Type 参数路径待做（需先设计 RUC 传染治理，避免下游警告海啸）**
+2. 反射入口注解化：`Reflect`/`IReflect`/`ObjectContainer`/`JsonHelper`/`ConfigHelper`/`ApiHttpClient` 泛型路径加 DAM、Type 参数路径加 `Requires*`；低 TFM 用 Stub 垫片补齐 3 个注解属性。**→ 主链已完成（`341bcc10a`/`1e2050372`/`229f71949`/`5d11e19ce`：JSON/配置/Span/API/容器注册/`IReflect` 工厂）；`MapController` 与 `HttpDispatchTable.RegisterController` 入口补 `PublicConstructors|PublicMethods` 注解（2026-10-08，控制器 AOT 实测可用）；控制器方法的参数绑定与调用已由 SG-6 源生成器静态化（`ParameterBinder` 仅余委托路径，由开放泛型 `DynamicDependency` 保障）；`IReflect`/`AssemblyX`/`TypeX` 宽面成员访问等 Type 参数路径待做（需先设计 RUC 传染治理，避免下游警告海啸）**
 3. 低成本等价替换：`XmlHelper` → `switch(TypeCode)`；`MemoryCache`/`DbTable` → TypeCode 映射；`ExcelWriter`/`ProcessHelper` → 泛型重载；`TaskHelper` → 强类型。**→ ✅ 已落地（`4e9a59415`：TypeCodeHelper 六处替换、XmlConvert 显式分发、Marshal 泛型化）；`TaskHelper` 的"契约注解"经 SG-4 复查为非法放置（IL2098，AOT 下不生效），2026-10-08 已改用开放泛型 `DynamicDependency(PublicProperties, typeof(Task<>))` 并实测通过（冒烟 18/19 场景）**
 4. 动态能力声明 + 运行期守卫：`ScriptEngine`/`PluginHelper`/`AssemblyX.LoadFrom`/`DynamicXml`/`SpeakProvider`。**→ ✅ 已落地（`277c9a85a`：类/方法级声明 + DynamicCodeHelper 明确异常；AssemblyX 无公开入口、SpeakProvider 已有优雅降级，保持现状）**
 5. CI 防回归：冒烟工程（13 场景）入库 + `test.yml` 增加 win-x64 `PublishAot` 冒烟 job；net8+ TFM 开关分析器并清零/登记基线。**→ ✅ 已落地（`c8ac1d228`：冒烟扩至 14 场景入仓 `Test/AotSmoke`，`test.yml` aot job 含分析器报告（不阻断）与 AOT 冒烟断言）**
@@ -119,6 +119,7 @@
 - **IoC 注册（源生成器，自动生效）**：引用 `NewLife.Core` 即自动获得源生成器。`AddTransient<TService, TImpl>()` / `AddSingleton<TService, TImpl>()` / `AddScoped<TService, TImpl>()`（含 `TryAdd` 与 `typeof(...)` 字面量形式）会在编译期被扫描，实现类型若为"唯一公开无参构造"，则自动注册静态工厂，容器解析零反射；有参构造注入、实例/工厂注册保持原路径，**注册代码无需改动**。动态注册场景可手动 `ServiceFactoryTable.Register(typeof(TImpl), () => new TImpl())` 补充。
 - **Json 序列化（源生成器，自动生效）**：在任意类上标记 `[JsonSerializable(typeof(T))]`（惯例放 `JsonSerializerContext` 派生类；net5+ 共享框架自带该特性），编译期自动为 T 的公开实例属性/字段生成静态读写委托。JsonHelper 序列化命中委托时零反射零表达式编译；未标记类型、init-only/元组/指针/ref struct 成员自动回退原路径，行为不变。不必为标记类型额外声明 DAM。
 - **配置绑定（源生成器 + 标准入口）**：继承 `Config<T>` 的配置模型，其公开实例成员读写会命中编译期生成的委托（`MemberAccessorTable`）。AOT 下请经**标准入口**触发绑定——`IConfigProvider.Load<T>()` / `Bind<T>()` / `Save<T>()`、`Config<T>.Current`，其泛型参数带 DAM 注解，会保留模型公开成员元数据。**直接调用 `section.MapTo(model, provider)` / `MapFrom(model)` 无法传导保留要求**（`Object` 参数上 DAM 无效，IL2098）；若该类型未经上述任一入口使用，AOT 下将静默不绑定（JIT 正常、AOT 无效果），建议绑定后校验关键字段。
+- **控制器静态分发（源生成器，自动生效）**：`server.MapController<TController>()` / `MapController(typeof(TController))` 会被编译期扫描，为"公开、非泛型、参数可静态化"的方法生成"方法名 → 强类型调用"委托（参数按名绑定并 `ChangeType` 转换、显式默认值、`IHttpContext`/`IServiceProvider` 注入、异步与值类型结果强类型写回），请求分发时优先命中，**AOT 下零反射且不依赖 `MethodInfo` 元数据**；重载歧义、泛型方法、`ref`/`out`/`params`、`ValueTask` 返回值等方法自动回退原反射路径，**注册代码无需改动**。手工装配 `ControllerHandler` 时可用 `HttpDispatchTable.RegisterController(typeof(T), 表)` 补充（该入口同样带保留注解）。
 - **遇到 "不支持 AOT/裁剪" 警告**：按提示保留类型元数据（泛型 API 多数自动处理），或改用建议替代路径。
 - **遇到 `RequiresDynamicCode` 警告**：该功能（脚本/插件/动态对象）不可用于 AOT，改用静态注册或替代实现。
 - **排障提示**：网络/日志异常默认走 `Log`/`SessionLog`（默认 `Logger.Null` 静默）；AOT 排障时务必先接上日志（文件日志在 AOT 下可用）。

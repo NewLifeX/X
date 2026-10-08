@@ -85,7 +85,7 @@ internal static class MemberLineBuilder
         => $"(o, v) => (({typeName})o).{Escape(memberName)} = global::NewLife.Reflection.Reflect.ChangeType<{memberType}>(v)!";
 
     // 成员类型可生成：非类型参数、非元组、非指针、非 ref struct（否则无法装箱进委托或需要额外类型引用）
-    private static Boolean IsGeneratable(ITypeSymbol type, Compilation compilation)
+    internal static Boolean IsGeneratable(ITypeSymbol type, Compilation compilation)
     {
         if (HasTypeParameters(type)) return false;
         if (type.TypeKind == TypeKind.Pointer || type.TypeKind == TypeKind.FunctionPointer) return false;
@@ -96,11 +96,11 @@ internal static class MemberLineBuilder
     }
 
     // 关键字成员名需要 @ 转义后访问
-    private static String Escape(String name)
+    internal static String Escape(String name)
         => Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None ? "@" + name : name;
 
     // 含未绑定类型参数（开放泛型的类型/成员无法在生成代码中表达）
-    private static Boolean HasTypeParameters(ITypeSymbol type)
+    internal static Boolean HasTypeParameters(ITypeSymbol type)
     {
         switch (type)
         {

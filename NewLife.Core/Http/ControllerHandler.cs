@@ -84,6 +84,17 @@ public class ControllerHandler : IHttpHandler
         if (controller is IHttpController httpController)
             httpController.Context = context;
 
+        // 源生成器优先：编译期为 MapController 注册的控制器生成静态分发表，命中则直接强类型调用，避免方法查找、参数绑定与调用的反射开销
+        if (methodName != null && controller != null)
+        {
+            var dispatchers = HttpDispatchTable.TryGet(type);
+            if (dispatchers != null && dispatchers.TryGetValue(methodName, out var dispatcher))
+            {
+                await dispatcher(controller, context).ConfigureAwait(false);
+                return;
+            }
+        }
+
         // 查找方法，增加缓存
         MethodInfo? method = null;
         if (methodName != null && !_methods.TryGetValue(methodName, out method))

@@ -60,6 +60,7 @@ PoC 形态：`[SgService(typeof(IFoo))] class Foo` → 生成 `GeneratedServices
 | SG-3 | Json 成员访问生成器：扫描 `[JsonSerializable(typeof(T))]` → 为 T 的公开实例属性/字段生成静态读写委托（`MemberAccessorTable`），JsonWriter/JsonReader/JsonComposite 优先命中 | 往返一致性 + AOT 实测。**→ ✅ 已落地：生成器 + `MemberAccessorTable` + 三处接入 + 生成器单测 3 项；冒烟 16 场景 JIT/AOT 16/16（含"源生成器 Json 成员访问"场景断言表命中 + 往返一致）** |
 | SG-4 | 配置绑定生成器 | 绑定往返 + AOT 实测。**→ ✅ 已落地：`ConfigModelGenerator` 扫描 `Config<T>` 继承链 + 复用 `MemberAccessorTable` + `ConfigHelper` 10 处成员访问接入 + 生成器单测 3 项；冒烟 17 场景 JIT/AOT 17/17（"源生成器配置绑定"场景断言生成表命中、`Load<T>` 与 `MapTo` 绑定一致）。关键实证：`MapTo` 直调在 AOT 下静默不绑定，根因是 DAM 注解被放在 `Object` 参数上（IL2098：仅 `Type`/`String` 与泛型参数有效，ILC 直接忽略）；移除非法注解并经 `Load<T>`/`Bind<T>` 泛型入口传导保留要求后全通** |
 | SG-5 | 收口：IMP-24 剩余面处置决策（哪些改源生成器、哪些保留注解/静音）、文档与使用指引 | 文档 + 冒烟回归 16/16 |
+| SG-6 | Http 分发静态化：扫描 `MapController` 注册点（泛型与 `typeof` 形式），为控制器生成"方法名 → 强类型调用"委托（参数绑定编译期展开、方法直接调用、异步/值类型结果强类型写回），运行时 `HttpDispatchTable` 优先命中 | JIT + AOT 双环境实测 + 单测。**→ ✅ 已落地：`HttpDispatchTable` + `ControllerHandler` 接入（命中分发表则零反射，未命中回退原路径）+ 生成器 + 单测 4 项；冒烟 21 场景 JIT/AOT 21/21（含"Http 控制器静态分发""Http 静态分发优先级"两场景）；负向验证：关闭生成器即变红；绑定语义镜像 `ParameterBinder`（按名取值转换 → 显式默认值 → 上下文注入 → 缺失值类型抛必填异常），重载歧义/泛型方法/ref 参数/`ValueTask` 等方法自动跳过** |
 
 每个切片独立提交、独立验收（JIT + AOT + 单测三证）。
 
@@ -76,7 +77,7 @@ PoC 形态：`[SgService(typeof(IFoo))] class Foo` → 生成 `GeneratedServices
 
 ## 6. 待决策（用户拍板）
 
-1. ~~是否启动实现（SG-1~SG-5）？~~ **已启动**：SG-1 ✅（骨架 + 测试基建 + 主包内嵌分发）、SG-2 ✅（扫描式 DI 注册生成器）、SG-3 ✅（Json 成员访问生成器）、SG-4 ✅（配置绑定生成器）。
+1. ~~是否启动实现（SG-1~SG-5）？~~ **已启动**：SG-1 ✅（骨架 + 测试基建 + 主包内嵌分发）、SG-2 ✅（扫描式 DI 注册生成器）、SG-3 ✅（Json 成员访问生成器）、SG-4 ✅（配置绑定生成器）、SG-6 ✅（Http 分发静态化）。
 2. ~~分发形态：独立 NuGet 包 vs 并入主包？~~ **已决策（2026-10-08）：并入主包 `NewLife.Core` 分发**（主包打包时嵌入 `analyzers/dotnet/cs`，不新增包）。
 3. ~~特性命名：短名（如 `[Service]`，需排查冲突）vs 前缀命名？~~ **不再适用（2026-10-08）**：SG-2 采用调用点扫描，不新增特性。
 4. SG-2 形态选择：**已决策（2026-10-08）采用扫描式（B）**——自动分析 `AddTransient<TService, TImpl>()` 等注册调用点提取实现类型清单，用户注册代码零改动；生成条件限定"唯一公开无参构造"（与容器原构造语义一致），其余场景回退原路径。
