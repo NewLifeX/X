@@ -263,6 +263,10 @@ public partial class MachineInfo
         var uname = "uname".Execute("-sr", 0, false)?.Trim();
         if (!uname.IsNullOrEmpty())
         {
+            // Windows 上的 POSIX 兼容层（MSYS/Cygwin/MinGW/UWIN）自带 uname 命令，返回 "*_NT-*" 伪系统名，
+            // 并非 Linux 发行版，视为不可识别
+            if (uname.StartsWithIgnoreCase("MSYS_NT", "CYGWIN_NT", "MINGW", "UWIN")) return null;
+
             // 支持Android系统名
             var ss = uname.Split('-');
             foreach (var item in ss)
