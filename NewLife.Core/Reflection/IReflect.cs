@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -483,7 +484,7 @@ public class DefaultReflect : IReflect
             {
                 // 热路径：已缓存的工厂委托，绕过所有 TypeCode/IList/IDictionary 预检
                 if (_instanceFactoryDict.TryGetValue(type, out var factory))
-                    return factory != null ? factory() : Activator.CreateInstance(type, true)!;
+                    return factory != null ? factory() : CreateByActivator(type);
 
                 return RegisterAndCreate(type)!;
             }
@@ -493,6 +494,29 @@ public class DefaultReflect : IReflect
         {
             throw new Exception($"Fail to create object type={type.FullName} parameters={parameters?.Join()} {ex.GetTrue()?.Message}", ex);
         }
+    }
+
+    // 无工厂委托时的兜底创建。优先公开无参构造（NativeAOT 走快速路径），非公开构造回退，语义与原 Activator.CreateInstance(type, true) 一致
+    private static Object CreateByActivator(Type type)
+    {
+        try
+        {
+            return Activator.CreateInstance(type)!;
+        }
+        catch (MissingMethodException)
+        {
+            return Activator.CreateInstance(type, true)!;
+        }
+    }
+
+    // 为无参构造器构建创建委托。动态代码环境编译表达式以求最快；NativeAOT 等环境直接调用构造器
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "仅动态代码环境编译表达式，NativeAOT 下走构造器调用路径")]
+    private static Func<Object> BuildFactory(ConstructorInfo ctor)
+    {
+#if NET5_0_OR_GREATER
+        if (!RuntimeFeature.IsDynamicCodeCompiled) return () => ctor.Invoke(null)!;
+#endif
+        return Expression.Lambda<Func<Object>>(Expression.New(ctor)).Compile();
     }
 
     // 冷路径：首次为该类型生成工厂并注册到缓存
@@ -546,7 +570,7 @@ public class DefaultReflect : IReflect
             }
 
             var ctor = targetType.GetConstructor(Type.EmptyTypes);
-            factory = ctor != null ? Expression.Lambda<Func<Object>>(Expression.New(ctor)).Compile() : null;
+            factory = ctor != null ? BuildFactory(ctor) : null;
         }
 
         // 写时复制发布（lock 保证唯一写入，volatile 保证所有读者可见）
