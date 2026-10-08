@@ -8,6 +8,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json.Serialization;
 using NewLife;
 using NewLife.Buffers;
 using NewLife.Configuration;
@@ -254,6 +255,17 @@ Run("源生成器服务工厂", () =>
     if (svc == null || svc.GetType() != typeof(SmokeSvc)) throw new Exception("解析失败");
 });
 
+Run("源生成器 Json 成员访问", () =>
+{
+    // 编译期由源生成器为 [JsonSerializable] 标记类型注册成员访问委托
+    if (JsonMemberTable.TryGetGetter(typeof(SmokeJsonModel), "Name") == null) throw new Exception("未生成 Json 成员访问器");
+
+    var m = new SmokeJsonModel { Name = "sg", Count = 5, Note = "n" };
+    var json = JsonHelper.ToJson(m);
+    var back = json.ToJsonEntity<SmokeJsonModel>();
+    if (back?.Name != "sg" || back.Count != 5 || back.Note != "n") throw new Exception("往返不一致: " + json);
+});
+
 Console.WriteLine("=== summary ===");
 var failed = 0;
 foreach (var r in results)
@@ -299,4 +311,14 @@ public class SmokeWsHandler : WebSocketHandler
 
         base.ProcessMessage(socket, message);
     }
+}
+
+[JsonSerializable(typeof(SmokeJsonModel))]
+public partial class SmokeJsonContext : JsonSerializerContext { }
+
+public class SmokeJsonModel
+{
+    public String Name { get; set; } = "";
+    public Int32 Count { get; set; }
+    public String? Note { get; set; }
 }

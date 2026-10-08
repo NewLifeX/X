@@ -203,7 +203,8 @@ public class JsonReader
         // 扩展属性
 
         // 遍历所有可用于序列化的属性
-        var props = target.GetType().GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
+        var targetType = target.GetType();
+        var props = targetType.GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
         foreach (var item in dic)
         {
             var v = item.Value;
@@ -230,17 +231,17 @@ public class JsonReader
 
             var pt = pi.PropertyType;
             if (pt.IsBaseType())
-                target.SetValue(pi, ChangeType(v, pt));
+                JsonMemberTable.SetValue(target, targetType, pi, ChangeType(v, pt));
             else
             {
-                var orig = target.GetValue(pi);
+                var orig = JsonMemberTable.GetValue(target, targetType, pi);
                 var val = ToObject(v, pt, orig);
                 if (val != orig)
                 {
                     if (target is IModel dst)
                         dst[pi.Name] = val;
                     else
-                        target.SetValue(pi, val);
+                        JsonMemberTable.SetValue(target, targetType, pi, val);
                 }
             }
         }

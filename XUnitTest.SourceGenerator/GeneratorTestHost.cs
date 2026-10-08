@@ -24,14 +24,26 @@ public static class GeneratorTestHost
     public static (Compilation Compilation, GeneratorDriverRunResult Result) RunWithSymbols(IIncrementalGenerator generator, String source, String[] preprocessorSymbols, params MetadataReference[] additionalReferences)
         => RunCore(generator, source, preprocessorSymbols, additionalReferences);
 
+    private static readonly Lazy<MetadataReference[]> _platformRefs = new(() =>
+    {
+        // 除 CoreLib 外，BCL 类型分散在系统程序集与 facade 中（如 System.Runtime 转发），
+        // 内存编译需完整引用运行时平台程序集，避免 CS0012/CS0246
+        var dir = System.IO.Path.GetDirectoryName(typeof(Object).Assembly.Location)!;
+        var list = new List<MetadataReference>();
+        foreach (var dll in System.IO.Directory.GetFiles(dir, "*.dll"))
+        {
+            var name = System.IO.Path.GetFileNameWithoutExtension(dll);
+            if (name.Contains("Native")) continue;
+            if (name.StartsWith("System") || name is "mscorlib" or "netstandard" or "Microsoft.CSharp" or "WindowsBase")
+                list.Add(MetadataReference.CreateFromFile(dll));
+        }
+
+        return list.ToArray();
+    });
+
     private static (Compilation Compilation, GeneratorDriverRunResult Result) RunCore(IIncrementalGenerator generator, String source, String[]? preprocessorSymbols, MetadataReference[] additionalReferences)
     {
-        var refs = new List<MetadataReference>
-        {
-            MetadataReference.CreateFromFile(typeof(Object).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Attribute).Assembly.Location),
-        };
+        var refs = new List<MetadataReference>(_platformRefs.Value);
         foreach (var item in additionalReferences) refs.Add(item);
 
         var options = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessorSymbols);
