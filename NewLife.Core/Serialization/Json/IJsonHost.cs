@@ -1,4 +1,4 @@
-﻿using NewLife.Collections;
+using NewLife.Collections;
 using NewLife.Model;
 using NewLife.Reflection;
 using System.Diagnostics.CodeAnalysis;
@@ -39,23 +39,23 @@ public interface IJsonHost
 
     /// <summary>从Json字符串中读取对象。等同于 Read(json, type, null)</summary>
     /// <param name="json">Json字符串</param>
-    /// <param name="type">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="type">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>反序列化后的对象</returns>
     [Obsolete("请使用 Read(json, type, jsonOptions) 方法，传入 JsonOptions 以明确使用的配置，避免未来 Options 变更导致行为不确定")]
-    Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type);
+    Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type);
 
     /// <summary>从Json字符串中读取对象，使用指定序列化选项</summary>
     /// <param name="json">Json字符串</param>
-    /// <param name="type">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="type">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
     /// <returns>反序列化后的对象</returns>
-    Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type, JsonOptions? jsonOptions);
+    Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, JsonOptions? jsonOptions);
 
     /// <summary>类型转换。将 Json 解析出的字典/列表转换为目标类型</summary>
     /// <param name="obj">Json解析出的对象（字典或列表）</param>
-    /// <param name="targetType">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="targetType">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>转换后的对象</returns>
-    Object? Convert(Object obj, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type targetType);
+    Object? Convert(Object obj, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type targetType);
 
     /// <summary>分析Json字符串得到字典或列表</summary>
     /// <param name="json">Json字符串</param>
@@ -107,7 +107,7 @@ public static class JsonHelper
     /// <param name="type">目标类型</param>
     /// <returns>反序列化后的对象</returns>
     [Obsolete("请使用 ToJsonEntity(json, type, jsonOptions) 方法，传入 JsonOptions 以明确使用的配置，避免未来 Options 变更导致行为不确定")]
-    public static Object? ToJsonEntity(this String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type)
+    public static Object? ToJsonEntity(this String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type)
     {
         if (json.IsNullOrEmpty()) return null;
 
@@ -119,7 +119,7 @@ public static class JsonHelper
     /// <param name="type">目标类型</param>
     /// <param name="jsonOptions">序列化选项。为 null 时使用默认 Options</param>
     /// <returns>反序列化后的对象</returns>
-    public static Object? ToJsonEntity(this String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type, JsonOptions? jsonOptions)
+    public static Object? ToJsonEntity(this String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, JsonOptions? jsonOptions)
     {
         if (json.IsNullOrEmpty()) return null;
 
@@ -130,7 +130,7 @@ public static class JsonHelper
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="json">Json字符串</param>
     /// <returns>反序列化后的对象</returns>
-    public static T? ToJsonEntity<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(this String json)
+    public static T? ToJsonEntity<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(this String json)
     {
         if (json.IsNullOrEmpty()) return default;
 
@@ -142,7 +142,7 @@ public static class JsonHelper
     /// <param name="json">Json字符串</param>
     /// <param name="jsonOptions">序列化选项。为 null 时使用默认 Options</param>
     /// <returns>反序列化后的对象</returns>
-    public static T? ToJsonEntity<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(this String json, JsonOptions? jsonOptions)
+    public static T? ToJsonEntity<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(this String json, JsonOptions? jsonOptions)
     {
         if (json.IsNullOrEmpty()) return default;
 
@@ -155,7 +155,7 @@ public static class JsonHelper
     /// <param name="json">Json字符串</param>
     /// <returns>反序列化后的对象</returns>
     [Obsolete("请使用 Read(json, jsonOptions) 方法，传入 JsonOptions 以明确使用的配置，避免未来 Options 变更导致行为不确定")]
-    public static T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(this IJsonHost jsonHost, String json) => (T?)jsonHost.Read(json, typeof(T), null);
+    public static T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(this IJsonHost jsonHost, String json) => (T?)jsonHost.Read(json, typeof(T), null);
 
     /// <summary>从Json字符串中反序列化对象，使用指定序列化选项</summary>
     /// <typeparam name="T">目标类型</typeparam>
@@ -163,7 +163,7 @@ public static class JsonHelper
     /// <param name="json">Json字符串</param>
     /// <param name="jsonOptions">序列化选项。为 null 时使用默认 Options</param>
     /// <returns>反序列化后的对象</returns>
-    public static T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(this IJsonHost jsonHost, String json, JsonOptions? jsonOptions = null) => (T?)jsonHost.Read(json, typeof(T), jsonOptions);
+    public static T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(this IJsonHost jsonHost, String json, JsonOptions? jsonOptions = null) => (T?)jsonHost.Read(json, typeof(T), jsonOptions);
 
     /// <summary>格式化Json文本</summary>
     /// <param name="json"></param>
@@ -238,12 +238,12 @@ public static class JsonHelper
     /// <summary>Json类型对象转换实体类</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T? Convert<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(Object obj) => Default.Convert<T>(obj);
+    public static T? Convert<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(Object obj) => Default.Convert<T>(obj);
 
     /// <summary>Json类型对象转换实体类</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T? Convert<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(this IJsonHost jsonHost, Object obj)
+    public static T? Convert<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(this IJsonHost jsonHost, Object obj)
     {
         if (obj == null) return default;
         if (obj is T t) return t;
@@ -309,22 +309,22 @@ public class FastJson : IJsonHost
 
     /// <summary>从Json字符串中读取对象</summary>
     /// <param name="json">Json字符串</param>
-    /// <param name="type">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="type">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>反序列化后的对象</returns>
-    public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type) => Read(json, type, null);
+    public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type) => Read(json, type, null);
 
     /// <summary>从Json字符串中读取对象，使用指定序列化选项</summary>
     /// <param name="json">Json字符串</param>
-    /// <param name="type">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="type">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
     /// <returns>反序列化后的对象</returns>
-    public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type, JsonOptions? jsonOptions) => new JsonReader { Provider = ServiceProvider, Options = jsonOptions ?? Options }.Read(json, type);
+    public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, JsonOptions? jsonOptions) => new JsonReader { Provider = ServiceProvider, Options = jsonOptions ?? Options }.Read(json, type);
 
     /// <summary>类型转换。将 Json 解析出的字典/列表转换为目标类型</summary>
     /// <param name="obj">Json解析出的对象（字典或列表）</param>
-    /// <param name="targetType">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="targetType">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>转换后的对象</returns>
-    public Object? Convert(Object obj, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type targetType) => new JsonReader { Provider = ServiceProvider, Options = Options }.ToObject(obj, targetType, null);
+    public Object? Convert(Object obj, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type targetType) => new JsonReader { Provider = ServiceProvider, Options = Options }.ToObject(obj, targetType, null);
 
     /// <summary>分析Json字符串得到字典或列表</summary>
     /// <param name="json">Json字符串</param>
@@ -620,28 +620,28 @@ public class SystemJson : IJsonHost
 
     /// <summary>从Json字符串中读取对象</summary>
     /// <param name="json">Json字符串</param>
-    /// <param name="type">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="type">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>反序列化后的对象</returns>
-    public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type) => Read(json, type, null);
+    public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type) => Read(json, type, null);
 
     /// <summary>从Json字符串中读取对象，使用指定序列化选项。未传入配置时使用 <see cref="Options"/> 并走缓存路径</summary>
     /// <param name="json">Json字符串</param>
-    /// <param name="type">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="type">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
     /// <returns>反序列化后的对象</returns>
-    public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type, JsonOptions? jsonOptions) => JsonSerializer.Deserialize(json, type, GetSerializerOptions(jsonOptions));
+    public Object? Read(String json, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type, JsonOptions? jsonOptions) => JsonSerializer.Deserialize(json, type, GetSerializerOptions(jsonOptions));
 
     /// <summary>从Json字符串中读取对象</summary>
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="json">Json字符串</param>
     /// <returns>反序列化后的对象</returns>
-    public T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(String json) where T : class => Read(json, typeof(T), null) as T;
+    public T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(String json) where T : class => Read(json, typeof(T), null) as T;
 
     /// <summary>类型转换。将 Json 解析出的字典/列表转换为目标类型</summary>
     /// <param name="obj">Json解析出的对象（字典或列表）</param>
-    /// <param name="targetType">目标类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    /// <param name="targetType">目标类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>转换后的对象</returns>
-    public Object? Convert(Object obj, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type targetType) => new JsonReader { Provider = ServiceProvider, Options = Options }.ToObject(obj, targetType, null);
+    public Object? Convert(Object obj, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type targetType) => new JsonReader { Provider = ServiceProvider, Options = Options }.ToObject(obj, targetType, null);
 
     /// <summary>分析Json字符串得到字典或列表</summary>
     /// <param name="json">Json字符串</param>

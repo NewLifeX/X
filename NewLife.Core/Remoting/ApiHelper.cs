@@ -1,4 +1,5 @@
-﻿using System.Collections;
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
 using NewLife.Collections;
@@ -27,7 +28,7 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static Task<TResult?> GetAsync<TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => client.InvokeAsync<TResult>(HttpMethod.Get, action, args, null, "data", cancellationToken);
+    public static Task<TResult?> GetAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => client.InvokeAsync<TResult>(HttpMethod.Get, action, args, null, "data", cancellationToken);
 
     /// <summary>同步获取，参数构造在Url</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -35,7 +36,7 @@ public static class ApiHelper
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public static TResult? Get<TResult>(this HttpClient client, String action, Object? args = null) => GetAsync<TResult>(client, action, args).ConfigureAwait(false).GetAwaiter().GetResult();
+    public static TResult? Get<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(this HttpClient client, String action, Object? args = null) => GetAsync<TResult>(client, action, args).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -44,7 +45,7 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static Task<TResult?> PostAsync<TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => client.InvokeAsync<TResult>(HttpMethod.Post, action, args, null, "data", cancellationToken);
+    public static Task<TResult?> PostAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => client.InvokeAsync<TResult>(HttpMethod.Post, action, args, null, "data", cancellationToken);
 
     /// <summary>同步提交，参数Json打包在Body</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -52,7 +53,7 @@ public static class ApiHelper
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public static TResult? Post<TResult>(this HttpClient client, String action, Object? args = null) => PostAsync<TResult>(client, action, args).ConfigureAwait(false).GetAwaiter().GetResult();
+    public static TResult? Post<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(this HttpClient client, String action, Object? args = null) => PostAsync<TResult>(client, action, args).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步上传，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -61,7 +62,7 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static Task<TResult?> PutAsync<TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => client.InvokeAsync<TResult>(HttpMethod.Put, action, args, null, "data", cancellationToken);
+    public static Task<TResult?> PutAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => client.InvokeAsync<TResult>(HttpMethod.Put, action, args, null, "data", cancellationToken);
 
     /// <summary>异步删除，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -70,7 +71,7 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static Task<TResult?> DeleteAsync<TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => client.InvokeAsync<TResult>(HttpMethod.Delete, action, args, null, "data", cancellationToken);
+    public static Task<TResult?> DeleteAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => client.InvokeAsync<TResult>(HttpMethod.Delete, action, args, null, "data", cancellationToken);
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -82,7 +83,7 @@ public static class ApiHelper
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult?> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object? args = null, Action<HttpRequestMessage>? onRequest = null, String dataName = "data", CancellationToken cancellationToken = default)
+    public static async Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(this HttpClient client, HttpMethod method, String action, Object? args = null, Action<HttpRequestMessage>? onRequest = null, String dataName = "data", CancellationToken cancellationToken = default)
     {
         //if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
 
@@ -236,7 +237,7 @@ public static class ApiHelper
     /// <param name="response">Http响应消息</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <returns></returns>
-    public static Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String dataName = "data") => ProcessResponse<TResult>(response, null, dataName);
+    public static Task<TResult?> ProcessResponse<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(HttpResponseMessage response, String dataName = "data") => ProcessResponse<TResult>(response, null, dataName);
 
     /// <summary>处理响应。统一识别code/message</summary>
     /// <remarks>返回 HttpResponseMessage（原始响应）时不做解析、原样透传，所有权随之移交调用方；其余类型读取内容后由调用方负责释放响应。</remarks>
@@ -245,7 +246,7 @@ public static class ApiHelper
     /// <param name="response">Http响应消息</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <returns></returns>
-    public static Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String? codeName, String? dataName) => ProcessResponse<TResult>(response, codeName, dataName, JsonHelper.Default);
+    public static Task<TResult?> ProcessResponse<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(HttpResponseMessage response, String? codeName, String? dataName) => ProcessResponse<TResult>(response, codeName, dataName, JsonHelper.Default);
 
     /// <summary>处理响应。统一识别code/message</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -254,7 +255,7 @@ public static class ApiHelper
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <param name="jsonHost">Json序列化主机</param>
     /// <returns></returns>
-    public static async Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String? codeName, String? dataName, IJsonHost jsonHost)
+    public static async Task<TResult?> ProcessResponse<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(HttpResponseMessage response, String? codeName, String? dataName, IJsonHost jsonHost)
     {
         var rtype = typeof(TResult);
         if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)response;
@@ -304,7 +305,7 @@ public static class ApiHelper
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <param name="jsonHost">Json序列化主机</param>
     /// <returns></returns>
-    public static TResult? ProcessResponse<TResult>(String? response, String? codeName, String dataName, IJsonHost? jsonHost = null)
+    public static TResult? ProcessResponse<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String? response, String? codeName, String dataName, IJsonHost? jsonHost = null)
     {
         if (response.IsNullOrEmpty()) return default;
 
