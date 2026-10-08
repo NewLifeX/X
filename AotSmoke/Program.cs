@@ -407,6 +407,19 @@ Run("SystemJson 上下文透传", () =>
     if (fb == null || fb.Name != "fb" || fb.Level != 3) throw new Exception("未声明类型回退失败");
 });
 
+Run("Reflect 泛型入口保留", () =>
+{
+    // 泛型入口携带 DynamicallyAccessedMembers，AOT 裁剪下保留编译期已知类型的成员；
+    // 非泛型重载（typeof(X).GetPropertyEx 等）不保证保留，属文档化边界（见分析稿 §4/§5）
+    var pi = Reflect.GetPropertyEx<SmokeReflectOnly>("Marker") ?? throw new Exception("GetPropertyEx<T> 返回 null（属性被裁剪）");
+    var mi = Reflect.GetMethodEx<SmokeReflectOnly>("Compute") ?? throw new Exception("GetMethodEx<T> 返回 null（方法被裁剪）");
+    var obj = Reflect.CreateInstance<SmokeReflectOnly>() ?? throw new Exception("CreateInstance<T> 返回 null");
+
+    pi.SetValue(obj, "ok");
+    if (pi.GetValue(obj) as String != "ok") throw new Exception("属性读写失败");
+    if (mi.Invoke(obj, null) as String != "ok") throw new Exception("方法调用失败");
+});
+
 Console.WriteLine("=== summary ===");
 var failed = 0;
 foreach (var r in results)
@@ -462,6 +475,13 @@ public class SmokeJsonModel
     public String Name { get; set; } = "";
     public Int32 Count { get; set; }
     public String? Note { get; set; }
+}
+
+// 仅经 NewLife.Reflection 反射访问的模型：用于验证 Reflect 入口的保留注解在 AOT 下生效
+public class SmokeReflectOnly
+{
+    public String? Marker { get; set; }
+    public String Compute() => "ok";
 }
 
 public class SmokeSetting : Config<SmokeSetting>

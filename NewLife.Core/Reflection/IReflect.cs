@@ -520,6 +520,7 @@ public class DefaultReflect : IReflect
     }
 
     // 冷路径：首次为该类型生成工厂并注册到缓存
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "IList/IDictionary 接口解析需要运行时泛型实例化；AOT 下未预编译的实例化将由运行时明确失败，不做静默降级")]
     private Object? RegisterAndCreate(Type type)
     {
         Func<Object>? factory;
@@ -1267,8 +1268,10 @@ public class DefaultReflect : IReflect
 
     /// <summary>类型转换</summary>
     /// <param name="value">数值</param>
-    /// <param name="conversionType"></param>
+    /// <param name="conversionType">目标类型</param>
     /// <returns></returns>
+    /// <remarks>目标类型多为运行时来源（配置/表结构/字典），保留要求无法在调用点静态表达；目标类型元数据由相应泛型入口或调用方负责保留（见 Doc/AOT兼容性分析.md §4）</remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "转换目标类型多来自运行时数据源，保留要求静态不可表达；由相应泛型入口（Load<T>/GetService<T> 等）或调用方负责")]
     public virtual Object? ChangeType(Object? value, Type conversionType)
     {
         // 值类型就是目标类型
@@ -1413,6 +1416,8 @@ public class DefaultReflect : IReflect
     /// <param name="type"></param>
     /// <param name="baseType"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL2055", Justification = "泛型基类定义补全需要运行时泛型实例化；AOT 下已预编译的实例化仍可用，未预编译的实例化明确失败")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "泛型基类定义补全需要运行时泛型实例化；AOT 下已预编译的实例化仍可用，未预编译的实例化明确失败")]
     public Boolean As(Type type, Type baseType)
     {
         if (type == null) return false;
