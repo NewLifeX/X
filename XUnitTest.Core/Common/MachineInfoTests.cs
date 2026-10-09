@@ -185,8 +185,10 @@ public class MachineInfoTests
         // 台式机无固定硬盘时字典可能为空，但不应抛出异常
         if (dic.Count > 0)
         {
-            Assert.True(dic.ContainsKey("serialnumber") || dic.ContainsKey("SerialNumber"));
+            // Size 由固定硬盘保证返回，据此确认 alias 解析与 where 分支已生效
             Assert.True(dic.ContainsKey("Size"));
+            // 虚拟机磁盘通常不暴露序列号，存在时校验其有效即可
+            if (dic.ContainsKey("SerialNumber")) Assert.NotEmpty(dic["SerialNumber"]);
         }
     }
 
