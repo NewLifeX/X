@@ -248,7 +248,7 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 
 ### 5.2 加压实验：服务端不是瓶颈（v3.5）
 
-矩阵用**单个客户端进程**产生负载，而单进程客户端自身的同步发送会烧掉十余核，容易被误读成"服务端接收环饱和"。改为**多客户端进程**加压（同名场景、同环境）：
+矩阵用**单个客户端进程**产生负载，而单进程客户端自身的同步发送会烧掉十余核，容易被误读成"服务端接收环饱和"。改为**多客户端进程**加压（同名场景、同环境；`run-matrix.ps1 -ClientProcs N` 已内置该能力）：
 
 | 协议 / 包大小 | 客户端进程 × 连接 | 服务端带宽 | 服务端包率 | **服务端 CPU** |
 |---|---|---:|---:|---:|
@@ -310,6 +310,9 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 ```bash
 # 全矩阵一键跑批（约 20 分钟；-Quick 冒烟 / -SkipBuild 跳过编译 / -Only 正则过滤）
 pwsh -File Benchmark/NetLoadTest/run-matrix.ps1
+
+# 多客户端进程加压（突破单进程客户端 CPU 上限，压出服务端真实余量；见 5.2）
+pwsh -File Benchmark/NetLoadTest/run-matrix.ps1 -Only "tcp-1KB" -ClientProcs 4
 
 # 单场景：分离进程单向吞吐（服务端独立进程 + 客户端只发不收；服务端 STEADY 含分配/GC）
 Benchmark/NetLoadTest/bin/Release/net10.0/NetLoadTest.exe --server --port 7789 --oneway
