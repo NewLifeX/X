@@ -570,7 +570,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         return true;
     }
 
-    /// <summary>释放一个事件参数。递减接收计数、释放接收槽缓冲句柄并销毁。幂等：同一个事件参数重复调用只生效一次</summary>
+    /// <summary>释放一个事件参数。递减接收计数（归零时释放并置空套接字）、释放接收槽缓冲句柄并销毁。幂等：同一个事件参数重复调用只生效一次</summary>
     /// <param name="se">接收事件参数</param>
     /// <param name="reason">释放原因。便于日志分析</param>
     protected void ReleaseRecv(SocketAsyncEventArgs se, String reason)
@@ -590,7 +590,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         slot.Released = true;
         slot.Packet = null;
 
-        if (_RecvCount > 0) Interlocked.Decrement(ref _RecvCount);
+        // 计数归零代表接收环彻底停止：此时收口套接字引用，避免留下“环已停、套接字未释放”的半开状态。
+        // 先取快照再置空、最后释放；客户端会话重新 Open 时会重建套接字。
+        if (_RecvCount > 0 && Interlocked.Decrement(ref _RecvCount) == 0)
+        {
+            var socket = Client;
+            Client = null;
+            socket.TryDispose();
+        }
 
         // 缓冲由接收槽句柄持有：释放句柄即完成归还——引用归零时由 ArrayOwner 归还池，
         // 仍被共享切片持有时只减引用，缓冲留给最后一个持有者归还。本方法不再直接归还缓冲。

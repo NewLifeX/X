@@ -172,6 +172,29 @@ public class ReceiveErrorTests
         orphan.Dispose();
     }
 
+    [Fact(DisplayName = "接收槽释放_计数归零_释放并置空套接字")]
+    public void ReleaseRecv_CountReachesZero_ReleasesClient()
+    {
+        using var server = new ProbeUdpServer { Port = 0, MaxAsync = 2 };
+        server.Open();
+        Assert.True(server.IsReceiving);
+
+        var socket = server.Client;
+        Assert.NotNull(socket);
+
+        // 释放全部接收槽：计数归零代表接收环彻底停止，套接字应被释放并置空
+        server.Release(new SocketAsyncEventArgs { UserToken = new RecvSlot(0, new OwnerPacket(16)) }, "drain-1");
+        server.Release(new SocketAsyncEventArgs { UserToken = new RecvSlot(1, new OwnerPacket(16)) }, "drain-2");
+
+        Assert.False(server.IsReceiving);
+        Assert.Null(server.Client);
+        Assert.True(socket.SafeHandle.IsClosed);
+
+        // 计数已归零后的多余释放：不抛异常，也不影响已收口状态
+        server.Release(new SocketAsyncEventArgs { UserToken = new RecvSlot(2, new OwnerPacket(16)) }, "drain-again");
+        Assert.Null(server.Client);
+    }
+
     [Fact(DisplayName = "接收槽释放_缓冲仍被共享切片持有_只释放自身引用不归还")]
     public void ReleaseRecv_SharedSlice_DoesNotReturnBuffer()
     {
