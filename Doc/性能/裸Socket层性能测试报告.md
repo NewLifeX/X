@@ -6,6 +6,7 @@
 > **v3.3（同日）**：UDP 接收改 `ReceiveFromAsync`——每包分配 **216→104 B**、每包 CPU **-1.3 µs**、1KB 高并发包率 **+18.8%**（见第七节）。
 > **v3.4（同日）**：定位 TCP 大包档受**内核接收窗口**限制，新增 `SocketSetting.ReceiveBufferSize`（内核接收缓冲，默认 0=不改）；负载/高延迟下 1MB 报文 +25%，空闲回环无收益（见第七节）。
 > **v3.5（同日）**：多进程加压实验证明**服务端远未饱和**（TCP 1KB 1.48 Mpps 仅 1.31 核、UDP 1KB 600 kpps 约 2.0 核），修正"单进程接收环饱和"表述（见 5.2）。
+> **v3.6（同日）**：**NativeAOT vs JIT 对比**——AOT 全面小幅领先（吞吐 +4~11%、往返 P50 -12%、分配更低），启动无差异（见第八节）。
 
 ## 一、核心结论
 
@@ -305,6 +306,40 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 
 **v3.5（2026-10-09）加压复核**：用多客户端进程加压（见 5.2）证明服务端**远未饱和**——TCP 1KB 在 1.48 Mpps 时仅用 1.31 核、UDP 1KB 在 ~600 kpps 时约 2.0 核；1→4 客户端进程使 TCP 从 8.01 提升到 12.09 Gbps（+51%），继续加进程不再提升。据此**修正**两处早期表述：① §3.1「小包拐点＝单进程接收环饱和」不成立，拐点是客户端/回环栈上限；② 早期单点 CPU 采样给出的「UDP 服务端 13-17 µs/包」与加压实测不符（前者在带 3-4 核背景负载期间取得），已改为以加压实测为准。
 
+## 八、NativeAOT 与 JIT 性能对比（v3.6，2026-10-09）
+
+用**同一份源码**分别以 JIT（CoreCLR）与 NativeAOT 发布压测工具，在**同一时段交替配对**（JIT/AOT 轮转，抵消机器背景负载漂移）：
+
+- JIT：`dotnet build Benchmark/NetLoadTest -c Release` → `bin/Release/net10.0/NetLoadTest.exe`
+- AOT：`dotnet publish Benchmark/NetLoadTestAot -c Release -r win-x64 -o out-aot` → 原生单文件 **9.50 MB**
+
+**吞吐（各 4 轮取中位；本机另有 3-4 核背景负载，单轮抖动可达 ±40%，故只报中位并注明轮数）**
+
+| 场景 | JIT | AOT | 变化 |
+|---|---:|---:|---:|
+| TCP 1KB 单向 8C | 9.01 Gbps / 1,099,964 pkt/s | **9.55 / 1,166,254** | **+6.0%** |
+| UDP 1KB 单向 32C | 4.88 / 595,463 | **5.09 / 621,872** | **+4.3%** |
+| TCP 1KB 往返 4C | 0.62 / 75,258 | **0.69 / 84,075** | **+11.3%** |
+
+**延迟与分配**
+
+| 指标 | JIT | AOT | 说明 |
+|---|---|---|---|
+| 往返 P50（4 轮原始） | 52 / 54.6 / 54.9 / 49.4 µs | 64.8 / 46.6 / 46.0 / 47.7 µs | 中位 53.7 → **47.2 µs（-12%）**；AOT 首轮偏高属冷启动 |
+| TCP 1KB 往返 每包分配 | 1.10-1.48 B/msg | **0.60-0.94 B/msg** | AOT 分配更低 |
+| TCP 1KB 单向 每包分配 | 0.17 | **0.11** | 两者都近零 |
+| UDP 1KB 单向 每包分配 | 109.6 | 106.5 | 两者都 ≈ 运行时固有的 ~104 B/msg（v3.3 优化后） |
+| 启动到可服务 | 204-241 ms | 230-240 ms | **无差异** |
+| 单文件体积 | 0.15 MB（apphost，依赖共享运行时） | 9.50 MB | AOT 自带运行时 |
+
+**结论**
+
+1. **AOT 全面小幅领先**：三档吞吐 +4~11%、往返 P50 低约 12%、每包分配更低（近零档 0.17→0.11 B/msg）。三个方向一致，不是噪声偏向。
+2. **启动无优势**：本场景启动耗时由进程创建与 NewLife 配置初始化主导，"免 JIT"收益不明显；AOT 的价值在这里主要是**部署形态**（单文件、无运行时依赖、可上 AOT 平台）与内存，而非启动。
+3. **网络栈热路径无 AOT 风险**：1.5 Mpps 级收发、SAEA 接收环、对象池、`Pool.StringBuilder` 在 AOT 下全部正常，未触碰到反射/动态代码依赖。
+4. 顺带修掉一处 AOT 不兼容：压测工具末尾的 `SUMMARY:` 原用 `JsonSerializer.Serialize`（反射式），NativeAOT 默认禁用反射式序列化会直接抛异常；改为手写序列化后 AOT 产物可正常输出汇总，ILC 的 IL2026/IL3050 告警清零。
+5. **口径提醒**：偶数轮次 + 单轮 ±40% 抖动下，**小差异（<5%）不可当作定论**；本表的 +4~11% 属方向一致但幅度有限，若要更严结论需在空闲机器上加大轮次。
+
 ## 复现命令
 
 ```bash
@@ -313,6 +348,10 @@ pwsh -File Benchmark/NetLoadTest/run-matrix.ps1
 
 # 多客户端进程加压（突破单进程客户端 CPU 上限，压出服务端真实余量；见 5.2）
 pwsh -File Benchmark/NetLoadTest/run-matrix.ps1 -Only "tcp-1KB" -ClientProcs 4
+
+# NativeAOT 发布与对比（同一份源码；AOT 工程见 Benchmark/NetLoadTestAot）
+dotnet publish Benchmark/NetLoadTestAot -c Release -r win-x64 -o out-aot
+out-aot/NetLoadTest.exe --server --port 7789 --oneway
 
 # 单场景：分离进程单向吞吐（服务端独立进程 + 客户端只发不收；服务端 STEADY 含分配/GC）
 Benchmark/NetLoadTest/bin/Release/net10.0/NetLoadTest.exe --server --port 7789 --oneway
