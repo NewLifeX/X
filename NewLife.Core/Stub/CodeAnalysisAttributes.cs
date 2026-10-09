@@ -66,8 +66,8 @@ public sealed class DynamicallyAccessedMembersAttribute : Attribute
     public DynamicallyAccessedMembersAttribute(DynamicallyAccessedMemberTypes memberTypes) => MemberTypes = memberTypes;
 }
 
-/// <summary>指示该方法在裁剪后可能失效（依赖被裁剪的代码），调用方需自行评估</summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor, Inherited = false)]
+/// <summary>指示该方法或类型在裁剪后可能失效（依赖被裁剪的代码），调用方需自行评估</summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Class, Inherited = false)]
 public sealed class RequiresUnreferencedCodeAttribute : Attribute
 {
     /// <summary>说明消息</summary>
