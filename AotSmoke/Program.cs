@@ -159,7 +159,7 @@ Run("NetServer/NetClient TCP+SrmpCodec 回环", () =>
         all.TryDispose();
         serverGot.TrySetResult(body);
 
-        var reply = (DefaultMessage)msg.CreateReply();
+        if (msg.CreateReply() is not DefaultMessage reply) return;
         reply.SetBody(new ArrayPacket("pong"u8.ToArray()));
         ((INetSession)s!).SendMessage(reply);
     };
