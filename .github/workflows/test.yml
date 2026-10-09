@@ -23,7 +23,16 @@ jobs:
         cache: true
         cache-dependency-path: '**/*.csproj'
     - name: Build
-      run: dotnet build -c Release
+      shell: pwsh
+      # 源生成器工程既作为解决方案条目、又被多目标工程引用生成，两类实例会被并行重复生成，
+      # 偶发 CS2012（同一 obj 输出被两个编译器进程写入）；重试一次即可（第二次已是增量构建）
+      run: |
+        dotnet build -c Release
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host '首次构建失败，重试一次（已知并行重复生成竞态）'
+          dotnet build -c Release
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+        }
 
   # 测试矩阵：每个目标框架独立 job，job 间并行且互不争抢宿主资源（进程/端口/CPU），
   # 每个 job 只构建自身目标框架，省去全解决方案构建的墙钟开销（编译校验由 build job 承担）。
