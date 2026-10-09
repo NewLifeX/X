@@ -180,7 +180,9 @@ public class TimerX : ITimer, IDisposable
         var next = startTime;
         while (next < now) next = next.AddMilliseconds(period);
 
-        var ms = (Int64)(next - now).TotalMilliseconds;
+        // 向上取整并保底 1ms，确保首次触发严格晚于当前时刻
+        var ms = (Int64)Math.Ceiling((next - now).TotalMilliseconds);
+        if (ms <= 0) ms = 1;
         _AbsolutelyNext = next;
         Init(ms);
     }
@@ -207,7 +209,9 @@ public class TimerX : ITimer, IDisposable
         var next = startTime;
         while (next < now) next = next.AddMilliseconds(period);
 
-        var ms = (Int64)(next - now).TotalMilliseconds;
+        // 向上取整并保底 1ms，确保首次触发严格晚于当前时刻
+        var ms = (Int64)Math.Ceiling((next - now).TotalMilliseconds);
+        if (ms <= 0) ms = 1;
         _AbsolutelyNext = next;
         Init(ms);
     }
@@ -370,7 +374,9 @@ public class TimerX : ITimer, IDisposable
 
             // 即使基准时间改变，也不影响绝对时间定时器的执行时刻
             _AbsolutelyNext = next;
-            var ts = (Int32)Math.Round((next - now).TotalMilliseconds);
+            // 向上取整并保底 1ms，避免落在绝对网格点前侧提前触发，以及同一网格点重复触发
+            var ts = (Int32)Math.Ceiling((next - now).TotalMilliseconds);
+            if (ts <= 0) ts = 1;
             SetNextTick(ts);
 
             return ts > 0 ? ts : period;

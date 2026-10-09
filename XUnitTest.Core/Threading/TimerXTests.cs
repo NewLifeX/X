@@ -125,6 +125,27 @@ public class TimerXTests
     }
 
     [Fact]
+    public void AbsolutelyBoundaryTest()
+    {
+        XTrace.WriteLine("AbsolutelyBoundaryTest");
+
+        // 构造时刻距绝对网格点不足 1ms 时，间隔截断为 0 会提前触发。
+        // 显式把网格点摆在当前时刻之后 0.3ms，覆盖该窗口，验证首个触发严格晚于当前时刻。
+        // 奇偶轮换同步与异步构造，两条路径都覆盖
+        for (var i = 0; i < 100; i++)
+        {
+            var start = DateTime.Now.AddMilliseconds(-99.7);
+            var before = Runtime.TickCount64;
+            using var timer = i % 2 == 0
+                ? new TimerX(_ => { }, "Stone3", start, 100)
+                : new TimerX(DoAbsolutelyTest, "Stone2", start, 100);
+            var after = Runtime.TickCount64;
+
+            Assert.InRange(timer.NextTick, before + 1, after + 100);
+        }
+    }
+
+    [Fact]
     public void CronTest()
     {
         XTrace.WriteLine("CronTest");
