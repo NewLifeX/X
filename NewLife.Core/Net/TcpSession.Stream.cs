@@ -272,42 +272,51 @@ partial class TcpSession
         }
         finally
         {
-            // 出站队列：先停泵（结束写侧唤醒挂起读，并等泵退出后不再触碰队列缓冲），
-            // 入队方的水位等待随之结束，最后释放队列归还残余池缓冲。
-            // 不排空——停机场景对端往往已不可达，队列残余本就送不出去，逐会话限时排空会让总耗时随会话数线性放大。
-            //
-            // 取走队列与 getter 的双检锁互斥，避免关闭期间又新建出一个无人释放的队列与发送泵
-            Pipe? queue;
-            lock (_sendQueueLock)
-            {
-                queue = _sendQueue;
-                _sendQueue = null;
-            }
-
-            if (queue != null)
-            {
-                queue.Resumed -= OnSendQueueResumed;
-
-                StopSendPump(queue);
-
-                // 唤醒仍在等水位的入队方：完成写侧不会触发 Resumed，不唤醒它们会永久挂起
-                WakeQueueWaiters();
-
-                queue.Dispose();
-            }
-
-            // 入站流：释放管道（等价于完成写侧唤醒挂起读 + 结束读侧归还残余池缓冲）。
-            // 只完成写侧会让读侧链上尚未消费的池缓冲一直挂到管道随对象不可达，由终结器兜底归还；
-            // 服务端会话还可能存活到 SessionTimeout，等于长期占用内存池。
-            _pipe?.Dispose();
-
-            // 复位入站管道，交由懒创建在重开时重建。客户端会话关闭会把 Client 置空、同一实例可再次 Open，
-            // 若继续持有已完成管道：协议模式接收泵在已结束的读取器上读取抛异常并立即关闭会话，
-            // 外显为“连得上、发不出、收不到”
-            _pipe = null;
-
-            ReleaseParkedReceive();
+            // 仅在关闭真正发生（会话已不活动）时执行流式收尾：取消在入口被拦截（会话仍活动）时
+            // 不得拆掉管道与队列——否则会话外显“还开着”却收不到数据。
+            // 未打开的关闭（Active 亦为假）照常收尾，幂等复位上一轮资源
+            if (!Active) CleanupStreamFlows();
         }
+    }
+
+    /// <summary>流式收尾：停发送泵并释放出站队列（残余丢弃）、终止入站管道、释放暂存接收槽</summary>
+    private void CleanupStreamFlows()
+    {
+        // 出站队列：先停泵（结束写侧唤醒挂起读，并等泵退出后不再触碰队列缓冲），
+        // 入队方的水位等待随之结束，最后释放队列归还残余池缓冲。
+        // 不排空——停机场景对端往往已不可达，队列残余本就送不出去，逐会话限时排空会让总耗时随会话数线性放大。
+        //
+        // 取走队列与 getter 的双检锁互斥，避免关闭期间又新建出一个无人释放的队列与发送泵
+        Pipe? queue;
+        lock (_sendQueueLock)
+        {
+            queue = _sendQueue;
+            _sendQueue = null;
+        }
+
+        if (queue != null)
+        {
+            queue.Resumed -= OnSendQueueResumed;
+
+            StopSendPump(queue);
+
+            // 唤醒仍在等水位的入队方：完成写侧不会触发 Resumed，不唤醒它们会永久挂起
+            WakeQueueWaiters();
+
+            queue.Dispose();
+        }
+
+        // 入站流：释放管道（等价于完成写侧唤醒挂起读 + 结束读侧归还残余池缓冲）。
+        // 只完成写侧会让读侧链上尚未消费的池缓冲一直挂到管道随对象不可达，由终结器兜底归还；
+        // 服务端会话还可能存活到 SessionTimeout，等于长期占用内存池。
+        _pipe?.Dispose();
+
+        // 复位入站管道，交由懒创建在重开时重建。客户端会话关闭会把 Client 置空、同一实例可再次 Open，
+        // 若继续持有已完成管道：协议模式接收泵在已结束的读取器上读取抛异常并立即关闭会话，
+        // 外显为“连得上、发不出、收不到”
+        _pipe = null;
+
+        ReleaseParkedReceive();
     }
     #endregion
 
