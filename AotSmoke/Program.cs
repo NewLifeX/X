@@ -2,10 +2,11 @@
 // Runs a fixed set of scenarios against the core library and reports PASS/FAIL per scenario.
 // Same binary is run under JIT (dotnet run) and NativeAOT (publish -p:PublishAot=true) to compare.
 //
-// 说明：AOT 能力验收冒烟件，由 .github/workflows/test.yml 的 aot job 自动执行（非 0 退出码即失败）。
+// 说明：AOT 能力验收冒烟件，由 .github/workflows/aot.yml 的 aot（win-x64）/aot-linux job 自动执行（非 0 退出码即失败）。
 // 背景与实测结论见 Doc/AOT兼容性分析.md。
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -30,6 +31,10 @@ Console.WriteLine("=== NewLife.Core AOT smoke ===");
 Console.WriteLine($"framework={RuntimeInformation.FrameworkDescription}");
 Console.WriteLine($"IsDynamicCodeSupported={RuntimeFeature.IsDynamicCodeSupported} IsDynamicCodeCompiled={RuntimeFeature.IsDynamicCodeCompiled}");
 Console.WriteLine($"STJ reflection enabled={System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault}");
+Console.WriteLine($"EntryLocation={GetEntryLocation()}");
+
+[UnconditionalSuppressMessage("SingleFile", "IL3000", Justification = "AOT 判真探针：以 Location 是否为空区分原生发布件与 JIT 运行，不用于路径判断")]
+static String? GetEntryLocation() => Assembly.GetEntryAssembly()?.Location;
 
 var results = new List<(String Name, Boolean Ok, String Error)>();
 void Run(String name, Action action)
