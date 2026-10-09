@@ -131,24 +131,3 @@ jobs:
         if (-not ($names -contains 'analyzers/dotnet/cs/NewLife.Core.SourceGenerator.dll')) { throw '主包缺少 analyzers/dotnet/cs/NewLife.Core.SourceGenerator.dll' }
         if (-not ($names -match '^lib/net8.0/NewLife.Core.dll')) { throw '主包缺少 lib/net8.0/NewLife.Core.dll' }
         Write-Host ($names -join "`n")
-
-  # AOT 防回归：25 场景 NativeAOT 冒烟（能力基线见 Doc/AOT兼容性分析.md）
-  aot:
-    runs-on: windows-latest
-    timeout-minutes: 30
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup dotNET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.x
-    - name: AOT Analyzer Report
-      # 报告库自身分析器警告（net8.0，当前 0 条；出现新增用于排查，不阻断）
-      continue-on-error: true
-      run: dotnet build NewLife.Core\NewLife.Core.csproj -f net8.0 -c Release -p:IsAotCompatible=true
-    - name: Publish NativeAOT Smoke
-      run: dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o AotSmoke\bin\aot-out
-    - name: Run NativeAOT Smoke
-      # 任一场景失败即非 0 退出码，阻断合并
-      run: AotSmoke\bin\aot-out\AotSmoke.exe

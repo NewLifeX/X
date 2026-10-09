@@ -1,0 +1,51 @@
+name: aot
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ '*' ]
+  workflow_dispatch:
+
+jobs:
+  # AOT 防回归（Windows）：分析器 0 告警硬约束 + 25 场景原生冒烟（能力基线见 Doc/AOT兼容性分析.md）
+  aot:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: AOT Analyzer Check
+      # 库自身 AOT/裁剪分析器告警（net8.0 与 net8.0-windows，当前 0 条）；-warnaserror 使新增告警阻断
+      run: |
+        dotnet build NewLife.Core\NewLife.Core.csproj -f net8.0 -c Release -warnaserror
+        dotnet build NewLife.Core\NewLife.Core.csproj -f net8.0-windows -c Release -warnaserror
+    - name: Publish NativeAOT Smoke
+      run: dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o AotSmoke\bin\aot-out
+    - name: Run NativeAOT Smoke
+      # 任一场景失败即非 0 退出码，阻断合并
+      run: AotSmoke\bin\aot-out\AotSmoke.exe
+
+  # AOT 冒烟（Linux）：win 之外的平台覆盖；观察期（稳定全绿后取消 continue-on-error 转为阻断）
+  aot-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Install NativeAOT Prerequisites
+      run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+    - name: Publish NativeAOT Smoke (linux-x64)
+      run: dotnet publish AotSmoke/AotSmoke.csproj -c Release -r linux-x64 -o AotSmoke/bin/aot-out-linux
+    - name: Run NativeAOT Smoke (linux-x64)
+      # 任一场景失败即非 0 退出码
+      run: ./AotSmoke/bin/aot-out-linux/AotSmoke
