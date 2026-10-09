@@ -61,6 +61,10 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     /// <returns>返回添加新会话是否成功</returns>
     public Boolean Add(ISocketSession session)
     {
+        // 集合已释放（停机清空）后不得再登记：Add 内的 _clearTimer ??= 会为已释放集合重建清理计时器，
+        // 全局计时器随之长期持有集合→服务对象图；会话则会成为"服务已停、集合非空"的复活会话
+        if (Disposed) return false;
+
         // 已销毁的会话不再入集合：其 OnDisposed 已经触发过，移除回调不会再触发，条目只能等超时清理
         if (session.Disposed) return false;
 
