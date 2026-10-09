@@ -129,4 +129,31 @@ public class UdpDatagramTests
         Assert.Equal(size, received!.Length);
         Assert.Equal(payload, received);
     }
+
+    [Fact(DisplayName = "UDP接收_事件本地地址取服务器绑定地址")]
+    public async Task UdpLocalAddress_FromServerBinding()
+    {
+        // 接收环改走 ReceiveFromAsync（不再读取每包包信息），e.Local 与消息路径 e.Local = Local.Address 同口径：
+        // 多宿服务器绑 Any 时不再逐包给出实际到包地址，本用例把该契约钉住，避免被无声改回
+        using var server = new UdpServer { Port = 0, BufferSize = 1 << 20 };
+        IPAddress? local = null;
+        var hit = new TaskCompletionSource<Boolean>();
+        server.Received += (s, e) =>
+        {
+            if (e.Packet is { Length: > 0 })
+            {
+                local = e.Local;
+                hit.TrySetResult(true);
+            }
+        };
+        server.Open();
+
+        using var client = NetHelper.CreateUdpClient();
+        var payload = "local-addr"u8.ToArray();
+        await client.SendAsync(payload, payload.Length, new IPEndPoint(IPAddress.Loopback, server.Port));
+
+        await hit.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(server.Local.Address, local);
+        Assert.NotEqual(IPAddress.Loopback, local);
+    }
 }

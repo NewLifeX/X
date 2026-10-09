@@ -825,7 +825,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         DefaultSpan.Current = null;
 
         var total = pk.Length;
-        var local = se.ReceiveMessageFromPacketInfo.Address;
+        var local = GetReceiveLocalAddress(se);
         using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", new { total, local, remote }, total);
         ReceivedEventArgs? e = null;
         try
@@ -916,6 +916,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>本轮原始数据是否已被上层接收流程接管。true 时接收环不再把原始字节抛给事件</summary>
     /// <remarks>流式会话的协议模式为 true（数据经数据管道定界后由消息泵交付）；数据报会话与拉取模式为 false</remarks>
     protected virtual Boolean RawReceiveTaken => false;
+
+    /// <summary>本轮数据的本地地址</summary>
+    /// <remarks>默认取接收包信息（`ReceiveMessageFromAsync` 路径）。改用 `ReceiveFromAsync` 的接收环没有包信息，由子类提供等价来源</remarks>
+    /// <param name="se">接收事件参数</param>
+    /// <returns>本地地址；无包信息时返回 null</returns>
+    protected virtual IPAddress? GetReceiveLocalAddress(SocketAsyncEventArgs se) => se.ReceiveMessageFromPacketInfo.Address;
 
     #endregion 接收
 
