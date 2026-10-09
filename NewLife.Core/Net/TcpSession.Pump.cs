@@ -62,7 +62,7 @@ public partial class TcpSession
 
     private CancellationTokenSource? _pumpCts;
 
-    /// <summary>泵任务的观察续体。存的是 ContinueWith 续体而非泵本体：仅用于观察失败，以及标记“协议模式已启动”</summary>
+    /// <summary>泵任务的观察续体。存的是 ContinueWith 续体而非泵本体：仅用于观察失败，以及标记“协议模式已启动”（停止时清空）</summary>
     private Task? _pumpTask;
 
     /// <summary>启动消息泵。协议模式（<see cref="SessionBase.Protocol"/> 非空）下由打开流程与服务端会话启动流程调用</summary>
@@ -104,6 +104,10 @@ public partial class TcpSession
             cts.Cancel();
             cts.Dispose();
         }
+
+        // 清空“泵已启动”标记：RawReceiveTaken 以本生命周期是否已起泵为准。
+        // 不清会让标志在泵退出后恒真——会话关闭后清协议重开时，接收环仍按“数据已交给泵”静默丢弃原始字节
+        _pumpTask = null;
     }
 
     /// <summary>消息泵循环。定界消息帧并逐帧交付；同连接消息串行处理</summary>
