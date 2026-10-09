@@ -432,7 +432,10 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     #region 接收
     internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
     {
-        if (!Active || Client is not { } sock) return false;
+        // 不能发起接收（关闭窗口内 Client 已清、或已停止）时与 TcpSession 同口径抛 ODE，由基类释放本槽。
+        // 不能返回 false——false 的语义是“本次同步完成、se 已持有新状态”，会把上一次完成的陈旧
+        // 事件参数重新投递（关闭窗口内成环：同一报文被反复派发，甚至触发空数据关闭分支）
+        if (!Active || Client is not { } sock) throw new ObjectDisposedException(GetType().Name);
 
         // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一。
         // 注意：运行时在完成回调中“就地”更新该端点对象，且对象会随接收结果成为会话的远程端点被长期保留，
