@@ -1,4 +1,5 @@
 ﻿#if __WIN__
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -536,6 +537,7 @@ public static class ControlHelper
 
     /// <summary>修正窗体的Dpi</summary>
     /// <param name="frm"></param>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "按运行时窗体类型反射非公开字段以扫描 ListView（DPI 修复可选路径）；字段被裁剪时自然跳过，不参与 AOT 主链")]
     public static void FixDpi(this Form frm)
     {
         // 只要重新设置一次字体，就可以适配高Dpi，不晓得为啥

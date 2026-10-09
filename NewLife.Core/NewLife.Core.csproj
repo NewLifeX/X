@@ -57,6 +57,12 @@
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
 
+  <!-- net8.0+（含 -windows 形态）常驻启用 AOT/裁剪分析器：0 告警成为构建期硬约束，与 AOT 支持基线一致。
+       注意 SDK 会将 IsTrimmable 一并置真，这些目标的程序集会嵌入 IsTrimmable 元数据 -->
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(TargetFramework)'=='net5.0-windows'">
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" TargetingPackVersion="5.0.0" />
   </ItemGroup>

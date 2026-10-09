@@ -54,6 +54,10 @@ namespace NewLife.Reflection;
 /// </code>
 /// </example>
 [RequiresDynamicCode("脚本引擎依赖运行时代码编译，NativeAOT 下不可用")]
+// net5 的 BCL RequiresUnreferencedCode 仅允许方法/构造函数级标注，该目标不附加类级裁剪声明
+#if !NET5_0
+[RequiresUnreferencedCode("脚本引擎依赖动态程序集加载与运行时成员查找，裁剪后不可用")]
+#endif
 public class ScriptEngine
 {
     #region 属性
@@ -366,6 +370,7 @@ public class ScriptEngine
     /// <param name="classCode"></param>
     /// <param name="options"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("SingleFile", "IL3000", Justification = "脚本引擎依赖动态编译；收集引用程序集路径时单文件下 Location 为空已被容错跳过，不属于 AOT 主链")]
     public CompilerResults Compile(String classCode, CompilerParameters? options)
     {
         options ??= new CompilerParameters
