@@ -6,11 +6,13 @@
 #   pwsh -File run-matrix.ps1 -Quick          # 冒烟（窗口 3s）
 #   pwsh -File run-matrix.ps1 -SkipBuild      # 跳过编译
 #   pwsh -File run-matrix.ps1 -Only "tcp-1KB" # 只跑名称匹配的场景（正则）
+#   pwsh -File run-matrix.ps1 -Only "tcp-1KB" -ClientProcs 4    # 多客户端进程加压（突破单进程 CPU 上限）
 param(
     [switch]$Quick,
     [switch]$SkipBuild,
     [string]$OutDir = "",
-    [string]$Only = ""
+    [string]$Only = "",
+    [int]$ClientProcs = 1
 )
 
 $ErrorActionPreference = "Stop"
@@ -93,7 +95,19 @@ function Invoke-Scenario {
     if ($Frame -gt 0) { $cliArgs += @("--frame", "$Frame") }
     if ($RecvMode -ne "sync") { $cliArgs += @("--recvmode", "$RecvMode") }
     if ($UdpConnect) { $cliArgs += "--udpconnect" }
-    & $exe @cliArgs 2>&1 | Out-File $cliLog -Encoding UTF8
+    if ($ClientProcs -gt 1) {
+        # 多客户端进程加压：单进程客户端的同步发送自身会烧掉十余核，容易被误读成“服务端饱和”。
+        # 多个客户端进程合计超过单进程 CPU 上限后，才能压出服务端真实余量（见报告 5.2）。
+        $procs = @()
+        for ($ci = 0; $ci -lt $ClientProcs; $ci++) {
+            $procs += Start-Process $exe -ArgumentList $cliArgs -PassThru -NoNewWindow -RedirectStandardOutput "$cliLog.$ci"
+        }
+        foreach ($pc in $procs) { $pc.WaitForExit(300000) | Out-Null }
+        Copy-Item "$cliLog.0" $cliLog -Force
+    }
+    else {
+        & $exe @cliArgs 2>&1 | Out-File $cliLog -Encoding UTF8
+    }
 
     # 等服务端自动退出（静默 3 秒 + 余量），超时强杀
     if (-not $srv.WaitForExit(90000)) {
