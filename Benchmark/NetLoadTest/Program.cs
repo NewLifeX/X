@@ -56,6 +56,10 @@ static class Program
         // 统计口径折算为逻辑帧吞吐（对标历史 23.4Gbps ÷ 24B = 1.4 亿 pkt/s 记录）
         if (frame > 0) size = Math.Max(frame, size / frame * frame);
 
+        // 内核接收缓冲（TCP 大报文吞吐上限）：0 表示保持系统默认
+        var rcvbuf = GetInt(args, "--rcvbuf", 0);
+        if (rcvbuf > 0) SocketSetting.Current.ReceiveBufferSize = rcvbuf;
+
         var roundtrip = mode.Equals("roundtrip", StringComparison.OrdinalIgnoreCase);
 
         Console.WriteLine("=== 裸Socket压测（echo 服务端）===");

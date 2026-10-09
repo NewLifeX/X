@@ -468,7 +468,14 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         };
 
         // 为了降低延迟，服务端不要合并小包。Unix域套接字不支持TCP选项
-        if (!Local.IsUnix) client.NoDelay = NoDelay;
+        if (!Local.IsUnix)
+        {
+            client.NoDelay = NoDelay;
+
+            // 内核接收窗口决定大报文吞吐上限：发送侧已按报文大小自动调优发送缓冲，接收侧需显式放大（默认 0 不修改）
+            var rcvBuf = SocketSetting.Current.ReceiveBufferSize;
+            if (rcvBuf > 0) client.ReceiveBufferSize = rcvBuf;
+        }
 
         return session;
     }

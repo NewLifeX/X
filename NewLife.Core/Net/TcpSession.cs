@@ -298,6 +298,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 sock = Client = NetHelper.CreateTcp(Local.Address!.IsIPv4());
                 //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
                 if (NoDelay) sock.NoDelay = true;
+
+                // 内核接收窗口决定大报文吞吐上限，默认不修改（0）
+                var rcvBuf = SocketSetting.Current.ReceiveBufferSize;
+                if (rcvBuf > 0) sock.ReceiveBufferSize = rcvBuf;
                 if (timeout > 0)
                 {
                     sock.SendTimeout = timeout;
