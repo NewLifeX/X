@@ -266,8 +266,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             CloseReason = reason;
 
-            // 接收流程的收尾动作：流式会话先停消息泵（取消挂起读取），随后关闭处理器链与会话
-            StopReceiveFlow();
+            // 接收流程的收尾动作：流式会话先停消息泵（取消挂起读取并等待在途数据交付完成），随后关闭处理器链与会话
+            await StopReceiveFlowAsync().ConfigureAwait(false);
 
             // 取消挂起的请求-响应等待，避免调用方悬挂
             _matcher.Clear();
@@ -912,6 +912,19 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>停止接收处理。关闭流程开头调用，供子类做接收流程的收尾（如流式会话停止消息泵）</summary>
     protected virtual void StopReceiveFlow() { }
+
+    /// <summary>停止接收处理（异步）。关闭流程开头调用，供子类做接收流程的收尾</summary>
+    /// <remarks>
+    /// 默认转发同步 <see cref="StopReceiveFlow"/>。需要先把“已读出但尚未交付”的在途数据交付完成再关闭的流式会话
+    /// （如消息泵）重写本方法：关闭流程在它返回后才推进到关闭处理器链与会话，从而保证在途数据先于关闭交付给上层。
+    /// </remarks>
+    /// <returns>收尾任务</returns>
+    protected virtual Task StopReceiveFlowAsync()
+    {
+        StopReceiveFlow();
+
+        return TaskEx.CompletedTask;
+    }
 
     /// <summary>本轮原始数据是否已被上层接收流程接管。true 时接收环不再把原始字节抛给事件</summary>
     /// <remarks>流式会话的协议模式为 true（数据经数据管道定界后由消息泵交付）；数据报会话与拉取模式为 false</remarks>

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -564,6 +565,72 @@ public class MessageSessionTests
         var task = await Task.WhenAny(closed.Task, Task.Delay(5_000));
         Assert.True(task == closed.Task, "客户端应在超时内感知服务端关闭连接");
         Assert.True(await closed.Task);
+    }
+
+    [Fact]
+    [DisplayName("协议模式_对端发完即关_已到达帧先于会话关闭交付")]
+    public async Task PeerSendThenClose_FrameDeliveredBeforeClose()
+    {
+        using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec() };
+        server.Start();
+
+        var codec = new SrmpCodec();
+        var watch = Stopwatch.StartNew();
+
+        var busy = new ManualResetEventSlim(false);
+        var entered = NewTcs<Boolean>();
+        var second = NewTcs<Int64>();
+        var closed = NewTcs<Int64>();
+
+        // 关闭信号取底层套接字会话的销毁事件：上层正是在它之后才判定“异常断开”并做善后
+        //（如协议层按是否收到正常断开报文决定是否发布遗嘱），故“已到达帧先于它交付”是可观察契约
+        server.NewSession += (s, e) =>
+        {
+            if (e.Session?.Session is SessionBase sk) sk.OnDisposed += (s2, e2) => closed.TrySetResult(watch.ElapsedTicks);
+        };
+
+        server.Received += (s, e) =>
+        {
+            if (e.Message is not DefaultMessage msg) return;
+
+            // 首帧卡住消息泵：制造“次帧已到达管道、泵仍在交付首帧”的窗口
+            if (msg.Sequence == 1)
+            {
+                entered.TrySetResult(true);
+                busy.Wait(5_000);
+            }
+            else if (msg.Sequence == 2)
+                second.TrySetResult(watch.ElapsedTicks);
+        };
+
+        using var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        await client.ConnectAsync(IPAddress.Loopback, server.Port);
+
+        // 首帧发完先等处理器确实卡住，保证次帧到达时泵仍在交付首帧（拉取时机确定，不依赖线程池调度）
+        client.Send(BuildFrame(codec, 1, MakePayload(16)));
+        await WithTimeout(entered.Task, 5_000);
+
+        // 次帧 + 立即关闭（对端发完即关，不等应答）：次帧已到达管道，关闭此时才推进
+        client.Send(BuildFrame(codec, 2, MakePayload(16)));
+        client.Shutdown(SocketShutdown.Send);
+        client.Close();
+
+        // 留出关闭流程推进的时间，再放行首帧处理器
+        await Task.Delay(200);
+        busy.Set();
+
+        var secondAt = await WithTimeout(second.Task, 5_000);
+        var closedAt = await WithTimeout(closed.Task, 5_000);
+        Assert.True(secondAt < closedAt, $"已到达帧应在会话关闭信号前交付（交付 {secondAt}，关闭 {closedAt}）");
+    }
+
+    private static Byte[] BuildFrame(SrmpCodec codec, Int32 sequence, Byte[] body)
+    {
+        var msg = new DefaultMessage { Sequence = sequence };
+        msg.SetBody(new ArrayPacket(body));
+        using var frame = codec.Build(msg);
+
+        return frame.ToArray();
     }
 
     [Fact]

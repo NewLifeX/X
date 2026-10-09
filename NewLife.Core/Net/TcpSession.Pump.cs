@@ -24,6 +24,16 @@ public partial class TcpSession
     /// <remarks>在消息泵任务上同步消费流式体的实现应重写为 true：否则大帧会在事件内同步等待后续数据，占用线程池线程</remarks>
     protected virtual Boolean RequireFullFrame => false;
 
+    /// <summary>关闭时等待在途帧交付完成的上限（毫秒），默认 1000。0 表示不等待</summary>
+    /// <remarks>
+    /// <para>数据由接收环写入管道、消息泵异步交付，而关闭（含对端 FIN 的被动关闭）在接收环上同步推进：
+    /// 不等在途交付直接关闭，会把“已读入管道但尚未交给上层”的帧连同关闭一起丢掉。
+    /// 对端“发完即关”时最后一条消息最先受损（如 MQTT 的 DISCONNECT 丢失，上层把正常断开误判为异常断开并误发遗嘱）。</para>
+    /// <para>关闭流程先取消挂起读取，再等待泵退出（泵退出前会把已读出的帧交付完），最多等待本上限；
+    /// 处理器长时间不返回时不再等待，按剩余流程关闭。</para>
+    /// </remarks>
+    public Int32 PumpDrainTimeout { get; set; } = 1000;
+
     #endregion
 
     #region 接收流程
@@ -40,6 +50,9 @@ public partial class TcpSession
 
     /// <summary>停止接收处理。关闭流程开头先停消息泵（取消挂起读取），随后关闭处理器链与会话</summary>
     protected override void StopReceiveFlow() => StopMessagePump();
+
+    /// <summary>停止接收处理（异步）。取消挂起读取并等待在途帧交付完成，保证在途帧先于关闭交付给上层</summary>
+    protected override Task StopReceiveFlowAsync() => StopMessagePumpAsync();
 
     /// <summary>本轮原始数据是否已被消息泵接管</summary>
     /// <remarks>协议模式下数据经数据管道定界交付，接收环不再把原始字节抛给事件；拉取模式（无泵）时仍走事件</remarks>
@@ -65,6 +78,17 @@ public partial class TcpSession
     /// <summary>泵任务的观察续体。存的是 ContinueWith 续体而非泵本体：仅用于观察失败，以及标记“协议模式已启动”（停止时清空）</summary>
     private Task? _pumpTask;
 
+    /// <summary>泵本体任务。关闭时等待在途帧交付完成用（观察续体与泵本体完成时序不同，不可用于等待）</summary>
+    private Task? _pumpRunTask;
+
+    /// <summary>当前异步流是否处于消息泵内。用于识别泵内关闭（处理器内主动关闭、泵内报错关闭），避免等待泵自身退出</summary>
+#if NET45
+    // net45 无 AsyncLocal，退回线程本地（与 TokenHttpFilter 同一降级口径）；异步续体切线程后标记可能丢失，此时退化为等到上限
+    private readonly ThreadLocal<Boolean> _inPump = new();
+#else
+    private readonly AsyncLocal<Boolean> _inPump = new();
+#endif
+
     /// <summary>启动消息泵。协议模式（<see cref="SessionBase.Protocol"/> 非空）下由打开流程与服务端会话启动流程调用</summary>
     /// <remarks>首次访问数据管道确保其在接收环启动前就绪。调用方须保证时序（每次会话生命周期至多一次）</remarks>
     protected void StartMessagePump()
@@ -81,6 +105,7 @@ public partial class TcpSession
         WriteLog("启动消息泵：{0}", codec);
 
         var task = PumpAsync(new MessagePump(codec) { MaxCache = MaxCache, RequireFullFrame = RequireFullFrame, MaxFrameSize = MaxFrameSize }, reader, cts.Token);
+        _pumpRunTask = task;
 
         // 观察泵任务：泵内异常若无人观察会被静默吞掉，表现为“连接还在但再也收不到消息”，极难定位
         _pumpTask = task.ContinueWith(
@@ -108,6 +133,30 @@ public partial class TcpSession
         // 清空“泵已启动”标记：RawReceiveTaken 以本生命周期是否已起泵为准。
         // 不清会让标志在泵退出后恒真——后续接收判断仍按“数据已交给泵”静默丢弃原始字节
         _pumpTask = null;
+        _pumpRunTask = null;
+    }
+
+    /// <summary>停止消息泵（异步）。取消挂起读取，并等待在途帧交付完成，避免关闭前已读出的帧被丢弃</summary>
+    /// <remarks>
+    /// <para>取消只作用于挂起读取：读取已完成的帧仍会被泵交付，因此等待泵退出即可保证这些帧先于关闭交付给上层。</para>
+    /// <para>泵内主动关闭（处理器内、泵内报错）不得等待自身退出，否则要等到上限，直接返回。</para>
+    /// </remarks>
+    /// <returns>泵收尾任务</returns>
+    protected virtual async Task StopMessagePumpAsync()
+    {
+        var run = Interlocked.Exchange(ref _pumpRunTask, null);
+
+        StopMessagePump();
+
+        var timeout = PumpDrainTimeout;
+        if (run == null || run.IsCompleted || timeout <= 0 || _inPump.Value) return;
+
+        // 在途帧交付通常微秒级完成；本等待是处理器长时间不返回时的兜底，超时后不再等待
+        var done = await Task.WhenAny(run, Task.Delay(timeout)).ConfigureAwait(false);
+        if (done != run) return;
+
+        // 观察泵任务的异常，避免无人消费的故障任务堆积
+        try { await run.ConfigureAwait(false); } catch { }
     }
 
     /// <summary>消息泵循环。定界消息帧并逐帧交付；同连接消息串行处理</summary>
@@ -116,7 +165,17 @@ public partial class TcpSession
     /// <param name="cancellationToken">取消通知（会话关闭）</param>
     private async Task PumpAsync(MessagePump pump, PipeReader reader, CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        // 先让出一次再置标记：异步流标记若在同步前缀赋值，会随执行上下文泄漏到启动会话的调用方，
+        // 之后在同一线程上发生的关闭会被误判为“泵内关闭”而跳过等待，丢帧照旧
+        await Task.Yield();
+
+        // 标记当前异步流处于泵内：泵内（含处理器）主动关闭会话时不得等待泵自身退出
+        _inPump.Value = true;
+
+        // 不按取消令牌提前退出：取消只应终止“等待新数据”，已到达并写入管道的帧仍要交付完再退出。
+        // 循环靠读取结果终止——无数据可读时的取消以 OperationCanceledException 逃出，由下方捕获后退出。
+        // 反之（读到即退）会把“对端发完即关”时已到达的最后一条消息连同关闭一起丢掉。
+        while (true)
         {
             IMessage? message;
             try
@@ -129,6 +188,10 @@ public partial class TcpSession
             }
             catch (Exception ex)
             {
+                // 关闭已在进行（令牌已取消）：读取失效随关闭一并收尾，不再当作数据流故障报错与关闭，
+                // 否则关闭流程释放管道后泵的收尾读取会刷出无意义的 MessagePumpError
+                if (cancellationToken.IsCancellationRequested) break;
+
                 OnError("MessagePump", ex);
 
                 // 数据流不可恢复（协议错误/IO 异常）：关闭会话，避免半开连接僵死

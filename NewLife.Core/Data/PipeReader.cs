@@ -82,6 +82,11 @@ public sealed class PipeReader
             // 取消、结束、已完成或已有新数据：结果立即可得
             if (TryTakeResultLocked(out var result)) return new ValueTask<ReadResult>(result);
 
+            // 取消通知已触发且无数据可读：直接以取消结束，不做挂起登记。
+            // 挂起登记要把回调注册到令牌上，而令牌所属的取消源在关闭流程里是 Cancel 后立即 Dispose 的；
+            // 无需依赖“释放后仍可登记”的运行时行为，直接结束语义等价且省掉一次登记与回调
+            if (cancellationToken.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
+
             // 无数据：挂起等待
             var waiting = _waiting;
             if (waiting != null)
