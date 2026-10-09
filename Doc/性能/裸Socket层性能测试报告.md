@@ -4,6 +4,7 @@
 > 关联报告：[网络库编解码器Echo性能测试报告](网络库编解码器Echo性能测试报告.md)（协议层）、[内存分配与拷贝成本报告](../内存分配与拷贝成本报告.md)。
 > 数据版本：**v3.2（2026-10-09 重构后复测）**——服务端口径（吞吐/分配）、并发与尺寸扫描、带宽比特率单位；本次为接收环/会话重构后的回归复测，**各档与 v3.1 持平、无回归**，UDP 64KB 峰值 134.5→138.9 Gbps（+3.2%）、TCP 1KB 并发峰值 13.7→14.5 Gbps；v3.1 优化项与本次复测结论见第七节；工具 `Benchmark/NetLoadTest`（`run-matrix.ps1` 一键复现）。
 > **v3.3（同日）**：UDP 接收改 `ReceiveFromAsync`——每包分配 **216→104 B**、每包 CPU **-1.3 µs**、1KB 高并发包率 **+18.8%**（见第七节）。
+> **v3.4（同日）**：定位 TCP 大包档受**内核接收窗口**限制，新增 `SocketSetting.ReceiveBufferSize`（内核接收缓冲，默认 0=不改）；负载/高延迟下 1MB 报文 +25%，空闲回环无收益（见第七节）。
 
 ## 一、核心结论
 
@@ -251,6 +252,7 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 - **TCP 1MB 档 264 B/msg 已归因**：**非每包成本，也非缓冲池丢池**——接收环稳态零 `OwnerPacket` 构造/零"换新"（计数器实测），纯 ArrayPool 19.6 亿次借还 0 分配；实为约 1 MB/s（占该档吞吐 0.02%）的**背景分配折算**，属把背景分配摊到包数上的度量假象（见 5.1）；
 - **UDP 每包本地地址 = 服务器绑定地址**：接收环走 `ReceiveFromAsync`（v3.3 优化），不再读取每包包信息；多宿服务器绑 `Any` 时 `e.Local` 为 `0.0.0.0` 而非实际到包地址（与消息路径 `e.Local = Local.Address` 同口径，契约由 `UdpLocalAddress_FromServerBinding` 用例钉住）；
 - **每包 CPU 为平台固有**：UDP 服务端 ~13-17 µs CPU/包，裸 Socket 同构接收环基线即 ~12.7-13.6 µs/包（无 NewLife 代码），瓶颈在 Windows loopback 内核协议栈；TCP 服务端 1KB 仅 ~0.58 µs/包。故吞吐天花板由压测客户端同步发送 + 内核协议栈决定，非库内瓶颈；
+- **TCP 大包吞吐受内核接收窗口限制**：发送侧已按报文大小自动放大发送缓冲，接收侧此前始终用系统默认（Windows 约 64KB）；带宽延迟积较大（高负载 / 高延迟链路）时窗口成为瓶颈，可用 `SocketSetting.ReceiveBufferSize` 显式放大（默认 0 不改），代价是每连接的内核内存（4MB × 1 万连接 = 40GB）；
 - **`UdpSession` 不实现 `INetSession`**：`NetServer.Received` 的 sender 在 UDP 下为 `UdpSession`（仅 `ISocketSession`），`s is INetSession` 分支不命中，写通用代码时注意。
 
 ## 七、优化记录与复测（v3.1 → v3.2）
@@ -261,6 +263,7 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 | UDP 客户端自动连接 | 纯客户端模式（本地端口自动分配 + 远端为单播地址）打开即 `Connect` 远端；广播/组播/指定本地端口的双角色实例保持 SendTo 语义 | 客户端发送 **41.5→0.4 B/msg**；服务端吞吐不变（2.34→2.36 Gbps 同档） |
 | 接收环并行度实验 | `MaxAsync` ×4（51 槽位）对照实验 | 包率无变化 → 槽位数不是 UDP 包率上限的瓶颈；保持默认 CPU×1.6 |
 | **UDP 接收改 ReceiveFromAsync** | `UdpServer.OnReceiveAsync` 由 `ReceiveMessageFromAsync` 改为 `ReceiveFromAsync`；本地地址改由新增虚方法 `GetReceiveLocalAddress`（`UdpServer` 取 `Local.Address`）提供 | 每包分配 **216→104 B（-52%）**、每包 CPU **-1.3 µs**、**UDP 1KB 高并发包率 +18.8%**（同环境配对 A/B 3 次取中位，区间不重叠：468k→556k pps）；UDP 64KB 大包档落在环境噪声内（对照档抖动 ±40%），无明确变化 |
+| **TCP 内核接收缓冲旋钮** | 新增 `SocketSetting.ReceiveBufferSize`（0=不改，默认行为与内存占用均不变），在客户端连接与服务端接受连接处应用；`NetLoadTest` 加 `--rcvbuf` 便于复现 | TCP 大包档受**内核接收窗口**限制（发送侧按报文自动调优，接收侧此前无旋钮）。负载/高延迟条件下 1MB 报文 8C 中位 **16.74→20.96 Gbps（+25%）**；早期负载更重时 64KB +33%、1MB +94%；**空闲回环下 ±0%**（系统自动调优已足够）——收益取决于带宽延迟积 |
 
 **剩余 216 B/msg 的成因**：经 .NET 运行时源码确认，SAEA 完成回调会**就地更新** `RemoteEndPoint` 对象（`EndPoint.Create` 语义），且该对象随接收结果成为会话的远程端点被长期保留——每轮接收必须使用新的 `IPEndPoint`；复用同一实例重置会把其它会话的端点改掉。该开销在应用层已无安全优化空间。
 
@@ -273,6 +276,9 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 **v3.3（2026-10-09）UDP 接收 API 优化**：`UdpServer.OnReceiveAsync` 统一改走 `ReceiveFromAsync`（原仅 Mono/Android 分支才走），本地地址由新增虚方法 `GetReceiveLocalAddress` 提供（`UdpServer` 返回 `Local.Address`）。收益：每包分配 **216→104 B（-52%）**、每包 CPU **-1.3 µs**、UDP 1KB 高并发包率 **+18.8%**（468k→556k pps，同环境配对 A/B 3 次中位，区间不重叠）。代价：多宿服务器绑 `Any` 时 `e.Local` 由「实际到包地址」变为绑定地址（与消息路径 `e.Local = Local.Address` 同口径）；契约由新用例 `UdpLocalAddress_FromServerBinding` 钉住，并做「退回旧实现即变红」的负向验证；UDP 相关 62 用例全绿。
 
 **测试环境说明**：本轮复测期间机器另有约 3-4 核背景负载（对照档 `tcp-64KB-c4` 抖动达 ±40%），故 §三/§五 表格仍为 v3.2（当日空闲时）数据，UDP 档绝对量在负载下偏低；建议在空闲机器上重跑 `run-matrix.ps1` 刷新全表。
+
+**v3.4（2026-10-09）TCP 内核接收缓冲**：定位 TCP 大包档「包率仅 ~80 kpps、1MB 档仅 4 kpps」的成因——**不是** CPU 或库内开销（服务端 1KB 档仅 0.58 µs/包），而是**接收窗口**卡住带宽延迟积：发送侧 `TuneSendBufferSize` 会按报文大小自动放大发送缓冲，接收侧却始终用系统默认（Windows 约 64KB）。用 NewLife 自身栈做因果实验（同一环境内对比）：置 SO_RCVBUF=4MB 后 1MB 报文 8C 吞吐中位 **16.74→20.96 Gbps（+25%）**；更早、机器负载更重时同一对比为 64KB **+33%**、1MB **+94%**。
+**重要局限**：机器转闲后同一对比回到 **±0%**——Windows 的 SO_RCVBUF 自动调优在空闲回环下已足够，显式设置只在「负载或链路延迟使 RTT 增大、BDP 超过默认窗口」时才见效。故本项做成**显式旋钮**（默认 0 = 不改，零行为变化、零内存开销），**不**默认放大（4MB × 1 万连接 = 40GB 内核内存）。验证：新增用例 `TcpReceiveBufferSize_AppliedToBothEnds`（两端套接字均带上设置值）；`NetLoadTest` 加 `--rcvbuf` 便于复现。
 
 ## 复现命令
 
