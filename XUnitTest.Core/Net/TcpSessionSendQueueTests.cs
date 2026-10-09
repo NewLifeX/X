@@ -237,8 +237,8 @@ public class TcpSessionSendQueueTests
     }
 
     [Fact]
-    [DisplayName("发送队列_关闭重开_队列与发送泵重建")]
-    public async Task SendQueue_RebuiltAfterCloseAndReopen()
+    [DisplayName("发送队列_关闭后收尾_队列释放且二次打开被拒")]
+    public async Task SendQueue_ReleasedAfterClose()
     {
         var listener = CreateListener(out var port);
         using var client = new TcpSession { Remote = new NetUri($"tcp://127.0.0.1:{port}") };
@@ -260,7 +260,7 @@ public class TcpSessionSendQueueTests
                 Assert.Equal(new Byte[] { 1, 2, 3 }, buf[..3]);
 
                 // 必须由客户端先关，再释放对端：对端先关会让客户端接收环读到 FIN，
-                // 经 CheckClosed 判定“Finish”直接终结会话（Close + Dispose），后续重开失去前提
+                // 经 CheckClosed 判定“Finish”直接终结会话（Close + Dispose），后续断言失去前提
                 client.Close("test");
             }
 
@@ -272,28 +272,10 @@ public class TcpSessionSendQueueTests
                 await Task.Delay(10);
             }
 
-            // 首次 Open 会把系统分配的本地端口钉在 Local 上（便于断线重连复用端口），
-            // 本端主动关闭后该端口仍被上一连接的四元组占住，重开绑定即 EADDRINUSE，入队重连随之失败。
-            // 端口复用行为由 SessionReopenTests 专项覆盖，此处恢复自动分配端口，聚焦“关闭重开后队列与发送泵重建”
-            client.Local.Port = 0;
-
-            // 客户端会话同一实例可重开：再次访问得到新队列（新发送泵）
-            var queue2 = client.SendQueue;
-            Assert.NotNull(queue2);
-            Assert.NotSame(queue1, queue2);
-
-            // 入队会按需重连，数据送达新连接
-            var sending = Task.Run(() => client.SendQueuedAsync(new ArrayPacket(new Byte[] { 4, 5, 6 })).AsTask());
-            using var peer2 = await listener.AcceptWithinAsync(detail: () => sending.IsFaulted
-                ? $"入队任务异常：{sending.Exception?.GetBaseException().Message}"
-                : $"入队任务状态={sending.Status}，会话Active={client.Active}");
-            peer2.ReceiveTimeout = 30_000;
-
-            Assert.True(await sending.WaitAsync(TimeSpan.FromSeconds(10)));
-
-            var buf2 = new Byte[16];
-            Assert.Equal(3, peer2.Receive(buf2));
-            Assert.Equal(new Byte[] { 4, 5, 6 }, buf2[..3]);
+            // 会话对象一次性：关闭后不可重新打开；入队先走打开入口，同样被明确拒绝
+            Assert.Throws<InvalidOperationException>(() => client.Open());
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => client.SendQueuedAsync(new ArrayPacket(new Byte[] { 4, 5, 6 })).AsTask());
         }
         finally
         {

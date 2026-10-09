@@ -49,14 +49,25 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public Int32 Timeout { get; set; } = 3_000;
 
     private volatile Boolean _active;
+    private volatile Boolean _everActive;
     /// <summary>是否活动</summary>
     /// <remarks>
     /// <para>打开成功后置 true；关闭完成后置 false。服务端已接受连接的会话由宿主直接置 true。</para>
     /// <para>关闭流程内可提前置 false（如底层连接已拆除时），用于阻断掉线重连判断。</para>
     /// <para>本属性只表示“传输是否可用”，<b>不代表</b>接收环已经启动，也不代表会话还在服务端集合里；
     /// 服务端会话由宿主在构造时即置 true（表示连接已被接受），因此它的 <see cref="Open()"/> 会幂等短路，不会执行 <see cref="OnOpenAsync(CancellationToken)"/>。</para>
+    /// <para>会话对象一次性：曾置 true 的会话在关闭后不可再次打开（见 <see cref="OpenAsync(CancellationToken)"/>），重连请新建会话对象。</para>
     /// </remarks>
-    public Boolean Active { get => _active; set => _active = value; }
+    public Boolean Active
+    {
+        get => _active;
+        set
+        {
+            // 先置“曾经活动”标记再写活动位，保证任何后续读到“已关闭”的调用者都能看到该标记
+            if (value) _everActive = true;
+            _active = value;
+        }
+    }
 
     /// <summary>底层Socket</summary>
     /// <remarks>底层的Socket实例，可用于高级操作</remarks>
@@ -169,13 +180,16 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <remarks>
     /// <para>已打开直接成功；并发调用不做排队，入口检查与置位之间到达的调用可能重复执行打开过程（调用方应避免并发打开）。</para>
     /// <para>打开过程由 <paramref name="cancellationToken"/> 约束，异常原样抛出。</para>
+    /// <para>会话对象一次性：一旦活动过（打开成功或服务端接受连接），关闭后不可重新打开，重连请新建会话对象（NetClient 等宿主会自动重建）。</para>
     /// </remarks>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>是否成功</returns>
+    /// <exception cref="InvalidOperationException">会话对象曾经活动过且已关闭，不可重新打开</exception>
     public virtual async Task<Boolean> OpenAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (Active) return true;
+        if (_everActive) throw new InvalidOperationException("会话对象一次性：关闭后不可重新打开，重连请新建会话对象（NetClient 等宿主会自动重建）");
         if (cancellationToken.IsCancellationRequested) return false;
 
         using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote?.ToString());

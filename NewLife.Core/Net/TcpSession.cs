@@ -516,7 +516,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
             // 提前关闭这个标识，否则Close时可能触发自动重连机制
             // 此处只改“传输可用性”：服务端会话随后会被 Dispose（连带移出会话集合），
-            // 客户端会话保留未释放以便重开，因此“Active 为假、Disposed 尚未置位”是关闭过程中的正常瞬态
+            // 客户端会话保留未释放（会话对象一次性，由调用方保管），因此“Active 为假、Disposed 尚未置位”是关闭流程的正常瞬态
             Active = false;
             try
             {
@@ -549,7 +549,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 // 关闭动作（Shutdown/Close）抛异常时底层连接状态已不可信，服务端会话必须在此释放：
                 // 否则它会以 Active=false 留在会话集合里，一直等到会话超时清理才摘除（这段时间集合与计数都把它算作在线）。
                 // 此处 Dispose 是安全的：Active 已在上方置 false，Dispose 内部再走的 Close 会幂等短路；
-                // 客户端会话不在此释放，由调用方保管以便重开。
+                // 客户端会话不在此释放，由调用方保管（会话对象一次性，关闭后不可重新打开）。
                 if (_Server != null) Dispose();
 
                 return Task.FromResult(false);
@@ -1095,8 +1095,8 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         try
         {
             // 会话已终结时立即收尾退出。只认两种终态：已释放，或服务端会话已关闭不再活动。
-            // 服务端会话关闭即 Dispose、不会重开，而客户端会话关闭后保留以便重开，
-            // 故客户端“已关闭未释放”不算终结，其新建的泵理应留着等重开后的数据。
+            // 服务端会话关闭即 Dispose、不会重开；客户端会话关闭后保留未释放（会话对象一次性，由调用方保管终态），
+            // 故客户端泵不按“已关闭”提前收尾，统一交给关闭流程与最终释放处理。
             //
             // 本泵可能是关闭收尾之后才建出来的——入队方过了 Open 检查、随后关闭完成（见 SendQueue 的建队列路径），
             // 此时队列读侧不会再有写入、泵令牌也无人取消，继续阻塞在读取上会让这条 LongRunning 专用线程

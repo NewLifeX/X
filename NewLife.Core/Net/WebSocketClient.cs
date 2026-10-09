@@ -102,11 +102,11 @@ public class WebSocketClient : TcpSession
             return false;
         }
 
-        // 重开复位关闭标记（连接关闭后本会话可再次打开）
+        // 打开成功，复位关闭标记
         SetOpened();
 
         // 订阅 Received 事件以跟踪 Pong 响应（仅事件模式有效）。
-        // 先退订再订阅：重连会再次执行本方法，重复订阅会让每个 Pong 触发多次回调
+        // 先退订再订阅：重复执行打开流程时，重复订阅会让每个 Pong 触发多次回调
         Received -= OnReceivedPong;
         Received += OnReceivedPong;
 
@@ -175,7 +175,7 @@ public class WebSocketClient : TcpSession
         tcs?.TrySetResult(false);
     }
 
-    /// <summary>标记重新打开，复位关闭标记</summary>
+    /// <summary>标记打开，复位关闭标记</summary>
     private void SetOpened()
     {
         lock (_signalLock) _closed = false;

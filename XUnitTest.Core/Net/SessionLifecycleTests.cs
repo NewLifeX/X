@@ -167,26 +167,23 @@ public class SessionLifecycleTests
     }
 
     [Fact]
-    [DisplayName("生命周期_顺序开关多次_可重开")]
-    public async Task SequentialOpenClose_Repeated()
+    [DisplayName("生命周期_关闭后二次打开_明确拒绝")]
+    public async Task SequentialOpenClose_SecondOpenRejected()
     {
         using var session = new FakeSession();
 
-        for (var i = 1; i <= 3; i++)
-        {
-            Assert.True(await session.OpenAsync());
-            Assert.True(session.Active);
-
-            Assert.True(await session.CloseAsync("loop"));
-            Assert.False(session.Active);
-        }
-
-        Assert.Equal(3, session.OpenCount);
-        Assert.Equal(3, session.CloseCount);
-
-        // 关闭后仍可重新打开
         Assert.True(await session.OpenAsync());
-        Assert.Equal(4, session.OpenCount);
+        Assert.True(session.Active);
+
+        Assert.True(await session.CloseAsync("loop"));
+        Assert.False(session.Active);
+
+        // 会话对象一次性：关闭后不可重新打开，同步与异步入口都明确拒绝
+        await Assert.ThrowsAsync<InvalidOperationException>(() => session.OpenAsync());
+        Assert.Throws<InvalidOperationException>(() => session.Open());
+
+        Assert.Equal(1, session.OpenCount);
+        Assert.Equal(1, session.CloseCount);
     }
     #endregion
 }

@@ -117,7 +117,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 XTrace.WriteLine(ex.Message);
             }
 
-            // 打开前本地端口为 0，说明未指定监听端口（纯客户端模式）。首次判定后保持，重开时不再依赖已被赋值的端口
+            // 打开前本地端口为 0，说明未指定监听端口（纯客户端模式）。首次判定后保持，后续不再依赖已被赋值的端口
             if (Local.Port == 0) _autoLocalPort = true;
 
             sock.Bind(Local.EndPoint);
