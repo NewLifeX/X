@@ -3,6 +3,7 @@
 > 测试范围：**不含协议编码器**的裸 Socket 收发链路——TCP/UDP × 单包单帧/单包多帧（粘包）× 包大小（32B~1MB）× 并发 × 客户端接收方式；**吞吐与分配以服务端为口径（优化目标），往返延迟为客户端观察**。
 > 关联报告：[网络库编解码器Echo性能测试报告](网络库编解码器Echo性能测试报告.md)（协议层）、[内存分配与拷贝成本报告](../内存分配与拷贝成本报告.md)。
 > 数据版本：**v3.2（2026-10-09 重构后复测）**——服务端口径（吞吐/分配）、并发与尺寸扫描、带宽比特率单位；本次为接收环/会话重构后的回归复测，**各档与 v3.1 持平、无回归**，UDP 64KB 峰值 134.5→138.9 Gbps（+3.2%）、TCP 1KB 并发峰值 13.7→14.5 Gbps；v3.1 优化项与本次复测结论见第七节；工具 `Benchmark/NetLoadTest`（`run-matrix.ps1` 一键复现）。
+> **v3.3（同日）**：UDP 接收改 `ReceiveFromAsync`——每包分配 **216→104 B**、每包 CPU **-1.3 µs**、1KB 高并发包率 **+18.8%**（见第七节）。
 
 ## 一、核心结论
 
@@ -241,14 +242,14 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 2. **TCP 1MB「264 B/msg」既非每包成本、也非「丢池」**：接收环稳态**零次** `OwnerPacket` 构造与"换新"（临时计数器实测），纯 ArrayPool 在 19.6 亿次借还下 0 分配。真实来源是约 **0.03-0.05% 字节量**的微量背景分配（1MB 档 ≈1 MB/s，占该档吞吐 0.02%），不在缓冲/池路径上；`B/msg` 只是把它除以低包率放大成的**度量假象**。
 3. **每包 CPU 由平台决定**：UDP 服务端 ~13-17 µs/包，裸 Socket 基线同为 ~11.5-13.6 µs/包；TCP 服务端 1KB 仅 **~0.58 µs/包**。**发送端同理**：裸 Socket 客户端 7.49 µs/包 vs 库客户端 7.47 µs/包——库发送路径**零额外开销**。吞吐天花板由 **Windows loopback 内核协议栈**决定，非库内瓶颈。
 4. **NoDelay 默认值经 A/B 验证正确**：同一库、同构接收回环，1KB × 8C 单向吞吐 `NoDelay=false`（Nagle 合并小包）**11.08 Gbps** vs `NoDelay=true` **6.90 Gbps**。客户端 `TcpSession.NoDelay` 默认 false 有利于吞吐，**不是缺陷**（服务器接受连接默认 `NoDelay=true` 属延迟取向，两者场景不同）。
-5. **UDP 接收 API 是本轮唯一可落地的优化点**：`ReceiveMessageFromAsync` → `ReceiveFromAsync` 每包省 **112 B** 分配、包率 **+14%**、每包 CPU **-1.3 µs**；代价是失去"每包本地地址"（库内仅 `ProcessReceive` 用它填 `e.Local`，且 **Mono/Android 分支已经**走 `ReceiveFromAsync`）。是否切换见 §六末条。
+5. **UDP 接收 API 已优化落地**（见第七节 v3.3）：`ReceiveMessageFromAsync` → `ReceiveFromAsync`，每包省 **112 B** 分配、每包 CPU **-1.3 µs**；同环境配对 A/B 实测 UDP 1KB 高并发包率 **+18.8%**（区间不重叠）。代价是每包本地地址退化为绑定地址（与消息路径 `e.Local = Local.Address` 同口径；Mono/Android 分支本就如此）。
 
 ## 六、已知限制
 
 - **UDP 无流控**：发送端超过服务端消费能力必然丢包（灌包过载场景），业务需自行限速；调大 `UdpServer.MaxAsync` 可增大接收环并行度（实测对包率上限无提升，1KB 极限约 500 kpps）；
 - **UDP 服务端仍有恒定 216 B/msg**（原 330）：为 .NET SAEA 完成回调的端点对象开销——运行时就地更新 `RemoteEndPoint` 且对象随会话保留，每轮接收必须新建 `IPEndPoint`，应用层无法安全规避（复用于重置会改到其它会话的端点）。**隔离实验证据**（见 5.1）：裸 Socket 同构接收环 216.2 B/msg，与库内一致；其中 32 B 来自运行时**强制要求**预置的非空端点（传 null 直接抛 `ArgumentException`），184 B 为运行时固有；复用实例可降至 184.3 B/msg 但会破坏端点归属，不采用；
 - **TCP 1MB 档 264 B/msg 已归因**：**非每包成本，也非缓冲池丢池**——接收环稳态零 `OwnerPacket` 构造/零"换新"（计数器实测），纯 ArrayPool 19.6 亿次借还 0 分配；实为约 1 MB/s（占该档吞吐 0.02%）的**背景分配折算**，属把背景分配摊到包数上的度量假象（见 5.1）；
-- **UDP 接收 API 待决策**：`ReceiveFromAsync` 较 `ReceiveMessageFromAsync` 每包省 **112 B** 分配、包率 **+14%**、每包 CPU **-1.3 µs**；代价是失去"每包本地地址"（`ProcessReceive` 用它填 `e.Local`，Mono/Android 分支已走 `ReceiveFromAsync`，即该信息在部分平台本就不存在）；
+- **UDP 每包本地地址 = 服务器绑定地址**：接收环走 `ReceiveFromAsync`（v3.3 优化），不再读取每包包信息；多宿服务器绑 `Any` 时 `e.Local` 为 `0.0.0.0` 而非实际到包地址（与消息路径 `e.Local = Local.Address` 同口径，契约由 `UdpLocalAddress_FromServerBinding` 用例钉住）；
 - **每包 CPU 为平台固有**：UDP 服务端 ~13-17 µs CPU/包，裸 Socket 同构接收环基线即 ~12.7-13.6 µs/包（无 NewLife 代码），瓶颈在 Windows loopback 内核协议栈；TCP 服务端 1KB 仅 ~0.58 µs/包。故吞吐天花板由压测客户端同步发送 + 内核协议栈决定，非库内瓶颈；
 - **`UdpSession` 不实现 `INetSession`**：`NetServer.Received` 的 sender 在 UDP 下为 `UdpSession`（仅 `ISocketSession`），`s is INetSession` 分支不命中，写通用代码时注意。
 
@@ -259,6 +260,7 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 | UDP 会话查找去字符串键 | `SessionCollection` 新增端点键缓存（`ConcurrentDictionary<IPEndPoint>`；未命中回退字符串键，创建/移除/清理各路径同步维护并做值校验） | 服务端分配 **330→216 B/msg（-35%）**，Gen0 频率 ~-40%；UDP 高并发吞吐 +7~25%（1KB 16C 404→494 kpps、64C 499 kpps；64KB 8C 94→110-122 Gbps、32C 126→134.5 Gbps） |
 | UDP 客户端自动连接 | 纯客户端模式（本地端口自动分配 + 远端为单播地址）打开即 `Connect` 远端；广播/组播/指定本地端口的双角色实例保持 SendTo 语义 | 客户端发送 **41.5→0.4 B/msg**；服务端吞吐不变（2.34→2.36 Gbps 同档） |
 | 接收环并行度实验 | `MaxAsync` ×4（51 槽位）对照实验 | 包率无变化 → 槽位数不是 UDP 包率上限的瓶颈；保持默认 CPU×1.6 |
+| **UDP 接收改 ReceiveFromAsync** | `UdpServer.OnReceiveAsync` 由 `ReceiveMessageFromAsync` 改为 `ReceiveFromAsync`；本地地址改由新增虚方法 `GetReceiveLocalAddress`（`UdpServer` 取 `Local.Address`）提供 | 每包分配 **216→104 B（-52%）**、每包 CPU **-1.3 µs**、**UDP 1KB 高并发包率 +18.8%**（同环境配对 A/B 3 次取中位，区间不重叠：468k→556k pps）；UDP 64KB 大包档落在环境噪声内（对照档抖动 ±40%），无明确变化 |
 
 **剩余 216 B/msg 的成因**：经 .NET 运行时源码确认，SAEA 完成回调会**就地更新** `RemoteEndPoint` 对象（`EndPoint.Create` 语义），且该对象随接收结果成为会话的远程端点被长期保留——每轮接收必须使用新的 `IPEndPoint`；复用同一实例重置会把其它会话的端点改掉。该开销在应用层已无安全优化空间。
 
@@ -266,7 +268,11 @@ Runtime: .NET 10.0.12, X64 RyuJIT x86-64-v3（Server GC）
 
 **v3.2（2026-10-09）重构后回归复测**：接收环/会话重构（句柄借出即挂槽、关闭重开契约收窄等）后全矩阵复测 61 场景，并对波动档位补充 5 次复测取中位——**各档与 v3.1 持平、无回归**；UDP 64KB 峰值 134.5→138.9 Gbps（+3.2%）、TCP 1KB 并发峰值 13.7→14.5 Gbps；分配（TCP 近零 / UDP 恒定 216 B/msg）与延迟同档。原始数据：`Benchmark/NetLoadTest/results/20261009-200337`。
 
-**v3.2 深挖（归因收口）**：对三项遗留/疑点做隔离实验（见 5.1）——① **不存在"丢池"**：接收环稳态零 `OwnerPacket` 构造/零"换新"，纯 ArrayPool 19.6 亿次借还 0 分配；TCP 1MB 264 B/msg 实为约 1 MB/s 背景分配的**度量假象**；② UDP 216 B/msg = 32 B 运行时强制预置端点 + 184 B 运行时固有，无安全优化空间；③ NoDelay 默认值经 A/B 验证**有益于吞吐**，非缺陷。**发送侧对照**：裸 Socket 客户端 7.49 µs/包 vs 库客户端 7.47 µs/包，库发送路径零额外开销；每包 CPU 归口 Windows loopback 内核协议栈。**本轮唯一可落地优化**：UDP 接收改 `ReceiveFromAsync`（每包省 112 B、包率 +14%），代价为失去每包本地地址，待决策。
+**v3.2 深挖（归因收口）**：对三项遗留/疑点做隔离实验（见 5.1）——① **不存在"丢池"**：接收环稳态零 `OwnerPacket` 构造/零"换新"，纯 ArrayPool 19.6 亿次借还 0 分配；TCP 1MB 264 B/msg 实为约 1 MB/s 背景分配的**度量假象**；② UDP 216 B/msg = 32 B 运行时强制预置端点 + 184 B 运行时固有，无安全优化空间；③ NoDelay 默认值经 A/B 验证**有益于吞吐**，非缺陷。**发送侧对照**：裸 Socket 客户端 7.49 µs/包 vs 库客户端 7.47 µs/包，库发送路径零额外开销；每包 CPU 归口 Windows loopback 内核协议栈。**本轮唯一可落地优化**：UDP 接收改 `ReceiveFromAsync`（每包省 112 B、包率 +14%），已按「本地地址取 `Local.Address`」方案落地，见下。
+
+**v3.3（2026-10-09）UDP 接收 API 优化**：`UdpServer.OnReceiveAsync` 统一改走 `ReceiveFromAsync`（原仅 Mono/Android 分支才走），本地地址由新增虚方法 `GetReceiveLocalAddress` 提供（`UdpServer` 返回 `Local.Address`）。收益：每包分配 **216→104 B（-52%）**、每包 CPU **-1.3 µs**、UDP 1KB 高并发包率 **+18.8%**（468k→556k pps，同环境配对 A/B 3 次中位，区间不重叠）。代价：多宿服务器绑 `Any` 时 `e.Local` 由「实际到包地址」变为绑定地址（与消息路径 `e.Local = Local.Address` 同口径）；契约由新用例 `UdpLocalAddress_FromServerBinding` 钉住，并做「退回旧实现即变红」的负向验证；UDP 相关 62 用例全绿。
+
+**测试环境说明**：本轮复测期间机器另有约 3-4 核背景负载（对照档 `tcp-64KB-c4` 抖动达 ±40%），故 §三/§五 表格仍为 v3.2（当日空闲时）数据，UDP 档绝对量在负载下偏低；建议在空闲机器上重跑 `run-matrix.ps1` 刷新全表。
 
 ## 复现命令
 
