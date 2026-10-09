@@ -135,11 +135,13 @@ public partial class MachineInfo
         reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
         if (reg != null) Processor = reg.GetValue("ProcessorNameString") + "";
 
-        // 旧版系统（如win2008）没有UUID的注册表项，需要用wmic查询。也可能因为过去的某个BUG，导致GUID跟UUID相等
+        // 旧版系统（如win2008）没有UUID的注册表项，需要用WMI查询。也可能因为过去的某个BUG，导致GUID跟UUID相等
         if (UUID.IsNullOrEmpty() || UUID == Guid || Vendor.IsNullOrEmpty())
         {
-            var csproduct = ReadWmic("csproduct", "Name", "UUID", "Vendor");
-            if (csproduct != null)
+            // 优先进程内 WMI（System.Management/COM），wmic 进程兜底；wmic 自 Windows 11 24H2/Server 2025 起默认不再安装
+            var csproduct = ReadWmiComMulti("csproduct", "Name", "UUID", "Vendor");
+            if (csproduct.Count == 0) csproduct = ReadWmic("csproduct", "Name", "UUID", "Vendor");
+            if (csproduct.Count > 0)
             {
                 if (csproduct.TryGetValue("Name", out str) && !str.IsNullOrEmpty() && Product.IsNullOrEmpty()) Product = str;
                 if (csproduct.TryGetValue("UUID", out str) && !str.IsNullOrEmpty()) UUID = str;
@@ -170,10 +172,14 @@ public partial class MachineInfo
         return dic;
     }
 
-    /// <summary>通过WMIC命令读取信息</summary>
+    /// <summary>通过 WMIC 命令读取信息（末位兜底）</summary>
+    /// <remarks>
+    /// wmic 自 Windows 11 24H2 / Server 2025 起默认不再随系统安装（可作按需功能手动恢复）。
+    /// 命令缺失时返回空字典并记录调试日志，不抛异常；获取系统信息建议优先使用 ReadWmiComMulti/GetInfo（含 System.Management、WMI COM 多级降级）。
+    /// </remarks>
     /// <param name="type">WMI类型</param>
     /// <param name="keys">查询字段</param>
-    /// <returns>解析后的字典</returns>
+    /// <returns>解析后的字典；命令缺失或查询失败时为空字典</returns>
     public static IDictionary<String, String> ReadWmic(String type, params String[] keys)
     {
         var dic = new Dictionary<String, IList<String>>(StringComparer.OrdinalIgnoreCase);
@@ -220,7 +226,7 @@ public partial class MachineInfo
         { "win32_battery", "Win32_Battery" },
     };
 
-    /// <summary>通过 WMI 查询多属性（自动选择 COM/wmic）。优先使用 COM 避免开进程</summary>
+    /// <summary>通过 WMI 查询多属性。优先进程内 WMI（System.Management/COM），极端场景回退 wmic 进程</summary>
     /// <param name="type">WMI 类型，支持 wmic 格式如 "csproduct"、"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature"</param>
     /// <param name="keys">查询字段</param>
     /// <returns>属性字典</returns>
@@ -265,7 +271,7 @@ public partial class MachineInfo
         return dic;
     }
 
-    /// <summary>通过 WMI 查询单个属性（自动回退 wmic）。优先使用 COM 避免开进程</summary>
+    /// <summary>通过 WMI 查询单个属性（内部经 ReadWmiComMulti 的多级降级链）</summary>
     /// <param name="type">WMI 类型</param>
     /// <param name="property">属性名</param>
     /// <returns>属性值，失败返回 null</returns>
@@ -379,7 +385,7 @@ public partial class MachineInfo
         }
     }
 
-    /// <summary>获取WMI信息。net*-windows反射System.Management并回退COM；其它运行时用COM并回退wmic</summary>
+    /// <summary>获取WMI信息。net*-windows 优先反射 System.Management 再回退 WMI COM；其它运行时用 WMI COM；wmic 进程为末位兜底（自 Windows 11 24H2 / Server 2025 起默认不再安装）</summary>
     /// <param name="path">WMI路径</param>
     /// <param name="property">属性名</param>
     /// <param name="nameSpace">命名空间，默认 root\cimv2</param>
@@ -406,19 +412,19 @@ public partial class MachineInfo
                 XTrace.WriteLine("WMI 均失败，回退 wmic: {0}.{1}", path, property);
         }
 #else
-        // 其它运行时（netstandard/net*非windows）：优先 COM，失败回退 wmic
+        // 其它运行时（netstandard/net*非windows）：WMI 仅 Windows 主机支持，其它平台直接返回空
 #if NET5_0_OR_GREATER
-        if (OperatingSystem.IsWindows())
+        if (!OperatingSystem.IsWindows()) return "";
 #else
-        if (Runtime.Windows)
-#endif
-        {
-            var value = QueryWmiCom(path, property, ns);
-            if (value != null) return value;
-        }
+        if (!Runtime.Windows) return "";
 #endif
 
-        // wmic 兜底（__WIN__ 降级 + 其它运行时）。不带命名空间时也要用 path 前缀以支持完整类名
+        var value = QueryWmiCom(path, property, ns);
+        if (value != null) return value;
+#endif
+
+        // wmic 兜底（__WIN__ 降级 + 其它运行时）。wmic 自 Windows 11 24H2/Server 2025 起默认不再安装，此时快速返回空结果
+        // 不带命名空间时也要用 path 前缀以支持完整类名
         var type = !ns.EqualIgnoreCase("root\\cimv2") ? $"/namespace:\\\\{ns} path {path}" : $"path {path}";
         var dic = ReadWmic(type, property);
         return dic.TryGetValue(property, out var v) ? v : "";

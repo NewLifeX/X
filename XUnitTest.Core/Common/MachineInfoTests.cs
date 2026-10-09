@@ -146,6 +146,12 @@ public class MachineInfoTests
         Assert.NotEmpty(dic["Caption"]);
         Assert.NotEmpty(dic["Version"]);
 
+        // 计算机产品信息（UUID/Vendor 注册表缺失时的 WMI 兜底查询路径）
+        var cs = MachineInfo.ReadWmiComMulti("csproduct", "Name", "UUID", "Vendor");
+        Assert.NotNull(cs);
+        Assert.True(cs.Count > 0);
+        Assert.NotEmpty(cs["Name"]);
+
         // path 前缀查询
         var bat = MachineInfo.ReadWmiComMulti("path win32_battery", "EstimatedChargeRemaining");
         Assert.NotNull(bat);
