@@ -5,6 +5,7 @@
 ![Nuget](https://img.shields.io/nuget/v/newlife.core?logo=nuget)
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
 [![AtomGit Stars](https://atomgit.com/NewLifeX/X/star/badge.svg)](https://atomgit.com/NewLifeX/X)
+[![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=v12)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 
 ​	NewLife框架是一个全面的 .NET 组件生态系统，它为构建可扩展的应用程序提供了高性能的基础设施。它提供日志、网络、序列化、缓存和多线程等基本功能，作为从 Web 服务到 IoT 设备的一系列应用程序的基础。  
 
@@ -15,6 +16,8 @@
 ## 框架概述
 
 ​	NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持 net45~net10.0 多目标框架（.NET Framework 4.5 至 .NET 10.0），从而在不同环境中实现广泛的兼容性。
+
+**NativeAOT**：核心链路已支持（25 场景实测 + CI 防回归）；插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](Doc/AOT兼容性分析.md)。
 
 
 

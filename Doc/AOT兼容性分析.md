@@ -33,11 +33,11 @@
 | 12 | WebSocket 文本回显 | 24 | SystemJson 上下文透传 |
 | | | 25 | Reflect 泛型入口保留（`GetPropertyEx<T>`） |
 
-> AOT 产物 `IsDynamicCodeSupported=False`（真 NativeAOT，非 JIT 自欺）。
+> AOT 判真：原生发布件入口 `Assembly.Location` 为空，而 JIT 基线为磁盘路径；因冒烟工程固定“严格 AOT 姿态”，两种运行的 `IsDynamicCodeSupported` 均为 False，该值不作判别依据。
 
 ### 2.2 编译期：分析器与 ILC 告警
 
-- **当前均为 0 条**：`IsAotCompatible=true` 的分析器告警 0 条（net10.0）；AOT 发布的 ILC 告警 0 条（冒烟工程实测）。基线（改造前）为 164 条唯一告警。
+- **当前均为 0 条**：`IsAotCompatible` 已在 csproj 对 net8.0+（含 `-windows` 形态）常驻启用，分析器告警 0 条（net8.0/net9.0/net10.0 及对应 `-windows` 形态实测）；AOT 发布的 ILC 告警 0 条（冒烟工程实测）。基线（改造前）为 164 条唯一告警。
 - 遗留告警的三类含义与处置方式：
   - **动态能力**（IL3050/IL2026/IL3000）：设计性不支持 → 按 §5 用 `RequiresDynamicCode`/`RequiresUnreferencedCode` 声明 + 运行期守卫，或在边界方法上显式声明裁剪语义；
   - **宽面反射入口**（IL2075/IL2070/IL2057）：运行时类型无法静态表达 → 提供泛型入口承载保留要求，非泛型重载显式声明；
@@ -101,11 +101,13 @@
 ## 6. 复现方法
 
 ```powershell
-# 1) 分析器全量警告（库自身编译，期望 0 条）
-dotnet build NewLife.Core\NewLife.Core.csproj -f net10.0 -c Release -p:IsAotCompatible=true
+# 1) 分析器全量警告（库自身编译，期望 0 条；IsAotCompatible 已随 csproj 对 net8.0+ 常驻启用）
+dotnet build NewLife.Core\NewLife.Core.csproj -f net10.0 -c Release
 
 # 2) 冒烟实测（25 场景工程；PublishAot 写在工程文件内）
 dotnet run -c Release --project AotSmoke\AotSmoke.csproj                # JIT 基线
 dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # NativeAOT 真编译（期望 0 条 ILC 告警）
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
+
+> CI 防回归：`.github/workflows/aot.yml`（win-x64 冒烟与分析器硬约束阻断；linux-x64 冒烟为观察期）。
