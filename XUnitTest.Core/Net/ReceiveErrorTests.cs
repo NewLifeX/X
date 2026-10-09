@@ -132,12 +132,44 @@ public class ReceiveErrorTests
         Assert.True(server.IsReceiving);
 
         // 模拟 StartReceive 抛 ObjectDisposedException 冒泡回 ProcessEvent 的 catch 再次释放的路径
-        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(100) };
+        var owner = new OwnerPacket(16);
+        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(100, owner) };
         server.Release(se, "first");
         server.Release(se, "second");
 
         // 只递减一次：另一个接收槽仍在收。重复释放两次会让计数归零，拉取直读的互斥判定随之失效
         Assert.True(server.IsReceiving);
+        Assert.Throws<ObjectDisposedException>(() => owner.Buffer);
+    }
+
+    [Fact(DisplayName = "接收槽释放_事件参数无接收槽_抛异常")]
+    public void ReleaseRecv_MissingSlot_Throws()
+    {
+        using var server = new ProbeUdpServer { Port = 0, MaxAsync = 2 };
+        server.Open();
+
+        // 接收事件参数一律由 StartReceive 创建并挂接收槽；裸事件参数属契约破坏，直接抛错暴露
+        var se = new SocketAsyncEventArgs();
+        Assert.Throws<InvalidOperationException>(() => server.Release(se, "no-slot"));
+
+        // 拒绝释放不影响其它接收槽
+        Assert.True(server.IsReceiving);
+    }
+
+    [Fact(DisplayName = "接收槽释放_首释槽中无句柄_抛异常")]
+    public void ReleaseRecv_MissingPacket_Throws()
+    {
+        using var server = new ProbeUdpServer { Port = 0, MaxAsync = 2 };
+        server.Open();
+
+        // 槽中句柄随缓冲借出时创建、此后一直挂槽；首释即缺失说明契约被破坏（如轮末换新缓冲失败）
+        var orphan = new OwnerPacket(16);
+        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(0, orphan) { Packet = null } };
+        Assert.Throws<InvalidOperationException>(() => server.Release(se, "no-packet"));
+
+        Assert.True(server.IsReceiving);
+
+        orphan.Dispose();
     }
 
     [Fact(DisplayName = "接收槽释放_缓冲仍被共享切片持有_只释放自身引用不归还")]
@@ -149,7 +181,7 @@ public class ReceiveErrorTests
         var view = owner.Slice(0, 16);
         Assert.Equal(2, view.RefCount);
 
-        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(0) { Packet = owner } };
+        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(0, owner) };
         server.Release(se, "shared");
 
         // 缓冲仍在被共享切片使用：本句柄只释放自己的引用，缓冲留给最后一个句柄归还。
@@ -158,5 +190,39 @@ public class ReceiveErrorTests
         Assert.Equal(16, view.Length);
 
         view.Dispose();
+    }
+
+    [Fact(DisplayName = "接收槽释放_独占槽句柄_释放句柄自身")]
+    public void ReleaseRecv_SoleHandle_DisposesHandle()
+    {
+        using var server = new ProbeUdpServer { Port = 0 };
+
+        var owner = new OwnerPacket(64);
+        Assert.Equal(1, owner.RefCount);
+
+        // 接收槽句柄随缓冲借出时创建，是缓冲的唯一持有者
+        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(0, owner) };
+        server.Release(se, "sole");
+
+        // 释放槽句柄即完成归还：引用归零、缓冲随 ArrayOwner 回池（不再 Detach 后手工归还）
+        Assert.Equal(0, owner.RefCount);
+        Assert.Throws<ObjectDisposedException>(() => owner.Buffer);
+    }
+
+    [Fact(DisplayName = "接收槽释放_槽句柄带链_连带释放链上各段")]
+    public void ReleaseRecv_ChainHandle_DisposesWholeChain()
+    {
+        using var server = new ProbeUdpServer { Port = 0 };
+
+        var head = new OwnerPacket(64);
+        var tail = new OwnerPacket(32);
+        head.Next = tail;
+
+        var se = new SocketAsyncEventArgs { UserToken = new RecvSlot(0, head) };
+        server.Release(se, "chain");
+
+        // 槽句柄带链时同样直接释放：头节点归零归还缓冲，链上各段随 Dispose 递归释放，无需单独判别 Next
+        Assert.Throws<ObjectDisposedException>(() => head.Buffer);
+        Assert.Throws<ObjectDisposedException>(() => tail.Buffer);
     }
 }

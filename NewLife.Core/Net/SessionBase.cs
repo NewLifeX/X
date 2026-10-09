@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -445,10 +444,19 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (sock == null) return null;
 
             var pk = new OwnerPacket(BufferSize);
-            var size = sock.Receive(pk.Buffer, SocketFlags.None);
-            span?.Value = size;
+            try
+            {
+                var size = sock.Receive(pk.Buffer, SocketFlags.None);
+                span?.Value = size;
 
-            return pk.Resize(size);
+                return pk.Resize(size);
+            }
+            catch
+            {
+                // 读失败（含套接字关闭）时归还池化缓冲，避免异常路径上缓冲流失（发布版无析构兜底）
+                pk.TryDispose();
+                throw;
+            }
         }
         catch (Exception ex)
         {
@@ -486,17 +494,26 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (sock == null) return null;
 
             var pk = new OwnerPacket(BufferSize);
+            try
+            {
 #if NETFRAMEWORK || NETSTANDARD2_0
-            var ar = sock.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, sock);
-            var size = ar.IsCompleted ?
-                sock.EndReceive(ar) :
-                await Task.Factory.FromAsync(ar, sock.EndReceive).ConfigureAwait(false);
+                var ar = sock.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, sock);
+                var size = ar.IsCompleted ?
+                    sock.EndReceive(ar) :
+                    await Task.Factory.FromAsync(ar, sock.EndReceive).ConfigureAwait(false);
 #else
-            var size = await sock.ReceiveAsync(pk.GetMemory(), SocketFlags.None, cancellationToken).ConfigureAwait(false);
+                var size = await sock.ReceiveAsync(pk.GetMemory(), SocketFlags.None, cancellationToken).ConfigureAwait(false);
 #endif
-            span?.Value = size;
+                span?.Value = size;
 
-            return pk.Resize(size);
+                return pk.Resize(size);
+            }
+            catch
+            {
+                // 读失败或取消时归还池化缓冲，避免异常路径上缓冲流失（发布版无析构兜底）
+                pk.TryDispose();
+                throw;
+            }
         }
         catch (Exception ex)
         {
@@ -534,16 +551,16 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 return false;
             }
 
-            // 池化接收缓冲：从 ArrayPool 借出，归本会话持有。每轮把整块缓冲包装为本轮拥有句柄上抛，
-            // 轮末按引用计数裁决：无人持有则句柄回挂接收槽（UserToken）供下轮复用（重设窗口即可，缓冲原地不动，零 Rent/Return），
-            // 被下游消费或带出时才解绑换新。归还见 ReleaseRecv 与 OwnerPacket.Detach 协议。
+            // 池化接收缓冲：从 ArrayPool 借出即包装为拥有句柄挂到接收槽（UserToken），句柄自此持有本槽缓冲直到释放。
+            // 每轮把句柄交给下游，轮末按引用计数裁决：无人持有则回挂接收槽供下轮复用（重设窗口即可，缓冲原地不动，零 Rent/Return），
+            // 被下游消费或带出时才解绑换新。归还只发生在释放槽句柄处（见 ReleaseRecv）：引用归零则回池，仍有共享则减数、由最后一个持有者归还。
             // “零 Rent/Return”的前提是未启用入站管道（Pipe）：启用管道后每轮均因共享切片换新缓冲，见轮末裁决处注释。
             // 加大接收缓冲区，规避SocketError.MessageSize问题
-            var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
+            var pk = new OwnerPacket(BufferSize);
             var se = new SocketAsyncEventArgs();
-            se.SetBuffer(buf, 0, BufferSize);
+            se.SetBuffer(pk.Buffer, pk.Offset, pk.Length);
             se.Completed += (s, e) => ProcessEvent(e, -1, _IntoThreadCount);
-            se.UserToken = new RecvSlot(count);
+            se.UserToken = new RecvSlot(count, pk);
 
             if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
 
@@ -553,59 +570,33 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         return true;
     }
 
-    /// <summary>释放一个事件参数。递减接收计数、归还池化缓冲并销毁。幂等：同一个事件参数重复调用只生效一次</summary>
+    /// <summary>释放一个事件参数。递减接收计数、释放接收槽缓冲句柄并销毁。幂等：同一个事件参数重复调用只生效一次</summary>
     /// <param name="se">接收事件参数</param>
     /// <param name="reason">释放原因。便于日志分析</param>
     protected void ReleaseRecv(SocketAsyncEventArgs se, String reason)
     {
+        // 接收槽是接收环的固有契约：事件参数一律由 StartReceive 创建并挂槽，槽或槽中句柄缺失即契约被破坏，直接抛错
+        var slot = se.UserToken as RecvSlot ?? throw new InvalidOperationException($"接收事件参数缺少接收槽：[{Name}] {reason}");
+
         // 幂等：同一个事件参数只释放一次。重复释放会少计 _RecvCount（IsReceiving 失真，拉取直读的互斥判定失效），
         // 并对同一个 se 二次 Dispose。StartReceive 发现会话已销毁时会先释放再抛，异常冒泡回 ProcessEvent
         // 自己的 catch 会再次调本方法，这是已知会重复进入的路径
-        var slot = se.UserToken as RecvSlot;
-        if (slot != null)
-        {
-            if (slot.Released) return;
-            slot.Released = true;
-        }
+        if (slot.Released) return;
 
-        if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", slot?.Index ?? -1, reason);
+        var cached = slot.Packet ?? throw new InvalidOperationException($"接收槽句柄缺失：[{Name}] {reason}");
+
+        if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", slot.Index, reason);
+
+        slot.Released = true;
+        slot.Packet = null;
 
         if (_RecvCount > 0) Interlocked.Decrement(ref _RecvCount);
 
-        // 缓冲归属：句柄仍被共享切片持有（RefCount 大于 1）或挂着链式后续段时，本句柄不能脱手（Detach 会抛），
-        // 也不能把仍被使用的缓冲归还池（回池后会被立即借给别的会话）——只释放本句柄自己的引用，
-        // 缓冲留给最后一个共享句柄归还
-        var skipReturn = false;
+        // 缓冲由接收槽句柄持有：释放句柄即完成归还——引用归零时由 ArrayOwner 归还池，
+        // 仍被共享切片持有时只减引用，缓冲留给最后一个持有者归还。本方法不再直接归还缓冲。
         try
         {
-            if (slot?.Packet is { } cached)
-            {
-                slot.Packet = null;
-
-                if (cached.RefCount > 1 || cached.Next != null)
-                {
-                    cached.TryDispose();
-                    skipReturn = true;
-                }
-                else
-                {
-                    // 独占缓冲：先脱手（抑制析构兜底，避免与本次归还将同一缓冲二次放回池）
-                    cached.Detach();
-                }
-            }
-
-            if (!skipReturn)
-            {
-                var buffer = se.Buffer;
-                se.SetBuffer(null, 0, 0);
-                if (buffer != null) ArrayPool<Byte>.Shared.Return(buffer);
-            }
-        }
-        catch (Exception ex)
-        {
-            // 释放路径出错说明缓冲所有权契约已被破坏：记日志后继续收尾，不向外抛
-            // （本方法在 ProcessEvent 的 catch 与背压恢复路径上被调用，外抛会替换掉原始异常）
-            WriteLog("释放RecvSA {0} 异常：{1}", slot?.Index ?? -1, ex.Message);
+            cached.Dispose();
         }
         finally
         {
@@ -689,6 +680,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         return true;
     }
 
+    /// <summary>发起一次异步接收。返回 false 表示本次操作同步完成（se 已持有本次完成的状态）</summary>
+    /// <remarks>无法发起接收（已停止、关闭窗口内底层引用已清等）时必须抛出异常，严禁返回 false：
+    /// 调用方把 false 当作“同步完成”，会按 se 上的陈旧状态重新投递本事件参数（重复派发与空转）</remarks>
+    /// <param name="se">接收事件参数</param>
+    /// <returns>是否挂起等待异步完成；false 表示已同步完成</returns>
     internal abstract Boolean OnReceiveAsync(SocketAsyncEventArgs se);
 
     /// <summary>同步或异步收到数据</summary>
@@ -728,57 +724,44 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             {
                 var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
                 if (bytes < 0) bytes = se.BytesTransferred;
-                if (se.Buffer != null)
+
+                // 同步执行，直接使用数据，不需要拷贝：缓冲自借出即由槽句柄持有，直接交管道与事件消费。
+                // 接收环复用：取回挂在接收槽上的轮句柄，把窗口重设到本段数据。
+                // 不变量：轮句柄随 se 创建即挂槽（轮末回挂或换新），槽与句柄缺失属契约破坏，直接抛错；
+                // 槽句柄非空 ⇒ 它的缓冲就是本槽的 se.Buffer，因此只需重设长度，不需要也不可能换缓冲（换缓冲必须换新句柄）。
+                // 代价：不再校验 RefCount——本槽句柄由本槽独占，凡跨轮带出都会先 Slice（轮末即走换新分支、不回挂），
+                // 唯一失守点是下游违规留存原句柄（不经 Slice）时会被静默重设窗口而不是报错。
+                var slot = se.UserToken as RecvSlot ?? throw new InvalidOperationException($"接收事件参数缺少接收槽：[{Name}]");
+                var pk = slot.Packet ?? throw new InvalidOperationException($"接收槽句柄缺失：[{Name}]");
+                slot.Packet = null;
+                pk.Resize(bytes);
+
+                try
                 {
-                    // 同步执行，直接使用数据，不需要拷贝：整块缓冲包装为本轮拥有句柄，交由管道与事件消费。
-                    // 接收环复用：优先取回挂在接收槽上的上一轮句柄，把窗口重设到本段数据；无则新建。
-                    // 不变量：slot.Packet 非空 ⇒ 它的缓冲就是本槽的 se.Buffer——se.Buffer 只在 StartReceive 借新、
-                    // ReleaseRecv 归还、轮末解绑换新三处变更，且都在变更前清空 slot.Packet；因此这里只需重设长度，
-                    // 不需要也不可能换缓冲（换缓冲必须换新句柄）。
-                    // 代价：不再校验 RefCount——本槽句柄由本槽独占，凡跨轮带出都会先 Slice（轮末即走换新分支、不回挂），
-                    // 唯一失守点是下游违规留存原句柄（不经 Slice）时会被静默重设窗口而不是报错。
-                    var slot = se.UserToken as RecvSlot;
-                    var pk = slot?.Packet;
-                    if (pk != null)
+                    ProcessReceive(se, ep, pk);
+                }
+                finally
+                {
+                    // 轮末裁决缓冲归属，正常与异常路径一致：
+                    // 计数为 1（无他人持有）→ 句柄回挂接收槽供下轮重设窗口复用，缓冲留在会话继续接收，零 Rent/Return；
+                    // 其余情况（已被下游消费归零，或存在共享切片大于 1）→ 释放本句柄（已释放则空操作），解绑换新；
+                    // 不在此归还：计数大于 1 时旧缓冲仍被外部使用，归还它会把正在使用的缓冲交还给池。
+                    // 已启用入站管道（Pipe）时必然走换新分支：AppendToPipe 投递的共享切片使本句柄计数恒大于 1，
+                    // 故“零 Rent/Return”复用只发生在未启用管道的会话上（换新为池化往返，实测约 8ns/次，代价可忽略）。
+                    if (pk.RefCount == 1)
                     {
-                        slot!.Packet = null;
-                        pk.Resize(bytes);
+                        slot.Packet = pk;
                     }
                     else
                     {
-                        pk = new OwnerPacket(se.Buffer, se.Offset, bytes, true);
-                    }
+                        pk.TryDispose();
 
-                    try
-                    {
-                        ProcessReceive(se, ep, pk);
-                    }
-                    finally
-                    {
-                        // 轮末裁决缓冲归属，正常与异常路径一致：
-                        // 计数为 1（无他人持有）→ 句柄回挂接收槽供下轮重设窗口复用，缓冲留在会话继续接收，零 Rent/Return；
-                        // 其余情况（已被下游消费归零，或存在共享切片大于 1）→ 释放本句柄（已释放则空操作），解绑换新；
-                        // 不在此归还：计数大于 1 时旧缓冲仍被外部使用，归还它会把正在使用的缓冲交还给池。
-                        // 已启用入站管道（Pipe）时必然走换新分支：AppendToPipe 投递的共享切片使本句柄计数恒大于 1，
-                        // 故“零 Rent/Return”复用只发生在未启用管道的会话上（换新为池化往返，实测约 8ns/次，代价可忽略）。
-                        if (pk.RefCount == 1)
-                        {
-                            // 槽缺失（理论不发生）时按旧语义脱手，防止句柄被弃后析构兜底误归还缓冲
-                            if (slot != null)
-                                slot.Packet = pk;
-                            else
-                                pk.Detach();
-                        }
-                        else
-                        {
-                            pk.TryDispose();
-
-                            // 先解绑再借新：若 Rent 抛出（如 OOM），se.Buffer 保持 null，ReleaseRecv 不会归还，
-                            // 避免把已归还池或仍被外部持有的旧缓冲二次归还
-                            se.SetBuffer(null, 0, 0);
-                            var buf = ArrayPool<Byte>.Shared.Rent(BufferSize);
-                            se.SetBuffer(buf, 0, BufferSize);
-                        }
+                        // 先解绑再借新：若借新抛出（如 OOM），本槽句柄缺失，后续释放路径抛错暴露，不会把旧缓冲二次归还。
+                        // 新缓冲即刻包装为句柄并挂槽（句柄自此持有缓冲）
+                        se.SetBuffer(null, 0, 0);
+                        var np = new OwnerPacket(BufferSize);
+                        se.SetBuffer(np.Buffer, np.Offset, np.Length);
+                        slot.Packet = np;
                     }
                 }
             }
@@ -1150,15 +1133,16 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     #endregion 日志
 }
 
-/// <summary>接收槽状态：槽序号 + 轮末回挂复用的数据包句柄</summary>
+/// <summary>接收槽状态：槽序号 + 持有本槽缓冲的数据包句柄</summary>
 /// <param name="index">槽序号（第几个接收事件参数）</param>
-internal sealed class RecvSlot(Int32 index)
+/// <param name="packet">本槽缓冲的拥有句柄，随缓冲借出时创建；释放槽句柄即归还缓冲</param>
+internal sealed class RecvSlot(Int32 index, OwnerPacket packet)
 {
     /// <summary>槽序号（第几个接收事件参数）</summary>
     public Int32 Index { get; } = index;
 
-    /// <summary>轮末回挂的数据包句柄，下一轮重设窗口后复用；无外部持有者时非空</summary>
-    public OwnerPacket? Packet { get; set; }
+    /// <summary>本槽缓冲的拥有句柄。无外部持有者时挂在本槽供下轮重设窗口复用；释放本句柄即归还缓冲</summary>
+    public OwnerPacket? Packet { get; set; } = packet;
 
     /// <summary>是否已释放。用于释放幂等：同一个接收事件参数只释放一次</summary>
     public Boolean Released { get; set; }

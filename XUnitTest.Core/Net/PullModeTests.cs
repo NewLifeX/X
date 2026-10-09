@@ -101,6 +101,27 @@ public class PullModeTests
         Assert.Equal(Enumerable.Range(0xA0, 64).Select(i => (Byte)i).ToArray(), total.ToArray());
     }
 
+    /// <summary>拉取模式（AutoReceive=false）：读失败原样抛出异常，缓冲由归还路径处理而非吞掉异常</summary>
+    [Fact(DisplayName = "拉取_拉取模式_读超时异常原样抛出")]
+    public void PullMode_ReadFailure_Throws()
+    {
+        // 服务端：接受连接但不发数据，强制客户端拉到超时
+        using var server = new TcpServer { Port = 0, Log = XTrace.Log };
+        server.Start();
+
+        using var client = new TcpSession
+        {
+            Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
+            AutoReceive = false,
+            Timeout = 200,
+            Log = XTrace.Log,
+        };
+        client.Open();
+
+        // 失败路径归还池化缓冲，但异常必须原样上抛（归还不得替换或吞掉原始异常）
+        Assert.ThrowsAny<SocketException>(() => client.Receive());
+    }
+
     /// <summary>拉取模式（AutoReceive=false）：UDP 先发后收</summary>
     [Fact(DisplayName = "拉取_拉取模式_UDP先发后收")]
     public async Task PullMode_Udp_SendThenReceive()
