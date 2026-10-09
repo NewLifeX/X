@@ -1,8 +1,9 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
-using System.Text.Json;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Net;
 
 namespace NetLoadTest;
@@ -309,7 +310,7 @@ static class Program
                 if (udp && sentMsgs > 0) summary["lossPct"] = Math.Round((sentMsgs - recvMsgs) * 100.0 / sentMsgs, 2);
             }
         }
-        Console.WriteLine("SUMMARY:" + JsonSerializer.Serialize(summary));
+        Console.WriteLine("SUMMARY:" + ToJson(summary));
 
         foreach (var conn in conns) conn.Dispose();
         server?.Dispose();
@@ -859,5 +860,35 @@ static class Program
         {
             lock (_lock) return [.. Samples];
         }
+    }
+
+    /// <summary>把汇总字典序列化为 JSON 文本</summary>
+    /// <remarks>手写而非 System.Text.Json 反射式序列化：后者在 NativeAOT 下默认被禁用，
+    /// 会让 AOT 产物输出汇总时直接抛异常（并带来 IL2026/IL3050 告警）。键与取值形态固定，手写足够。</remarks>
+    /// <param name="dic">键值对</param>
+    /// <returns>JSON 文本</returns>
+    private static String ToJson(Dictionary<String, Object?> dic)
+    {
+        var sb = Pool.StringBuilder.Get();
+        sb.Append('{');
+        var first = true;
+        foreach (var kv in dic)
+        {
+            if (!first) sb.Append(',');
+            first = false;
+
+            sb.Append('"').Append(kv.Key).Append("\":");
+            switch (kv.Value)
+            {
+                case null: sb.Append("null"); break;
+                case Boolean v: sb.Append(v ? "true" : "false"); break;
+                case String v: sb.Append('"').Append(v).Append('"'); break;
+                case IFormattable v: sb.Append(v.ToString(null, CultureInfo.InvariantCulture)); break;
+                default: sb.Append('"').Append(kv.Value).Append('"'); break;
+            }
+        }
+        sb.Append('}');
+
+        return sb.Return(true);
     }
 }
