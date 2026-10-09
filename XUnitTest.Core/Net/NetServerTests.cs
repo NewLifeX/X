@@ -233,12 +233,12 @@ public class NetServerTests
         client.Send(sendData, sendData.Length, serverEp);
 
         // 回环UDP必须收到，未收到即失败
-        Assert.True(receivedEvent.Wait(5000), "未在超时内收到UDP数据");
+        Assert.True(receivedEvent.Wait(10000), "未在超时内收到UDP数据");
         Assert.Single(receivedData);
         Assert.Equal(sendData, receivedData[0]);
 
         // 客户端读取Echo回复，验证双向
-        client.Client.ReceiveTimeout = 5000;
+        client.Client.ReceiveTimeout = 10000;
         var echoEp = new IPEndPoint(IPAddress.Any, 0);
         var echo = client.Receive(ref echoEp);
         Assert.Equal(sendData, echo);

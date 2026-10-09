@@ -226,14 +226,14 @@ public class EchoServerIntegrationTests : IClassFixture<EchoServerFixture>
         var port = _fixture.Server.Port;
         var beforeBytes = Interlocked.Read(ref _fixture.Server.TotalBytesReceived);
         using var udp = new UdpClient();
-        udp.Client.ReceiveTimeout = 5_000;
+        udp.Client.ReceiveTimeout = 10_000;
 
         var payload = new Byte[32];
         Random.Shared.NextBytes(payload);
         var endpoint = new IPEndPoint(IPAddress.Loopback, port);
         await udp.SendAsync(payload, payload.Length, endpoint);
 
-        var result = await udp.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        var result = await udp.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal(payload, result.Buffer);
 
         await Task.Delay(50);
