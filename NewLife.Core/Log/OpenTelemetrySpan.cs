@@ -324,6 +324,9 @@ internal sealed class OpenTelemetrySpanBuilder(OpenTelemetryTracer tracer, Strin
     private Int64 _cost;
     private Int64 _value;
 
+    /// <summary>上游父级上下文。服务端片段用它继承上游链路——OpenTelemetry 的父级只能在活动创建时指定</summary>
+    internal ActivityContext? Parent { get; set; }
+
     /// <summary>正常采样</summary>
     public IList<ISpan>? Samples { get; set; }
 
@@ -341,7 +344,7 @@ internal sealed class OpenTelemetrySpanBuilder(OpenTelemetryTracer tracer, Strin
         // 底盘先建，保证无监听者时内层链路依旧完整
         var inner = tracer.Inner?.NewSpan(Name);
 
-        var activity = tracer.StartActivity(Name);
+        var activity = tracer.StartActivity(Name, Parent);
         if (activity == null && inner == null) return OpenTelemetrySpan.Empty;
 
         StartTime = Runtime.UtcNow.ToLong();

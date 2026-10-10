@@ -221,4 +221,68 @@ public class OpenTelemetryTracerTests
         // OpenTelemetry 由采集端处理器上报，本地不产生上报批次
         Assert.Empty(tracer.TakeAll());
     }
+
+    [Fact]
+    [DisplayName("服务端片段_活动父级取自上游traceparent")]
+    public void NewServerSpanInheritsUpstreamParent()
+    {
+        const String source = "XUnitTest.Otel.Server";
+        const String traceId = "7ae122a215982779017518707e02e4ab";
+        const String parentId = "1111111111111111";
+        const String traceParent = "00-" + traceId + "-" + parentId + "-01";
+
+        var started = new List<Activity>();
+        using var listener = Listen(source, started, []);
+
+        var tracer = new OpenTelemetryTracer { SourceName = source };
+
+        // W3C 标准头
+        {
+            var headers = new Dictionary<String, String> { ["traceparent"] = traceParent };
+
+            using var span = tracer.NewServerSpan("api", headers);
+
+            var activity = Assert.Single(started);
+            Assert.Equal(traceId, activity.TraceId.ToHexString());
+            Assert.Equal(parentId, activity.ParentSpanId.ToHexString());
+            Assert.Equal(traceId, span!.TraceId);
+        }
+
+        // NewLife RPC 使用的 TraceId 头，其值同样是 traceparent 格式
+        {
+            started.Clear();
+            var headers = new Dictionary<String, String> { ["TraceId"] = traceParent };
+
+            using var span = tracer.NewServerSpan("api", headers);
+
+            var activity = Assert.Single(started);
+            Assert.Equal(traceId, activity.TraceId.ToHexString());
+            Assert.Equal(parentId, activity.ParentSpanId.ToHexString());
+        }
+    }
+
+    [Fact]
+    [DisplayName("服务端片段_无有效上游头时开启新链路")]
+    public void NewServerSpanWithoutUpstreamStartsNewTrace()
+    {
+        const String source = "XUnitTest.Otel.NoUpstream";
+        var started = new List<Activity>();
+        using var listener = Listen(source, started, []);
+
+        var tracer = new OpenTelemetryTracer { SourceName = source };
+
+        // 历史格式 Request-Id 不是 W3C，无法作为活动父级
+        var headers = new Dictionary<String, String> { ["Request-Id"] = "|abc.def." };
+        using (var span = tracer.NewServerSpan("api", headers))
+        {
+            var activity = Assert.Single(started);
+            Assert.Equal("0000000000000000", activity.ParentSpanId.ToHexString());
+            Assert.Equal(32, span!.TraceId.Length);
+        }
+
+        // 空请求头等同普通埋点
+        started.Clear();
+        using (tracer.NewServerSpan("api", (IDictionary<String, String>?)null)) { }
+        Assert.Equal("0000000000000000", Assert.Single(started).ParentSpanId.ToHexString());
+    }
 }

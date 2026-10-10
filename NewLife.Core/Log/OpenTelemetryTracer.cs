@@ -212,12 +212,77 @@ public class OpenTelemetryTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>创建活动。无监听者时返回空</summary>
     /// <param name="name">操作名称</param>
     /// <returns></returns>
-    internal Activity? StartActivity(String name)
+    internal Activity? StartActivity(String name, ActivityContext? parent = null)
     {
         var source = Source;
         if (!source.HasListeners()) return null;
 
-        return source.StartActivity(name, Kind);
+        return parent == null ? source.StartActivity(name, Kind) : source.StartActivity(name, Kind, parent.Value);
+    }
+
+    /// <summary>开始一个服务端片段，从请求头提取上游链路作为父级</summary>
+    /// <remarks>OpenTelemetry 的活动一旦启动就无法再指定父级，只能在创建时传入，因此不能沿用"先建后Detach"的写法</remarks>
+    /// <param name="name">操作名称</param>
+    /// <param name="headers">请求头</param>
+    /// <returns></returns>
+    internal ISpan NewSpanFromHeaders<T>(String name, IDictionary<String, T>? headers)
+    {
+        if (!IsActive) return OpenTelemetrySpan.Empty;
+        if (headers == null || headers.Count == 0) return NewSpan(name);
+
+        var traceParent = ExtractTraceParent(headers);
+        if (traceParent.IsNullOrEmpty() || !ActivityContext.TryParse(traceParent, null, out var parent)) return NewSpan(name);
+
+        var builder = new OpenTelemetrySpanBuilder(this, name) { Parent = parent };
+
+        return builder.Start();
+    }
+
+    /// <summary>从请求头提取 traceparent</summary>
+    /// <remarks>依次尝试：本跟踪器约定的注入名、W3C 标准名、NewLife RPC 使用的 TraceId 头（其值同为 traceparent 格式）</remarks>
+    /// <param name="headers">请求头</param>
+    /// <returns>traceparent 字符串，未找到时返回空</returns>
+    private String? ExtractTraceParent<T>(IDictionary<String, T> headers)
+    {
+        for (var i = 0; i < 3; i++)
+        {
+            var key = i switch
+            {
+                0 => AttachParameter,
+                1 => "traceparent",
+                _ => "TraceId",
+            };
+            if (key.IsNullOrEmpty()) continue;
+
+            if (TryGetHeader(headers, key, out var value)) return value;
+        }
+
+        return null;
+    }
+
+    /// <summary>读取请求头，字典大小写敏感时退化为忽略大小写查找</summary>
+    /// <param name="headers">请求头</param>
+    /// <param name="key">键</param>
+    /// <param name="value">值</param>
+    /// <returns></returns>
+    private static Boolean TryGetHeader<T>(IDictionary<String, T> headers, String key, out String? value)
+    {
+        if (headers.TryGetValue(key, out var header))
+        {
+            value = header + "";
+            return !value.IsNullOrEmpty();
+        }
+
+        foreach (var item in headers)
+        {
+            if (!item.Key.EqualIgnoreCase(key)) continue;
+
+            value = item.Value + "";
+            return !value.IsNullOrEmpty();
+        }
+
+        value = null;
+        return false;
     }
     #endregion
 

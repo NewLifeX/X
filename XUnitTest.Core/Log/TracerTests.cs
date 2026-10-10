@@ -392,6 +392,29 @@ public class TracerTests
     }
 
     [Fact]
+    [DisplayName("服务端片段_星尘跟踪器从请求头继承上游链路")]
+    public void NewServerSpanOnStarTracerInheritsUpstream()
+    {
+        var tracer = new DefaultTracer();
+        var headers = new Dictionary<String, String>
+        {
+            ["traceparent"] = "00-7ae122a215982779017518707e02e4ab-1111111111111111-01",
+        };
+
+        // 非 OpenTelemetry 跟踪器走"先建片段后吸收上游"的既有路径
+        using var span = tracer.NewServerSpan("api", headers) as DefaultSpan;
+
+        Assert.NotNull(span);
+        Assert.Equal("7ae122a215982779017518707e02e4ab", span!.TraceId);
+        Assert.Equal("1111111111111111", span.ParentId);
+
+        // 无请求头时等同普通片段
+        using var span2 = tracer.NewServerSpan("api", (IDictionary<String, String>?)null) as DefaultSpan;
+        Assert.NotNull(span2);
+        Assert.Equal(32, span2!.TraceId.Length);
+    }
+
+    [Fact]
     public void TestTraceId()
     {
         var span = new DefaultSpan();
