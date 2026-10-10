@@ -110,6 +110,7 @@ static class Program
             var idle = 0;
             // 服务端分配统计：接收路径（含回显发送）的托管分配总量，按接收消息数折算 B/msg
             var srvAlloc0 = GC.GetTotalAllocatedBytes(false);
+            var srvPause0 = GC.GetTotalPauseDuration();
             var srvGc0 = GC.CollectionCount(0);
             var srvGc1 = GC.CollectionCount(1);
             var srvGc2 = GC.CollectionCount(2);
@@ -148,7 +149,7 @@ static class Program
                     var srvAllocPerMsg = msgs > 0 ? (GC.GetTotalAllocatedBytes(false) - srvAlloc0) / (Double)msgs : 0;
                     var line = $"[server] STEADY {steady:N1} MB/s  Gbps={steady * 0.008388608:N2}  pkt={steady * 1048576 / size:N0} pkt/s";
                     if (frame > 0) line += $"  frame={steady * 1048576 / frame:N0} frame/s";
-                    line += $"  alloc={srvAllocPerMsg:N2} B/msg  gc={GC.CollectionCount(0) - srvGc0}/{GC.CollectionCount(1) - srvGc1}/{GC.CollectionCount(2) - srvGc2}  秒采样={window.Count}";
+                    line += $"  alloc={srvAllocPerMsg:N2} B/msg  gc={GC.CollectionCount(0) - srvGc0}/{GC.CollectionCount(1) - srvGc1}/{GC.CollectionCount(2) - srvGc2}  暂停={(GC.GetTotalPauseDuration() - srvPause0).TotalMilliseconds:N1} ms  秒采样={window.Count}";
                     Console.WriteLine(line);
                     break;
                 }
@@ -222,6 +223,7 @@ static class Program
         PrimeTrafficAsync(oneway, udp, remote, server, size, recvMode, payload).GetAwaiter().GetResult();
 
         var alloc0 = GC.GetTotalAllocatedBytes(false);
+        var pause0 = GC.GetTotalPauseDuration();
         var gen0 = GC.CollectionCount(0);
         var gen1 = GC.CollectionCount(1);
         var gen2 = GC.CollectionCount(2);
@@ -267,6 +269,7 @@ static class Program
         }
         Console.WriteLine($"分配      : {allocPerMsg:N1} B/msg | 窗口总分配 {(alloc1 - alloc0) / (1024.0 * 1024.0):N1} MB");
         Console.WriteLine($"GC        : Gen0 +{GC.CollectionCount(0) - gen0} Gen1 +{GC.CollectionCount(1) - gen1} Gen2 +{GC.CollectionCount(2) - gen2}");
+        Console.WriteLine($"GC暂停    : {(GC.GetTotalPauseDuration() - pause0).TotalMilliseconds:N2} ms（窗口 {elapsed:F2} s）");
 
         // 机器可读汇总（跑批脚本按 SUMMARY: 前缀解析 JSON）
         var summary = new Dictionary<String, Object?>
@@ -283,6 +286,7 @@ static class Program
             ["gc0"] = GC.CollectionCount(0) - gen0,
             ["gc1"] = GC.CollectionCount(1) - gen1,
             ["gc2"] = GC.CollectionCount(2) - gen2,
+            ["gcPauseMs"] = Math.Round((GC.GetTotalPauseDuration() - pause0).TotalMilliseconds, 2),
         };
         if (roundtrip)
         {
