@@ -83,7 +83,16 @@ public class SevenZip
     private Int32 Run(String args)
     {
         if (_7z.IsNullOrEmpty()) throw new InvalidOperationException("未找到7z.exe，无法执行压缩/解压缩操作");
-        return _7z.Run(args, 5000);
+
+        // 7z 的执行时间取决于数据体积，大目录/冷备份常达数分钟，不能使用固定的短超时：
+        // 超时会把 7z 强杀在半途，留下被截断的归档，而旧实现忽略返回值，表现为"静默成功"。
+        // 负值表示一直等到 7z 自身退出，与本类文档描述的同步语义一致
+        var rs = _7z.Run(args, -1);
+
+        // 退出码：0 成功，1 警告（通常仍有可用产物），2 及以上为失败
+        if (rs >= 2) throw new InvalidOperationException($"7z 执行失败，退出码 {rs}");
+
+        return rs;
     }
     #endregion
 }
