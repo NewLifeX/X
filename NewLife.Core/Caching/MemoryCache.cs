@@ -923,7 +923,7 @@ public class MemoryCache : Cache
             }
             else if (code != TypeCode.Object)
             {
-                var type = Type.GetType("System." + code);
+                var type = TypeCodeHelper.GetType(code);
                 if (type != null) value = bn.Read(type);
             }
             else

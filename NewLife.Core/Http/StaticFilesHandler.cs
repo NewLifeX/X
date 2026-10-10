@@ -16,25 +16,30 @@ public class StaticFilesHandler : IHttpHandler
 
     /// <summary>处理请求</summary>
     /// <param name="context">Http上下文</param>
-    public virtual void ProcessRequest(IHttpContext context)
+    public virtual Task ProcessRequestAsync(IHttpContext context)
     {
         if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
         var file = context.Path[Path.Length..];
         file = ContentPath.CombinePath(file);
 
-        // 路径安全检查，防止目录穿越
-        if (!file.GetFullPath().StartsWithIgnoreCase(ContentPath.GetFullPath()))
+        // 路径安全检查，防止目录穿越。基路径先补上目录分隔符再比对：
+        // 否则内容目录 D:\www\js 会放行 D:\www\js2 这类同前缀的兄弟目录
+        var baseDir = ContentPath.GetFullPath().EnsureEnd(System.IO.Path.DirectorySeparatorChar + "");
+        if (!file.GetFullPath().StartsWithIgnoreCase(baseDir))
             throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
         var fi = file.AsFile();
         if (!fi.Exists) throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
-        var contentType = GetContentType(fi.Extension);
+        var contentType = GetContentType(fi.Extension) ?? "application/octet-stream";
 
-        // 确保使用完以后关闭文件流
-        using var fs = fi.OpenRead();
-        context.Response.SetResult(fs, contentType);
+        // 流式发送文件内容：流所有权移交响应（发送完成后释放），大文件不物化到内存
+        var fs = fi.OpenRead();
+        context.Response.ContentType = contentType;
+        context.Response.BodyStream = fs;
+
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>根据文件扩展名获取MIME类型</summary>

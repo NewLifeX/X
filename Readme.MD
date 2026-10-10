@@ -5,6 +5,9 @@
 ![Nuget](https://img.shields.io/nuget/v/newlife.core?logo=nuget)
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
 [![AtomGit Stars](https://atomgit.com/NewLifeX/X/star/badge.svg)](https://atomgit.com/NewLifeX/X)
+[![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=v12)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
+
+🌐 [English](README.en.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Русский](README.ru.md) | [Português](README.pt.md) | [العربية](README.ar.md)
 
 ​	NewLife框架是一个全面的 .NET 组件生态系统，它为构建可扩展的应用程序提供了高性能的基础设施。它提供日志、网络、序列化、缓存和多线程等基本功能，作为从 Web 服务到 IoT 设备的一系列应用程序的基础。  
 
@@ -14,9 +17,21 @@
 
 ## 框架概述
 
-​	NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持从 .NET 2.0 到 .NET 10.0 的多个 .NET 版本，从而在不同环境中实现广泛的兼容性。
+​	NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持 net45~net10.0 多目标框架（.NET Framework 4.5 至 .NET 10.0），从而在不同环境中实现广泛的兼容性。
+
+**NativeAOT**：核心链路已支持（25 场景实测 + CI 防回归）；插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](Doc/AOT兼容性分析.md)。
 
 
+
+## 文档索引
+
+仓库 `Doc/` 目录维护能力文档体系（需求定义 → 功能追踪 → 架构设计）：
+
+- [需求文档](Doc/需求文档.md)：愿景、核心目标与功能需求
+- [功能清单](Doc/功能清单.md)：全部功能点的实现/测试/注释状态追踪
+- [架构设计](Doc/架构设计.md)：分层、模块组件与关键设计决策
+- [核心库目录](Doc/核心库目录.md)：核心组件文章索引
+- [AOT兼容性分析](Doc/AOT兼容性分析.md)：NativeAOT 支持范围、实测结论（冒烟 25/25）、使用指引与已知边界
 
 ## 快速拥有
 
@@ -84,11 +99,12 @@ dotnet run
 |                  | [Span读取器SpanReader](/core/span_reader)                                    | 零分配高性能二进制流解析器，支持大小端。         |
 |                  | [Span写入器SpanWriter](/core/span_writer)                                    | 零分配高性能二进制数据写入器，支持大小端。       |
 |                  | [Span辅助SpanHelper](/core/span_helper)                                      | Span/ReadOnlySpan扩展方法集，简化内存操作。      |
+|                  | [序列读取器SequenceReader](/core/sequence_reader)                            | 跨段顺序读取器（旧框架经垫片补齐，全18 TFM可用）。 |
 | **应用框架**     | [对象容器ObjectContainer](https://newlifex.com/core/object_container)        | 轻量级依赖注入，支持多种生命周期和注入模式。     |
 |                  | [轻量级应用主机Host](https://newlifex.com/core/host)                         | 简化应用托管，轻松构建长时间运行的后台服务。     |
 |                  | [插件框架IPlugin](https://newlifex.com/core/plugin)                          | 提供标准化的插件管理机制，实现应用模块化开发。   |
 |                  | [并行模型Actor](https://newlifex.com/core/actor)                             | 简化的并发编程模型，通过消息队列处理提升吞吐。   |
-|                  | [管道模型Pipeline](/core/pipeline)                                           | 双向处理链模型，统一Read/Write/Open/Close流程。  |
+|                  | [管道模型Pipeline](/core/pipeline) ⚠️ 已退役，由协议模式（帧泵）取代                                           | 双向处理链模型，统一Read/Write/Open/Close流程。  |
 |                  | [延迟队列DeferredQueue](/core/deferred_queue)                                | 聚合高频变更并批处理落地，降低写入放大。         |
 |                  | [事件总线EventBus](/core/eventbus)                                           | 进程内事件分发，支持主题路由和队列式消息。       |
 |                  | [弱引用委托WeakAction](https://newlifex.com/core/weak_action)                | 解决事件订阅内存泄漏问题，实现安全的事件处理。   |
@@ -105,11 +121,11 @@ dotnet run
 |                  | [令牌HTTP过滤器TokenHttpFilter](https://newlifex.com/core/token_http_filter) | HTTP请求自动注入令牌，拦截401/403自动续期。     |
 | **云服务**       | [经纬度哈希GeoHash](https://newlifex.com/core/geo_hash)                      | 将经纬度编码为字符串，用于附近位置搜索。         |
 |                  | ⚠️ 百度地图/高德地图 已提取到独立 NuGet 包。                                 |                                                  |
-| **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP服务端，封装了会话和数据处理。      |
-|                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP网络客户端，简化连接与收发。        |
-|                  | [消息IMessage](/core/message)                                                | 请求-响应消息接口，支持池化内存和释放链。        |
-|                  | [网络编解码器Handlers](/core/net_handlers)                                   | 粘包拆包、消息编解码与协议管道集成。             |
-|                  | [数据包编码器PacketCodec](https://newlifex.com/core/packet_codec)            | 用于网络粘包处理，支持多种消息分包解决方案。     |
+| **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP/Unix域套接字服务端，封装了会话和数据处理。 |
+|                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP/Unix网络客户端，简化连接与收发。   |
+|                  | [消息IMessage](/core/message)                                                | 请求-响应消息契约，承载方向语义与帧读写。        |
+|                  | [消息协议栈MessagePump](/core/message_protocol)                              | 帧泵 + 无状态编解码器单栈，支持大帧流式体与背压。 |
+|                  | [数据管道Pipe](/core/packet_pipe)                                            | 零拷贝数据管道，对齐 System.IO.Pipelines 形态。  |
 |                  | [简易远程消息交换协议SRMP](https://newlifex.com/core/srmp)                   | 轻量级RPC协议，支持二进制序列化和UDP传输。       |
 |                  | [负载均衡与故障转移LoadBalancer](/core/load_balancer)                        | 提供Failover/轮询/竞速三种多节点调度策略。       |
 |                  | [RPC通信ApiServer](https://newlifex.com/core/api_server)                     | ⚠️ 已移至 [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting) |

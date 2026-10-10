@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife;
@@ -11,9 +11,20 @@ using Xunit;
 namespace XUnitTest.Net;
 
 /// <summary>NetSession网络会话单元测试</summary>
+[Collection("Net.C")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetSessionTests
 {
+    #region 工具
+    /// <summary>等待服务端创建会话。固定 Sleep 在并行满载时未必够用，改为轮询到超时</summary>
+    private static void WaitSession(Func<INetSession?> session, Int32 timeoutMs = 10_000)
+    {
+        var end = Environment.TickCount64 + timeoutMs;
+        while (session() == null && Environment.TickCount64 < end) Thread.Sleep(10);
+    }
+
+    #endregion
+
     #region 基础功能测试
     /// <summary>测试会话ID自增分配</summary>
     [Fact]
@@ -51,6 +62,10 @@ public class NetSessionTests
         }
 
         Thread.Sleep(500);
+
+        // 并行满载时服务端建会话可能滞后，轮询等待 5 个会话全部到位
+        var end = Environment.TickCount64 + 10_000;
+        while (sessionIds.Count < 5 && Environment.TickCount64 < end) Thread.Sleep(10);
 
         // 验证ID递增且唯一
         Assert.Equal(5, sessionIds.Count);
@@ -205,7 +220,7 @@ public class NetSessionTests
 
         var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         // 关闭客户端触发断开
         client.Close();
@@ -261,6 +276,50 @@ public class NetSessionTests
         createdSession.Close("TestClose2");
     }
 
+    /// <summary>回归：Close 只触发一次 Disconnected 事件（曾双发：先空参、后带原因）</summary>
+    [Fact(DisplayName = "会话关闭_Disconnected事件只触发一次")]
+    public void DisconnectedEvent_FiresOnce()
+    {
+        var count = 0;
+        var sessionCreated = new ManualResetEventSlim(false);
+        INetSession? createdSession = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+            Log = XTrace.Log,
+        };
+
+        server.NewSession += (s, e) =>
+        {
+            createdSession = e.Session;
+            if (e.Session is NetSession ns)
+            {
+                ns.Disconnected += (sender, args) => Interlocked.Increment(ref count);
+            }
+            sessionCreated.Set();
+        };
+
+        server.Start();
+
+        using var client = new TcpClient();
+        client.Connect(IPAddress.Loopback, server.Port);
+
+        Assert.True(sessionCreated.Wait(3000));
+        Assert.NotNull(createdSession);
+
+        // 主动关闭会话，Disconnected 应当且仅当触发一次
+        createdSession!.Close("TestClose");
+
+        // 并行满载时断开回调可能滞后，轮询等待事件到达
+        var end = Environment.TickCount64 + 5_000;
+        while (Volatile.Read(ref count) == 0 && Environment.TickCount64 < end) Thread.Sleep(10);
+
+        Assert.Equal(1, count);
+    }
+
     class ConnectedTestSession : NetSession
     {
         protected override void OnConnected()
@@ -307,7 +366,7 @@ public class NetSessionTests
 
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         Assert.NotNull(createdSession);
 
@@ -347,7 +406,7 @@ public class NetSessionTests
 
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         Assert.NotNull(createdSession);
 
@@ -387,7 +446,7 @@ public class NetSessionTests
 
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         Assert.NotNull(createdSession);
 
@@ -466,7 +525,7 @@ public class NetSessionTests
 
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitSession(() => createdSession);
 
         Assert.NotNull(createdSession);
 

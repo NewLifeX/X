@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using NewLife.Threading;
 
 namespace NewLife.Net;
@@ -9,11 +10,16 @@ namespace NewLife.Net;
 /// <remarks>
 /// <para>带有自动清理不活动会话的功能。</para>
 /// <para>使用远程地址端口作为标识，自动管理会话生命周期。</para>
+/// <para>会话在 Socket 层是否存在以本集合为准：只收未释放会话；出集合只有三条路——会话释放（OnDisposed 级联）、
+/// 超时清理不活动会话（RemoveNotAlive）、停机清空（CloseAll/Clear）。</para>
 /// </remarks>
 internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
 {
     #region 属性
     private readonly ConcurrentDictionary<String, ISocketSession> _dic = new();
+
+    /// <summary>远程端点缓存。热路径（UDP 每包查找会话）以端点对象为键，免去每包拼接字符串键（IPEndPoint.ToString 的多次字符串分配）</summary>
+    private readonly ConcurrentDictionary<IPEndPoint, ISocketSession> _endPoints = new();
 
     /// <summary>服务端</summary>
     public ISocketServer Server { get; private set; }
@@ -55,18 +61,46 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     /// <returns>返回添加新会话是否成功</returns>
     public Boolean Add(ISocketSession session)
     {
+        // 集合已释放（停机清空）后不得再登记：Add 内的 _clearTimer ??= 会为已释放集合重建清理计时器，
+        // 全局计时器随之长期持有集合→服务对象图；会话则会成为"服务已停、集合非空"的复活会话
+        if (Disposed) return false;
+
+        // 已销毁的会话不再入集合：其 OnDisposed 已经触发过，移除回调不会再触发，条目只能等超时清理
+        if (session.Disposed) return false;
+
         var key = session.Remote.EndPoint + "";
 
-        if (!_dic.TryAdd(key, session)) return false;
+        // 先订阅销毁回调再入集合。反序存在“已入集合但尚未订阅”的窗口：
+        // 会话在该窗口内销毁则移除回调永不触发，端点标识永久残留，之后同端点的新连接被静默拒绝
+        EventHandler onDisposed = (s, e) =>
+        {
+            if (s is ISocketSession ss)
+            {
+                _dic.TryRemove(ss.Remote.EndPoint + "", out _);
+                RemoveCache(ss);
+            }
+        };
+        session.OnDisposed += onDisposed;
+
+        // 订阅与入集合之间仍有窗口：会话此刻销毁则移除回调空转（集合里还没它），随后 TryAdd 成功就永久残留。
+        // 入集合前再复查一次，把窗口压到“复查-入集合”的指令级
+        if (session.Disposed)
+        {
+            session.OnDisposed -= onDisposed;
+            return false;
+        }
+
+        if (!_dic.TryAdd(key, session))
+        {
+            // 端点重复等入集合失败：退订，避免回调挂在未被集合接管的会话上
+            session.OnDisposed -= onDisposed;
+            return false;
+        }
+
+        _endPoints[session.Remote.EndPoint] = session;
 
         var p = ClearPeriod * 1000;
         _clearTimer ??= new TimerX(RemoveNotAlive, null, p, p) { Async = true, };
-
-        session.OnDisposed += (s, e) =>
-        {
-            if (s is ISocketSession ss)
-                _dic.TryRemove(ss.Remote.EndPoint + "", out _);
-        };
 
         return true;
     }
@@ -79,6 +113,28 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         if (!_dic.TryGetValue(key, out var session)) return null;
 
         return session;
+    }
+
+    /// <summary>获取会话（按远程端点）</summary>
+    /// <remarks>仅作加速：未命中时回退字符串键路径；创建与移除路径同步维护缓存，保证与实际集合一致。</remarks>
+    /// <param name="endPoint">远程端点</param>
+    /// <returns>会话实例</returns>
+    internal ISocketSession? Get(IPEndPoint endPoint)
+    {
+        if (_endPoints.TryGetValue(endPoint, out var session) && !session.Disposed) return session;
+
+        // 首包或缓存失效时回退字符串键路径，命中后写入缓存
+        session = Get(endPoint + "");
+        if (session != null) _endPoints[endPoint] = session;
+
+        return session;
+    }
+
+    /// <summary>从端点缓存移除指向指定会话的条目（值校验，避免旧会话销毁时误删同端点的新会话）</summary>
+    private void RemoveCache(ISocketSession session)
+    {
+        var ep = session.Remote.EndPoint;
+        if (_endPoints.TryGetValue(ep, out var item) && ReferenceEquals(item, session)) _endPoints.TryRemove(ep, out _);
     }
 
     /// <summary>关闭所有会话</summary>
@@ -119,10 +175,11 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
                 values.Add(elm.Value);
             }
         }
-        // 从会话集合里删除这些键值，并行字典操作安全
-        foreach (var item in keys)
+        // 从会话集合里删除这些键值，并行字典操作安全；同步清理端点缓存（值校验，防止误删同端点的新会话）
+        for (var i = 0; i < keys.Count; i++)
         {
-            _dic.TryRemove(item, out _);
+            _dic.TryRemove(keys[i], out _);
+            RemoveCache(values[i]);
         }
 
         // 已经离开了锁，慢慢释放各个会话
@@ -139,14 +196,20 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     #endregion
 
     #region 成员
-    /// <summary>清空会话集合</summary>
-    public void Clear() => _dic.Clear();
+    /// <summary>清空会话索引（不关闭会话）</summary>
+    /// <remarks>仅清空字典索引、不动会话本身；需要关闭会话请用 <see cref="CloseAll"/>。
+    /// 两者常在停机流程里先后调用：先 CloseAll 收尾，再 Clear 清索引。</remarks>
+    public void Clear()
+    {
+        _dic.Clear();
+        _endPoints.Clear();
+    }
 
     /// <summary>会话数量</summary>
     public Int32 Count => _dic.Count;
 
-    /// <summary>是否只读</summary>
-    public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>)?.IsReadOnly ?? false;
+    /// <summary>是否只读。本集合支持增删，恒为 false</summary>
+    public Boolean IsReadOnly => false;
 
     /// <summary>获取枚举器</summary>
     /// <returns>会话枚举器</returns>
@@ -157,7 +220,13 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     #region IDictionary<String,ISocketSession> 成员
 
-    void IDictionary<String, ISocketSession>.Add(String key, ISocketSession value) => Add(value);
+    void IDictionary<String, ISocketSession>.Add(String key, ISocketSession value)
+    {
+        // 显式 Add 语义要求键与会话端点一致且不得重复；旧实现忽略 key，传错键会静默按会话端点入集合
+        var actual = value.Remote.EndPoint + "";
+        if (key != null && key != actual) throw new ArgumentException($"键 [{key}] 与会话端点 [{actual}] 不一致", nameof(key));
+        if (!Add(value)) throw new ArgumentException($"已存在键 [{key}] 的会话", nameof(key));
+    }
 
     Boolean IDictionary<String, ISocketSession>.ContainsKey(String key) => _dic.ContainsKey(key);
 
@@ -166,6 +235,8 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     Boolean IDictionary<String, ISocketSession>.Remove(String key)
     {
         if (!_dic.TryRemove(key, out var session)) return false;
+
+        RemoveCache(session);
 
         if (session is INetSession ss) ss.Close("Remove");
         session.Dispose();
@@ -181,7 +252,15 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values => _dic.Values;
 
-    ISocketSession IDictionary<String, ISocketSession>.this[String key] { get => _dic[key]; set => _dic[key] = value; }
+    ISocketSession IDictionary<String, ISocketSession>.this[String key]
+    {
+        get => _dic[key];
+        set
+        {
+            _dic[key] = value;
+            _endPoints[value.Remote.EndPoint] = value;
+        }
+    }
 
     #endregion
 

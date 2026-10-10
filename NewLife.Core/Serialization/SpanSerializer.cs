@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using NewLife.Buffers;
@@ -116,45 +117,6 @@ public static class SpanSerializer
     public static Int32 HeaderReserve { get; set; } = 32;
 
     #region 快捷方法
-    /// <summary>序列化对象到数据包，支持大对象自动溢出到流</summary>
-    /// <remarks>
-    /// 缓冲区前方预留 <see cref="HeaderReserve"/> 字节空间，方便协议层通过 <c>new OwnerPacket(owner, expandSize)</c> 向前扩展头部。
-    /// 小数据直接使用池化缓冲区零拷贝返回；大数据自动 Flush 到 MemoryStream 后包装为 ArrayPacket。
-    /// </remarks>
-    /// <param name="value">目标对象</param>
-    /// <param name="bufferSize">初始缓冲区大小，默认4096</param>
-    /// <returns>数据包，调用方负责 Dispose</returns>
-    [Obsolete("请直接构造 SpanWriter 并调用 SpanSerializer.WriteObject，池化路径参考文档。此重载将在未来版本中移除。")]
-    public static IOwnerPacket Serialize(Object value, Int32 bufferSize = 4096)
-    {
-        if (value == null) throw new ArgumentNullException(nameof(value));
-
-        var reserve = HeaderReserve;
-
-        // 池化缓冲区和流，两个都从池里借
-        var pk = new OwnerPacket(bufferSize);
-        var ms = Pool.MemoryStream.Get();
-        ms.Position = reserve;
-        var writer = new SpanWriter(pk.GetSpan()[reserve..], ms);
-
-        WriteObject(ref writer, value, value.GetType());
-
-        // 小数据：数据全在缓冲区中，流中无数据
-        if (writer.TotalWritten == writer.WrittenCount)
-        {
-            var count = writer.WrittenCount;
-            Pool.MemoryStream.Return(ms);
-            return (pk.Slice(reserve, count) as IOwnerPacket)!;
-        }
-
-        // 大数据：Flush 剩余到流后包装
-        writer.Flush();
-        pk.Dispose();
-
-        ms.Position = reserve;
-        return new OwnerPacket(ms);
-    }
-
     /// <summary>将ISpanSerializable对象序列化为数据包，支持大对象自动溢出到流</summary>
     /// <remarks>
     /// 池化缓冲区 + 池化流双路径设计：小数据零拷贝返回，大数据自动 Flush 到 MemoryStream。
@@ -169,7 +131,7 @@ public static class SpanSerializer
         if (value == null) throw new ArgumentNullException(nameof(value));
 
         // 池化缓冲区和流，两个都从池里借
-        var pk = new OwnerPacket(bufferSize);
+        using var pk = new OwnerPacket(bufferSize);
         var ms = Pool.MemoryStream.Get();
         ms.Position = reserve;
         var writer = new SpanWriter(pk.GetSpan()[reserve..], ms);
@@ -181,12 +143,13 @@ public static class SpanSerializer
         {
             var count = writer.WrittenCount;
             Pool.MemoryStream.Return(ms);
-            return (pk.Slice(reserve, count) as IOwnerPacket)!;
+
+            // 共享切片：返回窗口获得独立引用（拥有句柄），序列化缓冲的引用在方法退出时释放
+            return pk.Slice(reserve, count);
         }
 
         // 大数据：Flush 剩余到流后包装
         writer.Flush();
-        pk.Dispose();
 
         ms.Position = reserve;
         return new OwnerPacket(ms);
@@ -245,98 +208,14 @@ public static class SpanSerializer
         return reader.Position;
     }
 
-    /// <summary>序列化对象到指定Span，返回实际写入字节数</summary>
-    /// <param name="value">目标对象</param>
-    /// <param name="buffer">目标缓冲区</param>
-    /// <returns>实际写入的字节数</returns>
-    [Obsolete("请直接构造 SpanWriter 并调用 SpanSerializer.WriteObject。此重载将在未来版本中移除。")]
-    public static Int32 Serialize(Object value, Span<Byte> buffer)
-    {
-        if (value == null) throw new ArgumentNullException(nameof(value));
-
-        var writer = new SpanWriter(buffer);
-        WriteObject(ref writer, value, value.GetType());
-        return writer.WrittenCount;
-    }
-
-    /// <summary>反序列化字节数组为对象</summary>
-    /// <typeparam name="T">目标类型</typeparam>
-    /// <param name="data">字节数据</param>
-    /// <returns>反序列化的对象实例</returns>
-    [Obsolete("请直接构造 SpanReader 并调用 SpanSerializer.ReadObject。此重载将在未来版本中移除。")]
-    public static T Deserialize<T>(ReadOnlySpan<Byte> data)
-    {
-        var reader = new SpanReader(data);
-        return (T)ReadObject(ref reader, typeof(T));
-    }
-
-    /// <summary>反序列化字节数组为对象</summary>
-    /// <param name="type">目标类型</param>
-    /// <param name="data">字节数据</param>
-    /// <returns>反序列化的对象实例</returns>
-    [Obsolete("请直接构造 SpanReader 并调用 SpanSerializer.ReadObject。此重载将在未来版本中移除。")]
-    public static Object Deserialize(Type type, ReadOnlySpan<Byte> data)
-    {
-        var reader = new SpanReader(data);
-        return ReadObject(ref reader, type);
-    }
-
-    /// <summary>从数据包反序列化为指定类型的对象</summary>
-    /// <typeparam name="T">目标类型</typeparam>
-    /// <param name="data">数据包，连续包直接取Span，分段包读取字节数组</param>
-    /// <returns>反序列化的对象实例</returns>
-    [Obsolete("请直接构造 SpanReader 并调用 SpanSerializer.ReadObject。此重载将在未来版本中移除。")]
-    public static T Deserialize<T>(IPacket data)
-    {
-        if (data == null) throw new ArgumentNullException(nameof(data));
-
-        if (data.Next == null)
-        {
-            var reader = new SpanReader(data.GetSpan());
-            return (T)ReadObject(ref reader, typeof(T));
-        }
-        return Deserialize<T>(data.ReadBytes());
-    }
-
-    /// <summary>从数据包反序列化为对象</summary>
-    /// <param name="type">目标类型</param>
-    /// <param name="data">数据包，连续包直接取Span，分段包读取字节数组</param>
-    /// <returns>反序列化的对象实例</returns>
-    [Obsolete("请直接构造 SpanReader 并调用 SpanSerializer.ReadObject。此重载将在未来版本中移除。")]
-    public static Object Deserialize(Type type, IPacket data)
-    {
-        if (type == null) throw new ArgumentNullException(nameof(type));
-        if (data == null) throw new ArgumentNullException(nameof(data));
-
-        if (data.Next == null)
-        {
-            var reader = new SpanReader(data.GetSpan());
-            return ReadObject(ref reader, type);
-        }
-        return Deserialize(type, (ReadOnlySpan<Byte>)data.ReadBytes());
-    }
-
-    /// <summary>写入单个值到SpanWriter（用于序列化数据行的字段值）</summary>
-    /// <param name="writer">Span写入器</param>
-    /// <param name="value">值，可为null</param>
-    /// <param name="type">值的类型</param>
-    [Obsolete("请改用 writer.WriteValue(value, type) 实例方法。此重载将在未来版本中移除。")]
-    public static void WriteValue(ref SpanWriter writer, Object? value, Type type) => writer.WriteValue(value, type);
-
-    /// <summary>从SpanReader读取单个值（用于反序列化数据行的字段值）</summary>
-    /// <param name="reader">Span读取器</param>
-    /// <param name="type">值的类型</param>
-    /// <returns>反序列化的值，可空类型且为null时返回null</returns>
-    [Obsolete("请改用 reader.ReadValue(type) 实例方法。此重载将在未来版本中移除。")]
-    public static Object? ReadValue(ref SpanReader reader, Type type) => reader.ReadValue(type);
     #endregion
 
     #region 写入
     /// <summary>写入引用类型对象（含null标记）</summary>
-    /// <typeparam name="T">对象类型</typeparam>
+    /// <typeparam name="T">对象类型。AOT 下该类型的公开属性与字段将按需保留</typeparam>
     /// <param name="writer">Span写入器</param>
     /// <param name="value">目标对象，可为null</param>
-    public static void Write<T>(ref SpanWriter writer, T? value) where T : class
+    public static void Write<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(ref SpanWriter writer, T? value) where T : class
     {
         if (value == null)
         {
@@ -350,8 +229,8 @@ public static class SpanSerializer
     /// <summary>写入对象成员到SpanWriter（不含null标记）</summary>
     /// <param name="writer">Span写入器</param>
     /// <param name="value">目标对象，不可为null</param>
-    /// <param name="type">对象类型</param>
-    public static void WriteObject(ref SpanWriter writer, Object value, Type type)
+    /// <param name="type">对象类型。AOT 下该类型的公开属性与字段将按需保留</param>
+    public static void WriteObject(ref SpanWriter writer, Object value, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type)
     {
         // ISpanSerializable 零反射快速路径
         if (value is ISpanSerializable ss)
@@ -437,6 +316,7 @@ public static class SpanSerializer
         }
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "复杂值类型来自序列化对象图（运行时来源）；AOT 元数据由调用方泛型入口或 SystemJson 上下文负责")]
     private static void WriteComplexValue(ref SpanWriter writer, Object? value, Type type)
     {
         // Guid - 16字节结构体
@@ -477,10 +357,10 @@ public static class SpanSerializer
 
     #region 读取
     /// <summary>读取引用类型对象（含null标记）</summary>
-    /// <typeparam name="T">对象类型</typeparam>
+    /// <typeparam name="T">对象类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</typeparam>
     /// <param name="reader">Span读取器</param>
     /// <returns>反序列化的对象，可能为null</returns>
-    public static T? Read<T>(ref SpanReader reader) where T : class
+    public static T? Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicConstructors)] T>(ref SpanReader reader) where T : class
     {
         var flag = reader.ReadByte();
         if (flag == 0) return null;
@@ -490,9 +370,9 @@ public static class SpanSerializer
 
     /// <summary>从SpanReader读取对象成员（不含null标记）</summary>
     /// <param name="reader">Span读取器</param>
-    /// <param name="type">对象类型</param>
+    /// <param name="type">对象类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>反序列化的对象实例</returns>
-    public static Object ReadObject(ref SpanReader reader, Type type)
+    public static Object ReadObject(ref SpanReader reader, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
         var obj = type.CreateInstance()!;
 
@@ -592,6 +472,7 @@ public static class SpanSerializer
         return result;
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "复杂值类型来自序列化对象图（运行时来源）；AOT 元数据由调用方泛型入口或 SystemJson 上下文负责")]
     private static Object? ReadComplexValue(ref SpanReader reader, Type type)
     {
         // Guid - 16字节结构体

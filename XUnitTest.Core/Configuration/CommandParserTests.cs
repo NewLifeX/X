@@ -77,14 +77,27 @@ public class CommandParserTests
         Assert.Null(dic["-allowall"]);
     }
 
-    [Fact]
+    [Fact(DisplayName = "空参数回退到当前进程命令行")]
     public void DefaultArgs()
     {
         var cmp = new CommandParser { };
-        var dic = cmp.Parse(null);
 
+        // Parse(null) 回退到 Environment.GetCommandLineArgs()
+        var dic = cmp.Parse(null);
         Assert.NotNull(dic);
-        Assert.Equal(6, dic.Count);
+
+        // 回退结果必须与显式传入当前进程命令行完全一致。
+        // 不能断言参数条数：测试宿主由 VSTest 注入 --port/--endpoint/--role/--parentprocessid/--telemetryoptedin 等选项，
+        // 其集合随 VSTest 版本变化，写死数量会让本用例随运行器升级而失败
+        var expected = cmp.Parse(Environment.GetCommandLineArgs());
+        Assert.Equal(expected.Count, dic.Count);
+        foreach (var kv in expected)
+        {
+            Assert.True(dic.ContainsKey(kv.Key));
+            Assert.Equal(kv.Value, dic[kv.Key]);
+        }
+
+        // 用宿主必然注入的选项确认确实读到了当前进程命令行，而非空集合
         Assert.True(dic.ContainsKey("port"));
         Assert.True(dic.ContainsKey("endpoint"));
         Assert.True(dic.ContainsKey("role"));

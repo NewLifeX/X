@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <!-- 进程级并行：默认 1（各测试容器串行）；0 = 按逻辑核数并行启动 testhost。
+       VS 2026「自动检测 runsettings」（Tools > Options > Test，默认开启）会把解决方案根目录的
+       本文件应用于所有测试运行，10 个测试宿主（4 工程 × TFM）即可并行；并发过高导致环境敏感
+       用例偶发增多时，改成具体数字（如 5）即可降载。CLI/CI 不受影响（单容器运行，本项无效果）。 -->
+  <RunConfiguration>
+    <MaxCpuCount>0</MaxCpuCount>
+  </RunConfiguration>
+</RunSettings>

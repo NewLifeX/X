@@ -102,7 +102,3 @@ public class IniConfigProvider : FileConfigProvider
         return sb.ToString();
     }
 }
-
-/// <summary>Ini文件配置提供者</summary>
-[Obsolete("请使用 IniConfigProvider")]
-public class InIConfigProvider : IniConfigProvider { }

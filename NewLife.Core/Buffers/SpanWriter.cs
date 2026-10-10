@@ -396,8 +396,12 @@ public ref struct SpanWriter
     private Int32 WriteStringWithLength(String value, Encoding encoding, Int32 startPos)
     {
         var byteCount = encoding.GetByteCount(value);
+
+        // 先备足“长度前缀 + 内容”的空间再落笔：EnsureSpace 在流式模式会扩容/落盘，
+        // 一旦抛异常，先写下的长度前缀会留在缓冲里（声明长度与内容自相矛盾）
+        EnsureSpace(LengthPrefixSize(byteCount, 0) + byteCount);
+
         WriteEncodedInt(byteCount);
-        EnsureSpace(byteCount);
 
         var count = encoding.GetBytes(value.AsSpan(), _span[_index..]);
         _index += count;
@@ -426,16 +430,10 @@ public ref struct SpanWriter
         else
         {
             // 编码结果超过目标长度：先编码到临时缓冲，拷贝前 length 个字节
-            var buf = Pool.Shared.Rent(need);
-            try
-            {
-                var count = encoding.GetBytes(source, buf);
-                new ReadOnlySpan<Byte>(buf, 0, length).CopyTo(span);
-            }
-            finally
-            {
-                Pool.Shared.Return(buf);
-            }
+            using var buf = Pool.Rent(need);
+
+            var count = encoding.GetBytes(source, buf);
+            new ReadOnlySpan<Byte>(buf, 0, length).CopyTo(span);
         }
 
         _index += length;
@@ -522,6 +520,22 @@ public ref struct SpanWriter
     #endregion
 
     #region 扩展写入
+    /// <summary>7 位压缩编码占用的字节数（与 <see cref="WriteEncodedInt"/> 一致）</summary>
+    /// <param name="value">数值</param>
+    /// <returns>字节数</returns>
+    private static Int32 EncodedIntSize(Int32 value)
+    {
+        var num = (UInt32)value;
+
+        return num < 0x80 ? 1 : num < 0x4000 ? 2 : num < 0x20_0000 ? 3 : num < 0x1000_0000 ? 4 : 5;
+    }
+
+    /// <summary>长度前缀占用的字节数</summary>
+    /// <param name="length">长度值</param>
+    /// <param name="sizeOf">长度字段字节数。0表示7位压缩编码，1/2/4表示固定字节数</param>
+    /// <returns>字节数</returns>
+    private static Int32 LengthPrefixSize(Int32 length, Int32 sizeOf) => sizeOf == 0 ? EncodedIntSize(length) : sizeOf;
+
     /// <summary>写入 7 位压缩编码的 32 位整数</summary>
     /// <remarks>
     /// 以 7 位压缩格式写入 32 位整数，小于 7 位用 1 字节，小于 14 位用 2 字节。
@@ -535,7 +549,7 @@ public ref struct SpanWriter
         var num = (UInt32)value; // 与 BinaryWriter.Write7BitEncodedInt 一致，允许负数（将占 5 字节）
 
         // 根据实际数值计算所需字节数，避免小值也要求 5 字节空间
-        var size = num < 0x80 ? 1 : num < 0x4000 ? 2 : num < 0x20_0000 ? 3 : num < 0x1000_0000 ? 4 : 5;
+        var size = EncodedIntSize(value);
         EnsureSpace(size);
 
         var span = _span[_index..];
@@ -563,10 +577,11 @@ public ref struct SpanWriter
     {
         var num = (UInt64)value;
 
-        // 根据实际数值计算所需字节数
+        // 根据实际数值计算所需字节数。7位一组，64位整数最多10字节（9×7=63位 + 末尾1位）
         var size = num < 0x80 ? 1 : num < 0x4000 ? 2 : num < 0x20_0000 ? 3 : num < 0x1000_0000 ? 4 :
                    num < 0x8_0000_0000L ? 5 : num < 0x400_0000_0000L ? 6 :
-                   num < 0x2_0000_0000_0000L ? 7 : num < 0x100_0000_0000_0000L ? 8 : 9;
+                   num < 0x2_0000_0000_0000L ? 7 : num < 0x100_0000_0000_0000L ? 8 :
+                   num < 0x8000_0000_0000_0000L ? 9 : 10;
         EnsureSpace(size);
 
         var span = _span[_index..];
@@ -655,6 +670,9 @@ public ref struct SpanWriter
     /// <returns>写入的总字节数（含长度前缀）</returns>
     public Int32 WriteArray(ReadOnlySpan<Byte> value, Int32 sizeOf = 2)
     {
+        // 先备足“长度前缀 + 数据”的空间再落笔（理由同 WriteStringWithLength）
+        EnsureSpace(LengthPrefixSize(value.Length, sizeOf) + value.Length);
+
         var n = WriteLength(value.Length, sizeOf);
         if (value.Length > 0) n += Write(value);
         return n;
@@ -677,8 +695,11 @@ public ref struct SpanWriter
             return WriteLength(0, sizeOf);
 
         var byteCount = encoding.GetByteCount(value);
+
+        // 先备足“长度前缀 + 内容”的空间再落笔（理由同 WriteStringWithLength）
+        EnsureSpace(LengthPrefixSize(byteCount, sizeOf) + byteCount);
+
         var n = WriteLength(byteCount, sizeOf);
-        EnsureSpace(byteCount);
 
         var count = encoding.GetBytes(value.AsSpan(), _span[_index..]);
         _index += count;

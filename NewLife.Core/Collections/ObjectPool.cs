@@ -1,8 +1,7 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace NewLife.Collections;
@@ -40,11 +39,10 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <summary>空闲清理时间。最小个数之上的资源超过空闲时间时被清理，默认60s</summary>
     public Int32 IdleTime { get; set; } = 60;
 
-    /// <summary>
-    /// 完全空闲清理时间。已废弃，不再支持。后续版本将移除。
-    /// </summary>
-    [Obsolete("不再支持，后续版本将移除。请使用 IdleTime 控制空闲清理。")]
-    public Int32 AllIdleTime { get; set; }
+    /// <summary>所有连接的空闲时间（旧版名称，仅为兼容旧二进制保留）</summary>
+    /// <remarks>与 <see cref="IdleTime"/> 是同一设置项的读写代理</remarks>
+    [Obsolete("请改用 IdleTime")]
+    public Int32 AllIdleTime { get => IdleTime; set => IdleTime = value; }
 
     /// <summary>借出等待超时。默认15s，池满时阻塞等待。TimeSpan.Zero表示不等待，池满时立即抛出PoolFullException。</summary>
     public TimeSpan WaitTimeout { get; set; } = TimeSpan.FromSeconds(15);
@@ -355,9 +353,10 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     #endregion
 
     #region 重载
-    /// <summary>创建实例</summary>
-    /// <returns></returns>
-    protected virtual T? OnCreate() => (T?)typeof(T).CreateInstance();
+    /// <summary>创建实例。默认使用 AOT 安全的泛型工厂创建，可在子类中重写以自定义创建策略。</summary>
+    /// <returns>新建对象实例；允许返回 null（将抛出异常）</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "无工厂委托时使用无参构造创建对象；AOT 下裁剪可能移除无参构造，应传入工厂委托")]
+    protected virtual T? OnCreate() => Activator.CreateInstance<T>();
 
     /// <summary>异步创建实例；默认调用同步 <see cref="OnCreate"/>，子类可重写以支持异步初始化</summary>
     /// <param name="cancellationToken"></param>

@@ -15,7 +15,9 @@ namespace NewLife;
 public static class NetHelper
 {
     #region 属性
-    private static readonly ICache _Cache = MemoryCache.Instance;
+    // 私有缓存实例：网络变化时只清自己的 DNS/IP 缓存，不用全局 MemoryCache.Instance。
+    // 否则插拔网线/VPN 切换会清空整个应用的业务缓存，引发缓存击穿甚至雪崩
+    private static readonly MemoryCache _Cache = new();
     #endregion
 
     #region 构造
@@ -56,7 +58,7 @@ public static class NetHelper
 #endif
         {
             UInt32 dummy = 0;
-            var inOptionValues = Pool.Shared.Rent(Marshal.SizeOf(dummy) * 3);
+            using var inOptionValues = Pool.Rent(Marshal.SizeOf(dummy) * 3);
 
             // 是否启用Keep-Alive
             BitConverter.GetBytes((UInt32)(isKeepAlive ? 1 : 0)).CopyTo(inOptionValues, 0);
@@ -66,8 +68,6 @@ public static class NetHelper
             BitConverter.GetBytes((UInt32)interval * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
 
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-
-            Pool.Shared.Return(inOptionValues);
 
             return;
         }
@@ -102,6 +102,10 @@ public static class NetHelper
     }
 
     /// <summary>分析网络终结点</summary>
+    /// <remarks>
+    /// 地址可带协议前缀与路径（自动剥离），可不带端口；支持域名、IPv4、IPv6（含方括号形态）。
+    /// 格式非法（坏端口、方括号不闭合等）返回 null；域名解析失败沿用 <see cref="NetUri.ParseAddress"/> 的抛异常口径。
+    /// </remarks>
     /// <param name="address">地址，可以不带端口</param>
     /// <param name="defaultPort">地址不带端口时指定的默认端口</param>
     /// <returns></returns>
@@ -112,19 +116,42 @@ public static class NetHelper
         var p = address.IndexOf("://");
         if (p >= 0) address = address[(p + 3)..];
 
-        var port = 0;
-        p = address.LastIndexOf(':');
-        IPAddress? addr = null;
-        if (p > 0)
+        // 去掉路径、查询与片段，只保留主机部分
+        p = address.IndexOfAny(['/', '?', '#']);
+        if (p >= 0) address = address[..p];
+
+        var port = defaultPort;
+        var host = address;
+
+        if (address.StartsWith("["))
         {
-            addr = address[..p].ParseAddress();
-            port = Int32.Parse(address[(p + 1)..]);
+            // [IPv6] 或 [IPv6]:port
+            var end = address.IndexOf(']');
+            if (end < 0) return null;
+
+            host = address[1..end];
+            var rest = address[(end + 1)..];
+            if (rest.StartsWith(":"))
+            {
+                if (!Int32.TryParse(rest[1..], out port)) return null;
+            }
+            else if (!rest.IsNullOrEmpty())
+            {
+                return null;
+            }
         }
         else
         {
-            addr = address.ParseAddress();
-            port = defaultPort;
+            // 冒号唯一才是"主机:端口"；多冒号视为不带端口的裸 IPv6
+            var idx = address.IndexOf(':');
+            if (idx > 0 && idx == address.LastIndexOf(':'))
+            {
+                host = address[..idx];
+                if (!Int32.TryParse(address[(idx + 1)..], out port)) return null;
+            }
         }
+
+        var addr = host.ParseAddress();
         if (addr == null) return null;
 
         return new IPEndPoint(addr, port);
@@ -370,13 +397,14 @@ public static class NetHelper
     }
 
     /// <summary>检查该协议的地址端口是否已经被使用</summary>
+    /// <remarks>Unix域套接字不使用端口，由服务器启动时实测探测</remarks>
     /// <param name="uri"></param>
     /// <returns></returns>
-    public static Boolean CheckPort(this NetUri uri) => uri.Address.CheckPort(uri.Type, uri.Port);
+    public static Boolean CheckPort(this NetUri uri) => !uri.IsUnix && uri.Address.CheckPort(uri.Type, uri.Port);
 
-    /// <summary>获取所有Tcp连接，带进程Id</summary>
+    /// <summary>获取所有Tcp连接（无参重载，仅为兼容旧二进制保留）</summary>
     /// <returns></returns>
-    [Obsolete]
+    [Obsolete("请改用 GetAllTcpConnections(processId)")]
     public static TcpConnectionInformation2[] GetAllTcpConnections() => GetAllTcpConnections(-1);
 
     /// <summary>获取所有Tcp连接，带进程Id</summary>
@@ -677,11 +705,12 @@ public static class NetHelper
     private static void Wake(String mac)
     {
         mac = mac.Replace("-", null).Replace(":", null);
-        var buffer = Pool.Shared.Rent(mac.Length / 2);
+        using var buffer = Pool.Rent(mac.Length / 2);
+        using var bts = Pool.Rent(6 + 16 * buffer.Length);
+
         for (var i = 0; i < buffer.Length; i++)
             buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
 
-        var bts = Pool.Shared.Rent(6 + 16 * buffer.Length);
         for (var i = 0; i < 6; i++)
             bts[i] = 0xFF;
         for (Int32 i = 6, k = 0; i < bts.Length; i++, k++)
@@ -691,16 +720,12 @@ public static class NetHelper
             bts[i] = buffer[k];
         }
 
-        var client = new UdpClient
+        using var client = new UdpClient
         {
             EnableBroadcast = true
         };
         client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
-        client.Close();
         //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
-
-        Pool.Shared.Return(bts);
-        Pool.Shared.Return(buffer);
     }
     #endregion
 
@@ -804,6 +829,7 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Local = local },
                 NetType.Udp => new UdpServer { Local = local },
+                NetType.Unix => new TcpSession { Local = local },
                 _ => throw new NotSupportedException($"The {local.Type} protocol is not supported"),
             };
     }
@@ -811,6 +837,7 @@ public static class NetHelper
     /// <summary>根据远程网络标识创建客户端</summary>
     /// <param name="remote"></param>
     /// <returns></returns>
+    /// <remarks>启用 TLS 由地址语义（<see cref="NetUri.IsSecure"/> 或 <see cref="NetType.Https"/>）决定，不按端口号猜测</remarks>
     public static ISocketClient CreateRemote(this NetUri remote)
     {
         return remote == null
@@ -819,8 +846,9 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-                NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
+                NetType.Unix => new TcpSession { Remote = remote },
+                NetType.Http or NetType.Https => new TcpSession { Remote = remote, SslProtocol = remote.IsSecure || remote.Type == NetType.Https ? DefaultSslProtocols : SslProtocols.None },
+                NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.IsSecure ? DefaultSslProtocols : SslProtocols.None },
                 _ => throw new NotSupportedException($"The {remote.Type} protocol is not supported"),
             };
     }
@@ -828,20 +856,38 @@ public static class NetHelper
     /// <summary>根据Uri创建客户端，主要支持Http/WebSocket</summary>
     /// <param name="uri"></param>
     /// <returns></returns>
+    /// <remarks>ws 为明文，wss 由 <see cref="WebSocketClient"/> 依据地址方案自动启用 TLS</remarks>
     /// <exception cref="NotSupportedException"></exception>
     public static ISocketClient CreateRemote(this Uri uri)
     {
-        return uri.Scheme switch
-        {
-            "wss" => new WebSocketClient(uri) { SslProtocol = SslProtocols.Tls12 },
-            "ws" => new WebSocketClient(uri),
-            _ => throw new NotSupportedException($"The {uri.Scheme} protocol is not supported"),
-        };
+        return uri.Scheme is "ws" or "wss"
+            ? new WebSocketClient(uri)
+            : throw new NotSupportedException($"The {uri.Scheme} protocol is not supported");
     }
+
+    /// <summary>启用 TLS 时使用的协议集合。固定 Tls12 会丢失 TLS1.3 与后续版本，现代框架交给运行时协商，旧框架仅 Tls12</summary>
+    internal static readonly SslProtocols DefaultSslProtocols =
+#if NETFRAMEWORK || NETSTANDARD
+        SslProtocols.Tls12;
+#else
+        SslProtocols.Tls12 | SslProtocols.Tls13;
+#endif
 
     internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
     internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+
+    /// <summary>创建Unix域套接字</summary>
+    /// <remarks>使用文件系统路径作为地址，仅支持本机进程间通信</remarks>
+    /// <returns></returns>
+    internal static Socket CreateUnix()
+    {
+#if NETFRAMEWORK || NETSTANDARD2_0
+        throw new PlatformNotSupportedException("Unix Domain Socket 需要 .NET Standard 2.1 或更高版本的目标框架");
+#else
+        return new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+#endif
+    }
 
     /// <summary>创建已绑定本地随机端口的 UdpClient，可安全地在并发任务中同时执行 SendAsync 和 ReceiveAsync</summary>
     /// <remarks>

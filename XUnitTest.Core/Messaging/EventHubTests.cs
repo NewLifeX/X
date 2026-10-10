@@ -89,6 +89,27 @@ public class EventHubTests
         Assert.Equal(0, await hub.OnReceiveAsync("event#topic#client#", null));
     }
 
+    [Fact(DisplayName = "TryParseHeader 客户端标识为空应解析成功（与 EncodeEvent 对称）")]
+    public void TryParseHeader_EmptyClientId_Accepted()
+    {
+        // EncodeEvent 允许空标识，会发出 event#topic##body；解码侧若按非法头部拒绝，
+        // 本库编码器产出的消息会被对端静默丢弃
+        var bytes = "event#topic##body".GetBytes();
+        Assert.True(EventHub<String>.TryParseHeader(bytes, out var topic, out var clientId, out var headerLen));
+        Assert.Equal("topic", topic);
+        Assert.Equal("", clientId);
+        Assert.Equal(13, headerLen);
+
+        // 字符版重载行为一致
+        Assert.True(EventHub<String>.TryParseHeader("event#topic##body".AsSpan(), out var t2, out var c2, out var h2));
+        Assert.Equal("topic", t2);
+        Assert.Equal("", c2);
+        Assert.Equal(13, h2);
+
+        // 缺失分隔符仍非法
+        Assert.False(EventHub<String>.TryParseHeader("event#topic#body".GetBytes(), out _, out _, out _));
+    }
+
     [Fact(DisplayName = "OnReceiveAsync_String 消息体为空时应返回 0")]
     public async Task OnReceiveAsync_String_EmptyBody_ReturnsZero()
     {
@@ -240,6 +261,57 @@ public class EventHubTests
 
         Assert.Equal(1, rs);
         Assert.Equal("packet-hi", handler.HandledMessage);
+    }
+
+    [Fact(DisplayName = "OnReceiveAsync_IPacket 头部跨节点时应拼读解析并路由")]
+    public async Task OnReceiveAsync_Packet_ChainedHeader_RoutesToHandler()
+    {
+        var hub = new EventHub<TestEvent>();
+        var handler = new TestEventHandler();
+        hub.GetEventBus("test").Subscribe(handler);
+
+        // 头部 event#test#c1# 与负载切到 3 个节点上（跨接收轮组链的帧）
+        var full = "event#test#c1#{\"Message\":\"chain-hi\"}".GetBytes();
+        IPacket packet = new ArrayPacket(full[..3]);
+        packet.Append(new ArrayPacket(full[3..9]));
+        packet.Append(new ArrayPacket(full[9..]));
+
+        var rs = await hub.OnReceiveAsync(packet);
+
+        Assert.Equal(1, rs);
+        Assert.Equal("chain-hi", handler.HandledMessage);
+
+        // 分隔符 '#' 恰好落在节点边界（头部逐段扫描跨段）
+        var full2 = "event#test#c1#{\"Message\":\"edge-hi\"}".GetBytes();
+        IPacket packet2 = new ArrayPacket(full2[..6]);
+        packet2.Append(new ArrayPacket(full2[6..11]));
+        packet2.Append(new ArrayPacket(full2[11..]));
+        Assert.Equal(1, await hub.OnReceiveAsync(packet2));
+        Assert.Equal("edge-hi", handler.HandledMessage);
+    }
+
+    [Fact(DisplayName = "OnReceiveAsync_IPacket 跨节点头部无效时应返回 0")]
+    public async Task OnReceiveAsync_Packet_ChainedInvalidHeader_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+
+        // 分隔符不足 3 个
+        var short1 = "event#test#c1".GetBytes();
+        IPacket p1 = new ArrayPacket(short1[..3]);
+        p1.Append(new ArrayPacket(short1[3..]));
+        Assert.Equal(0, await hub.OnReceiveAsync(p1));
+
+        // 前缀不匹配
+        var wrong = "not-event#test#c1#body".GetBytes();
+        IPacket p2 = new ArrayPacket(wrong[..5]);
+        p2.Append(new ArrayPacket(wrong[5..]));
+        Assert.Equal(0, await hub.OnReceiveAsync(p2));
+
+        // 空负载
+        var empty = "event#test#c1#".GetBytes();
+        IPacket p3 = new ArrayPacket(empty[..3]);
+        p3.Append(new ArrayPacket(empty[3..]));
+        Assert.Equal(0, await hub.OnReceiveAsync(p3));
     }
 
     // ----------- PublishAsync / SubscribeAsync / UnsubscribeAsync -----------

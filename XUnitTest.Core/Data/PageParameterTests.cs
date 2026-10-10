@@ -59,8 +59,8 @@ public class PageParameterTests
         Assert.Equal(original.RetrieveState, copy.RetrieveState);
     }
 
-    [Fact(DisplayName = "复制构造函数会清空OrderBy（由于CopyFrom实现）")]
-    public void Constructor_Copy_WillClearOrderByDueToImplementation()
+    [Fact(DisplayName = "复制构造函数应保留OrderBy")]
+    public void Constructor_Copy_ShouldKeepOrderBy()
     {
         // Arrange - 只设置OrderBy，不设置Sort
         var original = new PageParameter
@@ -79,8 +79,8 @@ public class PageParameterTests
         // Act
         var copy = new PageParameter(original);
 
-        // Assert - 由于CopyFrom的实现，OrderBy会被清空
-        Assert.Null(copy.OrderBy); // CopyFrom中Sort=pm.Sort会清空OrderBy
+        // Assert - 只设置 OrderBy 的对象，拷贝后应完整保留复杂排序语句
+        Assert.Equal("Custom ORDER BY", copy.OrderBy);
         Assert.Null(copy.Sort); // 源对象的Sort确实是null
     }
     #endregion
@@ -277,8 +277,8 @@ public class PageParameterTests
         Assert.Equal(source.RetrieveState, target.RetrieveState);
     }
 
-    [Fact(DisplayName = "CopyFrom会清空OrderBy（由于实现原因）")]
-    public void CopyFrom_WillClearOrderByDueToImplementation()
+    [Fact(DisplayName = "CopyFrom应保留OrderBy")]
+    public void CopyFrom_ShouldKeepOrderBy()
     {
         // Arrange
         var source = new PageParameter
@@ -299,9 +299,9 @@ public class PageParameterTests
         // Act
         var result = target.CopyFrom(source);
 
-        // Assert - 由于CopyFrom实现中Sort=pm.Sort会清空OrderBy
+        // Assert - 拷贝应忠实复制排序状态：仅 OrderBy 非空时不得被清空
         Assert.Same(target, result); // 应返回当前实例
-        Assert.Null(target.OrderBy); // 被清空了
+        Assert.Equal("Custom ORDER BY", target.OrderBy);
         Assert.Null(target.Sort); // 源对象的Sort确实是null
         Assert.Equal(source.PageIndex, target.PageIndex);
         Assert.Equal(source.PageSize, target.PageSize);
@@ -312,8 +312,8 @@ public class PageParameterTests
         Assert.Equal(source.RetrieveState, target.RetrieveState);
     }
 
-    [Fact(DisplayName = "CopyFrom应体现Sort优先级高于OrderBy的特性")]
-    public void CopyFrom_WithBothSortAndOrderBy_ShouldPrioritizeSort()
+    [Fact(DisplayName = "CopyFrom同时存在Sort与OrderBy时应两者都保留")]
+    public void CopyFrom_WithBothSortAndOrderBy_ShouldKeepBoth()
     {
         // Arrange - 创建一个同时有Sort和OrderBy的源对象（通过特殊方式）
         var source = new PageParameter();
@@ -326,10 +326,10 @@ public class PageParameterTests
         // Act
         var result = target.CopyFrom(source);
 
-        // Assert - 根据CopyFrom的实现，Sort会清空OrderBy
+        // Assert - 拷贝应忠实复制源对象状态（两者都非空时都保留，优先级由消费方决定）
         Assert.Same(target, result);
         Assert.Equal("Name", target.Sort);
-        Assert.Null(target.OrderBy); // Sort会清空OrderBy
+        Assert.Equal("Custom ORDER BY", target.OrderBy);
     }
 
     [Fact(DisplayName = "CopyFrom传入null应返回当前实例不变")]

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NewLife.Model;
 
@@ -32,7 +33,7 @@ public static class ObjectContainerHelper
     /// <typeparam name="TImplementation"></typeparam>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static IObjectContainer AddSingleton<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.AddSingleton(typeof(TService), typeof(TImplementation));
+    public static IObjectContainer AddSingleton<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.AddSingleton(typeof(TService), typeof(TImplementation));
 
     /// <summary>添加单实例，指定实例工厂</summary>
     /// <param name="container"></param>
@@ -90,7 +91,7 @@ public static class ObjectContainerHelper
     /// <param name="container"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer AddSingleton<TService>(this IObjectContainer container, TService? instance = null) where TService : class => container.AddSingleton(typeof(TService), instance);
+    public static IObjectContainer AddSingleton<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService>(this IObjectContainer container, TService? instance = null) where TService : class => container.AddSingleton(typeof(TService), instance);
 
     /// <summary>尝试添加单实例，指定实现类型</summary>
     /// <param name="container"></param>
@@ -117,14 +118,14 @@ public static class ObjectContainerHelper
     /// <typeparam name="TImplementation"></typeparam>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddSingleton<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddSingleton(typeof(TService), typeof(TImplementation));
+    public static IObjectContainer TryAddSingleton<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddSingleton(typeof(TService), typeof(TImplementation));
 
     /// <summary>尝试添加单实例，指定实例</summary>
     /// <typeparam name="TService"></typeparam>
     /// <param name="container"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddSingleton<TService>(this IObjectContainer container, TService? instance = null) where TService : class
+    public static IObjectContainer TryAddSingleton<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService>(this IObjectContainer container, TService? instance = null) where TService : class
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
@@ -166,13 +167,13 @@ public static class ObjectContainerHelper
     /// <typeparam name="TImplementation"></typeparam>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static IObjectContainer AddScoped<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.AddScoped(typeof(TService), typeof(TImplementation));
+    public static IObjectContainer AddScoped<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.AddScoped(typeof(TService), typeof(TImplementation));
 
     /// <summary>添加范围容器实例，指定实现类型</summary>
     /// <typeparam name="TService"></typeparam>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static IObjectContainer AddScoped<TService>(this IObjectContainer container) where TService : class => container.AddScoped(typeof(TService), typeof(TService));
+    public static IObjectContainer AddScoped<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService>(this IObjectContainer container) where TService : class => container.AddScoped(typeof(TService), typeof(TService));
 
     /// <summary>添加范围容器实例，指定实现工厂</summary>
     /// <param name="container"></param>
@@ -227,14 +228,14 @@ public static class ObjectContainerHelper
     /// <typeparam name="TImplementation"></typeparam>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddScoped<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddScoped(typeof(TService), typeof(TImplementation));
+    public static IObjectContainer TryAddScoped<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddScoped(typeof(TService), typeof(TImplementation));
 
     /// <summary>尝试添加范围容器实例，指定实例</summary>
     /// <typeparam name="TService"></typeparam>
     /// <param name="container"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddScoped<TService>(this IObjectContainer container, TService? instance = null) where TService : class
+    public static IObjectContainer TryAddScoped<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService>(this IObjectContainer container, TService? instance = null) where TService : class
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
@@ -276,13 +277,13 @@ public static class ObjectContainerHelper
     /// <typeparam name="TImplementation"></typeparam>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static IObjectContainer AddTransient<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.AddTransient(typeof(TService), typeof(TImplementation));
+    public static IObjectContainer AddTransient<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.AddTransient(typeof(TService), typeof(TImplementation));
 
     /// <summary>添加瞬态实例，指定实现类型</summary>
     /// <typeparam name="TService"></typeparam>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static IObjectContainer AddTransient<TService>(this IObjectContainer container) where TService : class => container.AddTransient(typeof(TService), typeof(TService));
+    public static IObjectContainer AddTransient<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService>(this IObjectContainer container) where TService : class => container.AddTransient(typeof(TService), typeof(TService));
 
     /// <summary>添加瞬态实例，指定实现工厂</summary>
     /// <param name="container"></param>
@@ -337,14 +338,14 @@ public static class ObjectContainerHelper
     /// <typeparam name="TImplementation"></typeparam>
     /// <param name="container"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddTransient<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddTransient(typeof(TService), typeof(TImplementation));
+    public static IObjectContainer TryAddTransient<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddTransient(typeof(TService), typeof(TImplementation));
 
     /// <summary>尝试添加瞬态实例，指定实例</summary>
     /// <typeparam name="TService"></typeparam>
     /// <param name="container"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddTransient<TService>(this IObjectContainer container, TService? instance = null) where TService : class
+    public static IObjectContainer TryAddTransient<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService>(this IObjectContainer container, TService? instance = null) where TService : class
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
@@ -410,10 +411,8 @@ public static class ObjectContainerHelper
     /// <param name="container"></param>
     /// <returns></returns>
     public static TService? GetService<TService>(this IObjectContainer container) => (TService?)container.GetService(typeof(TService));
-    #endregion
 
-    #region 旧版方法
-    /// <summary>解析类型的实例</summary>
+    /// <summary>解析类型的实例（旧版名称，仅为兼容旧二进制保留）</summary>
     /// <typeparam name="TService">接口类型</typeparam>
     /// <param name="container">对象容器</param>
     /// <returns></returns>
@@ -421,4 +420,5 @@ public static class ObjectContainerHelper
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static TService? Resolve<TService>(this IObjectContainer container) => (TService?)container.GetService(typeof(TService));
     #endregion
+
 }

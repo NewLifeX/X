@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -159,7 +160,7 @@ public static class ConfigHelper
         // 分别处理基本类型、数组类型、复杂类型
         if (pi.PropertyType.IsBaseType())
         {
-            model.SetValue(pi, cfg.Value);
+            MemberAccessorTable.SetValue(model, model.GetType(), pi, cfg.Value);
         }
         else if (cfg.Childs != null)
         {
@@ -181,18 +182,19 @@ public static class ConfigHelper
         }
     }
 
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "配置绑定目标为运行时模型属性类型（配置数据驱动）；直调 MapTo 须先由泛型入口（Load<T>/Bind<T>/Save<T>）保留类型元数据，见 Doc/AOT兼容性分析.md §5")]
     private static void MapToDictionaryProperty(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         if (cfg.Childs == null) return;
 
-        var dict = model.GetValue(pi) as IDictionary;
+        var dict = MemberAccessorTable.GetValue(model, model.GetType(), pi) as IDictionary;
         if (dict == null)
         {
             var obj = !pi.PropertyType.IsInterface ? pi.PropertyType.CreateInstance() : typeof(Dictionary<,>).MakeGenericType(pi.PropertyType.GetGenericArguments()).CreateInstance();
             dict = obj as IDictionary;
             if (dict == null) return;
 
-            model.SetValue(pi, dict);
+            MemberAccessorTable.SetValue(model, model.GetType(), pi, dict);
         }
 
         // 映射前清空原有数据
@@ -238,9 +240,10 @@ public static class ConfigHelper
     /// <param name="model">目标模型</param>
     /// <param name="pi">属性信息</param>
     /// <param name="provider">配置提供者</param>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "配置绑定目标为运行时模型属性类型（配置数据驱动）；直调 MapTo 须先由泛型入口（Load<T>/Bind<T>/Save<T>）保留类型元数据，见 Doc/AOT兼容性分析.md §5")]
     private static void MapToComplexObject(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
     {
-        var val = model.GetValue(pi);
+        var val = MemberAccessorTable.GetValue(model, model.GetType(), pi);
         if (val == null)
         {
             // 如果有无参构造函数，则实例化一个
@@ -248,7 +251,7 @@ public static class ConfigHelper
             if (ctor != null)
             {
                 val = ctor.Invoke(null);
-                model.SetValue(pi, val);
+                MemberAccessorTable.SetValue(model, model.GetType(), pi, val);
             }
         }
 
@@ -261,6 +264,7 @@ public static class ConfigHelper
     /// <param name="model">目标模型</param>
     /// <param name="pi">属性信息</param>
     /// <param name="provider">配置提供者</param>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "配置绑定目标为运行时模型属性类型（配置数据驱动）；直调 MapTo 须先由泛型入口（Load<T>/Bind<T>/Save<T>）保留类型元数据，见 Doc/AOT兼容性分析.md §5")]
     private static void MapToArray(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         if (section.Childs == null) return;
@@ -271,10 +275,10 @@ public static class ConfigHelper
         var count = section.Childs.Count;
 
         // 实例化或调整数组，按配置元素数量精确创建，避免保留旧数据
-        if (model.GetValue(pi) is not Array arr || arr.Length != count)
+        if (MemberAccessorTable.GetValue(model, model.GetType(), pi) is not Array arr || arr.Length != count)
         {
             arr = Array.CreateInstance(elementType, count);
-            model.SetValue(pi, arr);
+            MemberAccessorTable.SetValue(model, model.GetType(), pi, arr);
         }
 
         // 逐个映射
@@ -302,6 +306,7 @@ public static class ConfigHelper
     /// <param name="model">目标模型</param>
     /// <param name="pi">属性信息</param>
     /// <param name="provider">配置提供者</param>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "配置绑定目标为运行时模型属性类型（配置数据驱动）；直调 MapTo 须先由泛型入口（Load<T>/Bind<T>/Save<T>）保留类型元数据，见 Doc/AOT兼容性分析.md §5")]
     private static void MapToList(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         var elementType = pi.PropertyType.GetElementTypeEx();
@@ -309,7 +314,7 @@ public static class ConfigHelper
 
         // 确保存在列表实例
         IList list;
-        var current = model.GetValue(pi);
+        var current = MemberAccessorTable.GetValue(model, model.GetType(), pi);
         if (current is IList l)
         {
             list = l;
@@ -324,7 +329,7 @@ public static class ConfigHelper
 
             if (obj is not IList newList) return;
 
-            model.SetValue(pi, newList);
+            MemberAccessorTable.SetValue(model, model.GetType(), pi, newList);
             list = newList;
         }
 
@@ -375,7 +380,7 @@ public static class ConfigHelper
             var cfg = section.GetOrAddChild(name);
 
             // 反射获取属性值
-            var value = model.GetValue(pi);
+            var value = MemberAccessorTable.GetValue(model, model.GetType(), pi);
             cfg.Comment = pi.GetCustomAttribute<DescriptionAttribute>()?.Description;
             if (cfg.Comment.IsNullOrEmpty())
                 cfg.Comment = pi.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;

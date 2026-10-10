@@ -93,7 +93,16 @@ public class ConfigServiceResolver : DisposeBase, IServiceResolver
         if (serviceName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(serviceName));
 
         var key = tag.IsNullOrEmpty() ? serviceName : $"{serviceName}#{tag}";
-        return Task.FromResult(_clients.GetOrAdd(key, _ => CreateClient(serviceName, tag)));
+
+        if (_clients.TryGetValue(key, out var client)) return Task.FromResult(client);
+
+        // 客户端持有 HttpClient/连接池，不能走 GetOrAdd 的“工厂可多跑”语义（败者会被静默丢弃而泄漏）；
+        // 先创建再 CAS，败者就地释放（同 ServiceEndpoint.TryGetClient 口径）
+        var newClient = CreateClient(serviceName, tag);
+        client = _clients.GetOrAdd(key, newClient);
+        if (!ReferenceEquals(client, newClient)) newClient.TryDispose();
+
+        return Task.FromResult(client);
     }
 
     /// <summary>解析服务的地址列表，供调用方自行创建客户端</summary>

@@ -1,19 +1,33 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Net;
 
 /// <summary>网络库边界条件和并发测试</summary>
+[Collection("Net.C")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetEdgeCaseTests
 {
+    /// <summary>轮询等待条件成立</summary>
+    /// <remarks>服务端建立会话/推进状态是异步的，固定 <c>Thread.Sleep</c> 在并行满载下会短于调度延迟，直接断言会误判</remarks>
+    private static void WaitFor(Func<Boolean> condition, String message, Int32 timeoutMs = 10_000)
+    {
+        var sw = Stopwatch.StartNew();
+        while (!condition())
+        {
+            Assert.True(sw.ElapsedMilliseconds < timeoutMs, message);
+            Thread.Sleep(10);
+        }
+    }
+
     #region 并发连接测试
     /// <summary>测试并发连接</summary>
     [Fact]
@@ -130,7 +144,7 @@ public class NetEdgeCaseTests
         using (var client1 = new TcpClient())
         {
             client1.Connect(IPAddress.Loopback, port);
-            Thread.Sleep(200);
+            WaitFor(() => connectionCount >= 1, "等待首个会话建立超时");
         }
 
         Assert.Equal(1, connectionCount);
@@ -139,7 +153,7 @@ public class NetEdgeCaseTests
         using (var client2 = new TcpClient())
         {
             client2.Connect(IPAddress.Loopback, port);
-            Thread.Sleep(200);
+            WaitFor(() => connectionCount >= 2, "等待重连会话建立超时");
         }
 
         Assert.Equal(2, connectionCount);
@@ -147,10 +161,12 @@ public class NetEdgeCaseTests
     #endregion
 
     #region 空数据测试
-    /// <summary>测试空数据处理</summary>
-    [Fact]
+    /// <summary>空数据/立即关闭：连接后立即关闭不引起服务端异常，服务保持可用</summary>
+    [Fact(DisplayName = "空数据_连接后立即关闭_服务保持可用")]
     public void EmptyDataHandling()
     {
+        var receivedEvent = new ManualResetEventSlim(false);
+
         using var server = new NetServer
         {
             Port = 0,
@@ -160,20 +176,29 @@ public class NetEdgeCaseTests
 
         server.Received += (s, e) =>
         {
-            if (e.Packet == null || e.Packet.Total == 0)
-                XTrace.WriteLine("收到空数据");
+            if (e.Packet != null && e.Packet.Total > 0) receivedEvent.Set();
         };
 
         server.Start();
 
-        // 客户端连接后立即关闭（发送空数据）
-        using var client = new TcpClient();
-        client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(100);
-        client.Close();
+        // 客户端连接后立即关闭（不发送任何数据）
+        using (var client = new TcpClient())
+        {
+            client.Connect(IPAddress.Loopback, server.Port);
+            Thread.Sleep(100);
+            client.Close();
+        }
 
-        Thread.Sleep(500);
-        // 空数据可能触发也可能不触发接收事件，取决于实现
+        Thread.Sleep(100);
+
+        // 服务端应保持可用：新的连接仍能正常收发
+        using (var client2 = new TcpClient())
+        {
+            client2.Connect(IPAddress.Loopback, server.Port);
+            using var ns = client2.GetStream();
+            ns.Write("still-alive"u8.ToArray());
+            Assert.True(receivedEvent.Wait(5000), "空连接之后服务端未能继续接收新连接的数据");
+        }
     }
     #endregion
 
@@ -336,7 +361,7 @@ public class NetEdgeCaseTests
         using var client = new TcpClient(AddressFamily.InterNetworkV6);
         client.Connect(IPAddress.IPv6Loopback, server.Port);
 
-        Thread.Sleep(200);
+        WaitFor(() => server.SessionCount >= 1, "等待 IPv6 会话建立超时");
         Assert.Equal(1, server.SessionCount);
     }
     #endregion
@@ -361,7 +386,7 @@ public class NetEdgeCaseTests
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
 
-        Thread.Sleep(500);
+        WaitFor(() => server.SessionCount >= 1, "等待会话建立超时");
         Assert.Equal(1, server.SessionCount);
 
         // 不发送数据，等待超时
@@ -395,7 +420,7 @@ public class NetEdgeCaseTests
             clients.Add(client);
         }
 
-        Thread.Sleep(500);
+        WaitFor(() => server.SessionCount >= 5, "等待5个会话建立超时");
 
         // 验证统计
         Assert.Equal(5, server.SessionCount);
@@ -529,7 +554,7 @@ public class NetEdgeCaseTests
         // 客户端连接
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
+        WaitFor(() => testSession != null, "等待会话对象创建超时");
 
         Assert.NotNull(testSession);
 
@@ -697,9 +722,11 @@ public class NetEdgeCaseTests
         var tcpReceived = new ManualResetEventSlim(false);
         var udpReceived = new ManualResetEventSlim(false);
 
+        // 显式指定端口（生产即如此使用）：避免 Port=0 时先启动协议选中的端口对另一协议不可绑
+        var port = TestPort.PickDual(26500);
         using var server = new NetServer
         {
-            Port = 0,
+            Port = port,
             ProtocolType = NetType.Unknown, // 同时监听TCP和UDP
             AddressFamily = AddressFamily.InterNetwork,
             Log = XTrace.Log,

@@ -1,5 +1,7 @@
 # 网络编解码器Handlers
 
+> ⚠️ **旧栈文档（v12 已退役）**：`NewLife.Net.Handlers` 命名空间与全部 6 个 Handler 编解码器（`StandardCodec` 等）已整删。现行协议编解码器（`SrmpCodec`/`LengthFieldCodec`/`SplitDataCodec`/`WebSocketCodec`）与启用方式（`Protocol` 属性）见《消息协议栈》。
+
 ## 概述
 
 `NewLife.Net.Handlers` 命名空间提供一套可叠加的网络编解码器，用于解决 TCP 长连接的粘包拆包、消息序列化、请求-响应匹配等问题。编解码器以处理器（`Handler`）形式注册到管道（`Pipeline`），收包时正向解码，发包时逆向编码，支持任意组合叠加。
@@ -150,8 +152,8 @@ public class MessageCodec<T> : Handler
 ```csharp
 public class SplitDataCodec : Handler
 {
-    /// <summary>分隔符，默认 "\r\n"</summary>
-    public Byte[]? Separator { get; set; }
+    /// <summary>粘包分割字节数据，默认 0x0D 0x0A（\r\n）</summary>
+    public Byte[] SplitData { get; set; }
 }
 ```
 
@@ -203,10 +205,10 @@ pipeline.Add(new SplitDataCodec());
 // 发送
 session.Send("HELLO\r\n");
 
-// 接收（e.Packet 为去掉分隔符的单行数据）
+// 接收（e.Message 为单行数据（含分隔符本身），同步链路内有效；跨轮带出请 Slice；e.Packet 为整轮原始数据）
 server.Received += (sender, e) =>
 {
-    var line = e.Packet?.ToStr()?.Trim();
+    var line = (e.Message as IPacket)?.ToStr()?.Trim();
     // 处理命令行
 };
 ```

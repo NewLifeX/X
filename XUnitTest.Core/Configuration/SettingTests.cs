@@ -37,15 +37,16 @@ public class SettingTests
         var setting = Setting.Current;
         Assert.NotNull(setting);
 
-        // 备份原始值
-        var original = setting.DataPath;
+        // 备份原始值。这里选取不影响全局工作目录的字段：
+        // 瞬时改写 DataPath 会与并行用例读取该字段（如 SevenZipTests 取工作目录）产生竞态
+        var original = setting.ServiceAddress;
 
         // 设置临时值
-        setting.DataPath = "/tmp/test";
-        Assert.Equal("/tmp/test", setting.DataPath);
+        setting.ServiceAddress = "http://127.0.0.1:8080/";
+        Assert.Equal("http://127.0.0.1:8080/", setting.ServiceAddress);
 
         // 恢复
-        setting.DataPath = original;
+        setting.ServiceAddress = original;
 
         // 插件服务器地址应为默认值
         Assert.NotNull(setting.PluginServer);

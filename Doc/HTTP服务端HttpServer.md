@@ -60,6 +60,24 @@
 - HTTP 解析、请求/响应生命周期逻辑主要由 `HttpSession` 承担；
 - `HttpServer` 更聚焦在“路由表维护”和“匹配处理器”。
 
+### 3.2 异步处理器（`IHttpHandler`）
+
+处理器契约本身是异步的：实现接口只需一个方法，返回 `Task`。
+
+```csharp
+public interface IHttpHandler
+{
+    Task ProcessRequestAsync(IHttpContext context);
+}
+```
+
+- **同步实现**直接返回 `TaskEx.CompletedTask`（`System.Threading.Tasks` 命名空间，低版本 TFM 可用；不要用 `Task.CompletedTask`，它在 net45 不存在）。
+- **异步实现**正常 `await`：数据库 / 外部 HTTP / 文件 IO 等异步等待直接写在处理器里，不必再套同步桥。
+- **委托透传异步**：`DelegateHandler` 支持 `HttpProcessAsyncDelegate`（`Task (IHttpContext)`）、任意签名的 `async` 方法（返回 `Task`/`Task<T>`）与同步委托 `HttpProcessDelegate`；`Task<T>` 的结果在任务完成后再读 `Result`，不再同步阻塞取值。
+- **中间件本就是异步链**（`HttpMiddlewareDelegate(context, next)`），异步处理器可与之自由组合。
+- **当前边界**：`HttpSession` 仍在同步处理模型内等待整条管道（`ExecutePipeline(...).GetAwaiter().GetResult()`），会话级异步派发属下一阶段（需一并解决响应保序、请求体跨轮所有权与低版本上下文传递）。
+- **升级提示**：`ProcessRequest(IHttpContext)` 已由 `ProcessRequestAsync(IHttpContext)` 取代（返回类型由 `void` 改为 `Task`），既有实现者改名并返回任务即可，编译期可见（见 §11）。
+
 ---
 
 ## 4. 路由注册 API
@@ -187,6 +205,10 @@ server.MapStaticFiles("/js", "./wwwroot/js");
 - 避免动态 URL（例如带多段 id 的路径）造成缓存无限膨胀；
 - 对常见短路径加速模糊匹配。
 
+缓存实现与上限：
+
+- `_pathCache` 为并发字典，写入走 `MaxPathCacheSize`（默认 4096）限容；达到上限后静默不写，请求走正常路由匹配。
+
 ---
 
 ## 7. 线程安全与并发注意事项
@@ -200,7 +222,7 @@ server.MapStaticFiles("/js", "./wwwroot/js");
 风险点：
 
 - 在运行期修改 `Routes` 并同时调用 `MatchHandler`，可能触发 `Dictionary` 枚举异常或产生不一致结果。
-- `_pathCache` 同样为 `Dictionary`，并发读写也不保证安全。
+- `_pathCache` 为并发字典且写入限容（`MaxPathCacheSize`），并发读写安全。
 
 建议：
 
@@ -250,3 +272,57 @@ server.Start();
 - `NewLife.Core/Http/Handlers/DelegateHandler.cs`（按项目实际路径为准）
 - `NewLife.Core/Http/Handlers/ControllerHandler.cs`
 - `NewLife.Core/Http/Handlers/StaticFilesHandler.cs`
+
+---
+
+## 11. v12 行为变更（升级须知）
+
+| 变更 | 说明 |
+|------|------|
+| 路由参数优先 | 路径参数（`{id}` 等）在 `PrepareRequest` 解析完之后合并，因此**优先于**查询串/表单同名字段。此前 `?id=999` 可覆盖路径参数，现在以路径参数为准 |
+| 响应体所有权随响应 | 处理器返回后 `HttpResponse.Body` 会被归还池化缓冲。处理器若在返回后仍持有该引用（审计、重试、日志），需先自行复制 |
+| `Content-Length` 规则 | 204/304 响应不再声明 `Content-Length`；`Build` 与 `BuildHeaderPacket`（HEAD/流式）两条路径同规则（RFC 7230 §3.3.2） |
+| `Transfer-Encoding: chunked` 请求 | **已支持分块解码**（含块扩展 `;` 与终止块后的 trailer 段）：跨轮累积原始字节，收齐终止块后解码交付，并同步移除 `Transfer-Encoding` 头、补齐 `Content-Length`——业务侧看到的主体与头部，与普通 `Content-Length` 请求完全一致。坏块长度行回 `400`，原始字节超 `MaxRequestLength` 回 `413`，其它传输编码（gzip/identity）仍回 `400` |
+| 路径缓存并发化 | `_pathCache` 改为并发字典并新增 `MaxPathCacheSize`（默认 4096），超限后静默不写 |
+| WebSocket 握手校验 | 带 `Sec-WebSocket-Key` 但握手四要素不合法时回 `400 Bad Request`（此前会落到普通路由报 404，掩盖真实原因）；`Upgrade`/`Connection`/`Sec-WebSocket-Version` 按逗号分隔的**令牌列表**解析，版本含 `13` 即接受 |
+| 非法 `Content-Length` | `Content-Length` 非数字、负数或超出范围时回 `400 Bad Request` 并关闭连接；此前解析失败静默当 0 处理，请求体边界随之错位 |
+| HEAD 不发实体 | HEAD 请求只发送响应头，实体流（静态文件/嵌入资源）就地释放；此前会把整个实体发出去 |
+| 畸形/超限请求头不再静默丢弃 | 无空行且前10字节内无空格（不像 HTTP 开头）或单包超出 `MaxHeadLength`（新增可配置属性，默认 64KB）的字节，此前直接丢弃——既不回响应也不关连接，且不进缓存使停滞判定失效，对端可零成本占住连接名额。现按无效请求回 `400` 并关闭；不足10字节还判断不出是否为 HTTP 开头的残缺前缀改为入缓存等待后续分片（此前同样被丢弃，使后续补齐的合法请求与残缺前缀之间失步） |
+| 路由参数只来自命中路由 | 候选路由的参数此前先写进请求参数字典、失败时也不回收，命中路由的参数又与它们混在一起，导致失败候选（如 `/api/{id}/detail` 对 `/api/5/info`）残留的 `id=5` 覆盖同名查询参数 `?id=999`。现改为候选参数先在临时字典试算，匹配成功才合并——「路径参数优先于查询串」只对真正命中的路由成立 |
+| 无长度请求即无实体 | 请求既无 `Content-Length` 也无 `Transfer-Encoding` 时按 RFC 9112 §6.3 视为**没有实体**（`Body` 为 null），头部之后的字节属于同连接的下一个请求（HTTP/1.1 流水线）。此前一律按实体吞掉：一次发出两条普通 GET 时第二个请求被静默丢弃——既不回响应也不关连接，客户端只能等自身超时。例外：HTTP/1.0 的 POST/PUT/PATCH 保留“读到的都是实体”的老式兼容语义（老客户端以连接关闭定界实体、不发 CL） |
+| 状态行与头部清洗 | 响应状态描述（含异常消息）与头部字段名/值统一剔除 CR/LF 等控制字符（CR/LF 压成空格）。此前异常消息夹带换行时，接收方会把它解析成额外的响应头（响应拆分），可用来伪造 `Content-Length`/`Location`/`Set-Cookie`；业务自定义头部里的 TAB 与可见字符不受影响 |
+| 升级后同轮字节交 WebSocket | 处理完升级请求后，头部之后到达的字节（同段/同轮的 WS 帧）直接交给 `WebSocket.Process` 解析，不再丢弃。RFC 6455 §4.1 允许客户端发完握手就发帧，此前首帧会静默消失（"连上了但第一条消息没到"）；分块请求体之后的剩余字节同样处理 |
+| WS 关闭码按 RFC 口径区分 | 协议错误回 **1002**、文本负载非法（非 UTF-8）回 **1007**、单帧或分片消息超上限回 **1009**（此前一律按 1002）；单帧上限对"整帧一次到达"的帧同样生效（此前只约束未完整帧，对端把超限帧压在一轮里即可绕过） |
+| `DefaultHttpContext.Current` 随异步上下文流动 | 由 `[ThreadStatic]` 改为 `AsyncLocal`（net45 降级为线程本地）：中间件 `await` 之后、处理器内 `Task.Run` 派生的任务里都能取到本请求上下文，此前会取到 null（同一请求内"随机"丢失） |
+| 路由同类内按具体度排序 + 路径参数解码 | 参数化路由之间按"字面段数量从多到少"排序（同具体度保持注册顺序），先注册的宽泛模式（如 `/api/{controller}/{id}`）不再遮住后注册的具体模式；路径参数与通配参数按百分号解码（与查询串口径一致），通配参数逐段解码后以 `/` 连接 |
+| 处理器契约异步化 | `IHttpHandler.ProcessRequest(IHttpContext)`（`void`）改为 `ProcessRequestAsync(IHttpContext)`（`Task`）。处理器实现者改名 + 返回 `TaskEx.CompletedTask`（同步实现）或 `await`（异步实现）即可；`DelegateHandler`、`ControllerHandler`、`MethodFilterHandler` 与中间件管道均按异步衔接，异步操作方法的结果在任务完成后再取 |
+---
+
+## 12. 能力边界（不做什么）
+
+`HttpServer` 的定位是**轻量级嵌入式 HTTP 服务器**，不是通用 Web 服务器。新增能力只按两条判据取舍——**下游能正常用**、**不在连接边界上制造歧义**；其余需求请直接用 ASP.NET Core / Kestrel。
+
+**明确不做**：
+
+| 不做项 | 替代方式 |
+|--------|----------|
+| HTTP/2、HTTP/3 | Kestrel |
+| HTTP 层 TLS/SNI | `NetServer` 的 SSL 配置，或前置反向代理 |
+| 响应压缩（gzip/deflate） | 前置反向代理 |
+| `Range` 分段 / `206` | 断点续传属下载器能力（`WebClientX`），不属服务端 |
+| `ETag` / `Last-Modified` / 条件请求 | 无缓存语义，静态文件靠前置反向代理 |
+| 请求级慢速攻击专项防护 | 已由 `HttpSession.MaxRequestIdle`（请求停滞上限，默认 30 秒回 408）与网络层会话超时兜底 |
+
+**`MapController` 封边**：只提供“最小 MVC”——按路径段定位方法、从参数字典绑参、调 DI、返回 `HttpResponse`。以下一律不做，避免膨胀为标准 MVC：
+
+- 特性路由（`[Route]`/`[HttpGet]` 等）
+- 模型绑定验证与 `ModelState`
+- 过滤器管道（`IActionFilter` 那一套）
+- 内容协商与格式化器
+
+**已知限制**（明确接受，不修）：
+
+- `Transfer-Encoding` 与 `Content-Length` 同时出现时不拒绝，按 chunked 处理且不强制关闭连接。只在**与前置代理共存**时构成请求走私面；内网/嵌入式无代理部署不成立，收紧与轻量取向相悖。
+- HTTP/1.0 请求携带 `Transfer-Encoding` 不做特殊处理。HTTP/1.0 客户端不会产生该组合，实际不可达。
+- 分块请求体的原始字节全量缓冲（受 `MaxRequestLength` 约束），不做流式交付；业务侧始终拿到完整主体。
+- `Expect` 只处理 `100-continue`，其余期望一律忽略（不回 `417`）。

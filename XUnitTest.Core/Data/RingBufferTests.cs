@@ -10,6 +10,18 @@ namespace XUnitTest.Data;
 public class RingBufferTests
 {
     [Fact]
+    [DisplayName("零容量_不进入死循环")]
+    public void ZeroCapacity_NoInfiniteLoop()
+    {
+        // 容量 0 时两倍增长恒为 0，旧实现会在此死循环
+        var rb = new RingBuffer(0);
+        Assert.True(rb.Capacity >= 1);
+
+        rb.Write(new Byte[] { 1, 2, 3 });
+        Assert.Equal(3, rb.Length);
+    }
+
+    [Fact]
     [DisplayName("测试默认构造函数和指定容量构造函数")]
     public void Constructor_Test()
     {

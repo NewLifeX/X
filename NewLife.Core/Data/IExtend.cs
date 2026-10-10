@@ -23,26 +23,6 @@ public interface IExtend
     Object? this[String key] { get; set; }
 }
 
-/// <summary>具有扩展数据字典</summary>
-/// <remarks>
-/// 仅限于扩展属性，不包括基本属性。
-/// </remarks>
-[Obsolete("逐步取消 IExtend2，建议直接使用 IExtend 或 IModel")]
-public interface IExtend2 : IExtend
-{
-    /// <summary>扩展数据键集合</summary>
-    IEnumerable<String> Keys { get; }
-}
-
-/// <summary>具有扩展数据字典</summary>
-/// <remarks>
-/// 仅限于扩展属性，不包括基本属性。
-/// </remarks>
-[Obsolete("逐步取消 IExtend3，建议直接使用 IExtend 或 IModel")]
-public interface IExtend3 : IExtend
-{
-}
-
 ///// <summary>扩展数据助手</summary>
 //public static class ExtendHelper
 //{

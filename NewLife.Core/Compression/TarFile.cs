@@ -5,6 +5,7 @@ using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Buffers;
+using NewLife.Collections;
 
 namespace NewLife.Compression;
 
@@ -408,68 +409,56 @@ public class TarEntry
             FileSize = longNameBytesLen;
         }
 
-        var rented = ArrayPool<Byte>.Shared.Rent(512);
-        try
+        using var rented = Pool.Rent(512);
+
+        var header = rented.Span;
+        header.Clear();
+
+        var writer = new SpanWriter(header);
+        writer.Write(name, 100, Encoding.ASCII);
+        writer.Write(Mode, 8, Encoding.ASCII);
+        writer.Write(OwnerId, 8, Encoding.ASCII);
+        writer.Write(GroupId, 8, Encoding.ASCII);
+        WriteOctal(ref writer, (UInt64)FileSize, 12, false);
+        WriteOctal(ref writer, (UInt64)LastModified.ToInt(), 12, false);
+        writer.Write("000000\0 ", 8, Encoding.ASCII);
+        writer.Write((Byte)type);
+        writer.Write(LinkName, 100, Encoding.ASCII);
+        writer.Write(Magic, 6, Encoding.ASCII);
+        writer.Write(Version.ToString("00"), 2, Encoding.ASCII);
+        writer.Write(OwnerName, 32, Encoding.ASCII);
+        writer.Write(GroupName, 32, Encoding.ASCII);
+        writer.Write(DeviceMajor, 8, Encoding.ASCII);
+        writer.Write(DeviceMinor, 8, Encoding.ASCII);
+        writer.Write(Prefix, 155, Encoding.ASCII);
+
+        // 计算校验和
+        Int64 checksum = 0;
+        for (var i = 0; i < 512; i++)
         {
-            var header = rented.AsSpan(0, 512);
-            header.Clear();
-
-            var writer = new SpanWriter(header);
-            writer.Write(name, 100, Encoding.ASCII);
-            writer.Write(Mode, 8, Encoding.ASCII);
-            writer.Write(OwnerId, 8, Encoding.ASCII);
-            writer.Write(GroupId, 8, Encoding.ASCII);
-            WriteOctal(ref writer, (UInt64)FileSize, 12, false);
-            WriteOctal(ref writer, (UInt64)LastModified.ToInt(), 12, false);
-            writer.Write("000000\0 ", 8, Encoding.ASCII);
-            writer.Write((Byte)type);
-            writer.Write(LinkName, 100, Encoding.ASCII);
-            writer.Write(Magic, 6, Encoding.ASCII);
-            writer.Write(Version.ToString("00"), 2, Encoding.ASCII);
-            writer.Write(OwnerName, 32, Encoding.ASCII);
-            writer.Write(GroupName, 32, Encoding.ASCII);
-            writer.Write(DeviceMajor, 8, Encoding.ASCII);
-            writer.Write(DeviceMinor, 8, Encoding.ASCII);
-            writer.Write(Prefix, 155, Encoding.ASCII);
-
-            // 计算校验和
-            Int64 checksum = 0;
-            for (var i = 0; i < 512; i++)
-            {
-                if (i is >= 148 and < 156)
-                    checksum += ' '; // 校验和区域按空格计算
-                else
-                    checksum += header[i];
-            }
-
-            writer.Position = 148;
-            WriteOctal(ref writer, (UInt64)checksum, 8, true);
-
-            stream.Write(rented, 0, 512);
+            if (i is >= 148 and < 156)
+                checksum += ' '; // 校验和区域按空格计算
+            else
+                checksum += header[i];
         }
-        finally
-        {
-            ArrayPool<Byte>.Shared.Return(rented);
-        }
+
+        writer.Position = 148;
+        WriteOctal(ref writer, (UInt64)checksum, 8, true);
+
+        stream.Write(rented, 0, 512);
 
         // 超长文件名
         if (writeLongPathMeta)
         {
             var longNameLen = Encoding.ASCII.GetByteCount(FileName);
-            var longName = ArrayPool<Byte>.Shared.Rent(longNameLen);
-            try
-            {
-                var written = Encoding.ASCII.GetBytes(FileName, 0, FileName.Length, longName, 0);
-                stream.Write(longName, 0, written);
+            using var longName = Pool.Rent(longNameLen);
 
-                var padding = (512 - written % 512) % 512;
-                if (padding > 0)
-                    WritePadding(stream, padding);
-            }
-            finally
-            {
-                ArrayPool<Byte>.Shared.Return(longName);
-            }
+            var written = Encoding.ASCII.GetBytes(FileName, 0, FileName.Length, longName, 0);
+            stream.Write(longName, 0, written);
+
+            var padding = (512 - written % 512) % 512;
+            if (padding > 0)
+                WritePadding(stream, padding);
 
             // 写入真实文件头（已在克隆对象中保留原始 FileSize）
             entry2.FileName = "@PathCut";
@@ -484,78 +473,66 @@ public class TarEntry
     /// <param name="stream">包含 Tar 数据的输入流</param>
     public static TarEntry? Read(Stream stream)
     {
-        var rented = ArrayPool<Byte>.Shared.Rent(512);
-        try
+        using var rented = Pool.Rent(512);
+
+        if (!ReadExactly(stream, rented, 512)) return null;
+
+        var header = rented.Span;
+        if (IsAllZero(header)) return null;
+
+        var reader = new SpanReader(header);
+
+        var entry = new TarEntry
         {
-            if (!ReadExactly(stream, rented, 512)) return null;
+            FileName = ReadField(ref reader, 100),
+            Mode = ReadField(ref reader, 8),
+            OwnerId = ReadField(ref reader, 8),
+            GroupId = ReadField(ref reader, 8),
+            FileSize = (Int64)ReadOctal(ref reader, 12),
+            LastModified = ((Int32)ReadOctal(ref reader, 12)).ToDateTime(),
+            Checksum = ReadOctal(ref reader, 8),
+            TypeFlag = (TarEntryType)reader.ReadByte(),
+            LinkName = ReadField(ref reader, 100),
+            Magic = ReadField(ref reader, 6),
+            Version = (UInt16)ReadOctal(ref reader, 2),
+            OwnerName = ReadField(ref reader, 32),
+            GroupName = ReadField(ref reader, 32),
+            DeviceMajor = ReadField(ref reader, 8),
+            DeviceMinor = ReadField(ref reader, 8),
+            Prefix = ReadField(ref reader, 155),
+        };
 
-            var header = rented.AsSpan(0, 512);
-            if (IsAllZero(header)) return null;
-
-            var reader = new SpanReader(header);
-
-            var entry = new TarEntry
+        if (entry.TypeFlag is TarEntryType.ExtendedAttributes)
+        {
+        }
+        // 处理长文件名
+        else if (entry.TypeFlag is TarEntryType.LongLink or TarEntryType.LongPath)
+        {
+            var size = (Int32)entry.FileSize;
+            if (size > 0)
             {
-                FileName = ReadField(ref reader, 100),
-                Mode = ReadField(ref reader, 8),
-                OwnerId = ReadField(ref reader, 8),
-                GroupId = ReadField(ref reader, 8),
-                FileSize = (Int64)ReadOctal(ref reader, 12),
-                LastModified = ((Int32)ReadOctal(ref reader, 12)).ToDateTime(),
-                Checksum = ReadOctal(ref reader, 8),
-                TypeFlag = (TarEntryType)reader.ReadByte(),
-                LinkName = ReadField(ref reader, 100),
-                Magic = ReadField(ref reader, 6),
-                Version = (UInt16)ReadOctal(ref reader, 2),
-                OwnerName = ReadField(ref reader, 32),
-                GroupName = ReadField(ref reader, 32),
-                DeviceMajor = ReadField(ref reader, 8),
-                DeviceMinor = ReadField(ref reader, 8),
-                Prefix = ReadField(ref reader, 155),
-            };
+                using var nameBuffer = Pool.Rent(size);
 
-            if (entry.TypeFlag is TarEntryType.ExtendedAttributes)
-            {
-            }
-            // 处理长文件名
-            else if (entry.TypeFlag is TarEntryType.LongLink or TarEntryType.LongPath)
-            {
-                var size = (Int32)entry.FileSize;
-                if (size > 0)
+                if (ReadExactly(stream, nameBuffer, size))
                 {
-                    var nameBuffer = ArrayPool<Byte>.Shared.Rent(size);
-                    try
-                    {
-                        if (ReadExactly(stream, nameBuffer, size))
-                        {
-                            var str = Encoding.ASCII.GetString(nameBuffer, 0, size).Trim('\0');
-                            if (entry.TypeFlag == TarEntryType.LongLink)
-                                entry.LinkName = str;
-                            else
-                                entry.FileName = str;
-                        }
-                    }
-                    finally
-                    {
-                        ArrayPool<Byte>.Shared.Return(nameBuffer);
-                    }
+                    var str = Encoding.ASCII.GetString(nameBuffer, 0, size).Trim('\0');
+                    if (entry.TypeFlag == TarEntryType.LongLink)
+                        entry.LinkName = str;
+                    else
+                        entry.FileName = str;
                 }
-
-                entry.TypeFlag = TarEntryType.RegularFile;
-
-                var padding = (512 - size % 512) % 512;
-                SkipPadding(stream, padding);
-
-                var entry2 = Read(stream);
-                if (entry2 != null) entry.FileSize = entry2.FileSize;
             }
 
-            return entry;
+            entry.TypeFlag = TarEntryType.RegularFile;
+
+            var padding = (512 - size % 512) % 512;
+            SkipPadding(stream, padding);
+
+            var entry2 = Read(stream);
+            if (entry2 != null) entry.FileSize = entry2.FileSize;
         }
-        finally
-        {
-            ArrayPool<Byte>.Shared.Return(rented);
-        }
+
+        return entry;
     }
 
     /// <summary>读取内容。返回是否读取成功</summary>
@@ -711,23 +688,17 @@ public class TarEntry
         }
 
         var left = padding;
-        var buffer = ArrayPool<Byte>.Shared.Rent(Math.Min(left, 512));
-        try
-        {
-            while (left > 0)
-            {
-                var count = Math.Min(left, buffer.Length);
-#pragma warning disable CA2022 // 避免使用 "Stream.Read" 进行不准确读取
-                var read = stream.Read(buffer, 0, count);
-#pragma warning restore CA2022 // 避免使用 "Stream.Read" 进行不准确读取
-                if (read <= 0) break;
+        using var buffer = Pool.Rent(Math.Min(left, 512));
 
-                left -= read;
-            }
-        }
-        finally
+        while (left > 0)
         {
-            ArrayPool<Byte>.Shared.Return(buffer);
+            var count = Math.Min(left, buffer.Length);
+#pragma warning disable CA2022 // 避免使用 "Stream.Read" 进行不准确读取
+            var read = stream.Read(buffer, 0, count);
+#pragma warning restore CA2022 // 避免使用 "Stream.Read" 进行不准确读取
+            if (read <= 0) break;
+
+            left -= read;
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Security.Cryptography;
 using NewLife.Log;
@@ -317,7 +318,7 @@ public class HttpConfigProvider : ConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    public override void Bind<T>(T model, Boolean autoReload = true, String? path = null)
+    public override void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, Boolean autoReload = true, String? path = null)
     {
         base.Bind(model, autoReload, path);
 

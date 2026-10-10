@@ -121,17 +121,11 @@ public class BinaryNormal : BinaryHandlerBase
 
             value = new Guid(buffer);
 #else
-            var buffer = Pool.Shared.Rent(16);
-            try
-            {
-                if (Host.ReadBytes(buffer, 0, 16) == 0) return false;
+            using var buffer = Pool.Rent(16);
 
-                value = new Guid(buffer);
-            }
-            finally
-            {
-                Pool.Shared.Return(buffer);
-            }
+            if (Host.ReadBytes(buffer, 0, 16) == 0) return false;
+
+            value = new Guid(buffer);
 #endif
 
             return true;
@@ -150,15 +144,6 @@ public class BinaryNormal : BinaryHandlerBase
             value = new ArrayPacket(buf);
             return true;
         }
-#pragma warning disable CS0618 // 类型或成员已过时
-        else if (type == typeof(Packet))
-        {
-            if (!TryReadArray(-1, out var buf)) return false;
-
-            value = new Packet(buf);
-            return true;
-        }
-#pragma warning restore CS0618 // 类型或成员已过时
         else if (type == typeof(Char[]))
         {
             //value = ReadChars(-1);

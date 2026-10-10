@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -99,12 +100,6 @@ public static class ProcessHelper
 
         return pname;
     }
-
-    /// <summary>获取二级进程名</summary>
-    /// <param name="process"></param>
-    /// <returns></returns>
-    [Obsolete("=>GetProcessName", true)]
-    public static String GetProcessName2(this Process process) => GetProcessName(process);
 
     ///// <summary>根据名称获取进程。支持dotnet/java</summary>
     ///// <param name="name"></param>
@@ -207,16 +202,26 @@ public static class ProcessHelper
         }
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "调试用进程内存读取依赖结构体反射布局；AOT 下不受支持")]
     private static Boolean ReadStruct<T>(IntPtr hProcess, IntPtr lpBaseAddress, out T val)
     {
         val = default!;
+#if NET45
+        // net45 的 Marshal 尚无泛型重载（4.5.1 引入），该 TFM 不涉及 AOT，退回重载版本
         var size = Marshal.SizeOf(typeof(T));
+#else
+        var size = Marshal.SizeOf<T>();
+#endif
         var ptr = Marshal.AllocHGlobal(size);
         try
         {
             if (ReadProcessMemory(hProcess, lpBaseAddress, ptr, (UInt32)size, out var len) && len == size)
             {
+#if NET45
                 val = (T)Marshal.PtrToStructure(ptr, typeof(T))!;
+#else
+                val = Marshal.PtrToStructure<T>(ptr)!;
+#endif
                 return true;
             }
         }

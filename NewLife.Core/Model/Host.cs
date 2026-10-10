@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Log;
 
 namespace NewLife.Model;
@@ -30,6 +31,7 @@ public static class HostedServiceExtensions
     /// <typeparam name="THostedService">主机服务类型</typeparam>
     /// <param name="services">对象容器</param>
     /// <returns>对象容器</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "宿主服务注册依赖容器反射构造服务类型；AOT 下请显式注册服务工厂")]
     public static IObjectContainer AddHostedService<THostedService>(this IObjectContainer services) where THostedService : class, IHostedService
     {
         services.AddSingleton<IHostedService, THostedService>();

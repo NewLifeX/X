@@ -30,17 +30,6 @@ public interface ISocket : IDisposable2, ILogFeature, ITracerFeature
     /// <remarks>本地监听或绑定的端口号，0表示由系统自动分配</remarks>
     Int32 Port { get; set; }
 
-    /// <summary>消息管道</summary>
-    /// <remarks>
-    /// <para>收发消息都经过管道处理器，进行协议编码解码。</para>
-    /// <para>处理顺序：</para>
-    /// <list type="number">
-    /// <item>接收数据解码时，从前向后通过管道处理器</item>
-    /// <item>发送数据编码时，从后向前通过管道处理器</item>
-    /// </list>
-    /// </remarks>
-    IPipeline? Pipeline { get; set; }
-
     /// <summary>是否输出发送日志</summary>
     /// <remarks>默认false，启用后会在日志中输出发送的数据内容</remarks>
     Boolean LogSend { get; set; }

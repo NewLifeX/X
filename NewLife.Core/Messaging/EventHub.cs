@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using NewLife.Data;
 using NewLife.Log;
@@ -18,7 +20,7 @@ namespace NewLife.Messaging;
 /// <para><b>典型应用</b>：作为 IoT 网关或 MQ Bridge，将网络层（如 WebSocket/TCP）收到的消息按 topic 投递到进程内订阅者。</para>
 /// </remarks>
 /// <typeparam name="TEvent">事件类型</typeparam>
-public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, ILogFeature, ITracerFeature
+public class EventHub<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TEvent> : IEventHandler<IPacket>, IEventHandler<String>, ILogFeature, ITracerFeature
 {
     #region 嵌套：事件信封
     /// <summary>协议解码的中间结果，承载主题/客户端/动作或事件三种语义</summary>
@@ -170,16 +172,76 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     {
         envelope = default;
         if (data == null) return false;
-        if (!TryParseHeader(data.GetSpan(), out var topic, out var clientId, out var headerLen)) return false;
+
+        if (data.Next == null)
+        {
+            if (!TryParseHeader(data.GetSpan(), out var topic, out var clientId, out var headerLen)) return false;
+
+            return DecodePayload(data, topic, clientId, headerLen, out envelope);
+        }
+        else
+        {
+            // 头部 event#topic#clientId# 可能跨节点（跨接收轮组链的帧）：跨段扫描定位头部末端，物化头部字节后复用跨度解析
+            var headLength = FindHeaderLength(data);
+            if (headLength <= 0) return false;
+
+            if (!TryParseHeader(data.ReadBytes(0, headLength), out var topic, out var clientId, out var headerLen)) return false;
+
+            return DecodePayload(data, topic, clientId, headerLen, out envelope);
+        }
+    }
+
+    /// <summary>跨段扫描头部末端。event#topic#clientId# 的分隔符为单字节 '#'，用序列读取器跨段扫描</summary>
+    /// <param name="data">数据包链</param>
+    /// <returns>头部字节数（含末尾 '#'）；分隔符不足 3 个时返回 0</returns>
+    private static Int32 FindHeaderLength(IPacket data)
+    {
+        var reader = new SequenceReader<Byte>(data.AsReadOnlySequence());
+        for (var i = 0; i < 3; i++)
+        {
+            if (!reader.TryAdvanceTo((Byte)'#', true)) return 0;
+        }
+
+        return (Int32)reader.Consumed;
+    }
+
+    /// <summary>从头部之后的负载解码事件信封</summary>
+    /// <param name="data">网络数据包</param>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">客户端标识</param>
+    /// <param name="headerLen">头部字节数</param>
+    /// <param name="envelope">解码出的事件信封</param>
+    /// <returns>是否解码成功</returns>
+    /// <remarks>
+    /// <para>当 <typeparamref name="TEvent"/> 本身是数据包时，负载切片所有权随之转移给订阅者（订阅者负责释放）；
+    /// 其它事件类型则切片仅供取值，本方法内部归还引用计数。</para>
+    /// </remarks>
+    private Boolean DecodePayload(IPacket data, String topic, String clientId, Int32 headerLen, out EventEnvelope envelope)
+    {
+        envelope = default;
 
         var msg = data.Slice(headerLen);
-        if (msg.Length == 0) return false;
+        if (msg.Length == 0)
+        {
+            msg.TryDispose();
 
-        // TEvent 本身是 IPacket，直接零拷贝构造事件信封
+            return false;
+        }
+
+        // TEvent 本身是 IPacket，直接零拷贝构造事件信封（切片随信封交给订阅者释放）
         if (msg is TEvent evt) { envelope = EventEnvelope.ForEvent(topic, clientId, evt); return true; }
 
-        var msgStr = msg.ToStr();
-        return BuildEnvelopeFromString(topic, clientId, msgStr, out envelope);
+        // 其它事件类型：切片只用于取值，取值后立即归还引用计数（不归还则缓冲永远回不了池）
+        try
+        {
+            var msgStr = msg.ToStr();
+
+            return BuildEnvelopeFromString(topic, clientId, msgStr, out envelope);
+        }
+        finally
+        {
+            msg.TryDispose();
+        }
     }
 
     /// <summary>尝试从字符串解码事件信封。派生类可重写以替换协议实现</summary>
@@ -264,7 +326,10 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
 
         var rest2 = rest[(p2 + 1)..];
         var p3 = rest2.IndexOf((Byte)'#');
-        if (p3 <= 0) return false;
+
+        // p3 == 0 表示客户端标识为空：EncodeEvent 允许空标识（会发出 event#topic##body），
+        // 解码侧必须同样接受，否则本库编码器产出的消息会被对端当非法头部静默丢弃；只有缺失分隔符（-1）才非法
+        if (p3 < 0) return false;
         clientId = rest2[..p3].ToStr();
 
         headerLength = p + 1 + p2 + 1 + p3 + 1;
@@ -291,7 +356,9 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
 
         var rest2 = rest[(p2 + 1)..];
         var p3 = rest2.IndexOf('#');
-        if (p3 <= 0) return false;
+
+        // 空客户端标识合法（与 EncodeEvent 对称），仅缺失分隔符非法
+        if (p3 < 0) return false;
         clientId = rest2[..p3].ToString();
 
         headerLength = p + 1 + p2 + 1 + p3 + 1;
@@ -332,7 +399,8 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <summary>把解码后的事件信封路由到控制面或数据面</summary>
     private async Task<Int32> DispatchEnvelopeAsync(EventEnvelope envelope, Object raw, IEventContext? context, CancellationToken cancellationToken)
     {
-        // 把原始数据透传到扩展项，便于网络层做后续路由（如转发到其他客户端）
+        // 把原始数据透传到扩展项，便于网络层做后续路由（如转发到其他客户端）。
+        // Raw 为借阅引用：IPacket 归框架所有，在回调返回后随消息释放，上下文不得跨回调保留
         if (context is IExtend ext) ext["Raw"] = raw;
 
         // 控制面：订阅/取消订阅
@@ -405,100 +473,6 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     {
         using var cts = new CancellationTokenSource(timeout);
         return await ReceiveAsync(topic, cts.Token).ConfigureAwait(false);
-    }
-    #endregion
-
-    #region 兼容层（旧 API，已标记废弃）
-    /// <summary>分发事件到指定主题与发送方（旧 API）</summary>
-    /// <remarks>请改用 <see cref="PublishAsync"/>，把 <c>clientId</c> 放入 <see cref="EventContext.ClientId"/></remarks>
-    /// <param name="topic">主题</param>
-    /// <param name="clientId">发送方客户端标识</param>
-    /// <param name="event">事件</param>
-    /// <param name="context">事件上下文；为 IExtend 时会写入 Topic/ClientId 数据项</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>成功处理该事件的处理器数量；主题未注册时返回 0</returns>
-    [Obsolete("请改用 PublishAsync(topic,event,context,ct)，将 clientId 放入 EventContext.ClientId。将在后续版本移除")]
-    public Task<Int32> DispatchAsync(String topic, String clientId, TEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default)
-    {
-        if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
-
-        // 上下文字段需要先于注册检查写入，保持旧版可观察行为
-        if (context is EventContext ec)
-        {
-            ec.Topic ??= topic;
-            ec.ClientId ??= clientId;
-        }
-        if (context is IExtend ext)
-        {
-            ext["Topic"] ??= topic;
-            ext["ClientId"] ??= clientId;
-        }
-
-        // 主题未注册时不创建总线，直接返回 0（保持旧语义）
-        if (!_eventBuses.TryGetValue(topic, out var bus)) return TaskEx.FromResult(0);
-
-        return bus.PublishAsync(@event, context, cancellationToken);
-    }
-
-    /// <summary>分发控制动作（subscribe/unsubscribe）（旧 API）</summary>
-    /// <remarks>请改用 <see cref="SubscribeAsync"/> / <see cref="UnsubscribeAsync"/></remarks>
-    /// <param name="topic">主题</param>
-    /// <param name="clientId">客户标识</param>
-    /// <param name="action">动作；非 subscribe/unsubscribe 返回 false</param>
-    /// <param name="context">事件上下文；subscribe 需要在其中提供 <c>Handler</c> 数据项</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>动作是否被识别并执行</returns>
-    [Obsolete("请改用 SubscribeAsync/UnsubscribeAsync。将在后续版本移除")]
-    public async Task<Boolean> DispatchActionAsync(String topic, String clientId, String action, IEventContext? context = null, CancellationToken cancellationToken = default)
-    {
-        if (action.IsNullOrEmpty() || action[0] == '{') return false;
-
-        if (action.EqualIgnoreCase("subscribe"))
-        {
-            var handler = (context as IExtend)?["Handler"] as IEventHandler<TEvent>
-                ?? throw new ArgumentNullException(nameof(context), "subscribe 动作需要在上下文中提供 Handler");
-            await SubscribeAsync(topic, clientId, handler, cancellationToken).ConfigureAwait(false);
-            return true;
-        }
-        if (action.EqualIgnoreCase("unsubscribe"))
-        {
-            // 旧语义：总线不存在时返回 false
-            if (!_eventBuses.ContainsKey(topic)) return false;
-            return await UnsubscribeAsync(topic, clientId, cancellationToken).ConfigureAwait(false);
-        }
-        return false;
-    }
-
-    /// <summary>注册主题与事件总线的映射（旧 API）</summary>
-    /// <remarks>请改用 <see cref="RegisterBus"/></remarks>
-    /// <param name="topic">主题</param>
-    /// <param name="eventBus">事件总线</param>
-    [Obsolete("请改用 RegisterBus。将在后续版本移除")]
-    public void Add(String topic, IEventBus<TEvent> eventBus) => RegisterBus(topic, eventBus);
-
-    /// <summary>注册主题对应的事件处理器（旧 API）</summary>
-    /// <remarks>请改用 <see cref="SubscribeAsync"/></remarks>
-    /// <param name="topic">主题</param>
-    /// <param name="handler">事件处理器</param>
-    [Obsolete("请改用 SubscribeAsync(topic, clientId, handler)。将在后续版本移除")]
-    public void Add(String topic, IEventHandler<TEvent> handler) => SubscribeAsync(topic, "", handler).ConfigureAwait(false).GetAwaiter().GetResult();
-
-    /// <summary>尝试获取指定泛型类型的事件总线（旧 API）</summary>
-    /// <remarks>请改用非泛型 <see cref="TryGetBus"/></remarks>
-    /// <typeparam name="T">事件类型；与 <typeparamref name="TEvent"/> 不一致时返回 false</typeparam>
-    /// <param name="topic">主题</param>
-    /// <param name="eventBus">事件总线</param>
-    /// <returns>是否找到</returns>
-    [Obsolete("请改用非泛型 TryGetBus(topic, out bus)。将在后续版本移除")]
-    public Boolean TryGetBus<T>(String topic, out IEventBus<T>? eventBus)
-    {
-        if (typeof(T) == typeof(TEvent) && _eventBuses.TryGetValue(topic, out var bus))
-        {
-            eventBus = (IEventBus<T>)bus;
-            return true;
-        }
-        eventBus = null;
-        return false;
     }
     #endregion
 

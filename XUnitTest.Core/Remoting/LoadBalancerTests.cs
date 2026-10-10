@@ -291,23 +291,6 @@ public class LoadBalancerTests
         Assert.Equal(LoadBalanceMode.Race, client.LoadBalanceMode);
     }
 
-    [Fact(DisplayName = "ApiHttpClient_兼容RoundRobin属性")]
-    public void ApiHttpClient_RoundRobinPropertyCompatibility()
-    {
-        var client = new ApiHttpClient("http://127.0.0.1:10001,http://127.0.0.1:10002");
-
-        // 测试设置
-#pragma warning disable CS0618
-        client.RoundRobin = true;
-        Assert.Equal(LoadBalanceMode.RoundRobin, client.LoadBalanceMode);
-        Assert.True(client.RoundRobin);
-
-        client.RoundRobin = false;
-        Assert.Equal(LoadBalanceMode.Failover, client.LoadBalanceMode);
-        Assert.False(client.RoundRobin);
-#pragma warning restore CS0618
-    }
-
     [Fact(DisplayName = "ApiHttpClient_屏蔽时间设置")]
     public void ApiHttpClient_ShieldingTimeSettings()
     {
@@ -316,24 +299,6 @@ public class LoadBalancerTests
         client.ShieldingTime = 120;
 
         Assert.Equal(120, client.ShieldingTime);
-    }
-
-    [Fact(DisplayName = "ApiHttpClient_Service类型别名兼容")]
-    public void ApiHttpClient_ServiceTypeAliasCompatibility()
-    {
-        // 测试旧的 ApiHttpClient.Service 类型别名仍然可用
-#pragma warning disable CS0618
-        var service = new ApiHttpClient.Service
-        {
-            Name = "test",
-            Weight = 2
-        };
-        service.SetAddress(new Uri("http://127.0.0.1:8080"));
-#pragma warning restore CS0618
-
-        Assert.Equal("test", service.Name);
-        Assert.Equal(2, service.Weight);
-        Assert.Equal("http://127.0.0.1:8080", service.UriName);
     }
     #endregion
 

@@ -487,13 +487,12 @@ public class BinaryGeneral : BinaryHandlerBase
         else
             value = BinaryPrimitives.ReadInt16BigEndian(buffer);
 #else
-        var buffer = Pool.Shared.Rent(SIZE);
+        using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
         if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToInt16(buffer, 0);
-        Pool.Shared.Return(buffer);
 #endif
 
         return true;
@@ -518,13 +517,12 @@ public class BinaryGeneral : BinaryHandlerBase
         else
             value = BinaryPrimitives.ReadInt32BigEndian(buffer);
 #else
-        var buffer = Pool.Shared.Rent(SIZE);
+        using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
         if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToInt32(buffer, 0);
-        Pool.Shared.Return(buffer);
 #endif
 
         return true;
@@ -549,13 +547,12 @@ public class BinaryGeneral : BinaryHandlerBase
         else
             value = BinaryPrimitives.ReadInt64BigEndian(buffer);
 #else
-        var buffer = Pool.Shared.Rent(SIZE);
+        using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
         if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToInt64(buffer, 0);
-        Pool.Shared.Return(buffer);
 #endif
 
         return true;
@@ -579,13 +576,12 @@ public class BinaryGeneral : BinaryHandlerBase
         else
             value = BinaryPrimitives.ReadSingleBigEndian(buffer);
 #else
-        var buffer = Pool.Shared.Rent(SIZE);
+        using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
         if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToSingle(buffer, 0);
-        Pool.Shared.Return(buffer);
 #endif
 
         return true;
@@ -607,13 +603,12 @@ public class BinaryGeneral : BinaryHandlerBase
         else
             value = BinaryPrimitives.ReadDoubleBigEndian(buffer);
 #else
-        var buffer = Pool.Shared.Rent(SIZE);
+        using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
         if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToDouble(buffer, 0);
-        Pool.Shared.Return(buffer);
 #endif
 
         return true;
@@ -635,52 +630,33 @@ public class BinaryGeneral : BinaryHandlerBase
         if (n > max) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", n, max);
 
 #if NETCOREAPP || NETSTANDARD2_1
-        // 栈分配阈值：避免大字符串导致栈溢出
-        const Int32 STACK_ALLOC_THRESHOLD = 512;
+        // 长度动态，统一走池化缓冲区；Span 正好覆盖 n 字节
+        using var buffer = Pool.Rent(n);
 
-        Byte[]? rentedBuffer = null;
-        var buffer = n <= STACK_ALLOC_THRESHOLD
-            ? stackalloc Byte[n]
-            : (rentedBuffer = Pool.Shared.Rent(n)).AsSpan(0, n);
+        if (Host.ReadBytes(buffer.Span) == 0) return false;
 
-        try
-        {
-            if (Host.ReadBytes(buffer) == 0) return false;
+        var enc = Host.Encoding ?? Encoding.UTF8;
 
-            var enc = Host.Encoding ?? Encoding.UTF8;
+        var str = enc.GetString(buffer.Span);
+        if (Host is Binary bn && bn.TrimZero && str != null) str = str.Trim('\0');
 
-            var str = enc.GetString(buffer);
-            if (Host is Binary bn && bn.TrimZero && str != null) str = str.Trim('\0');
+        value = str ?? String.Empty;
 
-            value = str ?? String.Empty;
-
-            return true;
-        }
-        finally
-        {
-            if (rentedBuffer != null)
-                Pool.Shared.Return(rentedBuffer);
-        }
+        return true;
 #else
-        var buffer = Pool.Shared.Rent(n);
-        try
-        {
-            if (Host.ReadBytes(buffer, 0, n) == 0) return false;
+        using var buffer = Pool.Rent(n);
 
-            var enc = Host.Encoding ?? Encoding.UTF8;
+        if (Host.ReadBytes(buffer, 0, n) == 0) return false;
 
-            // 只解码实际读取的 n 字节，避免 Rent 返回的整块数组尾随垃圾字节
-            var str = enc.GetString(buffer, 0, n);
-            if (Host is Binary bn && bn.TrimZero && str != null) str = str.Trim('\0');
+        var enc = Host.Encoding ?? Encoding.UTF8;
 
-            value = str ?? String.Empty;
+        // 只解码实际读取的 n 字节，避免 Rent 返回的整块数组尾随垃圾字节
+        var str = enc.GetString(buffer, 0, n);
+        if (Host is Binary bn && bn.TrimZero && str != null) str = str.Trim('\0');
 
-            return true;
-        }
-        finally
-        {
-            Pool.Shared.Return(buffer);
-        }
+        value = str ?? String.Empty;
+
+        return true;
 #endif
     }
     #endregion

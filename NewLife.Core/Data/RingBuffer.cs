@@ -2,9 +2,9 @@
 
 /// <summary>环形缓冲区。用于协议组包设计</summary>
 /// <remarks>
-/// 环形缓冲区是一种固定大小的缓冲区，当缓冲区满时新数据会覆盖旧数据。
-/// 本实现支持动态扩容，确保数据不丢失。
+/// 环形缓冲区是一种固定大小的缓冲区；本实现写入时**遇满自动扩容**（不覆盖旧数据），确保数据不丢失。
 /// 使用 Head 指针标记写入位置，Tail 指针标记读取位置。
+/// 非线程安全，且 Head/Tail/Length 由 Write/Read 维护，外部不要直接改写（会破坏三者的自洽关系）。
 /// </remarks>
 public class RingBuffer
 {
@@ -32,7 +32,7 @@ public class RingBuffer
 
     /// <summary>实例化环形缓冲区</summary>
     /// <param name="capacity">容量。合理的容量能够减少扩容</param>
-    public RingBuffer(Int32 capacity) => _data = new Byte[capacity];
+    public RingBuffer(Int32 capacity) => _data = new Byte[Math.Max(1, capacity)];
     #endregion
 
     #region 方法
@@ -79,9 +79,17 @@ public class RingBuffer
     {
         var len = _data.Length;
 
-        // 两倍增长策略
+        // 两倍增长策略；接近上限时直接取目标容量，避免翻倍溢出成负数后死循环
         while (len < capacity)
+        {
+            if (len > Int32.MaxValue / 2)
+            {
+                len = capacity;
+                break;
+            }
+
             len *= 2;
+        }
 
         EnsureCapacity(len);
     }

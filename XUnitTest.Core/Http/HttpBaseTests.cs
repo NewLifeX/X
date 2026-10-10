@@ -1,4 +1,5 @@
 ﻿using NewLife;
+using NewLife.Data;
 using NewLife.Http;
 using Xunit;
 
@@ -15,5 +16,142 @@ public class HttpBaseTests
     {
         var data = first.GetBytes();
         Assert.True(HttpBase.FastValidHeader(data));
+    }
+
+    [Theory(DisplayName = "Content-Length_合法则解析或标记非法")]
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello", 5, false)]
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: 0\r\n\r\n", 0, false)]
+    [InlineData("POST / HTTP/1.1\r\nHost: a\r\n\r\n", -1, false)]
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: -1\r\n\r\n", -1, true)]
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: abc\r\n\r\n", -1, true)]
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: 9999999999\r\n\r\n", -1, true)]
+    // 重复（含大小写不同）的 Content-Length 会与前置代理的取值理解不一致，构成 CL.CL 走私面，同样判非法
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: 5\r\nContent-Length: 5\r\n\r\nhello", -1, true)]
+    [InlineData("POST / HTTP/1.1\r\nContent-Length: 5\r\ncontent-length: 3\r\n\r\nhello", -1, true)]
+    public void ContentLength_ParsedOrMarkedInvalid(String raw, Int32 expectLength, Boolean expectInvalid)
+    {
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket(raw.GetBytes())));
+
+        // 非法值不能退化成“无体”（ContentLength=-1 且未标记），否则请求边界失步
+        Assert.Equal(expectLength, req.ContentLength);
+        Assert.Equal(expectInvalid, req.InvalidContentLength);
+    }
+
+    [Fact(DisplayName = "Transfer-Encoding存在时_主体不按Content-Length截断")]
+    public void TransferEncoding_OverridesContentLength()
+    {
+        // RFC 9112 §6.1：TE 覆盖 CL。按 CL 截断会把同轮其余字节整段丢掉——服务端分块解码拿不到完整流
+        // （实测请求悬停），故 TE 存在时主体为头部之后的全部可用字节，消耗量即整包长度
+        var raw = "POST /cs HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\nContent-Length: 5\r\n\r\n5\r\nhello\r\n0\r\n\r\n";
+        var bytes = raw.GetBytes();
+
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket(bytes)));
+
+        Assert.Equal("5\r\nhello\r\n0\r\n\r\n", req.Body!.ToStr());
+        Assert.Equal(bytes.Length, req.ConsumedLength);
+    }
+
+    [Fact(DisplayName = "无长度请求_主体为空且消耗只含头部")]
+    public void Parse_RequestWithoutLength_HasNoBody()
+    {
+        // RFC 9112 §6.3：请求既无 CL 也无 TE 时没有实体，头部之后的字节属于同连接的下一个请求（流水线）。
+        // 按实体吞掉会让第二个请求静默丢失（不回响应也不关连接）
+        var first = "GET /a HTTP/1.1\r\nHost: a\r\n\r\n";
+        var raw = first + "GET /b HTTP/1.1\r\nHost: b\r\n\r\n";
+
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket(raw.GetBytes())));
+
+        Assert.Null(req.Body);
+        Assert.Equal(-1, req.ContentLength);
+        Assert.Equal(first.Length, req.ConsumedLength);
+    }
+
+    [Fact(DisplayName = "HTTP1.0的POST无长度_保留读到的都是实体的兼容语义")]
+    public void Parse_Http10PostWithoutLength_KeepsBodyCompat()
+    {
+        // 老式客户端以连接关闭定界实体、不发 Content-Length，兼容语义按方法保留（HTTP/1.0 的 POST/PUT/PATCH）
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket("POST /a HTTP/1.0\r\nHost: a\r\n\r\nhello".GetBytes())));
+
+        Assert.Equal("hello", req.Body!.ToStr());
+
+        // HTTP/1.1 的 POST 不再按实体处理（同上，无长度即无实体）
+        var req2 = new HttpRequest();
+        Assert.True(req2.Parse(new ArrayPacket("POST /a HTTP/1.1\r\nHost: a\r\n\r\nhello".GetBytes())));
+
+        Assert.Null(req2.Body);
+    }
+
+    [Fact(DisplayName = "请求同实例二次解析_上一条头部不残留")]
+    public void Reparse_SameInstance_ClearsStaleHeaders()
+    {
+        // 残留判据比缺省值更危险：上一条的 Transfer-Encoding/Content-Length 会让本条按错误的方式分帧
+        var req = new HttpRequest();
+        var first = "POST /a HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: gzip\r\nContent-Length: 5\r\nX-Old: 1\r\n\r\nhello";
+        Assert.True(req.Parse(new ArrayPacket(first.GetBytes())));
+        Assert.Equal("gzip", req.Headers["Transfer-Encoding"]);
+
+        Assert.True(req.Parse(new ArrayPacket("GET /b HTTP/1.1\r\nHost: b\r\n\r\n".GetBytes())));
+
+        Assert.Null(req.Headers["Transfer-Encoding"]);
+        Assert.Null(req.Headers["Content-Length"]);
+        Assert.Null(req.Headers["X-Old"]);
+        Assert.Equal("b", req.Headers["Host"]);
+        Assert.Equal(-1, req.ContentLength);
+    }
+
+    [Fact(DisplayName = "响应同实例二次解析_上一条头部不残留")]
+    public void ResponseReparse_SameInstance_ClearsStaleHeaders()
+    {
+        // 客户端据响应头部分帧（Transfer-Encoding 优先于 Content-Length），残留会让下一条响应被错误解码
+        var res = new HttpResponse();
+        var first = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nContent-Length: 5\r\n\r\nhello";
+        Assert.True(res.Parse(new ArrayPacket(first.GetBytes())));
+        Assert.Equal("chunked", res.Headers["Transfer-Encoding"]);
+
+        Assert.True(res.Parse(new ArrayPacket("HTTP/1.1 204 No Content\r\n\r\n".GetBytes())));
+
+        Assert.Null(res.Headers["Transfer-Encoding"]);
+        Assert.Null(res.Headers["Content-Length"]);
+    }
+
+    [Fact(DisplayName = "FastParse只分析首行_不残留上一条头部")]
+    public void FastParse_ClearsStaleHeaders()
+    {
+        // FastParse 不解析头部，故也不应残留：否则 Host 会沿用上一条请求的值
+        var req = new HttpRequest();
+        Assert.True(req.Parse(new ArrayPacket("GET /a HTTP/1.1\r\nHost: a\r\n\r\n".GetBytes())));
+        Assert.Equal("a", req.Host);
+
+        Assert.True(req.FastParse(new ArrayPacket("GET /b HTTP/1.1\r\n\r\n".GetBytes())));
+
+        Assert.Null(req.Headers["Host"]);
+        Assert.Null(req.Host);
+    }
+
+    [Fact(DisplayName = "同实例二次解析_上一条主体句柄已归还")]
+    public void Reparse_SameInstance_ReleasesStaleBody()
+    {
+        // 旧主体是上一次解析的拥有句柄（源包共享切片）：覆盖而不归还，其池缓冲引用计数永不归零
+        var bytes = "POST /a HTTP/1.1\r\nHost: a\r\nContent-Length: 3\r\n\r\nabc".GetBytes();
+        using var src = new OwnerPacket(bytes.Length);
+        bytes.CopyTo(src.GetSpan());
+
+        var req = new HttpRequest();
+        Assert.True(req.Parse(src));
+
+        var body = (OwnerPacket)req.Body!;
+        Assert.Equal("abc", body.ToStr());
+        Assert.Equal(2, src.RefCount);   // 源句柄 + 主体切片
+
+        Assert.True(req.Parse(src));
+
+        // 旧主体已释放（Dispose 置空 _owner，RefCount 读作 0 哨兵值）；源句柄 + 新主体仍为 2，
+        // 既证明旧句柄已归还，也证明没有过度释放
+        Assert.Equal(0, body.RefCount);
+        Assert.Equal(2, src.RefCount);
     }
 }

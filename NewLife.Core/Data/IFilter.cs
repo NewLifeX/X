@@ -17,8 +17,8 @@ public interface IFilter
 
 /// <summary>过滤器上下文</summary>
 /// <remarks>
-/// 封装过滤过程中传递的环境数据。默认仅包含 <see cref="Packet"/>。
-/// 约定：当 <see cref="Packet"/> 为 null 时，表示链路应停止继续传递（主动丢弃或已被消费）。
+/// 封装过滤过程中传递的环境数据。默认仅包含 <see cref="FilterContext.Packet"/>。
+/// 约定：当 <see cref="FilterContext.Packet"/> 为 null 时，表示链路应停止继续传递（主动丢弃或已被消费）。
 /// 内存管理请参考 <see cref="IPacket"/> 的所有权说明。
 /// </remarks>
 public class FilterContext

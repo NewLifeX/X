@@ -12,6 +12,7 @@ using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;
+using WebSocketMessageType = NewLife.Messaging.WebSocketMessageType;
 
 namespace NewLife.Http;
 
@@ -227,9 +228,15 @@ public static class HttpHelper
         var sb = Pool.StringBuilder.Get();
         sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)code, code);
 
-        // 内容长度
+        // 内容长度：有实体时写明长度；无实体时也必须显式声明 0，否则报文不可自定界，
+        // keep-alive 下客户端会把下一个响应当成本次实体。1xx/204/304 按 RFC 7230 §3.3.2 不得声明。
+        // 调用方已自行声明 Content-Length/Transfer-Encoding 时不再插手，避免写出重复头部（CL.CL 走私面）
         var count = pk?.Total ?? 0;
-        if (count > 0) sb.AppendFormat("Content-Length: {0}\r\n", count);
+        if (count > 0)
+            sb.AppendFormat("Content-Length: {0}\r\n", count);
+        else if (!HttpBase.IsNoEntityStatus(code) && !HasHeader(headers, "Content-Length") && !HasHeader(headers, "Transfer-Encoding"))
+            sb.Append("Content-Length: 0\r\n");
+
         if (headers != null)
         {
             foreach (var item in headers)
@@ -244,54 +251,22 @@ public static class HttpHelper
         return rs;
     }
 
-#pragma warning disable CS0618 // 类型或成员已过时
-    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
-    /// <summary>分析头部（修改原 <see cref="Packet"/>，截去首段头部）</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
-    public static IDictionary<String, Object> ParseHeader(Packet pk)
+    /// <summary>判断头部集合中是否已存在指定名称的头部（忽略大小写）</summary>
+    /// <param name="headers">头部集合</param>
+    /// <param name="name">头部名称</param>
+    /// <returns>是否存在</returns>
+    private static Boolean HasHeader(IDictionary<String, Object?>? headers, String name)
     {
-        // 客户端收到响应，服务端收到请求
-        var headers = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        if (headers == null) return false;
 
-        var p = pk.IndexOf(NewLine);
-        if (p < 0) return headers;
-
-        // 截取
-        var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
-        p += 4; // 跳过 CRLFCRLF
-        pk.Set(pk.Data, pk.Offset + p, pk.Count - p);
-
-        // 分析头部
-        headers.Clear();
-        for (var i = 1; i < lines.Length; i++)
+        foreach (var item in headers)
         {
-            var line = lines[i];
-            var k = line.IndexOf(':');
-            if (k > 0) headers[line[..k]] = line[(k + 1)..].Trim();
+            if (item.Key.EqualIgnoreCase(name)) return true;
         }
 
-        var first = lines.Length > 0 ? lines[0] : "";
-        var ss = first.Split(' ');
-        if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
-        {
-            headers["Method"] = ss[0];
-
-            // 构造资源路径
-            var host = headers.TryGetValue("Host", out var s) ? s : "";
-            var uri = $"http://{host}{ss[1]}"; // 仅能猜测 http，若需 https 应由上层携带
-            headers["Url"] = new Uri(uri);
-        }
-        else if (ss.Length >= 2)
-        {
-            // 分析响应码
-            var code = ss[1].ToInt();
-            if (code > 0) headers["StatusCode"] = (HttpStatusCode)code;
-        }
-
-        return headers;
+        return false;
     }
-#pragma warning restore CS0618 // 类型或成员已过时
+
     #endregion
 
     #region 高级功能扩展
@@ -446,7 +421,8 @@ public static class HttpHelper
     /// <summary>内部统一 Post 发送逻辑，支持 Filter / Tracer</summary>
     private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
+        // 请求与响应均为本次调用独占：发送完成后即可释放，不再依赖 GC（请求释放会连带释放其内容）
+        using var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
         if (headers != null)
         {
             foreach (var item in headers)
@@ -471,7 +447,7 @@ public static class HttpHelper
         {
             if (filter != null) await filter.OnRequest(client, request, null, cancellationToken).ConfigureAwait(false);
 
-            var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (filter != null) await filter.OnResponse(client, response, request, cancellationToken).ConfigureAwait(false);
 
@@ -519,7 +495,7 @@ public static class HttpHelper
     {
         fileName = fileName.GetFullPath();
 
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 
         // 使用系统临时目录生成随机临时文件名，跨平台可用
         var tempFile = Path.GetTempFileName();
@@ -561,9 +537,9 @@ public static class HttpHelper
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
     {
 #if NET5_0_OR_GREATER
-        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
 #else
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 #endif
 
         await SaveFileAsync(rs, fileName, null, cancellationToken).ConfigureAwait(false);
@@ -601,9 +577,9 @@ public static class HttpHelper
         }
 
 #if NET5_0_OR_GREATER
-        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
 #else
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 #endif
 
         await SaveFileAsync(rs, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
@@ -688,7 +664,8 @@ public static class HttpHelper
     /// <param name="cancellationToken">取消通知</param>
     public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object? data = null, CancellationToken cancellationToken = default)
     {
-        var content = new MultipartFormDataContent();
+        // 内容容器由本方法释放（连带释放所持有的文件流），避免上传完成后文件句柄残留到 GC
+        using var content = new MultipartFormDataContent();
         if (!fileName.IsNullOrEmpty())
             content.Add(new StreamContent(fileName.AsFile().OpenRead()), "file", Path.GetFileName(fileName));
 

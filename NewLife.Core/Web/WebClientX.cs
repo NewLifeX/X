@@ -66,21 +66,26 @@ public class WebClientX : DisposeBase
     public virtual HttpClient EnsureCreate()
     {
         var http = _client;
-        if (http == null)
-        {
-            http = DefaultTracer.Instance.CreateHttpClient();
-            http.Timeout = TimeSpan.FromMilliseconds(Timeout);
-            http.SetUserAgent();
+        if (http != null) return http;
 
-            // 原子发布，并发创建时释放多余客户端，避免泄漏
-            if (Interlocked.CompareExchange(ref _client, http, null) != null)
-                http.Dispose();
+        http = DefaultTracer.Instance.CreateHttpClient();
+        http.Timeout = TimeSpan.FromMilliseconds(Timeout);
+        http.SetUserAgent();
+
+        // 原子发布，并发创建时释放多余客户端，避免泄漏。
+        // 返回 CompareExchange 取回的实例而非字段：字段可空，直接返回会让调用方拿到可能为空的引用
+        if (Interlocked.CompareExchange(ref _client, http, null) is { } existed)
+        {
+            http.Dispose();
+
+            return existed;
         }
 
-        return _client;
+        return http;
     }
 
     /// <summary>发送请求，获取响应</summary>
+    /// <remarks>返回的 <see cref="HttpContent"/> 所有权移交调用方，由调用方负责释放（内含连接归还语义）</remarks>
     /// <param name="address"></param>
     /// <param name="content"></param>
     /// <param name="cancellationToken"></param>
@@ -175,7 +180,7 @@ public class WebClientX : DisposeBase
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
+        using var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
         return await rs.ReadAsStringAsync().ConfigureAwait(false);
     }
 
@@ -187,7 +192,7 @@ public class WebClientX : DisposeBase
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
+        using var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
 
         // 使用系统临时目录生成随机临时文件名，跨平台可用
         var tempFile = Path.GetTempFileName();

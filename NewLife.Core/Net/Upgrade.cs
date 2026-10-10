@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
 using NewLife.Http;
@@ -42,6 +43,9 @@ public class Upgrade
 
     /// <summary>更新源文件</summary>
     public String? SourceFile { get; set; }
+
+    /// <summary>下载超时时间（毫秒）。默认30000，超时按失败处理</summary>
+    public Int32 DownloadTimeout { get; set; } = 30_000;
     #endregion
 
     #region 构造
@@ -101,6 +105,8 @@ public class Upgrade
                     {
                         Link = link;
                         WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Version, Version);
+
+                        return true;
                     }
                     else
                         WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Version, Version);
@@ -114,18 +120,23 @@ public class Upgrade
                     {
                         Link = link;
                         WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Time, Time);
+
+                        return true;
                     }
                     else
                         WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Time, Time);
                 }
 
-                return Link != null;
+                // 本地址没有较新版本，继续检查下一个地址，多镜像之间互为备份
             }
             catch (Exception ex)
             {
                 lastError = ex;
             }
         }
+
+        // 所有地址都失败时至少留下一条日志，避免升级检查静默失效、无从排查
+        if (lastError != null) WriteLog("检查更新失败：{0}", lastError.Message);
 
         return false;
     }
@@ -140,7 +151,26 @@ public class Upgrade
 
         var file = !link.FullName.IsNullOrEmpty() ? UpdatePath.CombinePath(link.FullName).GetBasePath() : Path.GetTempFileName();
 
-        Task.Factory.StartNew(() => DownloadAsync(link.Url, file, link.Hash, default), TaskCreationOptions.LongRunning).Unwrap().Wait(30_000);
+        WaitDownload(ct => DownloadAsync(link.Url, file, link.Hash, ct), link.Url);
+    }
+
+    /// <summary>等待下载任务，超时按失败处理（取消后台任务并抛超时）</summary>
+    private void WaitDownload(Func<CancellationToken, Task> download, String url)
+    {
+        var timeout = DownloadTimeout > 0 ? DownloadTimeout : 30_000;
+
+        using var cts = new CancellationTokenSource();
+        var task = Task.Factory.StartNew(() => download(cts.Token), TaskCreationOptions.LongRunning).Unwrap();
+
+        if (!task.Wait(timeout))
+        {
+            // 超时按失败处理：取消后台下载并抛超时，避免未完成的文件被当成下载成功（日志误报“下载完成”）
+            cts.Cancel();
+            // 后台任务将因取消而异常结束，挂观察器避免未观测任务异常
+            _ = task.ContinueWith(t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
+
+            throw new TimeoutException($"Download timeout [{timeout}ms]: {url}");
+        }
     }
 
     /// <summary>开始更新</summary>
@@ -160,7 +190,7 @@ public class Upgrade
             var sw = Stopwatch.StartNew();
 
             var web = CreateClient();
-            Task.Factory.StartNew(() => web.DownloadFileAsync(url, file, default), TaskCreationOptions.LongRunning).Unwrap().Wait(30_000);
+            WaitDownload(ct => web.DownloadFileAsync(url, file, ct), url);
 
             sw.Stop();
             WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
@@ -232,7 +262,12 @@ public class Upgrade
     public void Run()
     {
         // 启动进程
+        // 单文件与 AOT 发布下 EntryAssembly.Location 为空，改用进程路径
+#if NET6_0_OR_GREATER
+        var exe = Environment.ProcessPath;
+#else
         var exe = Assembly.GetEntryAssembly()?.Location;
+#endif
         if (exe.IsNullOrEmpty()) return;
 
         WriteLog("启动进程 {0}", exe);
@@ -252,24 +287,6 @@ public class Upgrade
         if (_Client != null) return _Client;
 
         return _Client = new HttpClient().SetUserAgent();
-    }
-
-    /// <summary>删除备份文件</summary>
-    /// <param name="dest">目标目录</param>
-    [Obsolete("=>DeleteBackup", true)]
-    public static void DeleteBuckup(String dest)
-    {
-        // 删除备份
-        var di = dest.AsDirectory();
-        var fs = di.GetAllFiles("*.del", true);
-        foreach (var item in fs)
-        {
-            try
-            {
-                item.Delete();
-            }
-            catch { }
-        }
     }
 
     /// <summary>删除备份文件</summary>

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.ComponentModel;
+using System.Text;
 using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.Security;
@@ -499,6 +500,19 @@ public class SpanReaderTests
         var result = reader.ReadString(4, Encoding.ASCII);
         Assert.Equal(text, result);
     }
+
+    [Fact]
+    [DisplayName("ReadString_长度前缀解出负数_抛出数据非法异常")]
+    public void ReadStringNegativeEncodedLengthThrows()
+    {
+        // 7 位压缩长度前缀由对端字节解出，0xFF 0xFF 0xFF 0xFF 0x0F 得到 -1（UInt32 0xFFFFFFFF 转 Int32）
+        var data = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x0F };
+        var reader = new SpanReader(data);
+
+        var threw = false;
+        try { reader.ReadString(0); } catch (InvalidDataException) { threw = true; }
+        Assert.True(threw);
+    }
     #endregion
 
     #region ReadBytes/Read 边界测试
@@ -620,6 +634,38 @@ public class SpanReaderTests
         var threw = false;
         try { reader.ReadEncodedInt(); } catch (FormatException) { threw = true; }
         Assert.True(threw);
+    }
+
+    [Fact]
+    public void ReadEncodedIntTerminatorOverflowThrows()
+    {
+        // 第 5 字节只剩高 4 位可用（28+4=32）：0x7F 的值位溢出 Int32 范围，
+        // 旧实现静默丢弃高位、解出与编码意图无关的值却当成功
+        var data = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x7F };
+        var reader = new SpanReader(data);
+        var threw = false;
+        try { reader.ReadEncodedInt(); } catch (FormatException) { threw = true; }
+        Assert.True(threw);
+    }
+
+    [Fact]
+    public void ReadEncodedInt64TerminatorOverflowThrows()
+    {
+        // 第 10 字节只剩最高位可用（63+1=64）：同理拒绝值位溢出
+        var data = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F };
+        var reader = new SpanReader(data);
+        var threw = false;
+        try { reader.ReadEncodedInt64(); } catch (FormatException) { threw = true; }
+        Assert.True(threw);
+    }
+
+    [Fact]
+    public void ReadEncodedInt64MaxNegativeAccepted()
+    {
+        // 防止误伤：10 字节的合法上限形态（末字节 0x01 = 符号位）仍应解出 -1
+        var data = new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01 };
+        var reader = new SpanReader(data);
+        Assert.Equal(-1L, reader.ReadEncodedInt64());
     }
     #endregion
 

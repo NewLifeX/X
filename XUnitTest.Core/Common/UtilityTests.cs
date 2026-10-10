@@ -512,7 +512,30 @@ public class UtilityTests
         }
     }
 
-    [Fact]
+    [Fact(DisplayName = "长分隔符包围_不影响解析结果")]
+    public void TrimNumber_LongPaddedInput()
+    {
+        // 前后各 200 个分隔符：分隔符不占输出缓冲，超长脏数据不影响结果
+        var text = new String(' ', 200) + "1,234" + new String('_', 200);
+
+        Assert.Equal(1234, text.ToInt());
+        Assert.Equal(1234L, text.ToLong());
+        Assert.Equal(1234d, text.ToDouble());
+        Assert.Equal(1234m, text.ToDecimal());
+    }
+
+    [Fact(DisplayName = "数码超长_回落默认值且不抛异常")]
+    public void TrimNumber_TooLongDigits()
+    {
+        // 下划线只能靠 TrimNumber 清理（直接解析会失败），清理后的数码超过固定缓冲容量时，
+        // 应回落到默认值，而不是越界写入或抛异常
+        var text = "9_" + new String('9', 300);
+
+        Assert.Equal(-1, text.ToInt(-1));
+        Assert.Equal(0d, text.ToDouble());
+    }
+
+    [Fact(DisplayName = "常见分隔符_清理后正确解析")]
     public void TrimNumber_Cleans_Common_Separators()
     {
         // 逗号 / 空格 / 下划线 会被清理

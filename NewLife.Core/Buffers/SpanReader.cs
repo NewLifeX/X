@@ -28,9 +28,10 @@ public ref struct SpanReader
     /// <summary>当前缓冲总容量（不代表完整数据总长度，若基于流扩容仅表示当前已缓存区大小）</summary>
     public readonly Int32 Capacity => _span.Length;
 
-    /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
-    [Obsolete("=>Available")]
-    public readonly Int32 FreeCapacity => _span.Length - _index;
+    /// <summary>剩余可读字节数（旧版名称，仅为兼容旧二进制保留）</summary>
+    /// <remarks>等价于 <c>Capacity - Position</c>。若读取器基于流扩容，该值仅代表当前已缓存区的剩余量</remarks>
+    [Obsolete("请改用 Capacity - Position")]
+    public readonly Int32 FreeCapacity => Capacity - Position;
 
     /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
     public readonly Int32 Available => _span.Length - _index;
@@ -64,12 +65,16 @@ public ref struct SpanReader
 
         // 如果有后续数据包，说明是链式数据包，必须通过流读取
         // 链式数据包：为了兼容跨段后续读取（读取原始 span 内部结构体/整数等可能需要更多字节），
-        // 这里仍然提供统一的流式补齐能力——通过把链式包聚合为内存流。
-        // 注意：仅当后续调用 EnsureSpace 时才会真正触发复制；仅做一次性“可选”降级。
+        // 这里把链式包聚合为内存流，后续读取统一走流。
+        // 注意：聚合是立即发生的（GetStream 遍历整链拷贝），不是延迟到 EnsureSpace 才触发。
         if (data.Next != null)
         {
             _stream = data.GetStream(false);
             _bufferSize = 8192;
+
+            // 链式包的字节数已经全部可用，计入 _total 供 MaxCapacity 记账；
+            // 旧实现漏赋值会让链式入参的容量上限判断失效
+            _total = data.Total;
         }
         else
         {
@@ -94,6 +99,8 @@ public ref struct SpanReader
     private readonly Int32 _bufferSize;
     // 当前缓存（或原始）数据包，仅用于 ReadPacket 以及流扩容缓存承载
     private IPacket? _data;
+    // 是否自己从池里借出了承载缓冲（仅流式扩容路径置位）：释放只归还自己借的，不动调用方传入的数据包
+    private Boolean _ownsData;
     // 已成功读取/缓存的总字节数（用于 MaxCapacity 计算）
     private Int32 _total;
 
@@ -101,9 +108,10 @@ public ref struct SpanReader
     /// <remarks>
     /// 解析网络协议时，数据帧可能超过初始缓冲区大小。提供 <paramref name="stream"/> 后，
     /// 当剩余可读字节不足时，会自动从流中读取一批数据并扩充内部缓冲区。
+    /// <para><b>释放</b>：扩容会从数组池借缓冲，读取器用完必须调用 <see cref="Dispose"/>（如 <c>using var reader = new SpanReader(stream);</c>），否则该缓冲无法归还池。</para>
     /// </remarks>
     /// <param name="stream">底层数据流，一般为网络流</param>
-    /// <param name="data">初始数据包，可为空（例如已经到达的响应头）</param>
+    /// <param name="data">初始数据包，可为空（例如已经到达的响应头）。扩容替换缓冲时会被读取器释放，调用方不应再持有</param>
     /// <param name="bufferSize">每次追加读取建议大小（最小分块）</param>
     public SpanReader(Stream stream, IPacket? data = null, Int32 bufferSize = 8192)
     {
@@ -172,22 +180,26 @@ public ref struct SpanReader
             if (MaxCapacity > 0 && bsize > MaxCapacity - _total) bsize = MaxCapacity - _total;
             if (remain + bsize < size) throw new InvalidOperationException();
 
+            // 先取出旧数据包的数组视图，再租借新缓冲。校验必须排在租借之前：
+            // 校验失败抛异常时新缓冲尚未挂到 _data 上，本方法又没有归还动作，这块池缓冲会永远回不到池
+            var old = _data;
+            var oldData = default(ArraySegment<Byte>);
+            if (old != null && remain > 0 && !old.TryGetArray(out oldData))
+                throw new NotSupportedException("Data packet does not support array access.");
+
             var pk = new OwnerPacket(bsize);
 
             // 把剩余未读数据拷贝到新数据块前部，避免丢失
             var available = 0;
-            var old = _data;
             if (old != null && remain > 0)
             {
-                if (!old.TryGetArray(out var arr))
-                    throw new NotSupportedException("Data packet does not support array access.");
-
-                arr.AsSpan(_index, remain).CopyTo(pk.Buffer);
+                oldData.AsSpan(_index, remain).CopyTo(pk.Buffer);
                 available += remain;
             }
 
             old.TryDispose();
             _data = pk;
+            _ownsData = true;
             _index = 0; // 重置索引，后续直接从新缓冲读取
 
             // 直接读取指定大小，必要时抛异常，防止阻塞等待不确定长度数据
@@ -352,6 +364,7 @@ public ref struct SpanReader
     /// <param name="length">需要读取的长度。-1 读取剩余全部；0 读取 7 位压缩长度前缀；&gt;0 定长</param>
     /// <param name="encoding">编码，默认 UTF8</param>
     /// <returns>解码的字符串</returns>
+    /// <exception cref="InvalidDataException">长度前缀解出负数（对端数据非法）时</exception>
     public String ReadString(Int32 length = 0, Encoding? encoding = null)
     {
         var actualLength = length switch
@@ -360,6 +373,12 @@ public ref struct SpanReader
             0 => ReadEncodedInt(),
             _ => length
         };
+
+        // 长度前缀来自对端字节，7 位压缩可以解出负数。不拦截的话，EnsureSpace 会直接放行，
+        // 随后 Slice 抛出与该数据无关的 ArgumentOutOfRangeException，排障时容易误判成代码缺陷；
+        // 这里显式按“数据非法”报错
+        if (actualLength < 0)
+            throw new InvalidDataException($"Invalid string length [{actualLength}].");
 
         if (actualLength == 0) return String.Empty;
 
@@ -402,9 +421,10 @@ public ref struct SpanReader
 
     /// <summary>读取数据包。有底层 <see cref="IPacket"/> 时直接切片（零拷贝）；否则申请 <see cref="OwnerPacket"/> 并拷贝数据。</summary>
     /// <remarks>
-    /// 当 SpanReader 由 <see cref="IPacket"/> 或 <see cref="Stream"/> 构造时，直接在底层数据包上切片，不复制；
-    /// 若底层实现为 <see cref="OwnerPacket"/>，这里调用的是默认 <c>Slice(offset, count)</c>，会把该切片的释放责任转移给返回值，原始包后续 Dispose 仅为无所有权释放；
-    /// 当由 <see cref="ReadOnlySpan{T}"/>/<see cref="Span{T}"/>/字节数组构造时，降级为申请新内存并拷贝。
+    /// <para>底层为 <see cref="OwnerPacket"/> 时，返回共享切片（对窗口内各段递增引用计数），可独立使用与释放；
+    /// 连续多次读取互不影响，流式补齐替换内部缓冲时旧缓冲由共享引用保活。</para>
+    /// <para>底层为其它数据包（如 <see cref="ArrayPacket"/>）时，返回不持有引用的借阅视图，生命周期与底层数据包一致。</para>
+    /// <para>由 <see cref="ReadOnlySpan{T}"/>/<see cref="Span{T}"/>/字节数组构造时，降级为申请新内存并拷贝，返回可独立释放的拥有包。</para>
     /// </remarks>
     /// <param name="length">要读取的字节数</param>
     /// <returns>数据包切片</returns>
@@ -418,7 +438,7 @@ public ref struct SpanReader
 
         if (_data != null)
         {
-            // 默认调用 Slice(offset, count)。若底层是 OwnerPacket，则切片接管该段缓冲区所有权。
+            // 拥有包 → 共享切片（引用计数），可独立释放且连续读取互不影响；其它实现 → 借阅视图
             var result = _data.Slice(_index, length);
             _index += length;
             return result;
@@ -459,6 +479,10 @@ public ref struct SpanReader
         {
             var b = ReadByte();
 
+            // 第 5 个字节（28+4=32 位）只剩高 4 位可用：值位溢出即超出 Int32 表示范围，
+            // 静默丢弃会解出一个完全不同的值，按格式错误拒绝（与下方字节数上限同口径）
+            if (n == 28 && (b & 0x7f) > 0x0F) throw new FormatException("The number value is too large to read in compressed format!");
+
             // 必须转为 UInt32，否则可能溢出
             rs |= (UInt32)((b & 0x7f) << n);
             if ((b & 0x80) == 0) break;
@@ -481,6 +505,10 @@ public ref struct SpanReader
         while (true)
         {
             var b = ReadByte();
+
+            // 第 10 个字节（63+1=64 位）只剩最高位可用：值位溢出即超出 Int64 表示范围，
+            // 静默丢弃会解出一个完全不同的值，按格式错误拒绝（与下方字节数上限同口径）
+            if (n == 63 && (b & 0x7f) > 1) throw new FormatException("The number value is too large to read in compressed 64-bit format!");
 
             rs |= (UInt64)((UInt64)(b & 0x7f) << n);
             if ((b & 0x80) == 0) break;
@@ -673,5 +701,25 @@ public ref struct SpanReader
     /// <typeparam name="T">类型</typeparam>
     /// <returns>反序列化的值</returns>
     public T? ReadValue<T>() => (T?)ReadValue(typeof(T));
+    #endregion
+
+    #region 释放
+    /// <summary>释放流式扩容借出的池缓冲。走流式扩容（<see cref="EnsureSpace"/>）的读取器用完必须调用</summary>
+    /// <remarks>
+    /// <para>从流读取超出初始数据的字节时，读取器会从数组池借一块缓冲承载已读数据；读取器是 ref struct、没有析构，不显式释放就会让这块缓冲永远回不到池（每次新建读取器漏一块，池只能不断新建数组）。用法：<c>using var reader = new SpanReader(stream);</c></para>
+    /// <para>只归还读取器自己借的缓冲：构造时传入的数据包不属于读取器，本方法不动它（它在扩容替换缓冲时已由读取器释放）。</para>
+    /// <para>释放后不应再使用本读取器。</para>
+    /// </remarks>
+    public void Dispose()
+    {
+        var data = _data;
+        var owns = _ownsData;
+
+        _data = null;
+        _ownsData = false;
+        _span = default;
+
+        if (owns) data.TryDispose();
+    }
     #endregion
 }

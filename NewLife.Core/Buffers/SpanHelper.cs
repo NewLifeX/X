@@ -75,14 +75,18 @@ public static class SpanHelper
     {
         if (data.Length == 0) return String.Empty;
 
-        Span<Char> chars = stackalloc Char[data.Length * 2];
+        // 统一走池化缓冲：stackalloc 无上限，MB 级数据会直接爆栈（StackOverflowException 不可捕获，进程终止）
+        var size = data.Length * 2;
+        using var chars = Pool.Rent<Char>(size);
+
         for (Int32 i = 0, j = 0; i < data.Length; i++, j += 2)
         {
             var b = data[i];
             chars[j] = HexChars[b >> 4];
             chars[j + 1] = HexChars[b & 0x0F];
         }
-        return chars.ToString();
+
+        return chars.Span.ToString();
     }
 
     /// <summary>把字节数组编码为十六进制字符串（限制最大长度）</summary>
@@ -242,16 +246,10 @@ public static class SpanHelper
             return;
         }
 
-        var array = ArrayPool<Byte>.Shared.Rent(buffer.Length);
-        try
-        {
-            buffer.Span.CopyTo(array);
-            stream.Write(array, 0, buffer.Length);
-        }
-        finally
-        {
-            ArrayPool<Byte>.Shared.Return(array);
-        }
+        using var array = Pool.Rent(buffer.Length);
+
+        buffer.Span.CopyTo(array);
+        stream.Write(array, 0, buffer.Length);
     }
 
     /// <summary>异步写入Memory到数据流。从内存池借出缓冲区拷贝，仅作为兜底使用</summary>

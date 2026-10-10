@@ -196,17 +196,11 @@ public class Binary : FormatterBase, IBinary
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
         Stream.Write(buffer);
 #else
-        var array = ArrayPool<Byte>.Shared.Rent(buffer.Length);
-        try
-        {
-            buffer.CopyTo(array);
+        using var array = Pool.Rent(buffer.Length);
 
-            Stream.Write(array, 0, buffer.Length);
-        }
-        finally
-        {
-            ArrayPool<Byte>.Shared.Return(array);
-        }
+        buffer.CopyTo(array);
+
+        Stream.Write(array, 0, buffer.Length);
 #endif
         Total += buffer.Length;
     }
@@ -850,7 +844,8 @@ public class Binary : FormatterBase, IBinary
     /// <param name="max"></param>
     public void WriteBCD(String value, Int32 max)
     {
-        var buf = Pool.Shared.Rent(max);
+        using var buf = Pool.Rent(max);
+
         for (Int32 i = 0, j = 0; i < max && j + 1 < value.Length; i++, j += 2)
         {
             var a = (Byte)(value[j] - '0');
@@ -859,7 +854,6 @@ public class Binary : FormatterBase, IBinary
         }
 
         Write(buf, 0, max);
-        Pool.Shared.Return(buf);
     }
 
     /// <summary>写入定长字符串。多余截取，少则补零</summary>
@@ -868,15 +862,14 @@ public class Binary : FormatterBase, IBinary
     public void WriteFixedString(String? value, Int32 max)
     {
         var len = 0;
-        var buf = Pool.Shared.Rent(max);
+        using var buf = Pool.Rent(max);
+
         if (!value.IsNullOrEmpty()) len = Encoding.GetBytes(value, 0, value.Length, buf, 0);
 
         // 清空空白部分，避免出现脏数据
         if (len < max) Array.Clear(buf, len, max - len);
 
         Write(buf, 0, max);
-
-        Pool.Shared.Return(buf);
     }
 
     /// <summary>读取定长字符串。多余截取，少则补零</summary>
@@ -922,27 +915,43 @@ public class Binary : FormatterBase, IBinary
         {
             // 不支持Seek的流直接使用流模式。
             // 注意：SpanReader可能批量预读多余字节导致流位置超前，仅适用于整帧全部交由ISpanSerializable处理的场景
+            // 以 ref 传给 Read，不能用 using 变量声明，显式 try/finally 归还扩容借出的池缓冲
             var reader0 = new SpanReader(Stream)
             {
                 IsLittleEndian = IsLittleEndian,
                 EncodeInt = EncodeInt,
                 FullTime = FullTime,
             };
-            target.Read(ref reader0);
-            // 总消费量 = 已缓入span的总字节数 - 未消费剩余量；_total为私有，用 Available 间接推算
-            // reader0.Position 仅在未触发二次EnsureSpace时等于总消费量，此处以此为近似值
-            Total += reader0.Position;
+            try
+            {
+                target.Read(ref reader0);
+                // 总消费量 = 已缓入span的总字节数 - 未消费剩余量；_total为私有，用 Available 间接推算
+                // reader0.Position 仅在未触发二次EnsureSpace时等于总消费量，此处以此为近似值
+                Total += reader0.Position;
+            }
+            finally
+            {
+                reader0.Dispose();
+            }
+
             return;
         }
 
         var startPos = Stream.Position;
         var reader = new SpanReader(Stream) { IsLittleEndian = IsLittleEndian };
-        target.Read(ref reader);
+        try
+        {
+            target.Read(ref reader);
 
-        // SpanReader流模式可能预读了多余字节，需要回退未消费部分
-        var available = reader.Available;
-        if (available > 0) Stream.Seek(-available, SeekOrigin.Current);
-        Total += (Int32)(Stream.Position - startPos);
+            // SpanReader流模式可能预读了多余字节，需要回退未消费部分
+            var available = reader.Available;
+            if (available > 0) Stream.Seek(-available, SeekOrigin.Current);
+            Total += (Int32)(Stream.Position - startPos);
+        }
+        finally
+        {
+            reader.Dispose();
+        }
     }
     #endregion
 

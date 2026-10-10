@@ -1,4 +1,5 @@
 #if NET5_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NewLife.Collections;
@@ -44,6 +45,8 @@ public class IDictionarySourceConverter : JsonConverter<Object>
     /// <param name="writer"></param>
     /// <param name="value"></param>
     /// <param name="options"></param>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "字典源对象与未命中转换器的回退均按运行时类型序列化，元数据无法静态表达；AOT 应用应通过 SystemJson 上下文透传声明类型元数据")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "字典源对象与未命中转换器的回退均按运行时类型序列化，元数据无法静态表达；AOT 应用应通过 SystemJson 上下文透传声明类型元数据")]
     public override void Write(Utf8JsonWriter writer, Object value, JsonSerializerOptions options)
     {
         if (value is IDictionarySource source)

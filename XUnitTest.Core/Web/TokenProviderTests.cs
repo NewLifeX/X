@@ -48,4 +48,25 @@ public class TokenProviderTests
         Assert.NotEqual(user, user3);
         Assert.Equal(time.Trim(), time3.Trim());
     }
+
+    [Fact(DisplayName = "畸形令牌不抛异常，一律返回失败")]
+    public void MalformedToken_NoThrow()
+    {
+        // 无密钥：解析阶段就不能抛
+        var tp = new TokenProvider();
+        foreach (var t in new[] { "abc", "!!.!!", "AAA!!!.BBB", "eA.a" })
+        {
+            var rs = tp.TryDecode(t, out _, out _);
+            Assert.False(rs);
+        }
+
+        // 有密钥：畸形 Base64 与乱签名同样只返回 false
+        var keys = DSAHelper.GenerateKey();
+        var tp2 = new TokenProvider { Key = keys[1] };
+        foreach (var t in new[] { "!!.!!", "AAA!!!.BBB", "BBBB.CCCC" })
+        {
+            var rs = tp2.TryDecode(t, out _, out _);
+            Assert.False(rs);
+        }
+    }
 }

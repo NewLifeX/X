@@ -22,6 +22,9 @@ public class DnsResolver : IDnsResolver
     /// <summary>缓存超时时间</summary>
     public TimeSpan Expire { set; get; } = TimeSpan.FromMinutes(5);
 
+    /// <summary>陈旧阈值。缓存数据超过该时长未刷新时，Resolve 将同步刷新后再返回，避免长时间闲置后首次请求继续使用过期地址。默认10分钟</summary>
+    public TimeSpan StaleTime { get; set; } = TimeSpan.FromMinutes(10);
+
     private readonly ConcurrentDictionary<String, DnsItem> _cache = new();
     private readonly ConcurrentDictionary<String, Byte> _refreshing = new(); // 刷新去重
 
@@ -34,10 +37,27 @@ public class DnsResolver : IDnsResolver
 
         if (_cache.TryGetValue(host, out var item))
         {
-            // 超时数据，异步更新，不影响当前请求
+            // 数据超时，需要刷新
             if (item.UpdateTime.Add(Expire) <= DateTime.Now)
             {
-                if (_refreshing.TryAdd(host, 0)) _ = ResolveCoreAsync(host, item, false);
+                // 数据陈旧超过 StaleTime（通常是长时间无人访问），同步刷新后再返回，避免把过期地址交给本次请求
+                if (item.UpdateTime.Add(StaleTime) <= DateTime.Now && item.NextSyncTime <= DateTime.Now)
+                {
+                    if (_refreshing.TryAdd(host, 0))
+                    {
+                        var before = item.UpdateTime;
+                        var latest = ResolveCoreAsync(host, item, false).ConfigureAwait(false).GetAwaiter().GetResult();
+                        if (latest != null) item = latest;
+
+                        // 同步刷新失败时退避一个周期，期间改走异步刷新，避免DNS异常时每个请求都被同步阻塞
+                        if (item.UpdateTime == before) item.NextSyncTime = DateTime.Now.Add(Expire);
+                    }
+                }
+                // 轻度超时，或同步刷新处于退避期，异步更新，不影响当前请求
+                else if (_refreshing.TryAdd(host, 0))
+                {
+                    _ = ResolveCoreAsync(host, item, false);
+                }
             }
         }
         else
@@ -136,5 +156,8 @@ public class DnsResolver : IDnsResolver
         public DateTime CreateTime { get; set; }
 
         public DateTime UpdateTime { get; set; }
+
+        /// <summary>下次允许同步刷新的时间。同步刷新失败后短暂退避，避免DNS异常期间每个请求都被同步阻塞</summary>
+        public DateTime NextSyncTime { get; set; }
     }
 }

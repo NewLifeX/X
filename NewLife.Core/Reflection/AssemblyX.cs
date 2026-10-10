@@ -8,6 +8,9 @@ using NewLife.Log;
 
 namespace NewLife.Reflection;
 
+// 本类为程序集反射工具（动态加载/扫描/类型发现），属运行时加载边界：AOT 与单文件发布下
+// Location 为空、LoadFrom/GetTypes 等能力按需裁剪；相关 AOT 语义在每个方法上显式声明
+
 /// <summary>程序集辅助类。使用Create创建，保证每个程序集只有一个辅助类</summary>
 public class AssemblyX
 {
@@ -78,6 +81,7 @@ public class AssemblyX
     public String Description => _Description ??= "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>();
 
     /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     public String? Location
     {
         get
@@ -114,6 +118,8 @@ public class AssemblyX
     [ThreadStatic]
     private static Int32 _resolving;
 
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     private static Assembly? OnAssemblyResolve(Object? sender, ResolveEventArgs args)
     {
         if (_resolving > 0) return null;
@@ -164,6 +170,8 @@ public class AssemblyX
     #region 扩展属性
     //private IEnumerable<Type> _Types;
     /// <summary>类型集合，当前程序集的所有类型，包括私有和内嵌，非内嵌请直接调用Asm.GetTypes()</summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     public IEnumerable<Type> Types
     {
         get
@@ -265,6 +273,7 @@ public class AssemblyX
     /// <summary>在程序集中查找类型</summary>
     /// <param name="typeName"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "按名称从程序集动态获取类型；AOT 下未被保留的类型返回空（见分析稿 §5）")]
     private Type? GetTypeInternal(String typeName)
     {
         var type = Asm.GetType(typeName);
@@ -323,6 +332,7 @@ public class AssemblyX
     /// <param name="baseType">类型</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Advanced)]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     public IList<Type> FindPlugins(Type baseType)
     {
         // 如果type是null，则返回所有类型
@@ -364,6 +374,8 @@ public class AssemblyX
     /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
     /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
     {
         var baseAssemblyName = baseType.Assembly.GetName().Name;
@@ -438,6 +450,8 @@ public class AssemblyX
     /// <param name="asm">程序集</param>
     /// <param name="baseAsmName">被引用程序集全名</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     private static Boolean IsReferencedFrom(Assembly asm, String? baseAsmName)
     {
         if (baseAsmName.IsNullOrEmpty()) return false;
@@ -455,6 +469,10 @@ public class AssemblyX
     /// <param name="typeName">类型名</param>
     /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "按类型名（含程序集限定名）动态解析类型；AOT 下未保留的类型返回空（见分析稿 §5）")]
     public static Type? GetType(String typeName, Boolean isLoadAssembly)
     {
         var type = Type.GetType(typeName);
@@ -470,16 +488,10 @@ public class AssemblyX
         }
 
         // 加速基础类型识别，忽略大小写
-        if (!typeName.Contains('.'))
+        if (!typeName.Contains('.') && Enum.TryParse<TypeCode>(typeName, true, out var code))
         {
-            foreach (var item in Enum.GetNames(typeof(TypeCode)))
-            {
-                if (typeName.EqualIgnoreCase(item))
-                {
-                    type = Type.GetType("System." + item);
-                    if (type != null) return type;
-                }
-            }
+            type = TypeCodeHelper.GetType(code);
+            if (type != null) return type;
         }
 
         // 尝试本程序集
@@ -631,6 +643,7 @@ public class AssemblyX
     /// <summary>只反射加载指定路径的所有程序集。NETCore不支持只反射加载，该方法动态加载DLL后返回</summary>
     /// <param name="path"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     public static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
     {
         if (!Directory.Exists(path)) yield break;
@@ -690,6 +703,7 @@ public class AssemblyX
 
     /// <summary>获取当前应用程序的所有程序集，不包括系统程序集，仅限本目录</summary>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     public static List<AssemblyX> GetMyAssemblies()
     {
         var list = new List<AssemblyX>();
@@ -734,6 +748,7 @@ public class AssemblyX
     /// <summary>在对程序集的解析失败时发生</summary>
     /// <param name="name"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     private static Assembly? OnResolve(String name)
     {
         foreach (var item in AppDomain.CurrentDomain.GetAssemblies())

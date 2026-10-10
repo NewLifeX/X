@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 using NewLife.Reflection;
 
@@ -52,6 +53,7 @@ public class XmlList : XmlHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "按运行时类型动态构造集合；AOT 下请使用泛型读写入口")]
     public override Boolean TryRead(Type type, ref Object? value)
     {
         if (!type.As<IList>() && !type.As(typeof(IList<>))) return false;

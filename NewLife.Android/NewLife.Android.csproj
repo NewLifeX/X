@@ -111,9 +111,6 @@
     <Compile Include="..\NewLife.Core\Data\IFilter.cs">
       <Link>Data\IFilter.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Data\Packet.cs">
-      <Link>Data\Packet.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Data\PageParameter.cs">
       <Link>Data\PageParameter.cs</Link>
     </Compile>

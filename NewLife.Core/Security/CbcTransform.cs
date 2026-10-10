@@ -84,42 +84,36 @@ public sealed class CbcTransform : ICryptoTransform
 
     private void TransformOneBlock(Byte[] inputBuffer, Int32 inputOffset, Byte[] outputBuffer, Int32 outputOffset, Boolean signalFinalBlock)
     {
-        var imm = Pool.Shared.Rent(InputBlockSize);
-        try
+        using var imm = Pool.Rent(InputBlockSize);
+
+        var immSpan = imm.Span;
+        inputBuffer.AsSpan(inputOffset, InputBlockSize).CopyTo(immSpan);
+
+        if (_encryptMode)
         {
-            var immSpan = imm.AsSpan(0, InputBlockSize);
-            inputBuffer.AsSpan(inputOffset, InputBlockSize).CopyTo(immSpan);
-
-            if (_encryptMode)
-            {
-                var lastSpan = _lastBlock.AsSpan();
-                for (var i = 0; i < InputBlockSize; i++)
-                    immSpan[i] ^= lastSpan[i];
-            }
-
-            if (signalFinalBlock)
-            {
-                var lastBlock = _transform.TransformFinalBlock(imm, 0, InputBlockSize);
-                lastBlock.AsSpan(0, InputBlockSize).CopyTo(outputBuffer.AsSpan(outputOffset));
-            }
-            else
-                _transform.TransformBlock(imm, 0, InputBlockSize, outputBuffer, outputOffset);
-
-            if (!_encryptMode)
-            {
-                var outSpan = outputBuffer.AsSpan(outputOffset, InputBlockSize);
-                var lastSpan = _lastBlock.AsSpan();
-                for (var i = 0; i < InputBlockSize; i++)
-                    outSpan[i] ^= lastSpan[i];
-                immSpan.CopyTo(lastSpan);
-            }
-            else
-                outputBuffer.AsSpan(outputOffset, InputBlockSize).CopyTo(_lastBlock.AsSpan());
+            var lastSpan = _lastBlock.AsSpan();
+            for (var i = 0; i < InputBlockSize; i++)
+                immSpan[i] ^= lastSpan[i];
         }
-        finally
+
+        if (signalFinalBlock)
         {
-            Pool.Shared.Return(imm);
+            var lastBlock = _transform.TransformFinalBlock(imm, 0, InputBlockSize);
+            lastBlock.AsSpan(0, InputBlockSize).CopyTo(outputBuffer.AsSpan(outputOffset));
         }
+        else
+            _transform.TransformBlock(imm, 0, InputBlockSize, outputBuffer, outputOffset);
+
+        if (!_encryptMode)
+        {
+            var outSpan = outputBuffer.AsSpan(outputOffset, InputBlockSize);
+            var lastSpan = _lastBlock.AsSpan();
+            for (var i = 0; i < InputBlockSize; i++)
+                outSpan[i] ^= lastSpan[i];
+            immSpan.CopyTo(lastSpan);
+        }
+        else
+            outputBuffer.AsSpan(outputOffset, InputBlockSize).CopyTo(_lastBlock.AsSpan());
     }
 
     /// <summary>转换指定字节数组的指定区域。</summary>

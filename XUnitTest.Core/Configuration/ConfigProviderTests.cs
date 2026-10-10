@@ -1,4 +1,6 @@
-﻿using NewLife;
+﻿using System.Reflection;
+using System.Runtime.Loader;
+using NewLife;
 using NewLife.Configuration;
 using Xunit;
 
@@ -32,6 +34,82 @@ public class ConfigProviderTests
         ini.Save(cfg);
         xml.Save(cfg);
         json.Save(cfg);
+    }
+
+    /// <summary>ConfigProvider 静态构造期间，程序集解析回调递归访问配置时不得缺失内建提供者</summary>
+    /// <remarks>
+    /// ConfigProvider 静态构造会初始化 Runtime，其中的 Type.GetType 会触发程序集解析回调；
+    /// 回调若同步递归访问 Config&lt;T&gt;，注册表为空时将抛出“找不到内建提供者”，并永久毒化该配置类型。
+    /// 测试进程内的静态状态早已初始化，无法重现该时序，故用独立 ALC 加载库的第二份副本复现。
+    /// </remarks>
+    [Fact(DisplayName = "初始化期的解析回调递归访问配置不缺失内建提供者")]
+    public void StaticInit_ReentrantCreate_UsesBuiltInProvider()
+    {
+        var alc = new AssemblyLoadContext("ConfigProviderReentrancy", true);
+        ResolveEventHandler? domainHandler = null;
+        Func<AssemblyLoadContext, AssemblyName, Assembly?>? alcHandler = null;
+        try
+        {
+            var fresh = alc.LoadFromAssemblyPath(typeof(Setting).Assembly.Location);
+            var freshSetting = fresh.GetType("NewLife.Setting");
+            var freshSysConfig = fresh.GetType("NewLife.Common.SysConfig");
+            Assert.NotNull(freshSetting);
+            Assert.NotNull(freshSysConfig);
+
+            var flags = BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy;
+            Object? nestedProvider = null;
+            Exception? nestedError = null;
+            var attempts = 0;
+            var critical = false;
+
+            // 副本 Runtime 静态构造的 Type.GetType("UnityEngine...") 会触发解析回调；
+            // 在回调中递归访问另一配置类型，重现“静态构造中递归 Create”的时序
+            Assembly? OnResolve(String? name)
+            {
+                if (critical && name != null && name.Contains("UnityEngine"))
+                {
+                    Interlocked.Increment(ref attempts);
+                    try
+                    {
+                        nestedProvider = freshSysConfig.GetProperty("Provider", flags)?.GetValue(null);
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        nestedError = ex.InnerException;
+                    }
+                }
+
+                return null;
+            }
+
+            domainHandler = (s, e) => OnResolve(e.Name);
+            alcHandler = (a, n) => OnResolve(n.Name);
+            AppDomain.CurrentDomain.AssemblyResolve += domainHandler;
+            alc.Resolving += alcHandler;
+
+            // 首次访问副本配置，触发副本的 Config<T> → ConfigProvider → Runtime 静态构造链
+            critical = true;
+            Object? outerProvider;
+            try
+            {
+                outerProvider = freshSetting.GetProperty("Provider", flags)?.GetValue(null);
+            }
+            finally
+            {
+                critical = false;
+            }
+
+            Assert.NotNull(outerProvider);
+            Assert.True(attempts > 0, "未触发程序集解析回调，未覆盖静态构造递归访问场景");
+            Assert.Null(nestedError);
+            Assert.NotNull(nestedProvider);
+        }
+        finally
+        {
+            if (domainHandler != null) AppDomain.CurrentDomain.AssemblyResolve -= domainHandler;
+            if (alcHandler != null) alc.Resolving -= alcHandler;
+            alc.Unload();
+        }
     }
 
     [Fact]

@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Threading;
 
@@ -139,16 +140,20 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// </remarks>
     public Int32 SessionTimeout { get; set; }
 
-    /// <summary>消息管道</summary>
+    /// <summary>协议编解码器。非空时启用协议模式：各 TCP 会话数据经数据管道定界，头部到齐即交付消息帧</summary>
+    /// <remarks>创建监听服务时下发到 <see cref="TcpServer"/>，由后者创建会话时设置到会话。请在 <see cref="Start"/> 之前设置。</remarks>
+    public IMessageCodec? Protocol { get; set; }
+
+    /// <summary>消息泵最大缓存字节数（协议模式无法定界的残余上限），默认 1M。0 表示不限制</summary>
+    /// <remarks>创建监听服务时随协议一起下发；残余达到上限说明对端数据与协议不匹配或已损坏，会话被关闭</remarks>
+    public Int32 MaxCache { get; set; } = 1024 * 1024;
+
+    /// <summary>最大并发处理数。协议模式下各会话消息处理并发度，创建监听服务时下发：1=串行（默认），大于1=并行派发（兼作并发上限）</summary>
     /// <remarks>
-    /// <para>收发消息都经过管道处理器，进行协议编码解码。</para>
-    /// <para>处理顺序：</para>
-    /// <list type="number">
-    /// <item>接收数据解码时，从前向后通过管道处理器</item>
-    /// <item>发送数据编码时，从后向前通过管道处理器</item>
-    /// </list>
+    /// <para>并行派发前会先物化流式消息体（一次拷贝），使消息脱离数据管道独立可用；因此并行要求业务处理器线程安全。</para>
+    /// <para>并行下同一连接的多个消息处理顺序不定（SRMP 按序列号配对，天然无顺序依赖）；客户端多路复用并发请求时，服务端设置大于1可提升吞吐。</para>
     /// </remarks>
-    public IPipeline? Pipeline { get; set; }
+    public Int32 MaxConcurrency { get; set; } = 1;
 
     /// <summary>是否使用会话集合</summary>
     /// <remarks>
@@ -205,9 +210,24 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     public IServiceProvider? ServiceProvider { get; set; }
 
     private ConcurrentDictionary<String, Object?>? _items;
+
     /// <summary>扩展数据字典</summary>
-    /// <remarks>用于存储服务器级别的自定义数据</remarks>
-    public IDictionary<String, Object?> Items => _items ??= new();
+    /// <remarks>
+    /// <para>用于存储服务器级别的自定义数据</para>
+    /// <para>并发首用时以 CAS 保证只保留一份实例，避免各自新建导致败者刚写入的数据被丢弃</para>
+    /// </remarks>
+    public IDictionary<String, Object?> Items
+    {
+        get
+        {
+            var items = _items;
+            if (items != null) return items;
+
+            var created = new ConcurrentDictionary<String, Object?>();
+
+            return Interlocked.CompareExchange(ref _items, created, null) ?? created;
+        }
+    }
 
     /// <summary>获取/设置扩展数据</summary>
     /// <param name="key">数据键名</param>
@@ -268,11 +288,11 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     {
         if (Servers.Contains(server)) return false;
 
-        server.Name = $"{Name}{(server.Local.IsTcp ? "Tcp" : "Udp")}{(server.Local.Address.IsIPv4() ? "" : "6")}";
+        var type = server.Local.IsUnix ? "Unix" : server.Local.IsTcp ? "Tcp" : "Udp";
+        server.Name = $"{Name}{type}{(server.Local.Address.IsIPv4() ? "" : "6")}";
         server.NewSession += Server_NewSession;
 
         if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
-        if (Pipeline != null) server.Pipeline = Pipeline;
 
         // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
         if (SocketLog != null) server.Log = SocketLog;
@@ -339,17 +359,6 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         }
     }
 
-    /// <summary>添加管道处理器</summary>
-    /// <typeparam name="THandler">处理器类型</typeparam>
-    public void Add<THandler>() where THandler : IPipelineHandler, new() => GetPipe().Add(new THandler());
-
-    /// <summary>添加管道处理器</summary>
-    /// <param name="handler">处理器实例</param>
-    public void Add(IPipelineHandler handler) => GetPipe().Add(handler);
-
-    /// <summary>获取或创建管道</summary>
-    /// <returns>管道实例</returns>
-    private IPipeline GetPipe() => Pipeline ??= new Pipeline();
     #endregion
 
     #region 方法
@@ -394,64 +403,24 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         if (Servers.Count == 0) throw new Exception($"Failed to listen to all ports! Port=[{Port}]");
 
-        // 随机端口可能落入系统保留段（如 Windows 仅 UDP 排除的范围），TCP 绑到该端口后 UDP 绑定失败抛 WSAEACCES。
-        // 失败时清理已启动服务器并重新随机分配端口，有界重试避免环境性偶发失败导致整个服务不可用
-        var maxRetry = Port == 0 ? 3 : 0;
-        for (var attempt = 0; ; attempt++)
+        var snapshot = Servers.ToArray();
+        WriteLog("准备开始监听{0}个服务器", snapshot.Length);
+
+        foreach (var item in snapshot)
         {
-            var snapshot = Servers.ToArray();
-            WriteLog("准备开始监听{0}个服务器", snapshot.Length);
+            item.Start();
 
-            try
+            // 如果是随机端口，反写回来，并且修改其它服务器的端口
+            if (Port == 0)
             {
-                foreach (var item in snapshot)
+                Port = item.Port;
+
+                foreach (var elm in Servers)
                 {
-                    item.Start();
-
-                    // 如果是随机端口，反写回来，并且修改其它服务器的端口
-                    if (Port == 0)
-                    {
-                        Port = item.Port;
-
-                        foreach (var elm in Servers)
-                        {
-                            if (elm != item && elm.Port == 0) elm.Port = Port;
-                        }
-                    }
-                    WriteLog("开始监听 {0}", item);
+                    if (elm != item && elm.Port == 0) elm.Port = Port;
                 }
-
-                break;
             }
-            catch (SocketException ex)
-            {
-                if (attempt >= maxRetry) throw;
-
-                WriteLog("监听失败[{0}]，第{1}次重试：{2}", ex.SocketErrorCode, attempt + 1, ex.Message);
-
-                // 清理本批已启动或半启动的服务器，重新随机分配端口
-                Port = 0;
-                foreach (var item in Servers.ToArray())
-                {
-                    Servers.Remove(item);
-                    try
-                    {
-                        item.Stop("随机端口重试");
-                    }
-                    catch { }
-                }
-
-                EnsureCreateServer();
-            }
-        }
-
-        if (Pipeline is Pipeline pipe && pipe.Handlers.Count > 0)
-        {
-            WriteLog("初始化管道：");
-            foreach (var handler in pipe.Handlers)
-            {
-                WriteLog("    {0}", handler);
-            }
+            WriteLog("开始监听 {0}", item);
         }
 
         if (StatPeriod > 0) _Timer = new TimerX(ShowStat, null, 10_000, StatPeriod * 1000);
@@ -582,7 +551,19 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         ns.Received += OnReceived;
 
         // 开始会话处理
-        ns.Start();
+        try
+        {
+            ns.Start();
+        }
+        catch
+        {
+            // 会话启动失败（如 CreateHandler 或 OnConnected 抛异常）时，ns 已经加入会话集合，
+            // 却还没来得及订阅底层会话的销毁回调，不在这里回滚就会永久残留成无人管理的记录（连接也已悬挂）。
+            // 释放 ns 会级联释放底层 Socket 会话，后续由 Socket 服务端完成会话集合与连接的回收
+            ns.TryDispose();
+
+            throw;
+        }
 
         return ns;
     }
@@ -631,11 +612,19 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     #region 会话
     private readonly ConcurrentDictionary<Int32, INetSession> _Sessions = new();
     /// <summary>会话集合</summary>
-    /// <remarks>用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系</remarks>
+    /// <remarks>
+    /// <para>用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系</para>
+    /// <para>这是应用层对底层会话的登记（按 <see cref="INetSession"/> 包装器），受 <see cref="UseSession"/> 控制，
+    /// 与底层 <c>ISocketServer.Sessions</c>（Socket 层会话集合）不是一一对应：不登记时本集合恒空</para>
+    /// </remarks>
     public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
     private Int32 _SessionCount;
     /// <summary>当前会话数</summary>
+    /// <remarks>
+    /// <para>权威计数来自 _SessionCount：新会话建立时加一，底层会话释放（Disposed）时减一，与是否登记进 <see cref="Sessions"/> 无关。</para>
+    /// <para>因此 <see cref="Sessions"/>.Count 在 <see cref="UseSession"/> 为 false 时会恒为 0，而本属性仍反映真实会话数。</para>
+    /// </remarks>
     public Int32 SessionCount { get => _SessionCount; set => _SessionCount = value; }
 
     private volatile Int32 _maxSessionCount;
@@ -694,7 +683,10 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     }
 
     /// <summary>为会话创建网络数据处理器</summary>
-    /// <remarks>可作为业务处理实现，也可以作为前置协议解析。子类可重载返回自定义处理器</remarks>
+    /// <remarks>
+    /// <para>可作为业务处理实现，也可以作为前置协议解析。子类可重载返回自定义处理器；返回 null 表示会话不启用处理器。</para>
+    /// <para>会话创建时调用一次，结果绑定到 <see cref="NetSession.Handler"/>，会话后续数据经其 <c>Process</c> 处理。</para>
+    /// </remarks>
     /// <param name="session">网络会话</param>
     /// <returns>处理器实例，默认返回null</returns>
     public virtual INetHandler? CreateHandler(INetSession session) => null;
@@ -707,29 +699,36 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     public virtual Task<Int32> SendAllAsync(IPacket data) => SendAllAsync(data, null);
 
     /// <summary>异步群发数据给所有客户端</summary>
+    /// <remarks>各会话相互独立，并行送出；发送异常的会话跳过且不计入</remarks>
     /// <param name="data">要发送的数据包</param>
     /// <param name="predicate">过滤器，判断指定会话是否需要发送，null表示发送给所有会话</param>
     /// <returns>已群发客户端总数</returns>
-    public virtual Task<Int32> SendAllAsync(IPacket data, Func<INetSession, Boolean>? predicate = null)
+    public virtual async Task<Int32> SendAllAsync(IPacket data, Func<INetSession, Boolean>? predicate = null)
     {
         if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
         var count = 0;
-        // 直接遍历Values，避免KeyValuePair的额外开销
+        var tasks = new List<Task>();
+        // 直接遍历Values，避免KeyValuePair的额外开销；逐会话并行发送，避免慢会话拖住整体群发
         foreach (var session in _Sessions.Values)
         {
             if (predicate == null || predicate(session))
             {
-                try
+                tasks.Add(Task.Run(() =>
                 {
-                    session.Send(data);
-                    count++;
-                }
-                catch { }
+                    try
+                    {
+                        session.Send(data);
+                        Interlocked.Increment(ref count);
+                    }
+                    catch { }
+                }));
             }
         }
 
-        return Task.FromResult(count);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        return count;
     }
 
     /// <summary>群发管道消息给所有客户端</summary>
@@ -772,17 +771,16 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         switch (protocol)
         {
             case NetType.Tcp:
-                return CreateServer<TcpServer>(address, port, family);
             case NetType.Http:
+            case NetType.Https:
             case NetType.WebSocket:
-                var ss = CreateServer<TcpServer>(address, port, family);
-                foreach (var item in ss)
-                {
-                    if (item is TcpServer tcp) tcp.EnableHttp = true;
-                }
-                return ss;
+                // HTTP/HTTPS/WebSocket 不在监听层区分：实际由 HttpServer.CreateHandler 在处理管道处理，此处与裸 TCP 同构
+                return CreateServer<TcpServer>(address, port, family);
             case NetType.Udp:
                 return CreateServer<UdpServer>(address, port, family);
+            case NetType.Unix:
+                // Unix域套接字以文件路径为地址，不区分IPv4/IPv6，仅创建单个服务器
+                return [new TcpServer { Local = Local.Clone(), Protocol = Protocol, MaxCache = MaxCache, MaxConcurrency = MaxConcurrency }];
             case NetType.Unknown:
             default:
                 var list = new List<ISocketServer>();
@@ -814,6 +812,21 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                     var svr = new TServer();
                     svr.Local.Address = addr;
                     svr.Local.Port = port;
+                    // 协议模式透传：Tcp/Udp 服务器创建会话时下发到各会话
+                    if (Protocol != null)
+                    {
+                        if (svr is TcpServer tcp)
+                        {
+                            tcp.Protocol = Protocol;
+                            tcp.MaxCache = MaxCache;
+                            tcp.MaxConcurrency = MaxConcurrency;
+                        }
+                        else if (svr is UdpServer udp)
+                        {
+                            udp.Protocol = Protocol;
+                            udp.MaxConcurrency = MaxConcurrency;
+                        }
+                    }
                     //svr.AddressFamily = family;
                     //svr.Tracer = SocketTracer;
 
@@ -858,7 +871,8 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         if (max <= 0) return String.Empty;
 
         var sb = Pool.StringBuilder.Get();
-        SessionCount = _Sessions.Count;
+        // 只展示权威计数（_SessionCount 计数器），不用字典计数反写：UseSession=false 时会话不进集合，
+        // 反写会把一次统计输出变成“把会话计数清零”
         sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, max);
 
         return sb.Return(true);

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Log;
@@ -51,6 +52,7 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
 
     private static TConfig? _Current;
     /// <summary>当前实例。通过置空可以使其重新加载。</summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "配置绑定依赖类型成员反射；AOT 下请使用显式绑定入口")]
     public static TConfig Current
     {
         get

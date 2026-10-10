@@ -237,11 +237,33 @@ public static class XmlHelper
         if (code == TypeCode.String) return value.ToString();
         if (code == TypeCode.DateTime) return XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.RoundtripKind);
 
-        //var method = Reflect.GetMethodEx(typeof(XmlConvert), "ToString", type);
-        var method = typeof(XmlConvert).GetMethodEx("ToString", type);
-        if (method == null) throw new XException("Type {0} does not support converting to Xml strings. Please use the CanXmlConvert method first to determine!", type);
+        // 枚举的 TypeCode 为其基元类型，但 XmlConvert 不提供枚举重载，与原反射查找语义一致地拒绝
+        if (type.IsEnum) throw new XException("Type {0} does not support converting to Xml strings. Please use the CanXmlConvert method first to determine!", type);
 
-        return (String?)"".Invoke(method, value);
+        // 曾经使用方法名反射查找，AOT 下方法元数据可能被裁剪导致失效，改为显式分发
+        //var method = Reflect.GetMethodEx(typeof(XmlConvert), "ToString", type);
+        //var method = typeof(XmlConvert).GetMethodEx("ToString", type);
+
+        if (value is Guid guid) return XmlConvert.ToString(guid);
+        if (value is TimeSpan span) return XmlConvert.ToString(span);
+
+        return code switch
+        {
+            TypeCode.Boolean => XmlConvert.ToString((Boolean)value),
+            TypeCode.Char => XmlConvert.ToString((Char)value),
+            TypeCode.SByte => XmlConvert.ToString((SByte)value),
+            TypeCode.Byte => XmlConvert.ToString((Byte)value),
+            TypeCode.Int16 => XmlConvert.ToString((Int16)value),
+            TypeCode.UInt16 => XmlConvert.ToString((UInt16)value),
+            TypeCode.Int32 => XmlConvert.ToString((Int32)value),
+            TypeCode.UInt32 => XmlConvert.ToString((UInt32)value),
+            TypeCode.Int64 => XmlConvert.ToString((Int64)value),
+            TypeCode.UInt64 => XmlConvert.ToString((UInt64)value),
+            TypeCode.Single => XmlConvert.ToString((Single)value),
+            TypeCode.Double => XmlConvert.ToString((Double)value),
+            TypeCode.Decimal => XmlConvert.ToString((Decimal)value),
+            _ => throw new XException("Type {0} does not support converting to Xml strings. Please use the CanXmlConvert method first to determine!", type),
+        };
     }
 
     internal static T? XmlConvertFromString<T>(String xml) => (T?)XmlConvertFromString(typeof(T), xml);
@@ -254,11 +276,33 @@ public static class XmlHelper
         if (code == TypeCode.String) return xml;
         if (code == TypeCode.DateTime) return XmlConvert.ToDateTime(xml, XmlDateTimeSerializationMode.RoundtripKind);
 
-        //var method = Reflect.GetMethodEx(typeof(XmlConvert), "To" + type.Name, typeof(String));
-        var method = typeof(XmlConvert).GetMethodEx("To" + type.Name, typeof(String));
-        if (method == null) throw new XException("Type {0} does not support converting from Xml strings. Please use the CanXmlConvert method first!", type);
+        // 枚举的 TypeCode 为其基元类型，但 XmlConvert 不提供枚举重载，与原反射查找语义一致地拒绝
+        if (type.IsEnum) throw new XException("Type {0} does not support converting from Xml strings. Please use the CanXmlConvert method first!", type);
 
-        return "".Invoke(method, xml);
+        // 曾经使用方法名拼接反射查找，AOT 下方法元数据可能被裁剪导致失效，改为显式分发
+        //var method = Reflect.GetMethodEx(typeof(XmlConvert), "To" + type.Name, typeof(String));
+        //var method = typeof(XmlConvert).GetMethodEx("To" + type.Name, typeof(String));
+
+        if (type == typeof(Guid)) return XmlConvert.ToGuid(xml);
+        if (type == typeof(TimeSpan)) return XmlConvert.ToTimeSpan(xml);
+
+        return code switch
+        {
+            TypeCode.Boolean => XmlConvert.ToBoolean(xml),
+            TypeCode.Char => XmlConvert.ToChar(xml),
+            TypeCode.SByte => XmlConvert.ToSByte(xml),
+            TypeCode.Byte => XmlConvert.ToByte(xml),
+            TypeCode.Int16 => XmlConvert.ToInt16(xml),
+            TypeCode.UInt16 => XmlConvert.ToUInt16(xml),
+            TypeCode.Int32 => XmlConvert.ToInt32(xml),
+            TypeCode.UInt32 => XmlConvert.ToUInt32(xml),
+            TypeCode.Int64 => XmlConvert.ToInt64(xml),
+            TypeCode.UInt64 => XmlConvert.ToUInt64(xml),
+            TypeCode.Single => XmlConvert.ToSingle(xml),
+            TypeCode.Double => XmlConvert.ToDouble(xml),
+            TypeCode.Decimal => XmlConvert.ToDecimal(xml),
+            _ => throw new XException("Type {0} does not support converting from Xml strings. Please use the CanXmlConvert method first!", type),
+        };
     }
     #endregion
 

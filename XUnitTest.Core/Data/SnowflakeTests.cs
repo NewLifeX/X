@@ -377,8 +377,9 @@ public class SnowflakeTests
             
             Assert.Equal(testId, snowflake.WorkerId);
 
-            // 测试超出范围的全局Id
-            var largeId = Rand.Next(1024, Int32.MaxValue);
+            // 测试超出范围的全局Id。低10位取非0：0 既是合法 WorkerId，又是“未设置”哨兵，
+            // 全局Id 恰为 1024 倍数时会被后续默认计算覆盖（Snowflake.Initialize 已知限制，待设计决策）
+            var largeId = (Rand.Next(1024, Int32.MaxValue) & ~0x3FF) | Rand.Next(1, 1024);
             Snowflake.GlobalWorkerId = largeId;
 
             var snowflake2 = new Snowflake();

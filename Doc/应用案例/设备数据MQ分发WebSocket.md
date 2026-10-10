@@ -50,7 +50,7 @@ Redis 连接数 = 进程数，与 WebSocket 连接数完全解耦。
 │    ├─ ConsumeAsync(OnConsume) 后台消费循环             │
 │    └─ EventHub<DeviceDataDTO> 内存路由                │
 │         │                                             │
-│         │ DispatchAsync(topic=DeviceId)               │
+│         │ PublishAsync(topic=DeviceId)               │
 │         ↓                                             │
 │    EventBus（每设备一个共享实例）                       │
 │      ├─ Controller A → ws.SendAsync → 客户端 A       │
@@ -148,12 +148,12 @@ public class DataConsumer(ICacheProvider cacheProvider) : IHostedService
         var topic = data.DeviceId.ToString();
 
         // 无订阅直接丢弃，避免无意义分发
-        if (!Hub.TryGetBus<DeviceDataDTO>(topic, out _)) return;
+        if (!Hub.TryGetBus(topic, out _)) return;
 
         var clientId = Environment.MachineName;
         try
         {
-            await Hub.DispatchAsync(topic, clientId, data).ConfigureAwait(false);
+            await Hub.PublishAsync(topic, data, new EventContext { ClientId = clientId }).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -296,7 +296,7 @@ var group = NetHelper.MyIP()?.ToString() ?? Environment.MachineName;
 1 个设备 (topic) → 1 个 EventBus → N 个 WebSocket 处理器
 ```
 
-- `DataConsumer.OnConsume` 调用 `Hub.DispatchAsync(topic, ...)` 时，`EventHub` 按 `topic` 定位总线
+- `DataConsumer.OnConsume` 调用 `Hub.PublishAsync(topic, ...)` 时，`EventHub` 按 `topic` 定位总线
 - 各 WebSocket 通过 `Hub.GetEventBus(topic, clientId)` 拿到同一个总线实例
 - 消息由该总线广播给该设备下所有订阅连接
 
@@ -325,7 +325,7 @@ Redis MQ（DeviceData）
   ▼
 DataConsumer.OnConsume
   │  TryGetBus → 无订阅？丢弃
-  │            → 有订阅？DispatchAsync(deviceId, machineName, data)
+  │            → 有订阅？PublishAsync(deviceId, data)
   ▼
 EventHub<DeviceDataDTO>
   │  定位 topic 对应的 EventBus
@@ -348,12 +348,12 @@ EventBus<DeviceDataDTO>.PublishAsync
 private async void OnConsume(DeviceDataDTO data)
 {
     var topic = data.DeviceId.ToString();
-    if (!Hub.TryGetBus<DeviceDataDTO>(topic, out _)) return;
+    if (!Hub.TryGetBus(topic, out _)) return;
 
-    var ctx = new EventContext();
+    var ctx = new EventContext { ClientId = Environment.MachineName };
     ctx["Raw"] = data.ToJson();
 
-    await Hub.DispatchAsync(topic, Environment.MachineName, data, ctx).ConfigureAwait(false);
+    await Hub.PublishAsync(topic, data, ctx).ConfigureAwait(false);
 }
 
 // DeviceDataController.HandleAsync 中优先取预序列化结果

@@ -13,7 +13,7 @@
   - `FileConfigProvider`：文件型提供者基类，封装文件读写、轮询热加载（`TimerX`）。
 - 具体实现
   - `XmlConfigProvider`：XML 文件。
-  - `InIConfigProvider`：INI 文件。
+  - `IniConfigProvider`：INI 文件。
   - `JsonConfigProvider`：JSON 文件（支持注释的预处理）。
   - `HttpConfigProvider`：配置中心（星尘等），带本地缓存、版本与增量上报，支持定时刷新。
   - `ApolloConfigProvider`：针对 Apollo 的适配（命名空间聚合读取）。

@@ -1,9 +1,11 @@
-﻿using System.Dynamic;
+using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.Xml.Linq;
 
 namespace NewLife.Reflection;
 
 /// <summary>动态Xml</summary>
+[RequiresDynamicCode("动态对象依赖运行时绑定，NativeAOT 下不可用")]
 public class DynamicXml : DynamicObject
 {
     /// <summary>节点</summary>

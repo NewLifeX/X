@@ -20,9 +20,9 @@ using NewLife.Data;
 using NewLife.Http;
 using NewLife.IO;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Handlers;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -197,7 +197,7 @@ public class Program
         client.Log = XTrace.Log;
         client.LogSend = true;
         client.LogReceive = true;
-        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        if (client is TcpSession tcp) tcp.AutoReceive = false;
         client.Open();
 
         client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");
@@ -299,7 +299,7 @@ public class Program
 
         var buf = new Byte[1024];
         var rs = await client.ReceiveAsync(buf, default);
-        XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
+        XTrace.WriteLine(new ArrayPacket(buf, 0, rs.Count).ToStr());
 
         await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
         XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
@@ -308,7 +308,7 @@ public class Program
 
     private class MyHttpHandler : IHttpHandler
     {
-        public void ProcessRequest(IHttpContext context)
+        public Task ProcessRequestAsync(IHttpContext context)
         {
             var name = context.Parameters["name"];
             var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
@@ -322,6 +322,8 @@ public class Program
                 }
             }
             context.Response.SetResult(html);
+
+            return TaskEx.CompletedTask;
         }
     }
 
@@ -399,16 +401,21 @@ public class Program
         var uri = new NetUri("tcp://127.0.0.3:12345");
         var client = uri.CreateRemote();
         client.Log = XTrace.Log;
-
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Open();
 
-        client.SendMessage($"Send File {fi.Name}");
+        var msg = new DefaultMessage { OneWay = true };
+        msg.SetBody(new ArrayPacket($"Send File {fi.Name}".GetBytes()));
+        client.SendMessage(msg);
 
-        var rs = client.SendFile(fi.FullName);
-        XTrace.WriteLine("分片：{0}", rs);
+        // 流式发送文件：头部先行声明长度，文件内容分块入发送管道（不整载内存）
+        using var fs = fi.OpenRead();
+        var sent = ((TcpSession)client).SendMessageAsync(new DefaultMessage { OneWay = true }, fs, fi.Length).AsTask().GetAwaiter().GetResult();
+        XTrace.WriteLine("发送：{0}", sent);
 
-        client.SendMessage($"Send File Finished!");
+        var msg2 = new DefaultMessage { OneWay = true };
+        msg2.SetBody(new ArrayPacket("Send File Finished!".GetBytes()));
+        client.SendMessage(msg2);
 
         //Console.ReadKey();
     }

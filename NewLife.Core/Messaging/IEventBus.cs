@@ -63,7 +63,9 @@ public interface IEventBusFactory
 /// <para><b>实现约束</b>：</para>
 /// <list type="bullet">
 /// <item><description><b>幂等订阅</b>：相同 <c>clientId</c> 重复订阅应覆盖前一次订阅，不抛异常。</description></item>
-/// <item><description><b>排除回环</b>：发布时若 <see cref="IEventContext"/> 携带 <c>ClientId</c>，应跳过同名订阅者。</description></item>
+/// <item><description><b>排除回环</b>：发布时若 <see cref="EventContext"/> 的 <c>ClientId</c> 与某订阅者同名，应跳过该订阅者。
+/// 该字段不在 <see cref="IEventContext"/> 上（接口不能加成员，否则实现者二进制断裂），故默认实现只识别 <see cref="EventContext"/>；
+/// 自定义上下文实现需自行保证回环排除，可先转成 <see cref="EventContext"/> 再发布。</description></item>
 /// <item><description><b>错误隔离</b>：默认实现不应让单个订阅者异常中断其他订阅者（严格模式由具体实现自行开关）。</description></item>
 /// </list>
 /// </remarks>
@@ -91,10 +93,10 @@ public interface IEventBus<TEvent>
     Task<Boolean> UnsubscribeAsync(String clientId = "", CancellationToken cancellationToken = default);
 }
 
-/// <summary>非泛型事件总线标记接口。仅为兼容旧版 <see cref="IEventContext.EventBus"/> 字段保留</summary>
+/// <summary>非泛型事件总线接口。仅为兼容旧版 <see cref="IEventContext.EventBus"/> 字段保留</summary>
 /// <remarks>
-/// <para>新代码请使用强类型 <see cref="IEventBus{TEvent}"/>。本接口在新架构中仅作类型标记，不再承载方法成员。</para>
-/// <para>历史上本接口提供 <c>PublishAsync(Object)</c>；该方法由具体实现 <see cref="EventBus{TEvent}"/> 通过显式接口实现继续提供。</para>
+/// <para>新代码请使用强类型 <see cref="IEventBus{TEvent}"/>。本接口只保留一个弱类型发布方法，订阅/取消订阅等一律走强类型接口。</para>
+/// <para><c>PublishAsync(Object)</c> 由具体实现 <see cref="EventBus{TEvent}"/> 显式接口实现，避免泛型接口的引用传递在编译期产生歧义。</para>
 /// </remarks>
 public interface IEventBus
 {
@@ -104,14 +106,4 @@ public interface IEventBus
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>成功处理该事件的处理器数量</returns>
     Task<Int32> PublishAsync(Object @event, IEventContext? context = null, CancellationToken cancellationToken = default);
-}
-
-/// <summary>异步事件总线。历史接口，等价于 <see cref="IEventBus{TEvent}"/></summary>
-/// <remarks>
-/// <para>在新架构中 <see cref="IEventBus{TEvent}"/> 已直接提供 <c>SubscribeAsync</c>/<c>UnsubscribeAsync</c>，
-/// 因此本接口退化为空别名。仅为兼容旧引用而保留。</para>
-/// </remarks>
-/// <typeparam name="TEvent">事件类型</typeparam>
-public interface IAsyncEventBus<TEvent> : IEventBus<TEvent>
-{
 }

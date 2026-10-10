@@ -90,6 +90,29 @@ public class MachineInfoTests
         Assert.Null(mi["NonExistent"]);
     }
 
+    [Fact(DisplayName = "磁盘标识")]
+    public void DiskTest()
+    {
+        var mi = new MachineInfo();
+        mi.Init();
+
+        // 仅 Linux 使用 by-id/by-uuid 逻辑
+        if (!Runtime.Linux) return;
+
+        Assert.NotNull(mi.DiskID);
+
+        // 存在硬件标识时，优先使用 by-id（如 mmc-8GTF4R_0x4c4f4bb2），而不是文件系统 UUID
+        var byId = MachineInfo.GetFiles("/dev/disk/by-id", true);
+        if (byId.Count > 0)
+        {
+            foreach (var item in mi.DiskID.Split(','))
+            {
+                // UUID 形如 3273d6bf-2c9f-4364-9269-0b2bf026c735，长度为36且第9位为连字符
+                Assert.False(item.Length == 36 && item[8] == '-', $"不应使用文件系统UUID：{item}");
+            }
+        }
+    }
+
     [Fact(DisplayName = "WMI单属性查询测试")]
     public void GetInfoTest()
     {
@@ -122,6 +145,12 @@ public class MachineInfoTests
         Assert.True(dic.ContainsKey("Version"));
         Assert.NotEmpty(dic["Caption"]);
         Assert.NotEmpty(dic["Version"]);
+
+        // 计算机产品信息（UUID/Vendor 注册表缺失时的 WMI 兜底查询路径）
+        var cs = MachineInfo.ReadWmiComMulti("csproduct", "Name", "UUID", "Vendor");
+        Assert.NotNull(cs);
+        Assert.True(cs.Count > 0);
+        Assert.NotEmpty(cs["Name"]);
 
         // path 前缀查询
         var bat = MachineInfo.ReadWmiComMulti("path win32_battery", "EstimatedChargeRemaining");
@@ -156,8 +185,10 @@ public class MachineInfoTests
         // 台式机无固定硬盘时字典可能为空，但不应抛出异常
         if (dic.Count > 0)
         {
-            Assert.True(dic.ContainsKey("serialnumber") || dic.ContainsKey("SerialNumber"));
+            // Size 由固定硬盘保证返回，据此确认 alias 解析与 where 分支已生效
             Assert.True(dic.ContainsKey("Size"));
+            // 虚拟机磁盘通常不暴露序列号，存在时校验其有效即可
+            if (dic.ContainsKey("SerialNumber")) Assert.NotEmpty(dic["SerialNumber"]);
         }
     }
 
@@ -428,6 +459,17 @@ public class MachineInfoTests
     [Fact(DisplayName = "ReadWmic 查询测试")]
     public void ReadWmicTest()
     {
+        // wmic.exe 自 Windows 11 24H2 / Server 2025 起默认不再随系统安装（GitHub CI 环境亦无此命令）。
+        // 命令缺失时实现须降级为空结果且不抛异常；解析逻辑由 COM 路径的 ReadWmiComMultiTest 继续覆盖。
+        var wmicExe = Path.Combine(Environment.SystemDirectory, "wbem", "WMIC.exe");
+        if (!File.Exists(wmicExe))
+        {
+            var empty = MachineInfo.ReadWmic("os", "Caption", "Version");
+            Assert.NotNull(empty);
+            Assert.Empty(empty);
+            return;
+        }
+
         // 通过 wmic.exe 查询操作系统信息
         var dic = MachineInfo.ReadWmic("os", "Caption", "Version");
         Assert.NotNull(dic);
@@ -636,7 +678,24 @@ public class MachineInfoTests
         var file = Path.GetTempPath().CombinePath("machine_info.json").GetFullPath();
         Assert.True(File.Exists(file));
 
-        var mi3 = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
+        // 该文件由产品写入系统临时目录，多目标框架并行运行时可能正被其它进程重写，
+        // 读到半截内容会解析失败，重试几次
+        MachineInfo? mi3 = null;
+        for (var i = 0; i < 10 && mi3 == null; i++)
+        {
+            try
+            {
+                mi3 = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
+            }
+            catch
+            {
+                // 忽略读取/解析失败，稍后重试
+            }
+
+            if (mi3 == null) await Task.Delay(100);
+        }
+
+        Assert.NotNull(mi3);
         Assert.Equal(mi.OSName, mi3.OSName);
         Assert.Equal(mi.UUID, mi3.UUID);
         Assert.Equal(mi.Guid, mi3.Guid);

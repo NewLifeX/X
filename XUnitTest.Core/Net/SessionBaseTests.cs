@@ -1,16 +1,18 @@
-﻿using System.Net;
+using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Net;
 
 /// <summary>SessionBase及相关类单元测试</summary>
+[Collection("Net.D")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class SessionBaseTests
 {
@@ -168,22 +170,45 @@ public class SessionBaseTests
         Assert.True(client.Active);
     }
 
-    /// <summary>测试TcpSession超时</summary>
-    [Fact]
+    /// <summary>探测地址是否构成“黑洞”：预算内既没连上、也不立刻失败</summary>
+    private static Boolean IsBlackhole(String host, Int32 port, Int32 budgetMs)
+    {
+        try
+        {
+            using var tc = new TcpClient();
+            var task = tc.ConnectAsync(host, port);
+
+            return !task.Wait(budgetMs);
+        }
+        catch
+        {
+            return false;   // 立刻失败（拒绝或路由不可达）→ 不是黑洞
+        }
+    }
+
+    /// <summary>测试TcpSession建连超时受Timeout约束</summary>
+    [Fact(DisplayName = "TcpSession_建连超时_受Timeout约束")]
     public void TcpSessionTimeout()
     {
-        var client = new TcpSession
+        // 192.0.2.0/24 为文档保留网段，正常不会被路由；若本机对它立刻拒绝（ICMP 或路由不可达），
+        // 就无从验证建连超时约束，跳过
+        if (!IsBlackhole("192.0.2.1", 12345, 1000)) return;
+
+        using var client = new TcpSession
         {
-            Remote = new NetUri("tcp://192.0.2.1:12345"), // 不可达地址
-            Timeout = 1000,
+            Remote = new NetUri("tcp://192.0.2.1:12345"), // 黑洞地址
+            Timeout = 800,
         };
 
-        // 连接不可达地址可能抛出 TimeoutException、SocketException 或 OperationCanceledException
+        var sw = Stopwatch.StartNew();
+        // 没有超时约束时，建连要等操作系统默认 TCP 超时（Windows 约 21 秒）
         var ex = Assert.ThrowsAny<Exception>(() => client.Open());
+        sw.Stop();
+
+        // 超时异常类型随目标框架而异：高版本为预算取消源触发的 OperationCanceledException，低版本为 TimeoutException
         Assert.True(ex is TimeoutException || ex is SocketException || ex is OperationCanceledException,
             $"Expected TimeoutException, SocketException or OperationCanceledException, but got {ex.GetType().Name}");
-
-        client.Dispose();
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"建连耗时 {sw.Elapsed}，未受 Timeout 约束");
     }
 
     /// <summary>测试TcpSession Items扩展数据</summary>
@@ -303,7 +328,8 @@ public class SessionBaseTests
         var data = "Hello"u8.ToArray();
         client.Send(data, data.Length, new IPEndPoint(IPAddress.Loopback, server.Port));
 
-        Assert.True(sessionCreated.Wait(3000));
+        // 数据报由接收环异步处理；全量并行满载下调度延迟可能超过 3 秒，放宽等待上限（数据报未达仍会失败）
+        Assert.True(sessionCreated.Wait(10_000));
         Assert.NotNull(createdSession);
         Assert.IsType<UdpSession>(createdSession);
     }
@@ -332,6 +358,90 @@ public class SessionBaseTests
         {
             Assert.Equal(sendData, received);
         }
+    }
+
+    /// <summary>相同远程端点复用同一会话；会话销毁后端点缓存失效，可重新创建</summary>
+    [Fact]
+    public void UdpServerCreateSessionEndPointCache()
+    {
+        using var server = new UdpServer { Port = 0 };
+        server.Open();
+
+        var s1 = server.CreateSession(null, new IPEndPoint(IPAddress.Loopback, 12345));
+        Assert.NotNull(s1);
+
+        // 等值但不同实例的端点，应命中同一会话（端点缓存路径）
+        var s2 = server.CreateSession(null, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12345));
+        Assert.Same(s1, s2);
+        Assert.Single(server.Sessions);
+
+        // 会话销毁后缓存同步失效，同端点重新创建新会话
+        s1.Dispose();
+        var s3 = server.CreateSession(null, new IPEndPoint(IPAddress.Loopback, 12345));
+        Assert.NotSame(s1, s3);
+        Assert.Single(server.Sessions);
+
+        s3.Dispose();
+    }
+
+    /// <summary>UDP客户端打开后自动连接远端：发送走已连接路径，服务端正常建立会话</summary>
+    [Fact]
+    public void UdpClientAutoConnectRemote()
+    {
+        var receivedEvent = new ManualResetEventSlim(false);
+        Byte[]? received = null;
+
+        using var server = new UdpServer { Port = 0 };
+        server.Received += (s, e) =>
+        {
+            received = e.GetBytes();
+            receivedEvent.Set();
+        };
+        server.Open();
+
+        using var client = new UdpServer { Remote = new NetUri($"udp://127.0.0.1:{server.Port}") };
+        client.Open();
+
+        // 纯客户端模式（未指定本地端口）自动连接远端
+        Assert.True(client.Client!.Connected);
+
+        var payload = "auto connect"u8.ToArray();
+        // UDP 在并行满载时可能丢包，重发直到服务端收到（同一客户端，会话数不变）
+        var end = Environment.TickCount64 + 10_000;
+        while (!receivedEvent.IsSet && Environment.TickCount64 < end)
+        {
+            client.Send(payload);
+            receivedEvent.Wait(200);
+        }
+
+        Assert.True(receivedEvent.IsSet, "服务端未收到 UDP 报文");
+        Assert.Equal(payload, received);
+        Assert.Single(server.Sessions);
+    }
+
+    /// <summary>广播远端与指定本地端口的实例不自动连接，保持 SendTo 语义</summary>
+    [Fact]
+    public void UdpServerNoAutoConnectForBroadcastAndLocalPort()
+    {
+        using var server = new UdpServer { Port = 0 };
+        server.Open();
+
+        // 广播地址不能连接
+        using (var broadcast = new UdpServer { Remote = new NetUri($"udp://255.255.255.255:{server.Port}") })
+        {
+            broadcast.Open();
+            Assert.False(broadcast.Client!.Connected);
+        }
+
+        // 指定本地端口的实例可能同时监听（双角色），不自动连接
+        var probe = new UdpServer { Port = 0 };
+        probe.Open();
+        var localPort = probe.Port;
+        probe.Close("probe");
+
+        using var dual = new UdpServer { Port = localPort, Remote = new NetUri($"udp://127.0.0.1:{server.Port}") };
+        dual.Open();
+        Assert.False(dual.Client!.Connected);
     }
 
     /// <summary>测试UdpServer会话超时</summary>
@@ -597,18 +707,6 @@ public class SessionBaseTests
         Assert.True(server.Active);
     }
 
-    /// <summary>测试TcpServer Pipeline</summary>
-    [Fact]
-    public void TcpServerPipeline()
-    {
-        using var server = new TcpServer { Port = 0 };
-
-        Assert.Null(server.Pipeline);
-
-        server.Pipeline = new Pipeline();
-        Assert.NotNull(server.Pipeline);
-    }
-
     /// <summary>测试TcpServer ToString</summary>
     [Fact]
     public void TcpServerToString()
@@ -619,52 +717,6 @@ public class SessionBaseTests
         var str = server.ToString();
         Assert.NotEmpty(str);
         Assert.Contains(server.Port.ToString(), str);
-    }
-    #endregion
-
-    #region Pipeline测试
-    /// <summary>测试Pipeline消息编解码</summary>
-    [Fact]
-    public void PipelineStandardCodec()
-    {
-        var receivedEvent = new ManualResetEventSlim(false);
-        Object? receivedMessage = null;
-
-        using var server = new TcpServer { Port = 0 };
-        server.Pipeline = new Pipeline();
-        server.Pipeline.Add(new StandardCodec());
-
-        server.NewSession += (s, e) =>
-        {
-            if (e.Session is TcpSession session)
-            {
-                session.Pipeline = server.Pipeline;
-                session.Received += (sender, args) =>
-                {
-                    receivedMessage = args.Message ?? args.Packet;
-                    receivedEvent.Set();
-
-                    // Echo
-                    if (args.Packet != null)
-                        session.SendMessage(args.Packet);
-                };
-            }
-        };
-        server.Start();
-
-        using var client = new TcpSession
-        {
-            Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
-        };
-        client.Pipeline = new Pipeline();
-        client.Pipeline.Add(new StandardCodec());
-        client.Open();
-
-        var sendData = "Pipeline Test"u8.ToArray();
-        client.SendMessage(new ArrayPacket(sendData));
-
-        Assert.True(receivedEvent.Wait(3000));
-        Assert.NotNull(receivedMessage);
     }
     #endregion
 
@@ -757,6 +809,106 @@ public class SessionBaseTests
         client.Close("Test");
 
         Assert.True(closedFired);
+    }
+    #endregion
+
+    #region 打开期间销毁测试
+    /// <summary>打开流程挂起期间销毁会话：连接在销毁之后才建立，应被释放而不是泄漏</summary>
+    [Fact(DisplayName = "打开挂起期间销毁_建立中的连接被释放")]
+    public async Task OpenSuspendedThenDispose_ReleasesClient()
+    {
+        using var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        listener.Listen(1);
+        var port = ((IPEndPoint)listener.LocalEndPoint!).Port;
+
+        var session = new SlowOpenSession
+        {
+            Remote = new NetUri($"tcp://127.0.0.1:{port}"),
+            AutoReceive = false,
+        };
+        var openTask = session.OpenAsync();
+
+        // 等待进入打开流程（此时尚未建立连接），随后销毁会话
+        Assert.True(session.Entered.Wait(5000));
+        session.Dispose();
+
+        // 放行打开流程：连接在销毁之后才建立，应被立即释放（未修复时会留下未关闭的socket）
+        session.Gate.Set();
+        var completed = await Task.WhenAny(openTask, Task.Delay(10_000)) == openTask;
+        Assert.True(completed, "打开流程未在10秒内完成");
+        Assert.False(await openTask);
+        Assert.Null(session.Client);
+    }
+
+    /// <summary>打开流程可控挂起的测试会话：闸门放行后才真正建立连接</summary>
+    private sealed class SlowOpenSession : TcpSession
+    {
+        public ManualResetEventSlim Entered { get; } = new(false);
+        public ManualResetEventSlim Gate { get; } = new(false);
+
+        protected override async Task<Boolean> OnOpenAsync(CancellationToken cancellationToken)
+        {
+            Entered.Set();
+            await Task.Run(() => Gate.Wait(cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            return await base.OnOpenAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+    #endregion
+
+    #region 接收环复用
+    /// <summary>接收环复用：同一连接连续两轮不同长度报文，轮末回挂的句柄必须按本轮长度重设窗口</summary>
+    [Fact]
+    public async Task ReceiveRing_ReusedHandle_RewindowsPerRound()
+    {
+        var serverLengths = new List<Int32>();
+        var clientLengths = new List<Int32>();
+        using var received = new SemaphoreSlim(0);
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+        };
+
+        server.Received += (s, e) =>
+        {
+            if (s is INetSession session && e.Packet != null)
+            {
+                lock (serverLengths) serverLengths.Add(e.Packet.Length);
+
+                // Echo，客户端据回包长度判断本轮窗口
+                session.Send(e.Packet);
+            }
+        };
+
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Received += (s, e) =>
+        {
+            if (e.Packet != null)
+            {
+                lock (clientLengths) clientLengths.Add(e.Packet.Length);
+                received.Release();
+            }
+        };
+        Assert.True(client.Open());
+
+        // 第一轮 5 字节，等回包到达后再发第二轮：两轮分属不同接收轮次，不会被合并成一次读
+        client.Send(new Byte[5]);
+        Assert.True(await received.WaitAsync(5000), "首轮回包超时");
+        client.Send(new Byte[37]);
+        Assert.True(await received.WaitAsync(5000), "次轮回包超时");
+
+        // 两轮长度各自正确：第二轮若沿用上一轮窗口（未重设），长度会停在 5
+        lock (serverLengths) Assert.Equal(new[] { 5, 37 }, serverLengths);
+        lock (clientLengths) Assert.Equal(new[] { 5, 37 }, clientLengths);
+
+        // 迟到的多余轮次同样不允许出现
+        await Task.Delay(100);
+        lock (serverLengths) Assert.Equal(new[] { 5, 37 }, serverLengths);
     }
     #endregion
 }

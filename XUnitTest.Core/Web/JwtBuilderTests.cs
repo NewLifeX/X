@@ -531,4 +531,83 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
         Assert.NotNull(msg);
         Assert.NotEmpty(msg);
     }
+
+    [Fact(DisplayName = "算法混淆：公钥当HMAC密钥伪造的HS256令牌被拒绝")]
+    public void AlgorithmConfusion_RejectsForgedHS256()
+    {
+        var keys = RSAHelper.GenerateKey();
+        var prv = keys[0];
+        var pub = keys[1];
+
+        // 正规RS256令牌：私钥签名，公钥验证
+        var signer = new JwtBuilder { Algorithm = "RS256", Secret = prv, Subject = "admin" };
+        var real = signer.Encode(new { sub = "admin" });
+
+        var verifier = new JwtBuilder { Secret = pub };
+        Assert.True(verifier.TryDecode(real, out _));
+
+        // 伪造令牌：攻击者把头部算法降级为HS256，并拿公开的公钥当HMAC密钥签名
+        var header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}".GetBytes().ToUrlBase64();
+        var body = "{\"sub\":\"attacker\",\"exp\":4102444800}".GetBytes().ToUrlBase64();
+        var data = $"{header}.{body}".GetBytes();
+        var sig = data.SHA256(pub.GetBytes());
+        var forged = $"{header}.{body}.{sig.ToUrlBase64()}";
+
+        var verifier2 = new JwtBuilder { Secret = pub };
+        Assert.False(verifier2.TryDecode(forged, out var msg));
+        Assert.NotNull(msg);
+    }
+
+    [Fact(DisplayName = "算法钉死：令牌算法与期望不一致时验证失败")]
+    public void PinnedAlgorithm_Mismatch_Rejects()
+    {
+        var token = new JwtBuilder { Secret = "Smart" }.Encode(new { sub = "0201" });
+
+        // 期望HS512而令牌声明HS256：签名本身能验证通过，但算法不一致必须拒绝
+        var jwt = new JwtBuilder { Algorithm = "HS512", Secret = "Smart" };
+        Assert.False(jwt.TryDecode(token, out var msg));
+        Assert.NotNull(msg);
+        Assert.Equal("HS256", jwt.TokenAlgorithm);
+    }
+
+    [Fact(DisplayName = "算法钉死：期望与令牌一致时正常通过")]
+    public void PinnedAlgorithm_Match_Passes()
+    {
+        var token = new JwtBuilder { Secret = "Smart" }.Encode(new { sub = "0201" });
+
+        var jwt = new JwtBuilder { Algorithm = "HS256", Secret = "Smart" };
+        Assert.True(jwt.TryDecode(token, out _));
+        Assert.Equal("HS256", jwt.TokenAlgorithm);
+    }
+
+    [Fact(DisplayName = "畸形令牌不抛异常，一律返回失败")]
+    public void MalformedToken_NoThrow()
+    {
+        var jwt = new JwtBuilder { Secret = "1234567890" };
+        var h = "eyJhbGciOiJIUzI1NiJ9";
+        var cases = new[] { "abc", "a.b.c", "!!!.@@@.###", h + ".!!!.xxx", h + ".e30.", h + ".e30.@@@" };
+        foreach (var token in cases)
+        {
+            // Try 语义：非法 Base64 只应返回 false，不能抛 FormatException
+            var rs = jwt.TryDecode(token, out var msg);
+            Assert.False(rs);
+            Assert.NotNull(msg);
+        }
+    }
+
+    [Fact(DisplayName = "未知算法不抛异常，按验证失败处理")]
+    public void UnknownAlgorithm_NoThrow()
+    {
+        var jwt = new JwtBuilder { Secret = "1234567890" };
+        foreach (var alg in new[] { "none", "foo", "HS999" })
+        {
+            var header = $"{{\"alg\":\"{alg}\",\"typ\":\"JWT\"}}".GetBytes().ToUrlBase64();
+            var body = "{\"sub\":\"admin\",\"exp\":4102444800}".GetBytes().ToUrlBase64();
+            var token = $"{header}.{body}.AAAA";
+
+            var rs = jwt.TryDecode(token, out var msg);
+            Assert.False(rs);
+            Assert.NotNull(msg);
+        }
+    }
 }

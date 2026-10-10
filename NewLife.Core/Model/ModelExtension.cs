@@ -1,4 +1,5 @@
 ﻿using NewLife.Data;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NewLife.Model;
 
@@ -47,6 +48,7 @@ public static class ModelExtension
     /// <param name="provider">服务提供者</param>
     /// <param name="serviceType">服务类型</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "服务提供者按运行时类型解析服务；AOT 下请使用泛型 GetService<T>()")]
     public static IEnumerable<Object> GetServices(this IServiceProvider provider, Type serviceType)
     {
         //var sp = provider as ServiceProvider;

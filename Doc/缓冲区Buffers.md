@@ -10,6 +10,7 @@
 | [`SpanWriter`](./SpanWriter.md) | `ref struct` | 高性能二进制数据写入 | 零分配写入、固定缓冲区、支持多种数据类型 |
 | [`SpanHelper`](./SpanHelperDoc.md) | `static class` | Span操作辅助工具 | 编码转换、十六进制、边界搜索、数据修剪 |
 | [`PooledByteBufferWriter`](./PooledByteBufferWriter.md) | `sealed class` | 池化动态缓冲区写入 | 基于数组池、动态扩容、IBufferWriter接口 |
+| [`SequenceReader<T>`](./序列读取器SequenceReader.md) | BCL `ref struct`（旧框架经垫片补齐） | 跨段只读序列的顺序读取 | 零分配、跨段直读、全 18 TFM 可用 |
 
 ## 核心设计理念
 
@@ -26,6 +27,7 @@
 ### 跨平台兼容
 - **多框架支持**：.NET Framework 4.5 到 .NET 9
 - **条件编译优化**：针对不同平台的特定优化
+- **类型垫片与转发**：net45 / net461 / net462 / netstandard2.0 由 `Stub/SequenceReader.cs` 提供 BCL 3.1 面的 `System.Buffers.SequenceReader<T>` 与有符号端序扩展；netstandard2.1 起由 `TypeForwardedTo` 转发到 BCL。无符号端序读取/窥视统一由 `NewLife.Buffers.SequenceReaderHelper` 提供（全 TFM）
 
 ## 典型使用场景
 

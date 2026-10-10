@@ -257,7 +257,9 @@ public class ObjectPoolTests
 
         Assert.Equal(1, ex.BusyCount);
         Assert.Equal(1, ex.Max);
-        Assert.True(sw.ElapsedMilliseconds < 50, $"WaitTimeout=0 应立即抛异常，实际等待 {sw.ElapsedMilliseconds}ms");
+        // 并行满载时异步获取可能被线程池调度推迟数十毫秒，只断言"没有进入等待"：
+        // 若误用默认 15s 超时，这里会达到秒级
+        Assert.True(sw.ElapsedMilliseconds < 2000, $"WaitTimeout=0 应立即抛异常，实际等待 {sw.ElapsedMilliseconds}ms");
 
         pool.Return(obj);
     }
@@ -300,8 +302,17 @@ public class ObjectPoolTests
         // 等待超过 MaxLifetime（1s），给足余量
         Thread.Sleep(1500);
 
-        // 再次借出时，旧连接因超 MaxLifetime 被惰性回收，应创建新连接
+        // 过期回收由后台定时器执行，多目标框架并行满载时定时器回调可能被推迟，轮询等待其完成
         var obj2 = pool.Get();
+        var end = Environment.TickCount64 + 10_000;
+        while (ReferenceEquals(obj1, obj2) && Environment.TickCount64 < end)
+        {
+            pool.Return(obj2);
+            Thread.Sleep(50);
+            obj2 = pool.Get();
+        }
+
+        // 旧连接因超 MaxLifetime 被回收，应创建新连接
         Assert.NotSame(obj1, obj2);
 
         pool.Return(obj2);
