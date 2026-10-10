@@ -71,7 +71,7 @@ dotnet run
 |                  | [反射扩展Reflect](https://newlifex.com/core/reflect)                         | 高性能反射工具，快速进行对象成员的读写操作。     |
 |                  | [安全扩展SecurityHelper](https://newlifex.com/core/security_helper)          | 集成RSA/AES/DES/MD5等多种加解密，简化安全操作。  |
 | **日志与追踪**   | [日志ILog](https://newlifex.com/core/log)                                    | 支持多种日志输出方式，提供强大的异步写入功能。   |
-|                  | [链路追踪ITracer](https://newlifex.com/core/tracer)                          | 强大的APM性能追踪，支持与星尘平台集成。          |
+|                  | [链路追踪ITracer](https://newlifex.com/core/tracer)                          | 强大的APM性能追踪，支持与星尘平台集成，并与 OpenTelemetry 双向互通。 |
 | **定时调度**     | [高级定时器TimerX](https://newlifex.com/core/timerx)                         | 高精度定时器，支持Cron调度和异步周期执行。       |
 |                  | [Cron表达式](https://newlifex.com/core/cron)                                 | 提供类似Linux Cron的定时任务，支持秒级匹配。     |
 |                  | [时间提供者TimeProvider](/core/time_provider)                                | 统一时间抽象与高精度耗时计算，便于跨版本兼容。   |

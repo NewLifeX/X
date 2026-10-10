@@ -643,6 +643,69 @@ public static AsyncLocal<ISpan?> Current { get; }
 
 ---
 
+## 与 OpenTelemetry 的双向适配
+
+OpenTelemetry 是 CNCF 的跨厂商可观测性标准，.NET 上直接建立在 `System.Diagnostics.ActivitySource`/`Activity` 之上。NewLife 的 `ITracer`/`ISpan` 与它是**两套体系**，调用形态高度相似但数据模型不同：
+
+| 维度 | NewLife `ITracer`/`ISpan` | OpenTelemetry (.NET) |
+|---|---|---|
+| 底层类型 | 自研 `ISpan`/`DefaultSpan` | `ActivitySource`/`Activity` |
+| 数据粒度 | 按埋点名聚合统计 + 少量样本 | 每个 Span 独立记录，全量调用链 |
+| 采样 | `MaxSamples`/`MaxErrors`/`Timeout` + `TraceFlag` 强制链路采样 | Head/Tail Sampling + Processor + Exporter |
+| 上下文载体 | `DefaultSpan.Current` | `Activity.Current` |
+| 传播 | `traceparent`（已符合 W3C） | `traceparent`（W3C） |
+| 上报 | 私有 RPC `Trace/Report` → 星尘 | OTLP → Collector/Jaeger/Tempo |
+
+两者可以互相桥接，NewLife.Core 提供两个适配器（**net6.0 及以上**，无新增依赖）。
+
+### 把 NewLife 埋点输出为 OpenTelemetry
+
+`OpenTelemetryTracer` 实现 `ITracer`，内部用 `ActivitySource` 产出标准活动。NewLife 各组件无需任何改造，它们调用的 `Tracer?.NewSpan()` 会原样产出标准活动：
+
+```csharp
+// 一行启用，本进程所有 NewLife 埋点以 OpenTelemetry 标准输出
+OpenTelemetryTracer.Enable();
+```
+
+`Inner` 属性可指向底盘跟踪器，实现双写。此时内层片段会继承活动的 W3C 标识，星尘链路与 OpenTelemetry 链路可以互相对照：
+
+```csharp
+OpenTelemetryTracer.Enable(new OpenTelemetryTracer
+{
+    SourceName = "MyApp",
+    Inner = new StarTracer("http://star:5000"),
+});
+```
+
+没有任何活动监听者且未设置底盘时，`NewSpan` 立即返回共享的空实现，不产生分配，因此可以安全地长期挂着。
+
+> 注意：活动一旦启动就无法撤销，`Abandon()` 在 OpenTelemetry 模式下只透传给底盘。需要过滤埋点的场景，应通过采集端的源名过滤或采样处理器实现。
+
+### 把 OpenTelemetry 埋点采集进星尘
+
+很多开源组件原生输出 OpenTelemetry 埋点。`OpenTelemetryCollector` 通过全局 `ActivityListener` 订阅这些活动，转成 `ISpan` 交给目标跟踪器，从而在星尘平台上也能看到第三方组件的调用链：
+
+```csharp
+var star = new StarTracer("http://star:5000");
+var collector = new OpenTelemetryCollector { Tracer = star }.Attach();
+
+// 只采集指定源
+var collector2 = new OpenTelemetryCollector
+{
+    Tracer = star,
+    ExcludeSources = null,
+    IncludeSources = ["StackExchange.Redis", "Npgsql"],
+}.Attach();
+```
+
+采集到的活动按“源名:操作名”（如 `StackExchange.Redis:SET`）聚合统计，沿用活动的 W3C 标识并强制采样，因此不会把海量活动逐条上网。
+
+**去重**：同一次操作可能同时被 NewLife 原生埋点、`DiagnosticListener`（Stardust 已内建监听 HttpClient/EF Core/SqlClient/gRPC/MongoDB）以及 `ActivityListener` 采集三次。`ExcludeSources` 默认排除这些已覆盖的源，避免星尘平台上的埋点计数翻倍；也可改用 `IncludeSources` 白名单只采集缺口部分。
+
+Stardust 的 `StarTracer` 已默认挂载该采集器，由 `StarSetting.EnableOpenTelemetry` 控制开关。
+
+---
+
 ## 参考资料
 
 - **星尘监控平台**: https://newlifex.com/blood/stardust
@@ -654,6 +717,7 @@ public static AsyncLocal<ISpan?> Current { get; }
 
 ## 更新日志
 
+- **2026-10**: 新增 OpenTelemetry 双向适配（`OpenTelemetryTracer` 输出、`OpenTelemetryCollector` 采集）；traceId 升级为 W3C 标准的 32 位十六进制
 - **2024-12-16**: 完善文档，补充最佳实践和示例代码
 - **2024-08**: 支持 .NET 9.0
 - **2023-11**: 增加 `Abandon()` 方法
