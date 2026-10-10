@@ -70,9 +70,17 @@
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" TargetingPackVersion="10.0.0" />
   </ItemGroup>
 
-  <!-- net*-windows 使用 System.Management 进行标准 WMI 查询（反射调用，避免核心库直接暴露该类型） -->
-  <ItemGroup Condition="'$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows' or '$(TargetFramework)'=='net7.0-windows' or '$(TargetFramework)'=='net8.0-windows' or '$(TargetFramework)'=='net9.0-windows' or '$(TargetFramework)'=='net10.0-windows'">
-    <PackageReference Include="System.Management" Version="9.0.5" />
+  <!-- net*-windows 使用 System.Management 进行标准 WMI 查询（反射调用，避免核心库直接暴露该类型）。
+       System.Management 采用滚动支持窗口（每个版本只支持发布时在役的 TFM），按"各 TFM 支持窗口内的最高版本"引用；
+       使用更高版本只会回退 netstandard2.0 资产，并触发 "doesn't support" 构建警告 -->
+  <ItemGroup Condition="'$(TargetFramework)'=='net5.0-windows'">
+    <PackageReference Include="System.Management" Version="6.0.2" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net6.0-windows' or '$(TargetFramework)'=='net7.0-windows'">
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net8.0-windows' or '$(TargetFramework)'=='net9.0-windows' or '$(TargetFramework)'=='net10.0-windows'">
+    <PackageReference Include="System.Management" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
@@ -88,6 +96,7 @@
     <PackageReference Include="System.Memory" Version="4.6.3" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
   </ItemGroup>
+  <!-- net45/net461 选用 4.5.x 线（各包 4.6.x 线最低支持 net462）：避免回退 netstandard2.0 资产与 "doesn't support" 构建警告 -->
   <ItemGroup Condition="'$(TargetFramework)'=='net461'">
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
@@ -111,18 +120,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Agent\**" />
-    <Compile Remove="Applications\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove="Agent\**" />
-    <EmbeddedResource Remove="Applications\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Agent\**" />
-    <None Remove="Applications\**" />
-  </ItemGroup>
+  <!-- 历史遗留资料：旧文档与类图，仅在项目树中排除显示（不影响编译与打包） -->
   <ItemGroup>
     <None Remove="Remoting\ApiClient.cd" />
     <None Remove="Remoting\ApiServer.cd" />
