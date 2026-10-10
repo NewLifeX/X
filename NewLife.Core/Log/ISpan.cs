@@ -184,6 +184,11 @@ public class DefaultSpan : ISpan
     }
 
     /// <summary>创建跟踪编号</summary>
+    /// <remarks>
+    /// 总长度固定为32位十六进制，以满足W3C TraceContext对trace-id的要求（30位会被标准解析器拒绝）。
+    /// 布局参考阿里云EagleEye全链路追踪，并增加IPv4与PID两个定位维度：
+    /// IPv4(8) + 毫秒时间(13) + 顺序数(6) + 标识位(1) + PID(4) = 32
+    /// </remarks>
     /// <returns></returns>
     protected virtual String CreateTraceId()
     {
@@ -192,13 +197,16 @@ public class DefaultSpan : ISpan
          * 7ae122a215982779017518707e
          * IPv4(8) + 毫秒时间(13) + 顺序数(4) + 标识位(1) + PID(4)
          * 7ae122a2 + 1598277901751 + 8707 + e
+         *
+         * 为对齐W3C TraceContext，顺序数由4位扩展到6位，使总长度达到标准的32位。
+         * 毫秒时间为13位十进制，在公元2286年之前一直保持13位。
          */
 
         var sb = Pool.StringBuilder.Get();
         sb.Append(_myip);
         sb.Append(Runtime.UtcNow.ToLong());
-        var id = Interlocked.Increment(ref _seq2) & 0xFFFF;
-        sb.Append(id.ToString("x4").PadLeft(4, '0'));
+        var id = Interlocked.Increment(ref _seq2) & 0xFFFFFF;
+        sb.Append(id.ToString("x6").PadLeft(6, '0'));
         sb.Append('e');
         sb.Append(_pid);
 

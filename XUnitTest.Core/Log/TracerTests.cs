@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Log;
@@ -359,6 +361,34 @@ public class TracerTests
         public String AppId { get; set; }
 
         public ISpanBuilder[] Builders { get; set; }
+    }
+
+    [Fact]
+    [DisplayName("traceId遵循W3C TraceContext，可被标准解析器接受")]
+    public void TraceIdW3cCompliance()
+    {
+        var tracer = new DefaultTracer();
+        using var span = tracer.NewSpan("w3c") as DefaultSpan;
+
+        // traceId固定32位十六进制，spanId固定16位十六进制
+        Assert.Equal(32, span.TraceId.Length);
+        Assert.Equal(16, span.Id.Length);
+        Assert.Matches("^[0-9a-f]{32}$", span.TraceId);
+        Assert.Matches("^[0-9a-f]{16}$", span.Id);
+
+        // 由片段序列化出来的traceparent必须能被W3C标准解析器接受，且原样还原traceId与spanId
+        var traceparent = span.ToString();
+        Assert.True(ActivityContext.TryParse(traceparent, null, out var context), traceparent);
+        Assert.Equal(span.TraceId, context.TraceId.ToHexString());
+        Assert.Equal(span.Id, context.SpanId.ToHexString());
+
+        // 内嵌片段共用traceId，父级指向外层片段
+        using var child = tracer.NewSpan("w3c-child") as DefaultSpan;
+        Assert.Equal(span.TraceId, child.TraceId);
+        Assert.Equal(span.Id, child.ParentId);
+        Assert.True(ActivityContext.TryParse(child.ToString(), null, out var context2), child.ToString());
+        Assert.Equal(span.TraceId, context2.TraceId.ToHexString());
+        Assert.Equal(child.Id, context2.SpanId.ToHexString());
     }
 
     [Fact]
