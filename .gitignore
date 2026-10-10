@@ -24,6 +24,7 @@ bld/
 [Cc]onfig/
 [Ll]og/
 !XUnitTest.Core/Log/
+!NewLife.Core/Log/
 BenchmarkDotNet.Artifacts/
 /XUnitTest.Core/TestResults
 /TestResults
