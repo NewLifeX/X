@@ -509,6 +509,8 @@ DefaultTracer.Instance = new CustomTracer();
 
 ## 性能优化
 
+> **接入开销实测数据**：见[《APM埋点性能测试报告》](性能/APM埋点性能测试报告.md)——不用 APM 为零成本；一次普通埋点约 0.3 µs / 384 B；OpenTelemetry 输出与之同量级（空埋点 257 ns）。
+
 ### 对象池
 
 `DefaultTracer` 内置了对象池，复用 `ISpanBuilder` 和 `ISpan` 实例：
