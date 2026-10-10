@@ -11,9 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 子目录中的独立项目（如 NetLoadTest）由各自 csproj 编译，排除其源码与 obj 产物，避免被本项目的 **/*.cs 通配吞入 -->
-    <Compile Remove="NetLoadTest/**" />
-    <None Remove="NetLoadTest/**" />
+    <!-- 子目录中的独立项目（NetLoadTest / NetLoadTestAot）由各自 csproj 编译，排除其源码与 obj 产物，避免被本项目的 **/*.cs 通配吞入；新增子项目时需一并在此排除 -->
+    <Compile Remove="NetLoadTest/**;NetLoadTestAot/**" />
+    <None Remove="NetLoadTest/**;NetLoadTestAot/**" />
   </ItemGroup>
 
   <ItemGroup>
