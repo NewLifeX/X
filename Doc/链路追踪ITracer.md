@@ -683,6 +683,17 @@ OpenTelemetryTracer.Enable(new OpenTelemetryTracer
 
 > 注意：活动一旦启动就无法撤销，`Abandon()` 在 OpenTelemetry 模式下只透传给底盘。需要过滤埋点的场景，应通过采集端的源名过滤或采样处理器实现。
 
+### 服务端片段继承上游链路
+
+服务端收到请求时，要把上游的 `traceparent` 作为父级，才能串成一条跨进程调用链。星尘等跟踪器的片段标识是可变字段，「先创建片段、再 `Detach(headers)`」即可；而 OpenTelemetry 的活动一旦启动就无法再指定父级，必须在创建时就传入上游上下文。中间件统一用 `NewServerSpan` 屏蔽这一差异：
+
+```csharp
+using var span = Tracer.NewServerSpan(action, req.Headers);
+span.Tag = $"{ctx.GetUserHost()} {req.Method} {req.GetRawUrl()}";
+```
+
+OpenTelemetry 只认 W3C 的 `traceparent`（含 NewLife RPC 使用的 `TraceId` 头，其值同为 traceparent 格式）；`Request-Id`、`Eagleeye-Traceid` 等历史格式不支持跨进程继承。
+
 ### 把 OpenTelemetry 埋点采集进星尘
 
 很多开源组件原生输出 OpenTelemetry 埋点。`OpenTelemetryCollector` 通过全局 `ActivityListener` 订阅这些活动，转成 `ISpan` 交给目标跟踪器，从而在星尘平台上也能看到第三方组件的调用链：
