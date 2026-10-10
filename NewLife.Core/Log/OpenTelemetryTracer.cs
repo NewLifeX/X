@@ -185,7 +185,13 @@ public class OpenTelemetryTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>开始一个片段</summary>
     /// <param name="name">操作名称</param>
     /// <returns></returns>
-    public virtual ISpan NewSpan(String name) => BuildSpan(name).Start();
+    public virtual ISpan NewSpan(String name)
+    {
+        // 无采集方时直接返回空实现，省掉片段构建器的分配
+        if (!IsActive) return OpenTelemetrySpan.Empty;
+
+        return BuildSpan(name).Start();
+    }
 
     /// <summary>开始一个片段，指定数据标签</summary>
     /// <param name="name">操作名称</param>
