@@ -276,11 +276,11 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
         Assert.Contains("Hello NewLife", rs);
     }
 
-    [Fact(DisplayName = "11-TinyHttpClient InvokeAsync GET /user")]
-    public async Task Test11_TinyHttpClient_Invoke()
+    [Fact(DisplayName = "11-TinyHttpClient GET /user 查询串")]
+    public async Task Test11_TinyHttpClient_Query()
     {
-        using var client = new TinyHttpClient(_fixture.BaseUri.ToString());
-        var rs = await client.InvokeAsync<String>("GET", "/user", new { act = "Delete", uid = 1234 });
+        using var client = new TinyHttpClient();
+        var rs = await client.GetStringAsync(_fixture.BaseUri.ToString().TrimEnd('/') + "/user?act=Delete&uid=1234");
 
         Assert.NotNull(rs);
         Assert.Contains("User.Delete(1234) success!", rs);

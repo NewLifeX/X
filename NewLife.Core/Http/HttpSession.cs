@@ -411,7 +411,7 @@ public class HttpSession : INetHandler, IDisposable
             return false;
         }
 
-        var status = ChunkedDecoder.TryDecode(cache.GetBuffer(), (Int32)cache.Length, out var body, out var consumed);
+        var status = ChunkedDecoder.TryDecode(cache.GetBuffer(), 0, (Int32)cache.Length, out var body, out var consumed);
         if (status == ChunkedDecoder.ChunkedStatus.Incomplete) return false;
         if (status == ChunkedDecoder.ChunkedStatus.Invalid)
         {
