@@ -350,7 +350,7 @@ internal sealed class OpenTelemetrySpanBuilder(OpenTelemetryTracer tracer, Strin
         var activity = tracer.StartActivity(Name, Parent);
         if (activity == null && inner == null) return OpenTelemetrySpan.Empty;
 
-        StartTime = Runtime.UtcNow.ToLong();
+        StartTime = Runtime.UtcNow.ToUnixTimeMilliseconds();
 
         return new OpenTelemetrySpan(tracer, activity, inner, Name, this);
     }
@@ -372,7 +372,7 @@ internal sealed class OpenTelemetrySpanBuilder(OpenTelemetryTracer tracer, Strin
         if (MaxCost < cost) MaxCost = cost;
         if (MinCost > cost || MinCost < 0) MinCost = cost;
 
-        EndTime = Runtime.UtcNow.ToLong();
+        EndTime = Runtime.UtcNow.ToUnixTimeMilliseconds();
     }
 }
 #endif
