@@ -25,6 +25,9 @@ public class SevenZip
             if (!File.Exists(p)) p = "";
         }
 
+        // 系统已安装的7-Zip
+        if (p.IsNullOrEmpty()) p = FindInstalled();
+
         // 自动下载
         if (p.IsNullOrEmpty())
         {
@@ -47,6 +50,25 @@ public class SevenZip
         if (!p.IsNullOrEmpty()) _7z = p.GetFullPath();
 
         XTrace.WriteLine("7Z目录 {0}", _7z);
+    }
+
+    /// <summary>查找系统已安装的7-Zip</summary>
+    /// <returns>7z.exe 全路径，未找到时返回空字符串</returns>
+    private static String FindInstalled()
+    {
+        // 7z.exe 是Windows程序，其它平台只认前面几个相对目录
+        if (!Runtime.Windows) return "";
+
+        foreach (var folder in new[] { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86 })
+        {
+            var root = Environment.GetFolderPath(folder);
+            if (root.IsNullOrEmpty()) continue;
+
+            var file = root.CombinePath("7-Zip", "7z.exe");
+            if (File.Exists(file)) return file;
+        }
+
+        return "";
     }
     #endregion
 

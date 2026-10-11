@@ -176,7 +176,8 @@ SevenZip.Extract(@"d:\backup\data.7z", @"d:\restore\");
 2. 插件目录 `.\Plugins\7z.exe`
 3. 子目录 `.\7z\7z.exe`
 4. 上级目录 `..\7z\7z.exe`
-5. 尝试从 `PluginServer`（可配置的插件服务器）自动下载
+5. 系统已安装的 7-Zip（`%ProgramFiles%\7-Zip\7z.exe`，含 x86 目录）
+6. 尝试从 `PluginServer`（可配置的插件服务器）自动下载
 
 ### Compress - 压缩
 
@@ -238,5 +239,5 @@ File.Delete(updatePkg);  // 清理临时文件
 
 - **`TarFile` 流式读取**：`Entries` 惰性枚举，不能重复遍历，需要多次访问时 `ToList()`。
 - **压缩文件路径**：`TarFile.AddFile` 中 `entryName` 建议使用正斜杠 `/` 分隔，保持跨平台兼容。
-- **`SevenZip` 依赖进程**：需确保 `7z.exe` 已在自动发现路径内；在 CI/CD 容器中通常不预装，可配置 `SevenZip.PluginServer` 自动下载。
+- **`SevenZip` 依赖进程**：需确保 `7z.exe` 已在自动发现路径内；系统未安装 7-Zip 时可配置 `SevenZip.PluginServer` 自动下载。
 - **`SevenZip` 大文件异步**：`Compress/Extract` 是同步调用（等待进程退出），大文件时应在后台线程/异步上下文中调用。
