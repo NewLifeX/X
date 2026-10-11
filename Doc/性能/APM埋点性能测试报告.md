@@ -92,7 +92,7 @@
 
 **1. 不接 APM 是真正的零成本。** 埋点位置写法 `Tracer?.NewSpan(...)` 在 `tracer` 为 null 时被 JIT 消解（实测 0.005 ns / 0 B），因此"默认不启用"不会给现有代码带来任何负担。
 
-**2. 一次普通星尘埋点约 0.3 µs / 384 B。** 对照真实业务：HTTP 接口 1–10 ms、SQL 数百 µs，0.3 µs 占 0.003%–0.03%；但对**纯内存高频操作**（缓存命中、协议栈每包）就是数量级差异。真正需要关注的是 **384 B/埋点**：10 万埋点/秒 → 约 38 MB/s 分配，会显著推高 Gen0 频率。
+**2. 一次普通星尘埋点约 0.3 µs / 384 B。** 对照真实业务：HTTP 接口 1–10 ms、SQL 数百 µs，0.3 µs 占 0.003%–0.03%；但对**纯内存高频操作**（缓存命中、协议栈每包）就是数量级差异。真正需要关注的是 **384 B/埋点**：10 万埋点/秒 → 约 38 MB/s 分配，会显著推高 Gen0 频率。（该值经 2026-10-11 优化后降至约 192 B/埋点，见文末「补充」章节）
 
 **3. 带标签几乎不额外收费（星尘档）。** 293 ns vs 290 ns，因为 `BuildTag` 仅在采样（`TraceFlag > 0`）时序列化复杂对象，未采样时几乎零成本——这是埋点体系的一个良好设计。
 
@@ -119,6 +119,38 @@
 3. **异常路径节制**：异常埋点成本约为普通埋点的 10 倍（额外生成 `ex:` 埋点），避免在异常风暴路径上无差别埋点。
 4. **采集器加限流**：为高频第三方源设置每周期条数上限或按源采样，避免活动转埋点带来的持续分配。
 5. **OTel 输出控制标签大小**：标签会整串写入活动属性并随之导出，建议只放关键字段（星尘档在未采样时不序列化，可放心传对象）。
+6. **（已实施）星尘档热路径减配**：Id/TraceId 延迟生成、去掉 `UtcNow.ToLong()` 装箱、缓存 `BuildSpan` 委托，单层埋点分配 504 B → 192 B。剩余约 192 B 为 `AsyncLocal` 上下文传播的固有成本，除非改变埋点上下文模型，否则降不下去。
+
+---
+
+## 补充：星尘档（DefaultTracer）分配归因与优化（2026-10-11）
+
+口径：单进程、对 Release 构建产物用 `GC.GetAllocatedBytesForCurrentThread()` 逐段测量（与 `[MemoryDiagnoser]` 同源），非 BenchmarkDotNet 全量复跑；绝对值可比，但不含 BDN 的统计平滑。
+
+**优化前，一次顶层空埋点 504 B，可精确拆分为 `Start` 384 B + `Finish` 120 B：**
+
+| 来源 | 分配 | 说明 |
+|---|---|---|
+| `DefaultSpan.Current`（`AsyncLocal`）进入 / 还原各一次 | 104 + 88 B | .NET 固有：写值必然重建 ExecutionContext |
+| `CreateTraceId()` 字符串 | 128 B | 未采样埋点也会生成 |
+| `CreateId()` 字符串 | 88 B | 同上 |
+| `Runtime.UtcNow.ToLong()` 装箱 ×3 | 96 B | `Utility.ToLong` 唯一重载形参为 `Object`，传 `DateTimeOffset` 必装箱；`ToUnixTimeMilliseconds()` 实测 0 B |
+| `BuildSpan` 的构建器工厂委托 | 64 B × 2 次 | `GetOrAdd(name, k => OnBuildSpan(k))` 的 lambda 捕获 `this`，编译器无法缓存委托；`NewSpan` 与 `Finish` 各调一次 |
+
+**优化三项（均不改变对外行为）：**
+
+1. `DefaultSpan.Id` / `TraceId` 改为惰性生成（首次读取才创建，`Interlocked.CompareExchange` 保证并发读取一致），`Start` 不再无条件生成；未采样埋点因此不再产生这两条字符串。
+2. `UtcNow.ToLong()` 全部改用 `ToUnixTimeMilliseconds()`（net45 缺少该 BCL 成员，库内以 `#if NET45` 扩展补齐）。
+3. `BuildSpan` 的构建器工厂委托在构造函数中缓存为实例字段。
+
+**优化后实测：**
+
+| 场景 | 优化前 | 优化后 | 变化 |
+|---|---|---|---|
+| 单层埋点（完整 `NewSpan` + `Dispose`） | 504 B | **192 B** | **-62%** |
+| 两层链路（outer + inner 整体） | 867 B | **616 B** | -29% |
+
+剩余的 192 B 全部是 `AsyncLocal` 上下文传播的固有成本。改用 `[ThreadStatic]` 会让埋点无法跨 `await` 传播；`Finish` 不还原 `Current` 会让后续埋点挂到已归还对象池的片段上——**「每次 NewSpan 零分配」在当前模型下不可达**。链路上父片段的 Id/TraceId 现在由首个子片段读取时生成一次，多级链路共享同一次生成，因此链路越长收益越明显。
 
 ---
 

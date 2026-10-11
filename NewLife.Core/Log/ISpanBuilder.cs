@@ -126,7 +126,7 @@ public class DefaultSpanBuilder : ISpanBuilder
         Tracer = tracer;
         Name = name;
         MinCost = -1;
-        StartTime = Runtime.UtcNow.ToLong();
+        StartTime = Runtime.UtcNow.ToUnixTimeMilliseconds();
     }
 
     /// <summary>开始一个Span，开始计时</summary>

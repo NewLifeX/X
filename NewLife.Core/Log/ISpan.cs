@@ -69,8 +69,22 @@ public class DefaultSpan : ISpan
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
     public ITracer? Tracer { get; set; }
 
+    private String? _id;
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
-    public String Id { get; set; } = null!;
+    /// <remarks>延迟生成，首次读取时才创建。绝大多数埋点并未采样，无需为其付出标识字符串的分配</remarks>
+    public String Id
+    {
+        get
+        {
+            var id = _id;
+            if (id != null) return id;
+
+            id = CreateId();
+            // 同一片段可能被并行分支共享，以先写入者为准，保证对外呈现同一个Id
+            return Interlocked.CompareExchange(ref _id, id, null) ?? id;
+        }
+        set => _id = value;
+    }
 
     /// <summary>埋点名</summary>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
@@ -79,8 +93,22 @@ public class DefaultSpan : ISpan
     /// <summary>父级片段标识</summary>
     public String? ParentId { get; set; }
 
+    private String? _traceId;
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
-    public String TraceId { get; set; } = null!;
+    /// <remarks>延迟生成，首次读取时才创建</remarks>
+    public String TraceId
+    {
+        get
+        {
+            var traceId = _traceId;
+            if (traceId != null) return traceId;
+
+            traceId = CreateTraceId();
+            // 同一片段可能被并行分支共享，以先写入者为准，保证同一链路的子片段拿到同一个TraceId
+            return Interlocked.CompareExchange(ref _traceId, traceId, null) ?? traceId;
+        }
+        set => _traceId = value;
+    }
 
     /// <summary>开始时间。Unix毫秒</summary>
     public Int64 StartTime { get; set; }
@@ -145,10 +173,9 @@ public class DefaultSpan : ISpan
     /// <summary>设置跟踪标识</summary>
     public virtual void Start()
     {
-        StartTime = Runtime.UtcNow.ToLong();
+        StartTime = Runtime.UtcNow.ToUnixTimeMilliseconds();
 
         //if (Id.IsNullOrEmpty()) Id = Rand.NextBytes(8).ToHex().ToLower();
-        if (Id.IsNullOrEmpty()) Id = CreateId();
 
         // 设置父级
         var span = Current;
@@ -161,9 +188,6 @@ public class DefaultSpan : ISpan
             // 继承跟踪标识，该TraceId下全量采样，确保链路采样完整
             if (span is DefaultSpan ds) TraceFlag = ds.TraceFlag;
         }
-
-        // 否则创建新的跟踪标识
-        if (TraceId.IsNullOrEmpty()) TraceId = CreateTraceId();
 
         // 设置当前片段
         Current = this;
@@ -204,7 +228,7 @@ public class DefaultSpan : ISpan
 
         var sb = Pool.StringBuilder.Get();
         sb.Append(_myip);
-        sb.Append(Runtime.UtcNow.ToLong());
+        sb.Append(Runtime.UtcNow.ToUnixTimeMilliseconds());
         var id = Interlocked.Increment(ref _seq2) & 0xFFFFFF;
         sb.Append(id.ToString("x6").PadLeft(6, '0'));
         sb.Append('e');
@@ -219,7 +243,7 @@ public class DefaultSpan : ISpan
     {
         if (Interlocked.CompareExchange(ref _finished, 1, 0) != 0) return;
 
-        EndTime = Runtime.UtcNow.ToLong();
+        EndTime = Runtime.UtcNow.ToUnixTimeMilliseconds();
 
         // 从本线程中清除跟踪标识
         Current = _parent;
@@ -345,6 +369,15 @@ public class DefaultSpan : ISpan
 public static class SpanExtension
 {
     #region 扩展方法
+#if NET45
+    private static readonly DateTimeOffset _dt1970 = new(new DateTime(1970, 1, 1), TimeSpan.Zero);
+
+    /// <summary>取Unix毫秒时间戳。net45缺少该成员，在此补齐，避免走 UtcNow.ToLong() 的装箱分配</summary>
+    /// <param name="dto">时间</param>
+    /// <returns></returns>
+    internal static Int64 ToUnixTimeMilliseconds(this DateTimeOffset dto) => (Int64)(dto - _dt1970).TotalMilliseconds;
+#endif
+
     private static String? GetAttachParameter(ISpan span)
     {
         var tracer = (span as DefaultSpan)?.Tracer;

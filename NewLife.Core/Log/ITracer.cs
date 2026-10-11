@@ -121,13 +121,16 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>Span构建器集合</summary>
     protected ConcurrentDictionary<String, ISpanBuilder> _builders = new();
 
+    /// <summary>构建器工厂。预先缓存委托，避免热路径上反复分配委托对象</summary>
+    private readonly Func<String, ISpanBuilder> _builderFactory;
+
     /// <summary>采样定时器</summary>
     protected TimerX? _timer;
     #endregion
 
     #region 构造
     /// <summary>实例化</summary>
-    public DefaultTracer() { }
+    public DefaultTracer() => _builderFactory = OnBuildSpan;
 
     /// <summary>销毁</summary>
     /// <param name="disposing"></param>
@@ -213,7 +216,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         var p = name.IndexOfAny(_seps);
         if (p > 0) name = name[..p];
 
-        return _builders.GetOrAdd(name, k => OnBuildSpan(k));
+        return _builders.GetOrAdd(name, _builderFactory);
     }
 
     /// <summary>实例化Span构建器</summary>
