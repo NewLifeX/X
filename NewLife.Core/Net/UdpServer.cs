@@ -43,6 +43,15 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// </remarks>
     public Boolean ReuseAddress { get; set; }
 
+    /// <summary>是否获取数据报包信息。默认true</summary>
+    /// <remarks>
+    /// <para>开启时接收环走 <c>ReceiveMessageFromAsync</c>（.NET 自动打开 IP_PKTINFO），事件参数 <see cref="ReceivedEventArgs.Local"/> 为数据报实际到包的本机地址；
+    /// 多宿服务器绑定 Any 时据此判断数据报来自哪一张本地网卡，不再退化为 0.0.0.0。</para>
+    /// <para>关闭时走 <c>ReceiveFromAsync</c>，省去每包约 112 字节分配与约 1.3 微秒 CPU（高吞吐场景可用），代价是本地地址退化为服务器绑定地址。</para>
+    /// <para>请在打开之前设置。Mono/Android 不支持 ReceiveMessageFromAsync，该平台恒按关闭处理。</para>
+    /// </remarks>
+    public Boolean PacketInformation { get; set; } = true;
+
     /// <summary>最大并行接收数。接收环槽位数，即单Socket上并行挂起的接收笔数与在途数据报深度，同时也是内联并发处理上限</summary>
     /// <remarks>
     /// <para>默认处理器核心数×1.6（约“核心数+60%余量”，下限4）。槽在“收到→处理完（含 Received 回调）→重投”之间一直被占用，
@@ -97,6 +106,10 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <param name="cancellationToken">取消通知</param>
     protected override Task<Boolean> OnOpenAsync(CancellationToken cancellationToken)
     {
+        // 接收环走哪条 API 在此一次性判定，接收热路径（OnReceiveAsync 与 GetReceiveLocalAddress）都读此字段。
+        // 放在最前面：外部可能传入已绑定 Socket，那样会跳过下面的建 Socket 分支，但仍须完成判定
+        _usePacketInfo = PacketInformation && !Runtime.Mono;
+
         var sock = Client;
         if (sock == null || !sock.IsBound)
         {
@@ -115,7 +128,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
                 if (ReuseAddress) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-                // 无需设置SocketOptionName.PacketInformation：接收环已改用 ReceiveFromAsync，不依赖包信息
+                // 无需设置SocketOptionName.PacketInformation，ReceiveMessageFromAsync 内部会自动设置（Socket.SetReceivingPacketInformation）
                 //if (sock.AddressFamily == AddressFamily.InterNetwork)
                 //    sock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
             }
@@ -454,18 +467,22 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         se.SocketFlags = SocketFlags.None;
 
         //return Client.ReceiveFromAsync(se);
-        // 历史写法：Android/旧 Mono 不支持 ReceiveMessageFromAsync，只能走 ReceiveFromAsync。
-        // 现统一走 ReceiveFromAsync：ReceiveMessageFromAsync 的包信息（本地地址）在本库仅用于填 e.Local，
-        // 却让运行时每次完成回调多构造一个端点对象——实测每包 216→104 B 分配、包率 +14%、每包 CPU -1.3 µs。
-        // 本地地址改由 GetReceiveLocalAddress（取 Local.Address，与消息路径 e.Local = Local.Address 同口径）提供。
-        return sock.ReceiveFromAsync(se);
+        // 历史写法：Android/旧 Mono 不支持 ReceiveMessageFromAsync，只能走 ReceiveFromAsync，故保留平台兜底。
+        // 包信息是"数据报来自哪一张本地网卡"的唯一来源：ReceiveMessageFromAsync 把目的地址（即到包网卡地址）填进
+        // se.ReceiveMessageFromPacketInfo，由 GetReceiveLocalAddress 交给 e.Local。代价是运行时每次完成回调多构造包信息与端点对象——
+        // 实测每包 104→216 B 分配（+112 B）、每包 CPU +1.3 µs、1KB 高并发包率约 -14%。
+        // 不需要包信息的高吞吐场景设置 PacketInformation=false 退回 ReceiveFromAsync。
+        return _usePacketInfo ? sock.ReceiveMessageFromAsync(se) : sock.ReceiveFromAsync(se);
     }
 
-    /// <summary>本轮数据的本地地址。接收环走 ReceiveFromAsync，无包信息，取服务器绑定地址</summary>
-    /// <remarks>与消息路径 <c>e.Local = Local.Address</c> 同口径。多宿服务器绑 Any 时不再逐包给出实际到包地址</remarks>
+    /// <summary>本轮数据的本地地址</summary>
+    /// <remarks>
+    /// <para>默认取每包包信息（ReceiveMessageFromAsync 路径），即数据报实际到包的本机地址，多宿服务器绑 Any 时据此判断来自哪张网卡。</para>
+    /// <para>设置 <see cref="PacketInformation"/>=false 或 Mono/Android 平台走 ReceiveFromAsync，无包信息，退化为服务器绑定地址。</para>
+    /// </remarks>
     /// <param name="se">接收事件参数</param>
     /// <returns>本地地址</returns>
-    protected override IPAddress? GetReceiveLocalAddress(SocketAsyncEventArgs se) => Local.Address;
+    protected override IPAddress? GetReceiveLocalAddress(SocketAsyncEventArgs se) => _usePacketInfo ? se.ReceiveMessageFromPacketInfo.Address : Local.Address;
 
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
@@ -573,6 +590,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     /// <summary>本地端口由系统自动分配（未指定监听端口，纯客户端模式）。首次打开时判定，决定是否连接远端</summary>
     private Boolean _autoLocalPort;
+
+    /// <summary>接收环是否读取包信息。打开时按 <see cref="PacketInformation"/> 与平台能力判定一次，接收热路径只读本字段</summary>
+    private Boolean _usePacketInfo;
 
     Int32 g_ID = 0;
     /// <summary>创建会话</summary>
