@@ -27,6 +27,9 @@ internal sealed class OpenTelemetrySpan : ISpan
     /// <summary>是否为空实现</summary>
     private Boolean IsEmpty => _tracer == null;
 
+    /// <summary>所属跟踪器。空实现为 null，据此判断是否需要注入链路标识</summary>
+    internal OpenTelemetryTracer? Tracer => _tracer;
+
     /// <summary>实例化</summary>
     /// <param name="tracer">跟踪器</param>
     /// <param name="activity">活动</param>
@@ -275,14 +278,17 @@ internal sealed class OpenTelemetrySpan : ISpan
     }
     #endregion
 
-    /// <summary>已重载。</summary>
+    /// <summary>已重载。输出 W3C 四段式标识，可直接作为 traceparent 注入出站请求</summary>
     /// <returns></returns>
     public override String ToString()
     {
         var activity = _activity;
-        if (activity == null) return _inner?.ToString() ?? $"{TraceId}-{Id}";
+        if (activity != null) return $"00-{activity.TraceId}-{activity.SpanId}-01";
 
-        return $"00-{activity.TraceId}-{activity.SpanId}-01";
+        // 无活动（仅底盘，或活动已结束）时底盘片段自带完整四段式标识，直接沿用；
+        // 都没有时仍按四段式拼装，避免两段式被下游当成“TraceId-父级”解析出错链
+        var str = _inner?.ToString();
+        return !String.IsNullOrEmpty(str) ? str : $"00-{TraceId}-{Id}-01";
     }
 }
 

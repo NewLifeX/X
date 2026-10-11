@@ -431,6 +431,10 @@ public static class SpanExtension
     private static String? GetAttachParameter(ISpan span)
     {
         var tracer = (span as DefaultSpan)?.Tracer;
+#if NET6_0_OR_GREATER
+        // OpenTelemetry 档的片段不是 DefaultSpan，需单独取跟踪器，否则出站请求不会注入 traceparent，跨进程链路断开
+        tracer ??= (span as OpenTelemetrySpan)?.Tracer;
+#endif
         return tracer?.AttachParameter;
     }
 

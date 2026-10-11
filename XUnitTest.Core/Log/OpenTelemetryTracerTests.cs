@@ -90,6 +90,53 @@ public class OpenTelemetryTracerTests
     }
 
     [Fact]
+    [DisplayName("有监听者_Http埋点注入W3C标准traceparent")]
+    public void ListenerInjectsTraceparent()
+    {
+        const String source = "XUnitTest.Otel.Attach";
+        using var listener = Listen(source, [], []);
+
+        var tracer = new OpenTelemetryTracer { SourceName = source };
+
+        var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, "http://sso.newlifex.com/user/query?id=1");
+        using var span = tracer.NewSpan(request);
+        Assert.NotNull(span);
+
+        // 出站请求必须带上本片段的四段式W3C标识，否则下游会另起一条链路
+        var values = request.Headers.TryGetValues("traceparent", out var vs) ? vs : null;
+        var value = values == null ? "" : String.Join(",", values);
+        Assert.Equal(span!.ToString(), value);
+
+        var ss = value.Split('-');
+        Assert.Equal(4, ss.Length);
+        Assert.Equal(32, ss[1].Length);
+        Assert.Equal(16, ss[2].Length);
+        Assert.Equal(span.TraceId, ss[1]);
+        Assert.Equal(span.Id, ss[2]);
+    }
+
+    [Fact]
+    [DisplayName("无监听者但有底盘_注入底盘片段的W3C标识")]
+    public void InnerOnlyInjectsTraceparent()
+    {
+        var inner = new RecordingTracer();
+        var tracer = new OpenTelemetryTracer { SourceName = "XUnitTest.Otel.AttachInner", Inner = inner };
+
+        var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, "http://sso.newlifex.com/user/query?id=1");
+        using var span = tracer.NewSpan(request);
+        Assert.NotNull(span);
+
+        // 无活动时以底盘片段为准，保证出站头与星尘链路一致
+        var values = request.Headers.TryGetValues("traceparent", out var vs) ? vs : null;
+        var value = values == null ? "" : String.Join(",", values);
+
+        var ss = value.Split('-');
+        Assert.Equal(4, ss.Length);
+        Assert.Equal(inner.Last!.TraceId, ss[1]);
+        Assert.Equal(inner.Last.Id, ss[2]);
+    }
+
+    [Fact]
     [DisplayName("有监听者_产出标准活动并映射标签与错误")]
     public void ListenerProducesActivity()
     {
