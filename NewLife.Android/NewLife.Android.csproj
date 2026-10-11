@@ -138,6 +138,9 @@
     <Compile Include="..\NewLife.Core\Extension\StringHelper.cs">
       <Link>Extension\StringHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Http\ChunkedDecoder.cs">
+      <Link>Http\ChunkedDecoder.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Http\HttpBase.cs">
       <Link>Http\HttpBase.cs</Link>
     </Compile>
