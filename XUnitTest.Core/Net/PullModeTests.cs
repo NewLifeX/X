@@ -234,14 +234,14 @@ public class PullModeTests
         client.Close("done");
     }
 
-    /// <summary>UdpServer.MaxAsync 为并行接收数：默认CPU*1.6，小于等于0归一为1</summary>
+    /// <summary>UdpServer.MaxAsync 为并行接收数：默认处理器核心数×1.6（下限4），小于等于0归一为1</summary>
     [Fact(DisplayName = "拉取_UdpServer_MaxAsync读写与归一")]
     public void UdpServerMaxAsync_Normalize()
     {
         using var udp = new UdpServer();
 
         Assert.True(udp.AutoReceive);
-        Assert.Equal(Environment.ProcessorCount * 16 / 10, udp.MaxAsync);
+        Assert.Equal(Math.Max(Environment.ProcessorCount * 16 / 10, 4), udp.MaxAsync);
 
         udp.MaxAsync = 10;
         Assert.Equal(10, udp.MaxAsync);

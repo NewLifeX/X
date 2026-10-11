@@ -43,8 +43,16 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// </remarks>
     public Boolean ReuseAddress { get; set; }
 
-    /// <summary>最大并行接收数。接收环并发待收的报文数量，默认CPU*1.6</summary>
-    /// <remarks>小于等于0时按1处理。仅控制接收环并行度，接收模式由 <see cref="SessionBase.AutoReceive"/> 决定</remarks>
+    /// <summary>最大并行接收数。接收环槽位数，即单Socket上并行挂起的接收笔数与在途数据报深度，同时也是内联并发处理上限</summary>
+    /// <remarks>
+    /// <para>默认处理器核心数×1.6（约“核心数+60%余量”，下限4）。槽在“收到→处理完（含 Received 回调）→重投”之间一直被占用，
+    /// 故该值约等于同时处理的数据报数，略多于核心数即可；远超核心数只会让更多线程争抢 CPU，反而更慢。</para>
+    /// <para>小于等于0时按1处理。仅控制接收环并行度，接收模式由 <see cref="SessionBase.AutoReceive"/> 决定。</para>
+    /// <para>不要在 Received 回调中做阻塞业务：接收环吞吐 = 槽位 / 回调耗时，调大本值只会堆出更多阻塞线程；
+    /// 应让回调只取包，业务交给业务队列或线程池。</para>
+    /// <para>内存占用为“槽位 × <see cref="SessionBase.BufferSize"/>”，缓冲池化。UDP 数据报最大 65507 字节，
+    /// 故 BufferSize 的实际增长上限为 64k，多核机器也不会因本值偏大而失控。</para>
+    /// </remarks>
     public Int32 MaxAsync
     {
         get => MaxReceiveCount;
@@ -62,8 +70,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
         SessionTimeout = SocketSetting.Current.SessionTimeout;
 
-        // 处理UDP最大并发接收
-        MaxAsync = Environment.ProcessorCount * 16 / 10;
+        // 接收环槽位＝在途报文深度＝内联并发上限，取略多于核心数（1.6倍）即可，再深无实测收益；下限4避免小核心容器退化为单槽
+        MaxAsync = Math.Max(Environment.ProcessorCount * 16 / 10, 4);
 
         if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }

@@ -907,6 +907,25 @@ if (server.Server is TcpServer tcp)
 }
 ```
 
+### 7. UDP 接收并发（MaxAsync）
+
+```csharp
+// UdpServer.MaxAsync 为接收环槽位，默认处理器核心数×1.6（下限4）
+using var udp = new UdpServer { Port = 0 };
+udp.MaxAsync = 32;
+
+// 经 NetServer 使用 UDP 时，从底层服务器调整
+if (server.Server is UdpServer u) u.MaxAsync = 32;
+```
+
+`MaxAsync` 是接收环槽位数，等于单 Socket 上并行挂起的接收笔数与在途数据报深度，同时也是**内联并发处理上限**——
+槽在“收到 → 处理完（含 `Received` 回调）→ 重投”之间一直被占用。
+
+- **默认值够用**：略多于核心数（核心数×1.6）已能吸收突发；实测把槽位放大到 4 倍，包率没有任何变化。
+- **不要用调大本值来解决“处理不过来”**：接收环吞吐 = 槽位 / 回调耗时。回调里做阻塞业务时，加大槽位只会堆出更多阻塞线程；
+  应让回调只取包，业务交给业务队列或线程池。
+- **内存占用**为“槽位 × `BufferSize`”，缓冲池化；UDP 数据报最大 65507 字节，`BufferSize` 的实际增长上限为 64k。
+
 ---
 
 ## 常见问题
