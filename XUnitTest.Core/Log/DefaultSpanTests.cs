@@ -80,4 +80,25 @@ public class DefaultSpanTests
             Assert.Same(traceIds[0], item);
         }
     }
+
+    [Fact]
+    [DisplayName("标识按 W3C 布局分段，各字段偏移正确")]
+    public void IdLayout()
+    {
+        var span = new DefaultSpan();
+        var id = span.Id;
+        var traceId = span.TraceId;
+
+        // Id      = IPv4(8) + PID(4) + 顺序数(4)
+        // TraceId = IPv4(8) + 毫秒(13) + 顺序数(6) + 标识位(1) + PID(4)
+        Assert.Equal(id[..8], traceId[..8]);            // 同一进程的 IPv4 段
+        Assert.Equal(id[8..12], traceId[28..32]);       // 同一进程的 PID 段
+        Assert.Equal('e', traceId[27]);                 // 标识位固定为 e
+        Assert.Matches("^[0-9]{13}$", traceId[8..21]);  // 毫秒时间戳为 13 位十进制
+
+        // 毫秒段应接近当前时间
+        var ms = traceId[8..21].ToLong();
+        var now = Runtime.UtcNow.ToUnixTimeMilliseconds();
+        Assert.True(ms > now - 60_000 && ms < now + 60_000, $"毫秒段时间戳偏移过大：{ms} vs {now}");
+    }
 }

@@ -204,7 +204,16 @@ public class DefaultSpan : ISpan
     {
         // IPv4(8) + PID(4) + 顺序数(4)
         var id = Interlocked.Increment(ref _seq) & 0xFFFF;
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+        return String.Create(16, (Seq: id, Ip: _myip, Pid: _pid), (span, s) =>
+        {
+            s.Ip.AsSpan().CopyTo(span);
+            s.Pid.AsSpan().CopyTo(span[8..]);
+            WriteHex(span[12..], (UInt32)s.Seq, 4);
+        });
+#else
         return _myip + _pid + id.ToString("x4").PadLeft(4, '0');
+#endif
     }
 
     /// <summary>创建跟踪编号</summary>
@@ -226,17 +235,58 @@ public class DefaultSpan : ISpan
          * 毫秒时间为13位十进制，在公元2286年之前一直保持13位。
          */
 
+        var ms = Runtime.UtcNow.ToUnixTimeMilliseconds();
+        var id = Interlocked.Increment(ref _seq2) & 0xFFFFFF;
+
+        //return _myip + DateTime.UtcNow.ToLong() + Interlocked.Increment(ref _seq) + "e" + _pid;
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+        return String.Create(32, (Seq: id, Ms: ms, Ip: _myip, Pid: _pid), (span, s) =>
+        {
+            s.Ip.AsSpan().CopyTo(span);
+            WriteDec(span[8..], s.Ms, 13);
+            WriteHex(span[21..], (UInt32)s.Seq, 6);
+            span[27] = 'e';
+            s.Pid.AsSpan().CopyTo(span[28..]);
+        });
+#else
         var sb = Pool.StringBuilder.Get();
         sb.Append(_myip);
-        sb.Append(Runtime.UtcNow.ToUnixTimeMilliseconds());
-        var id = Interlocked.Increment(ref _seq2) & 0xFFFFFF;
+        sb.Append(ms);
         sb.Append(id.ToString("x6").PadLeft(6, '0'));
         sb.Append('e');
         sb.Append(_pid);
-
-        //return _myip + DateTime.UtcNow.ToLong() + Interlocked.Increment(ref _seq) + "e" + _pid;
         return sb.Return(true);
+#endif
     }
+
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    /// <summary>把整数以小写十六进制右对齐写入字符区，左侧补零</summary>
+    /// <param name="span">目标字符区</param>
+    /// <param name="value">待写入数值</param>
+    /// <param name="digits">写入位数</param>
+    private static void WriteHex(Span<Char> span, UInt32 value, Int32 digits)
+    {
+        for (var i = digits - 1; i >= 0; i--)
+        {
+            var d = (Int32)(value & 0xF);
+            span[i] = (Char)(d < 10 ? '0' + d : 'a' + d - 10);
+            value >>= 4;
+        }
+    }
+
+    /// <summary>把整数以十进制右对齐写入字符区，左侧补零</summary>
+    /// <param name="span">目标字符区</param>
+    /// <param name="value">待写入数值</param>
+    /// <param name="digits">写入位数</param>
+    private static void WriteDec(Span<Char> span, Int64 value, Int32 digits)
+    {
+        for (var i = digits - 1; i >= 0; i--)
+        {
+            span[i] = (Char)('0' + (Int32)(value % 10));
+            value /= 10;
+        }
+    }
+#endif
 
     /// <summary>完成跟踪</summary>
     protected virtual void Finish()

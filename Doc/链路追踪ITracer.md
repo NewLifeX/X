@@ -519,7 +519,7 @@ DefaultTracer.Instance = new CustomTracer();
 
 ## 性能优化
 
-> **接入开销实测数据**：见[《APM埋点性能测试报告》](性能/APM埋点性能测试报告.md)——不用 APM 为零成本；一次普通埋点约 0.3 µs / 384 B；OpenTelemetry 输出与之同量级（空埋点 257 ns）。
+> **接入开销实测数据**：见[《APM埋点性能测试报告》](性能/APM埋点性能测试报告.md)——不用 APM 为零成本；一次普通埋点约 0.13 µs / 72 B；OpenTelemetry 输出空埋点 235 ns / 672 B。
 
 ### 对象池
 
@@ -736,7 +736,7 @@ Stardust 的 `StarTracer` 已默认挂载该采集器，由 `StarSetting.EnableO
 | 事项 | 位置 | 处置与理由 |
 |------|------|-----------|
 | OpenTelemetry 模式下 `Abandon()` 不归还 `Activity.Current` | `OpenTelemetrySpan.Abandon` | **不修**（2026-10 决策）。导出侧本就生效——活动不结束即不通知采集方，实测抛弃 10000 次埋点导出 0 条，对照正常埋点 10000 条全部导出，因此不存在“被抛弃的埋点仍会上报”。残余影响是活动不停止就无法归还 `Activity.Current`：同一异步上下文内后续埋点会以这个不会导出的片段为父级，连续抛弃还会让这条父级链一直被持有（实测 257 B/次）。Web 场景每个请求各自一个异步上下文、链长≈1，影响可忽略；活动生命周期归 OpenTelemetry SDK 管理，库侧不介入。星尘档 `DefaultSpan.Abandon` 已归还上下文（实测驻留由 171 B/次降至 0）。 |
-| 星尘档 `DefaultSpan.Current` 的 `AsyncLocal` 写入分配（约 192 B/埋点） | `DefaultSpan.Start` / `Finish` | **不修**（2026-10-11 决策）。写值必然重建 `ExecutionContext`，属 .NET 固有成本；2026-10-11 优化后它已是单次顶层埋点 192 B 分配的全部来源。改 `[ThreadStatic]` 会让埋点无法跨 `await` 传播（异步链路断裂），`Finish` 不还原 `Current` 会让后续埋点挂到已归还对象池的片段上——比分配问题更严重。故保留，"每次 `NewSpan` 零分配"在本模型下不可达。 |
+| 星尘档 `DefaultSpan.Current` 的 `AsyncLocal` 写入分配 | `DefaultSpan.Start` / `Finish` | **不修**（2026-10-11 决策）。实测单层埋点的分配 **100%** 来自这一次写入：对象池 `Get`/`Return`、构建器字典命中、**值未变化的写入**均为 0 B，而值每变化一次即 72 B（≈40 B 的 `ExecutionContext` + 32 B 的值映射节点）。`ExecutionContext` 不可变，值一变只能新建，属 .NET 模型下限。改 `[ThreadStatic]` 会让埋点无法跨 `await` 传播（异步链路断裂）；改为"可变的 `StrongBox` 就地改字段"看似 0 B，但并行分支共享同一盒子会互相覆盖，属静默串包；`Finish` 不还原 `Current` 会让后续埋点挂到已归还对象池的片段上。三者都比分配问题严重，故保留，"每次 `NewSpan` 零分配"在本模型下不可达。两点边界需知：**该值随宿主 `ExecutionContext` 中已有的 `AsyncLocal` 槽数上升**（干净进程 72 B、1 槽 160 B、3 槽约 224 B）；**嵌套每层再 +200 B**（2 次上下文写入 144 B + 父片段 `Id` 字符串 56 B，第 2 层另有父 `TraceId` 88 B）。 |
 
 ---
 
