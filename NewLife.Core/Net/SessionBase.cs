@@ -109,19 +109,19 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>请求-响应匹配队列。协议模式下等待响应时使用，首次等待时自动创建，可注入共享或自定义实现</summary>
     public IMatchQueue? MatchQueue
     {
-        get => _matcher.Queue;
-        set => _matcher.Queue = value;
+        get => Matcher.Queue;
+        set => Matcher.Queue = value;
     }
 
     /// <summary>请求-响应匹配等待超时（毫秒）。默认30_000</summary>
     public Int32 MatchTimeout
     {
-        get => _matcher.Timeout;
-        set => _matcher.Timeout = value;
+        get => Matcher.Timeout;
+        set => Matcher.Timeout = value;
     }
 
-    /// <summary>响应匹配器。等待登记、匹配交付与关闭清理与传输形态无关，流式与数据报会话共用</summary>
-    private readonly ResponseMatcher _matcher = new();
+    /// <summary>响应匹配器。等待登记、匹配交付与关闭清理与传输形态无关；流式会话的消息泵在帧定界交付时调用</summary>
+    internal ResponseMatcher Matcher { get; } = new();
 
     /// <summary>最大并发处理数。协议模式下消息处理并发度：1=串行（默认，同连接依次处理）；大于1=并行派发（兼作并发上限）</summary>
     /// <remarks>
@@ -270,7 +270,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             await StopReceiveFlowAsync().ConfigureAwait(false);
 
             // 取消挂起的请求-响应等待，避免调用方悬挂
-            _matcher.Clear();
+            Matcher.Clear();
 
             var rs = await OnCloseAsync(reason ?? (GetType().Name + "Close"), cancellationToken).ConfigureAwait(false);
 
@@ -439,7 +439,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (!Open() || Client == null) return null;
 
         // 接收环运行时禁止拉取：两条读路径会争抢同一链路，数据被分流且不可预期
-        if (_RecvCount > 0) throw new InvalidOperationException(NoPullMessage);
+        if (IsReceiving) throw new InvalidOperationException(NoPullMessage);
 
         return OnDirectReceive();
     }
@@ -490,7 +490,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (!Open() || Client == null) return null;
 
         // 接收环运行时禁止拉取：两条读路径会争抢同一链路，数据被分流且不可预期
-        if (_RecvCount > 0) throw new InvalidOperationException(NoPullMessage);
+        if (IsReceiving) throw new InvalidOperationException(NoPullMessage);
 
         return await OnDirectReceiveAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -938,57 +938,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     #endregion 接收
 
-    #region 消息交付
-
-    /// <summary>尝试把响应消息匹配给等待中的请求（协议模式）。命中则交付等待方，跳过收尾</summary>
-    /// <param name="message">收到的消息</param>
-    /// <returns>是否已匹配交付</returns>
-    /// <remarks>
-    /// <para>无匹配队列（未发过等待请求）或无配对协议时快速返回，不产生额外开销；
-    /// 消息是否可配对由协议 matcher 判定（如 SRMP 要求应答消息+序列号相等；无方向协议可用恒真 matcher）。</para>
-    /// <para>流式负载在事件交付前物化为内存模式：事件链可观察读取，等待方在任意时机异步消费（一次拷贝换正确性）。
-    /// 未命中时消息按普通流程收尾，负载随消息归还。</para>
-    /// </remarks>
-    protected Boolean TryMatchResponse(IMessage message) => _matcher.TryMatch(this, Protocol, message);
-
-    /// <summary>收到消息（异步）。协议模式（<see cref="Protocol"/> 非空）下由消息泵逐帧调用</summary>
-    /// <param name="message">消息（头部字段就位、体已绑定）</param>
-    /// <remarks>
-    /// <para>默认触发同步 <see cref="Received"/> 事件链。处理器返回后消息进入收尾：未读体被丢弃对齐帧尾、消息释放。</para>
-    /// <para>需要异步读取流式主体的场景，继承会话重写本方法，在 await 期间消息与数据窗口保持有效；同步事件处理器内需要流式数据时请先物化（<see cref="LimitedReader.ReadAllAsync"/>，数据未到齐会等待——串行语义下正确），或物化后交给后台异步链处理。</para>
-    /// </remarks>
-    protected virtual ValueTask OnMessageAsync(IMessage message)
-    {
-        OnMessage(message);
-
-        return default;
-    }
-
-    /// <summary>收到消息。协议模式（<see cref="Protocol"/> 非空）下由消息泵逐帧调用</summary>
-    /// <param name="message">消息（头部字段就位、体已绑定）</param>
-    /// <remarks>
-    /// <para>构造接收事件参数并进入 <see cref="OnReceive"/> 事件链；消息体未读部分由消息泵在交付后丢弃对齐下一帧。</para>
-    /// <para>事件参数的 <see cref="ReceivedEventArgs.Packet"/> 为消息负载视图（整帧快路径），流式模式下为 null；与消息同生命周期（处理器返回后失效），需要留存请先物化或切出共享句柄。业务请统一经 <see cref="ReceivedEventArgs.Message"/> 读取头部与流式体。</para>
-    /// </remarks>
-    protected virtual void OnMessage(IMessage message)
-    {
-        var e = ReceivedEventArgs.Rent();
-        try
-        {
-            e.Local = Local.Address;
-            e.Remote = Remote.EndPoint;
-            e.Packet = message.Payload;
-            e.Message = message;
-
-            OnReceive(e);
-        }
-        finally
-        {
-            ReceivedEventArgs.Return(e);
-        }
-    }
-    #endregion
-
     #region 消息处理
 
     /// <summary>发送消息。经协议（<see cref="Protocol"/>）构建整帧后发送，不等待响应</summary>
@@ -1043,7 +992,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (this is not IStreamSession) throw new NotSupportedException($"会话类型 [{GetType().Name}] 未接入响应匹配交付，不支持请求-响应等待（数据报会话请用 UdpServer/UdpSession）");
 
         var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", request);
-        var source = _matcher.Register(this, request, span);
+        var source = Matcher.Register(this, request, span);
 
         try
         {

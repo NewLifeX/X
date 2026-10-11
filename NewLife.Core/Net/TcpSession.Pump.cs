@@ -5,8 +5,9 @@ namespace NewLife.Net;
 
 /// <summary>增强TCP客户端（协议模式的消息泵与帧定界交付）</summary>
 /// <remarks>
-/// <para>协议模式下数据经数据管道定界，由消息泵逐帧交付。流式专有配置（最大残留、单帧上限、整帧模式）与并发派发信号量随本类，
-/// 不再放到 <see cref="SessionBase"/>：数据报会话没有粘包与定界问题，这些成员在它那里只会是"未使用"。</para>
+/// <para>协议模式下数据经数据管道定界，由消息泵逐帧交付。流式专有配置（最大残留、单帧上限、整帧模式）、并发派发信号量
+/// 与消息交付入口（<see cref="OnMessageAsync"/> 等）随本类，不再放到 <see cref="SessionBase"/>：
+/// 数据报会话没有粘包与定界问题，这些成员在它那里只会是"未使用"。</para>
 /// </remarks>
 public partial class TcpSession
 {
@@ -348,6 +349,58 @@ public partial class TcpSession
     /// 其 <c>Release</c> 抛 <see cref="SemaphoreFullException"/>；保留已释放实例则只抛
     /// <see cref="ObjectDisposedException"/>，由收尾逻辑按正常时序忽略。</remarks>
     private SemaphoreSlim Concurrency => _concurrency ??= new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
+
+    #endregion
+
+    #region 消息交付
+
+    /// <summary>尝试把响应消息匹配给等待中的请求（协议模式）。命中则交付等待方，跳过收尾</summary>
+    /// <param name="message">收到的消息</param>
+    /// <returns>是否已匹配交付</returns>
+    /// <remarks>
+    /// <para>无匹配队列（未发过等待请求）或无配对协议时快速返回，不产生额外开销；
+    /// 消息是否可配对由协议 matcher 判定（如 SRMP 要求应答消息+序列号相等；无方向协议可用恒真 matcher）。</para>
+    /// <para>流式负载在事件交付前物化为内存模式：事件链可观察读取，等待方在任意时机异步消费（一次拷贝换正确性）。
+    /// 未命中时消息按普通流程收尾，负载随消息归还。</para>
+    /// </remarks>
+    private Boolean TryMatchResponse(IMessage message) => Matcher.TryMatch(this, Protocol, message);
+
+    /// <summary>收到消息（异步）。协议模式（<see cref="SessionBase.Protocol"/> 非空）下由消息泵逐帧调用</summary>
+    /// <param name="message">消息（头部字段就位、体已绑定）</param>
+    /// <remarks>
+    /// <para>默认触发同步 <see cref="SessionBase.Received"/> 事件链。处理器返回后消息进入收尾：未读体被丢弃对齐帧尾、消息释放。</para>
+    /// <para>需要异步读取流式主体的场景，继承会话重写本方法，在 await 期间消息与数据窗口保持有效；同步事件处理器内需要流式数据时请先物化（<see cref="LimitedReader.ReadAllAsync"/>，数据未到齐会等待——串行语义下正确），或物化后交给后台异步链处理。</para>
+    /// </remarks>
+    protected virtual ValueTask OnMessageAsync(IMessage message)
+    {
+        OnMessage(message);
+
+        return default;
+    }
+
+    /// <summary>收到消息。协议模式（<see cref="SessionBase.Protocol"/> 非空）下由消息泵逐帧调用</summary>
+    /// <param name="message">消息（头部字段就位、体已绑定）</param>
+    /// <remarks>
+    /// <para>构造接收事件参数并进入 <see cref="SessionBase.OnReceive"/> 事件链；消息体未读部分由消息泵在交付后丢弃对齐下一帧。</para>
+    /// <para>事件参数的 <see cref="ReceivedEventArgs.Packet"/> 为消息负载视图（整帧快路径），流式模式下为 null；与消息同生命周期（处理器返回后失效），需要留存请先物化或切出共享句柄。业务请统一经 <see cref="ReceivedEventArgs.Message"/> 读取头部与流式体。</para>
+    /// </remarks>
+    protected virtual void OnMessage(IMessage message)
+    {
+        var e = ReceivedEventArgs.Rent();
+        try
+        {
+            e.Local = Local.Address;
+            e.Remote = Remote.EndPoint;
+            e.Packet = message.Payload;
+            e.Message = message;
+
+            OnReceive(e);
+        }
+        finally
+        {
+            ReceivedEventArgs.Return(e);
+        }
+    }
 
     #endregion
 }
