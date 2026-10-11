@@ -198,7 +198,7 @@ public interface ISpan : IDisposable
 
 - **`SetError(Exception ex, Object? tag)`**: 标记异常，`ApiException` 类型会被特殊处理
 - **`SetTag(Object tag)`**: 设置数据标签，支持多种类型自动序列化
-- **`Abandon()`**: 丢弃当前埋点，常用于过滤无效请求（如404扫描）
+- **`Abandon()`**: 丢弃当前埋点，常用于过滤无效请求（如404扫描）。判定条件不要只看状态码，业务接口主动返回的404有观测价值，应结合“是否命中路由终结点”判断
 
 ---
 
@@ -368,6 +368,16 @@ public IActionResult ProcessRequest()
     return Ok();
 }
 ```
+
+> 判定“无效请求”不要只看状态码：业务接口主动返回的404（如查询的资源不存在）是正常业务行为，埋点有观测价值；
+> 而扫描探测请求不会命中任何路由终结点。星尘 SDK 的 `TracerMiddleware` 即按「状态码404 且 `ctx.GetEndpoint() == null`」
+> 判定，并可通过 `TracerMiddleware.ShouldAbandon` 接管默认规则，其它框架可参照该思路。
+
+`Abandon()` 的作用边界：
+
+- **只丢弃当前片段**：同一条链路里由其它跟踪器（`DiagnosticListener`、`OpenTelemetryCollector`、XCode）产生的片段不受影响，需要整链过滤时应在采集端按 TraceId 处理。
+- **只省上报不省创建**：埋点对象、请求头标签等已经产生，扫描洪峰下的创建开销依然存在；要在创建前拦截，可让 `ITracer.Resolver` 对探测路径返回空以跳过埋点。
+- **星尘档是落地能力**：`DefaultSpan` 会归还片段上下文；OpenTelemetry 档的活动归 SDK 管理，不作为承诺，详见[收口记录](#收口记录)。
 
 ---
 
@@ -681,7 +691,7 @@ OpenTelemetryTracer.Enable(new OpenTelemetryTracer
 
 没有任何活动监听者且未设置底盘时，`NewSpan` 立即返回共享的空实现，不产生分配，因此可以安全地长期挂着。
 
-> 注意：活动一旦启动就无法撤销，`Abandon()` 在 OpenTelemetry 模式下只透传给底盘。需要过滤埋点的场景，应通过采集端的源名过滤或采样处理器实现。
+> 注意：`Abandon()` 后活动不再结束，也就不会通知任何采集方，该埋点不会被导出（实测抛弃 10000 次埋点导出 0 条，对照正常埋点 10000 条全部导出）。但活动不停止就无法归还 `Activity.Current`，同一上下文内后续埋点仍会以这个不会导出的片段为父级；需要彻底过滤埋点的场景，应通过采集端的源名过滤或采样处理器实现。详见文末[收口记录](#收口记录)。
 
 ### 服务端片段继承上游链路
 
@@ -719,6 +729,16 @@ Stardust 的 `StarTracer` 已默认挂载该采集器，由 `StarSetting.EnableO
 
 ---
 
+## 收口记录
+
+> 已知不处理、不再重复登记的事项。扫描埋点体系前先读本节，避免重复报告。
+
+| 事项 | 位置 | 处置与理由 |
+|------|------|-----------|
+| OpenTelemetry 模式下 `Abandon()` 不归还 `Activity.Current` | `OpenTelemetrySpan.Abandon` | **不修**（2026-10 决策）。导出侧本就生效——活动不结束即不通知采集方，实测抛弃 10000 次埋点导出 0 条，对照正常埋点 10000 条全部导出，因此不存在“被抛弃的埋点仍会上报”。残余影响是活动不停止就无法归还 `Activity.Current`：同一异步上下文内后续埋点会以这个不会导出的片段为父级，连续抛弃还会让这条父级链一直被持有（实测 257 B/次）。Web 场景每个请求各自一个异步上下文、链长≈1，影响可忽略；活动生命周期归 OpenTelemetry SDK 管理，库侧不介入。星尘档 `DefaultSpan.Abandon` 已归还上下文（实测驻留由 171 B/次降至 0）。 |
+
+---
+
 ## 参考资料
 
 - **星尘监控平台**: https://newlifex.com/blood/stardust
@@ -730,7 +750,7 @@ Stardust 的 `StarTracer` 已默认挂载该采集器，由 `StarSetting.EnableO
 
 ## 更新日志
 
-- **2026-10**: 新增 OpenTelemetry 双向适配（`OpenTelemetryTracer` 输出、`OpenTelemetryCollector` 采集）；traceId 升级为 W3C 标准的 32 位十六进制
+- **2026-10**: 新增 OpenTelemetry 双向适配（`OpenTelemetryTracer` 输出、`OpenTelemetryCollector` 采集）；traceId 升级为 W3C 标准的 32 位十六进制；星尘档 `Abandon()` 归还上下文
 - **2024-12-16**: 完善文档，补充最佳实践和示例代码
 - **2024-08**: 支持 .NET 9.0
 - **2023-11**: 增加 `Abandon()` 方法
