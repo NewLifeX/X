@@ -211,6 +211,7 @@ public class OpenTelemetryTracer : DisposeBase, ITracer, ILogFeature
 
     /// <summary>创建活动。无监听者时返回空</summary>
     /// <param name="name">操作名称</param>
+    /// <param name="parent">上游活动上下文；为空则沿用当前活动上下文</param>
     /// <returns></returns>
     internal Activity? StartActivity(String name, ActivityContext? parent = null)
     {
