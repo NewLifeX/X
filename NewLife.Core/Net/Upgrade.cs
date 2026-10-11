@@ -265,13 +265,32 @@ public class Upgrade
         // 单文件与 AOT 发布下 EntryAssembly.Location 为空，改用进程路径
 #if NET6_0_OR_GREATER
         var exe = Environment.ProcessPath;
+
+        // 框架依赖部署（dotnet App.dll）下进程路径是 dotnet 主机而不是应用：直接启动会起一个无参数的裸主机
+        // （打印用法后立即退出），而当前进程已经退出，等于服务停机。此时以「主机 + 入口程序集」启动。
+        // 入口程序集路径取命令行首项；apphost 与单文件下进程路径本身就是应用，不需要参数
+        var args = (String?)null;
+        if (String.Equals(Path.GetFileNameWithoutExtension(exe), "dotnet", StringComparison.OrdinalIgnoreCase))
+        {
+            var cargs = Environment.GetCommandLineArgs();
+            if (cargs.Length > 0) args = cargs[0];
+        }
 #else
         var exe = Assembly.GetEntryAssembly()?.Location;
+        var args = (String?)null;
 #endif
         if (exe.IsNullOrEmpty()) return;
 
-        WriteLog("启动进程 {0}", exe);
-        Process.Start(exe);
+        if (args.IsNullOrEmpty())
+        {
+            WriteLog("启动进程 {0}", exe);
+            Process.Start(exe);
+        }
+        else
+        {
+            WriteLog("启动进程 {0} {1}", exe, args);
+            Process.Start(exe, args);
+        }
 
         WriteLog("退出当前进程");
         if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
