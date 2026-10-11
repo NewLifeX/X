@@ -865,10 +865,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
-    /// <param name="local">接收数据的本地地址</param>
+    /// <param name="local">接收数据的本地地址，取自 <see cref="SessionBase.GetReceiveLocalAddress"/>，无包信息时为空</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    protected internal abstract ISocketSession? OnPreReceive(IPacket pk, IPAddress local, IPEndPoint remote);
+    protected internal abstract ISocketSession? OnPreReceive(IPacket pk, IPAddress? local, IPEndPoint remote);
 
     /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
     /// <param name="e">接收事件参数</param>

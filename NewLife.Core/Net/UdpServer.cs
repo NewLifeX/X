@@ -461,10 +461,10 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
-    /// <param name="local">接收数据的本地地址</param>
+    /// <param name="local">接收数据的本地地址，取自 <see cref="SessionBase.GetReceiveLocalAddress"/>，无包信息时为空</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected override ISocketSession? OnPreReceive(IPacket pk, IPAddress local, IPEndPoint remote)
+    internal protected override ISocketSession? OnPreReceive(IPacket pk, IPAddress? local, IPEndPoint remote)
     {
         // 过滤自己广播的环回数据。放在这里，兼容UdpSession
         if (!Loopback && remote.Port == Port)

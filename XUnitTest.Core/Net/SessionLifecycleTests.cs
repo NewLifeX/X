@@ -70,7 +70,7 @@ public class SessionLifecycleTests
 
         protected override Int32 OnSend(ReadOnlySpan<Byte> data) => data.Length;
 
-        protected internal override ISocketSession? OnPreReceive(IPacket pk, IPAddress local, IPEndPoint remote) => null;
+        protected internal override ISocketSession? OnPreReceive(IPacket pk, IPAddress? local, IPEndPoint remote) => null;
 
         protected override Boolean OnReceive(ReceivedEventArgs e) => false;
 

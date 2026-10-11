@@ -1270,10 +1270,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
-    /// <param name="local">接收数据的本地地址</param>
+    /// <param name="local">接收数据的本地地址，取自 <see cref="SessionBase.GetReceiveLocalAddress"/>，无包信息时为空</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    protected internal override ISocketSession? OnPreReceive(IPacket pk, IPAddress local, IPEndPoint remote)
+    protected internal override ISocketSession? OnPreReceive(IPacket pk, IPAddress? local, IPEndPoint remote)
     {
         if (pk.Length == 0)
         {
