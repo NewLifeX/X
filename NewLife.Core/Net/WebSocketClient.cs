@@ -97,7 +97,10 @@ public class WebSocketClient : TcpSession
         // 异步握手。失败即整条打开失败，释放底层避免半开连接
         if (!await HandshakeAsync(cancellationToken).ConfigureAwait(false))
         {
+            // 必须与其它失败路径一样置空：已释放的 Socket 其 IsBound 恒为 true，留着会让下一次重试
+            // 跳过建套接字、直接拿已释放实例去建连，以 ObjectDisposedException 收场而不是返回 false
             Client.TryDispose();
+            Client = null;
 
             return false;
         }

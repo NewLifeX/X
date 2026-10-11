@@ -40,6 +40,39 @@ public class WebSocketHandshakeTests
     }
 
     [Fact]
+    [DisplayName("ws握手_失败后重试_仍返回失败而非抛异常")]
+    public async Task Handshake_FailedRetry_ReturnsFalseAgain()
+    {
+        // 裸监听套接字：接受连接后立即关闭，握手读到 0 字节即失败
+        using var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        listener.Listen(4);
+        var port = ((IPEndPoint)listener.LocalEndPoint!).Port;
+
+        // 重试会重新建连，故准备两次受理。本任务不等待：修复前重试在建连前就抛错，第二次受理不会到来
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                for (var i = 0; i < 2; i++)
+                {
+                    using var tc = await listener.AcceptAsync();
+                }
+            }
+            catch { }
+        });
+
+        using var client = new WebSocketClient($"ws://127.0.0.1:{port}/ws") { Timeout = 3_000 };
+
+        // 第一次：握手失败，返回 false
+        Assert.False(await client.OpenAsync().WaitAsync(TimeSpan.FromSeconds(10)), "服务端拒绝握手时应返回失败");
+
+        // 第二次：打开失败不缓存、可重试。修复前 Client 被释放却未置空，而已释放 Socket 的 IsBound 恒为 true，
+        // 重试会跳过建套接字、直接拿已释放实例去建连，以 ObjectDisposedException 收场而不是返回 false
+        Assert.False(await client.OpenAsync().WaitAsync(TimeSpan.FromSeconds(10)), "握手失败后重试仍应返回失败");
+    }
+
+    [Fact]
     [DisplayName("ws握手_响应与首帧同段_首帧不丢失")]
     public async Task Handshake_ImmediateFirstFrame_NotLost()
     {
