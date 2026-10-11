@@ -262,22 +262,12 @@ public class Upgrade
     public void Run()
     {
         // 启动进程
-        // 单文件与 AOT 发布下 EntryAssembly.Location 为空，改用进程路径
 #if NET6_0_OR_GREATER
-        var exe = Environment.ProcessPath;
-
-        // 框架依赖部署（dotnet App.dll）下进程路径是 dotnet 主机而不是应用：直接启动会起一个无参数的裸主机
-        // （打印用法后立即退出），而当前进程已经退出，等于服务停机。此时以「主机 + 入口程序集」启动。
-        // 入口程序集路径取命令行首项；apphost 与单文件下进程路径本身就是应用，不需要参数
-        var args = (String?)null;
-        if (String.Equals(Path.GetFileNameWithoutExtension(exe), "dotnet", StringComparison.OrdinalIgnoreCase))
-        {
-            var cargs = Environment.GetCommandLineArgs();
-            if (cargs.Length > 0) args = cargs[0];
-        }
+        // 单文件与 AOT 发布下 EntryAssembly.Location 为空，改用进程路径；命令行首项是入口程序集路径
+        var cargs = Environment.GetCommandLineArgs();
+        var (exe, args) = ResolveRestartTarget(Environment.ProcessPath, cargs.Length > 0 ? cargs[0] : null);
 #else
-        var exe = Assembly.GetEntryAssembly()?.Location;
-        var args = (String?)null;
+        var (exe, args) = ResolveRestartTarget(Assembly.GetEntryAssembly()?.Location, null);
 #endif
         if (exe.IsNullOrEmpty()) return;
 
@@ -296,6 +286,26 @@ public class Upgrade
         if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
         Environment.Exit(0);
         Process.GetCurrentProcess().Kill();
+    }
+
+    /// <summary>解析重启目标：要启动的可执行文件与启动参数</summary>
+    /// <remarks>
+    /// <para>框架依赖部署（<c>dotnet App.dll</c>）下进程路径是 dotnet 主机而不是应用，直接启动会起一个无参数的裸主机
+    /// （打印用法后立即退出），而当前进程随即退出，等于服务停机；此时以「主机 + 入口程序集」启动。</para>
+    /// <para>apphost 与单文件/AOT 下进程路径本身就是应用，不需要参数。主机形态却拿不到入口程序集时返回空，
+    /// 由调用方保持现状——既不启动裸主机，也不退出。</para>
+    /// </remarks>
+    /// <param name="processPath">当前进程的可执行文件路径</param>
+    /// <param name="entryPath">入口程序集路径（命令行首项）</param>
+    /// <returns>可执行文件与启动参数；可执行为空表示无法重启，参数为空表示直接启动该可执行文件</returns>
+    internal static (String? Exe, String? Args) ResolveRestartTarget(String? processPath, String? entryPath)
+    {
+        if (processPath.IsNullOrEmpty()) return (null, null);
+
+        // 进程路径不是 dotnet 主机时，它本身就是应用
+        if (!String.Equals(Path.GetFileNameWithoutExtension(processPath), "dotnet", StringComparison.OrdinalIgnoreCase)) return (processPath, null);
+
+        return entryPath.IsNullOrEmpty() ? (null, null) : (processPath, entryPath);
     }
     #endregion
 

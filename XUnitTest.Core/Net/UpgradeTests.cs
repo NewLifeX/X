@@ -204,4 +204,49 @@ public class UpgradeTests
         Assert.StartsWith($"http://127.0.0.1:{port2}/", ug.Link!.Url);
         Assert.Equal(new Version(2, 0, 0, 0), ug.Link.Version);
     }
+
+    [Fact(DisplayName = "重启目标：apphost形态直接启动进程路径")]
+    public void RestartTarget_Apphost_NoArgs()
+    {
+        var app = Path.Combine("app", "MyApp.exe");
+        var dll = Path.Combine("app", "MyApp.dll");
+
+        var (exe, args) = Upgrade.ResolveRestartTarget(app, dll);
+
+        // 进程路径本身就是应用，不需要带参数
+        Assert.Equal(app, exe);
+        Assert.Null(args);
+    }
+
+    [Fact(DisplayName = "重启目标：框架依赖形态以主机加入口程序集启动")]
+    public void RestartTarget_FrameworkDependent_HostWithEntry()
+    {
+        var host = Path.Combine("dotnet-root", "DOTNET.EXE");
+        var dll = Path.Combine("app", "MyApp.dll");
+
+        var (exe, args) = Upgrade.ResolveRestartTarget(host, dll);
+
+        // 直接启动主机只会起一个无参数的裸主机（打印用法后退出），必须带上入口程序集；主机名判定不区分大小写与扩展名
+        Assert.Equal(host, exe);
+        Assert.Equal(dll, args);
+    }
+
+    [Fact(DisplayName = "重启目标：主机形态但入口缺失时保持现状")]
+    public void RestartTarget_HostWithoutEntry_NoTarget()
+    {
+        var (exe, args) = Upgrade.ResolveRestartTarget(Path.Combine("dotnet-root", "dotnet"), null);
+
+        // 宁可不动（不启动也不退出），也不启动一个无参数的裸主机
+        Assert.Null(exe);
+        Assert.Null(args);
+    }
+
+    [Fact(DisplayName = "重启目标：进程路径缺失时无法重启")]
+    public void RestartTarget_NoProcessPath_NoTarget()
+    {
+        var (exe, args) = Upgrade.ResolveRestartTarget(null, Path.Combine("app", "MyApp.dll"));
+
+        Assert.Null(exe);
+        Assert.Null(args);
+    }
 }
