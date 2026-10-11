@@ -415,6 +415,54 @@ public class TracerTests
     }
 
     [Fact]
+    [DisplayName("抛弃片段_归还上下文且后续埋点不挂到被抛弃的片段")]
+    public void AbandonRestoresCurrent()
+    {
+        var tracer = new DefaultTracer();
+
+        var outer = tracer.NewSpan("outer") as DefaultSpan;
+        Assert.NotNull(outer);
+        Assert.Same(outer, DefaultSpan.Current);
+
+        var inner = tracer.NewSpan("http-404") as DefaultSpan;
+        Assert.NotNull(inner);
+        Assert.Same(inner, DefaultSpan.Current);
+
+        inner!.Abandon();
+        inner.Dispose();
+
+        // 抛弃的片段要把上下文交还给外层，否则它会一直被 Current 持有
+        Assert.Same(outer, DefaultSpan.Current);
+
+        // 后续埋点挂到外层，而不是这个永远不会上报的片段
+        var after = tracer.NewSpan("after") as DefaultSpan;
+        Assert.NotNull(after);
+        Assert.Equal(outer!.Id, after!.ParentId);
+        Assert.NotEqual(inner.Id, after.ParentId);
+
+        after.Dispose();
+        outer.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("抛弃片段_不计入采集且重复抛弃安全")]
+    public void AbandonIsIdempotent()
+    {
+        var tracer = new DefaultTracer();
+
+        var span = tracer.NewSpan("http-404");
+        span.Abandon();
+        span.Abandon();
+        span.Dispose();
+
+        Assert.Null(DefaultSpan.Current);
+
+        // 抛弃的埋点不产生统计
+        var builders = tracer.TakeAll();
+        Assert.DoesNotContain(builders, e => e.Name == "http-404");
+    }
+
+    [Fact]
     public void TestTraceId()
     {
         var span = new DefaultSpan();

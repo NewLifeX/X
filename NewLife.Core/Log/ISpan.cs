@@ -243,6 +243,10 @@ public class DefaultSpan : ISpan
         _finished = 1;
         //Builder = null;
 
+        // 抛弃的片段同样要把上下文归还给父级，否则它会一直被 Current 持有，
+        // 同一异步上下文内后续埋点也会挂到这个永远不会上报的父级上
+        Current = _parent;
+
         // 不能还给对象池，因为外部还有引用，Dispose尚未调用
     }
 
