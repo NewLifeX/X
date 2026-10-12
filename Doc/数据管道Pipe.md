@@ -11,6 +11,45 @@
 **命名空间**：`NewLife.Data`（帧泵与流式消息在 `NewLife.Messaging`，见下文组件表）
 
 > 全局缓冲所有权与消息层归属处理见《网络缓冲所有权架构》。
+>
+> 零基础读者建议先读下一节《三分钟看懂》；只想查阅 API 的读者可直接跳到《组件》。
+
+## 三分钟看懂（零基础导览）
+
+> 本节只讲“是什么、怎么配合、为什么这么设计”，机制细节与取舍依据散见后文各节；只想查 API 的读者可跳过。
+
+**一个比喻**：`Pipe` 是一根带“水位线”的数据水管，`PipeWriter`/`PipeReader` 是这根水管的两端管口——同一个对象、两个句柄，写方拿 `.Writer`、读方拿 `.Reader`，可以分属不同线程（单写单读）。
+
+数据的一生只有五个动作：
+
+```
+写入 → FlushAsync 提交 → 未消费窗口（读方可见） → 解析并 AdvanceTo 推进 → 引用计数归零，内存归还池
+```
+
+| 类 | 一句话职责 | 你会用到的动作 |
+|----|-----------|---------------|
+| `Pipe` | 管体：自己不读写数据，只承载公共状态——双端句柄、共享锁、完成标志与异常、积压量与水位、`Resumed` 事件 | `new Pipe()`、调 `PauseThreshold`/`ResumeThreshold`、`Dispose`；日常几乎不直接使用 |
+| `PipeWriter` | 唯一写者：数据先写进管道内部缓冲，**提交（FlushAsync）之前读方不可见** | `Append(IPacket)`（整包、所有权转移、零拷贝）／`GetSpan`+`Advance`+`FlushAsync`（跨度直写）／`WriteAsync`（一步写入） |
+| `PipeReader` | 唯一读者：每次拿到“当前窗口”——`ReadOnlySequence<Byte>` 零拷贝视图，跨段跨包天然连续 | `ReadAsync`/`TryRead` 取窗口 → 解析 → `AdvanceTo(consumed, examined)` 报进度 → `TakeFrame` 切整帧、`Limit` 限长读体 |
+
+**为什么是三个类而不是一个**：
+
+- **读写节奏解耦**：收数据的一侧“来了就投”，消费的一侧按自己的节奏取，两侧可以是不同线程、不同速度；
+- **零拷贝**：窗口直接指向管道持有的段链（数据包），解析不产生副本；`Append(IPacket)` 连句柄所有权一并转移；
+- **缓冲有界**：读方不消费，积压涨到暂停水位就“亮红灯”（`IsPaused`），把压力传回接收方——TCP 窗口自然回压，没人读也不会无限涨内存（细节见《背压》）；
+- **抗粘包/半包**：管道只管字节流，定界交给消费方（帧泵/协议编解码器）——头到齐即交付、体流式读取，各取所需。
+
+**与 System.IO.Pipelines 的关系**：命名与形态对齐 BCL（同名不同命名空间，同时引用两者时用别名隔离），行为按 BCL 实测逐项对齐；差异只剩三条关键决策与两条有意保留的偏差，见《与 System.IO.Pipelines 的差异（三个关键决策）》。
+
+**常见误区速记**：
+
+| 误区 | 正解 | 细节见 |
+|------|------|--------|
+| 把读取窗口 `Buffer` 存下来跨轮用 | 窗口只在对应数据被消费前有效；需要跨轮持有就用 `TakeFrame` 切出拥有句柄 | 《所有权规则》 |
+| `AdvanceTo` 传的是对象或位置 | 主形态是**字节计数**：消费了多少、检查到哪（examined）；位置重载仅限最近一次读取窗口 | 《读取器 API 摘要》 |
+| “只检查不消费”就不用推进窗口 | 也要 `AdvanceTo(0, examined)` 报出已检查量，否则积压不解除、写侧可能永久挂起 | 《背压》 |
+| `Complete()` 会丢掉没提交的数据 | 已 `Advance` 未 `Flush` 的数据会**先提交再结束**；只有未推进的写缓冲才丢弃 | 《写入缓冲（Pipelines 形态）》 |
+| `Append` 之后还留着句柄 | 入参所有权无条件转移给管道，调用后不得再使用/释放；管道已关闭时由管道负责释放 | 《所有权规则》 |
 
 ## 组件
 
@@ -135,6 +174,70 @@ await pipe.Writer.FlushAsync();      // 提交，读取方立即可见
 - **不能按瞬时长度判断**：多次小步消费时，跨过恢复水位那一步的起始长度已低于暂停水位，按瞬时判断会漏报恢复事件（e2e 实测教训）。默认值 0 或负数表示不启用背压。
 - **写侧回压（预留能力，2026-09-17）**：`FlushAsync(ct)` 在暂停态返回未完成任务，与接收方向共用同一套水位状态机；恢复、结束与取消都会唤醒挂起提交。当前出站不使用它——出站队列（`TcpSession.SendQueue`）自行以 `IsPaused` + `Resumed` 等待水位，`PipeWriter` 的写侧提交只服务于写入器自身的缓冲提交路径。
 
+## 在网络库中如何生效（端到端走一遍）
+
+本节按“一个字节的旅程”把前面的类与真实网络代码对上号：谁建管道、谁写、谁读、背压怎么闭环、关闭怎么收尾；机制取舍的权威描述仍以《会话集成（TcpSession）》《背压（迟滞状态机）》《消费方接入》《所有权规则》为准。
+
+### 全景图
+
+```
+【入站】
+ Socket / SslStream 读回调
+    │
+    ▼
+ TcpSession.OnReceiveAsync ── IsPaused？ ──► ParkReceive 暂存接收（不再向内核取数）
+    │ 每轮数据（SAEA / SSL BeginRead）               ▲ Resumed 后重启
+    ▼                                               │
+ TcpSession.OnPreReceive ─ 0 字节判定对端关闭；其余投递
+    │ 共享切片 pk.Slice(0, -1)（引用计数，轮末自动换新缓冲）
+    ▼
+ ┌ Pipe（入站，水位 1M / 512K）──────────────────────────────┐
+ │ Writer.Append → 未消费窗口（段链，经 Reader 暴露只读序列）  │
+ └───────────────────────────────────────────────────────────┘
+    │ pipe.Reader
+    ▼
+ 消费方（三选一）
+   ├─ 协议模式：会话自动启动的 MessagePump 泵（头到齐即交付、体为 LimitedReader）
+   ├─ WebSocket：帧泵（服务端 Process / 客户端接收循环）
+   └─ 自定义：自行循环 MessagePump.TryRead / ReadAsync，或 pipe.Reader 直接读取
+    │
+    ▼
+ OnMessageAsync 事件链 → 业务处理 → AdvanceTo 推进消费 → 降到恢复水位 → Resumed → 重启接收
+
+【出站】
+ 业务 Send 系列 ──► 默认直发：写锁内 0 分配 0 拷贝写出（内核发送缓冲即水位）
+ 业务 SendQueuedAsync ──► SendQueue（Pipe，256K/128K）──► 发送泵取整窗 ──► Socket
+```
+
+### 各环节与代码位置
+
+| 环节 | 做什么 | 代码位置 |
+|------|--------|----------|
+| 建管道 | `session.Pipe` 首次访问懒创建（`CreatePipe()` 可重写水位）；`GetPipe()` 不触发创建 | `TcpSession.Receive.cs` |
+| 投递 | 每轮数据以**共享切片**追加进管道；管道未创建则直接返回（没人消费则零开销） | `AppendToPipe` |
+| 背压暂停 | 发起下一次接收前查 `IsPaused`；暂停则暂存接收参数 | `OnReceiveAsync` / `ParkReceive` |
+| 背压恢复 | `Resumed`（消费线程触发）取回暂存接收、经接收环同一入口重启 | `CreatePipe` 挂事件 / `ResumeParkedReceive` |
+| 消费（协议模式） | 启动时起 `MessagePump` 泵：循环 `pump.ReadAsync(pipe.Reader)` 定界交付 | `TcpSession.Pump.cs`（`StartMessagePump`/`PumpAsync`） |
+| 收尾 | 关闭时释放管道：挂起读立即得到“已结束”，残余缓冲归还池；`Pipe` 复位为 null，再次访问可重建 | `CleanupStreamFlows`（`TcpSession.cs`） |
+
+### 从字节到消息（编号时序）
+
+1. 接收环向内核发起读（SAEA 异步收；SSL 走 `BeginRead`）；
+2. 数据到达 `OnPreReceive`：0 字节按对端关闭走收尾，否则 `AppendToPipe` 投递共享切片；
+3. 追加即唤醒挂起的消费读：协议模式泵 `MessagePump.ReadAsync` 醒来定界；
+4. 默认**头到齐即交付**消息（`RequireFullFrame` 或协议头部可要求整帧），帧体经 `LimitedReader` 按预算流式读取，不必等整帧驻留；
+5. 消费推进 `AdvanceTo(consumed, examined)`：声明消费与检查的字节，背压按“未检查量”记账（口径见《背压》）；
+6. 积压 ≥1M 触发暂停：接收环暂存下一次接收，TCP 窗口自然回压发送方；≤512K 触发 `Resumed`，接收环重启——**背压闭环**；
+7. 关闭：`CloseAsync` → `CleanupStreamFlows` 释放管道（完成写侧唤醒挂起读、结束读侧归还残余）——挂起读立即得到“已结束”，会话对象可再次访问 `Pipe` 重建。
+
+### 背压长在网络上
+
+管道积压达到暂停水位时，`IsPaused` 亮起；`TcpSession` 在**发起下一次接收前**看到它，就把接收参数暂存——不再向内核取数，发送方的 TCP 窗口随之收紧，全程不需要任何显式流量控制协议。消费推进到恢复水位以下触发 `Resumed`，暂存的接收被取回重启。读侧“等数据凑帧”时会自动解除暂停放行数据（饥饿让位），大帧不会被水位卡死。默认水位与定档依据见《背压（迟滞状态机）》。
+
+### 出站方向
+
+出站默认**直发**（写锁内 0 分配 0 拷贝，内核发送缓冲即水位）。需要排队/批量时走可选的 `SendQueue`——与入站对称的一个 `Pipe`（水位 256K/128K）：`SendQueuedAsync` 入队后，发送泵循环取走整个读窗口（`TakeFrame`）一次散列写提交多条消息。两条出口各自内部有序、混用不保证彼此先后；**同一条逻辑消息必须走同一出口**。详见《出站方向：默认直发，可选发送队列（2026-10-01）》。
+
 ## 会话集成（TcpSession）
 
 - 入站管道由连接型会话 `TcpSession` 提供（接口 `IStreamSession`）：`Pipe` 属性懒创建（`CreatePipe()` 虚方法可定制水位）；`GetPipe()` 为不触发创建的访问器；
@@ -204,10 +307,10 @@ await session.SendFileAsync(filePath);        // 内核零拷贝推文件
 | 消费方 | 接入方式 |
 |--------|----------|
 | WebSocket 服务端（`Http/WebSocket`） | `Process(IPacket)` 同步泵：入管道 → 循环取帧 → 交付消息；借阅视图自动克隆为自有拷贝 |
-| WebSocket 会话（`Net/Handlers/WebSocketCodec`） | `Open` 触建管道；`Read` 检测管道同步泵帧（按 `IStreamSession` 接入）；非流式属主回退旧 PacketCodec 路径 |
-| 自定义消费 | `framer.ReadFrameAsync(pipe.Reader)` 循环、`TryReadHeader` + body 限长流式，或接收线程内 `framer.Pump(reader, frame => ...)` 同步泵出 |
+| WebSocket 客户端（`Net/WebSocketClient`） | 协议模式接入：`RequireFullFrame` 整帧泵出后经 `OnMessage` 校验交付；握手残片先投递入站管道 |
+| 自定义消费 | 同步泵 `MessagePump.TryRead(reader, out message)` 循环、异步泵 `MessagePump.ReadAsync(reader)` 循环，或 `pipe.Reader` 自行读取 + `Limit` 限长流式消费 body |
 
-同步泵在接收线程内完成"取帧→交付"，线程语义与旧链路一致；背压由轮末暂停水位裁决驱动。帧泵统一序列委托 `GetFrameLength`；消息协议直接绑定 `Message.TryParseHeader`（旧桥接 `TryParse` 等价）。
+同步泵在接收线程内完成"取帧→交付"，线程语义与旧链路一致；背压由轮末暂停水位裁决驱动。帧的定界信息由 `IMessageCodec.TryParse` 返回（`HeaderSize` + `BodyLength` 即本帧消费字节数），`MessagePump` 负责窗口推进与交付，消息体由帧层绑定（整帧内存视图 / 未齐流式读取器）。
 
 ## 所有权规则
 
