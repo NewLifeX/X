@@ -138,7 +138,7 @@ public class WebSocketClient : TcpSession
         return base.OnCloseAsync(reason, cancellationToken);
     }
 
-    /// <summary>销毁。释放心跳定时器并清空未取走的接收消息，避免负载滞留</summary>
+    /// <summary>销毁。释放心跳定时器并唤醒等待者</summary>
     /// <param name="disposing"></param>
     protected override void Dispose(Boolean disposing)
     {
@@ -149,8 +149,9 @@ public class WebSocketClient : TcpSession
         _timer?.Dispose();
         _timer = null;
 
-        while (_received.TryDequeue(out var msg)) msg.TryDispose();
-
+        // 不清空接收队列：会话可能因对端关闭被内部收尾销毁，已到达消息（如 Close 消息）仍须可被拉取方观察。
+        // ReceiveMessageAsync 的契约为“先出队、后判断关闭”，此处清队列会让拉取方随机丢失最后一条消息；
+        // 未取走的消息持有物化拷贝负载，随对象一并由 GC 回收
         SetClosed();
     }
 

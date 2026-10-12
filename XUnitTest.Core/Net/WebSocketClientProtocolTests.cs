@@ -102,6 +102,10 @@ public class WebSocketClientProtocolTests
         Assert.Equal(0x88, opcode);
         Assert.Equal(1000, status);
 
+        // 对端关闭会触发会话内部收尾销毁；这里再显式销毁一次，把“销毁不清空接收队列”钉进断言：
+        // 修复前销毁即清队列，已到达的 Close 消息会随收尾时序随机丢失，拉取方只能拿到 null
+        client.Dispose();
+
         // 拉取 API 仍能先观察到 Close 消息，随后连接关闭返回 null
         var msg = await client.ReceiveMessageAsync().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.NotNull(msg);
