@@ -59,8 +59,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <para>小于等于0时按1处理。仅控制接收环并行度，接收模式由 <see cref="SessionBase.AutoReceive"/> 决定。</para>
     /// <para>不要在 Received 回调中做阻塞业务：接收环吞吐 = 槽位 / 回调耗时，调大本值只会堆出更多阻塞线程；
     /// 应让回调只取包，业务交给业务队列或线程池。</para>
-    /// <para>内存占用为“槽位 × <see cref="SessionBase.BufferSize"/>”，缓冲池化。UDP 数据报最大 65507 字节，
-    /// 故 BufferSize 的实际增长上限为 64k，多核机器也不会因本值偏大而失控。</para>
+    /// <para>内存占用为“槽位 × <see cref="SessionBase.BufferSize"/>”，缓冲池化。槽缓冲在打开时按 BufferSize 一次性分配、
+    /// 不随报文尺寸增长，故接收大于 BufferSize 的数据报会被丢弃（Windows）/截断（Linux）；需要接收大报文请在打开前设置 BufferSize，
+    /// UDP 数据报上限为 65507（IPv4）/65527（IPv6）字节，设 65536 即全覆盖。多核机器也不会因本值偏大而失控。</para>
     /// </remarks>
     public Int32 MaxAsync
     {
@@ -486,7 +487,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
-    /// <param name="local">接收数据的本地地址，取自 <see cref="SessionBase.GetReceiveLocalAddress"/>，无包信息时为空</param>
+    /// <param name="local">接收数据的本地地址，取自 <see cref="SessionBase.GetReceiveLocalAddress"/>；无包信息时（<see cref="PacketInformation"/>=false 或 Mono 平台）为服务器绑定地址</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
     internal protected override ISocketSession? OnPreReceive(IPacket pk, IPAddress? local, IPEndPoint remote)
@@ -544,11 +545,19 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <returns>是否当作异常处理并结束会话。恒为 false：让接收环重投本槽继续收</returns>
     internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
     {
-        // 缓冲区不足时，加大
-        if (se.SocketError == SocketError.MessageSize && BufferSize < 1024 * 1024) BufferSize *= 2;
+        // 报文超出接收缓冲：内核已丢弃（Windows）/截断（Linux）该数据报。槽缓冲在打开时按 BufferSize 分配、不随报文尺寸增长
+        // （旧实现改 BufferSize 对已建槽无效，已删除），故这里只把原因与建议说清；逐包提示会刷屏，只提示一次
+        if (se.SocketError == SocketError.MessageSize)
+        {
+            if (!_messageSizeLogged)
+            {
+                _messageSizeLogged = true;
 
+                WriteLog("报文超出接收缓冲 {0} 字节，已丢弃；需要接收大报文请在打开前设置 BufferSize=65536（UDP 数据报上限 65507/65527 字节）", BufferSize);
+            }
+        }
         // 关闭出问题的会话（Reset/Aborted 一般来自 ICMP 端口不可达），服务器本身不关闭
-        if (se.SocketError is SocketError.ConnectionReset or SocketError.ConnectionAborted)
+        else if (se.SocketError is SocketError.ConnectionReset or SocketError.ConnectionAborted)
         {
             var sessions = _Sessions;
             if (sessions != null)
@@ -557,6 +566,12 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 var ss = ep != null ? sessions.Get(ep) : null;
                 ss?.Dispose();
             }
+        }
+        else
+        {
+            // 其它接收错误不致命，但必须可见：基类只在返回 true 时才记日志并触发 Error 事件，本方法恒返回 false，自行补上，
+            // 否则整条 UDP 接收链的错误全部静默
+            if (se.GetException() is { } ex) OnError("ReceiveAsync", ex);
         }
 
         // 一律返回 false，让接收环重投本槽继续收。返回 true 会让 ProcessEvent 释放本槽，
@@ -593,6 +608,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     /// <summary>接收环是否读取包信息。打开时按 <see cref="PacketInformation"/> 与平台能力判定一次，接收热路径只读本字段</summary>
     private Boolean _usePacketInfo;
+
+    /// <summary>是否已提示过报文超出接收缓冲。逐包提示会刷屏，只提示一次</summary>
+    private Boolean _messageSizeLogged;
 
     Int32 g_ID = 0;
     /// <summary>创建会话</summary>

@@ -62,6 +62,11 @@ public class TestLog : ILog
     public Boolean Contains(String text) =>
         _entries.Any(e => e.Contains(text, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>统计已捕获的日志条目中包含指定文本的条数（忽略大小写）</summary>
+    /// <param name="text">要查找的文本</param>
+    public Int32 Count(String text) =>
+        _entries.Count(e => e.Contains(text, StringComparison.OrdinalIgnoreCase));
+
     /// <summary>轮询等待日志中出现指定文本，超时返回 false</summary>
     /// <param name="text">要等待的文本</param>
     /// <param name="timeoutMs">超时毫秒数，默认 3000</param>

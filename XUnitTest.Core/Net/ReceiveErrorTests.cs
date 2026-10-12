@@ -4,6 +4,7 @@ using NewLife;
 using NewLife.Data;
 using NewLife.Net;
 using Xunit;
+using XUnitTest.Integration;
 
 namespace XUnitTest.Net;
 
@@ -247,5 +248,51 @@ public class ReceiveErrorTests
         // 槽句柄带链时同样直接释放：头节点归零归还缓冲，链上各段随 Dispose 递归释放，无需单独判别 Next
         Assert.Throws<ObjectDisposedException>(() => head.Buffer);
         Assert.Throws<ObjectDisposedException>(() => tail.Buffer);
+    }
+
+    [Fact(DisplayName = "UDP接收错误_报文超出缓冲_提示一次且不再偷偷加倍")]
+    public void UdpReceiveError_MessageSize_HintOnce()
+    {
+        var log = new TestLog();
+        using var server = new UdpServer { Port = 0, MaxAsync = 2, BufferSize = 1024, Log = log };
+        server.Open();
+
+        var origin = server.BufferSize;
+
+        var se = new SocketAsyncEventArgs
+        {
+            SocketError = SocketError.MessageSize,
+            RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, 12345),
+        };
+        Assert.False(server.OnReceiveError(se));
+
+        // 报文超出接收缓冲是"内核已丢弃该数据报"，必须可见，且逐包提示会刷屏，只提示一次
+        Assert.Equal(1, log.Count("BufferSize=65536"));
+
+        Assert.False(server.OnReceiveError(se));
+        Assert.Equal(1, log.Count("BufferSize=65536"));
+
+        // 旧实现按次翻倍 BufferSize：对已建接收槽无效（槽缓冲只在换新路径变），只留下"会自动长大"的错觉
+        Assert.Equal(origin, server.BufferSize);
+        Assert.True(server.Active);
+    }
+
+    [Fact(DisplayName = "UDP接收错误_非报文级错误_记日志保持可见")]
+    public void UdpReceiveError_OtherError_KeepsVisible()
+    {
+        var log = new TestLog();
+        using var server = new UdpServer { Port = 0, MaxAsync = 2, Log = log };
+        server.Open();
+
+        // 基类只在 OnReceiveError 返回 true 时才记日志并触发 Error 事件；UDP 恒返回 false（保接收槽），
+        // 故必须自行补日志，否则整条接收链的错误全部静默
+        var se = new SocketAsyncEventArgs
+        {
+            SocketError = SocketError.NetworkDown,
+            RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, 12345),
+        };
+        Assert.False(server.OnReceiveError(se));
+
+        Assert.True(log.Contains("ReceiveAsyncError"));
     }
 }
