@@ -10,7 +10,7 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
-/// <summary>UdpSession 空数据报约定的判定时机测试</summary>
+/// <summary>UdpSession 行为测试：空数据报判定时机、零进展协议防护、Timeout 会话级收口</summary>
 /// <remarks>
 /// 约定：收到空数据报时结束会话。判定必须以事件链之前的原始数据报为准——
 /// 事件内业务按契约消费/释放本轮句柄后 <c>Packet.Length</c> 归零，
@@ -41,6 +41,24 @@ public class UdpSessionTests
             if (buffer.Length == 0) return null;
 
             return new ParseResult { Message = new Message(), HeaderSize = 0, BodyLength = buffer.Length };
+        }
+
+        public IOwnerPacket? Build(IMessage message) => throw new NotSupportedException("测试协议仅验证接收路径");
+
+        public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("测试协议仅验证接收路径");
+    }
+
+    /// <summary>测试用协议：产出消息但头长与体长均为零，违反“成功即有进展”契约</summary>
+    private sealed class ZeroProgressCodec : IMessageCodec
+    {
+        public Int32 ParseCount;
+
+        public ParseResult? TryParse(ReadOnlySequence<Byte> buffer)
+        {
+            if (buffer.Length == 0) return null;
+
+            ParseCount++;
+            return new ParseResult { Message = new Message(), HeaderSize = 0, BodyLength = 0 };
         }
 
         public IOwnerPacket? Build(IMessage message) => throw new NotSupportedException("测试协议仅验证接收路径");
@@ -178,5 +196,48 @@ public class UdpSessionTests
         }
 
         Assert.Equal(0, overflow);
+    }
+
+    /// <summary>违反“成功即有进展”契约的协议不得让定界循环原地打转：零进展帧被整体丢弃、不交付事件</summary>
+    [Fact(DisplayName = "UDP协议_零进展协议_丢弃不交付且不原地打转")]
+    public async Task ZeroProgress_DoesNotSpin()
+    {
+        using var server = new UdpServer();
+        using var session = NewSession(server);
+        var codec = new ZeroProgressCodec();
+        session.Protocol = codec;
+
+        var received = 0;
+        session.Received += (s, e) => received++;
+
+        var pk = NewPacket(3);
+        try
+        {
+            // 旧实现会在单次调用内死循环；这里必须在有限时间内返回，且零进展帧被丢弃
+            var task = Task.Run(() => session.OnReceive(NewArgs(pk)));
+            Assert.True(await task.WaitAsync(TimeSpan.FromSeconds(5)), "零进展协议导致定界循环未退出");
+        }
+        finally
+        {
+            pk.TryDispose();
+        }
+
+        Assert.Equal(0, received);
+        Assert.Equal(1, codec.ParseCount);
+    }
+
+    /// <summary>会话级 Timeout 仅为 ITransport 契约保留：设置不得触碰服务器共享 Socket 的接收超时</summary>
+    [Fact(DisplayName = "UDP会话_设置Timeout_不触碰服务器共享Socket")]
+    public void Timeout_DoesNotTouchSharedSocket()
+    {
+        using var server = new UdpServer { AutoReceive = false };
+        server.Open();
+        using var session = NewSession(server);
+
+        var before = server.Client!.ReceiveTimeout;
+        session.Timeout = 12_345;
+
+        Assert.Equal(12_345, session.Timeout);
+        Assert.Equal(before, server.Client!.ReceiveTimeout);
     }
 }
