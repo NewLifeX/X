@@ -345,7 +345,9 @@ public class MemoryCacheTests
         Assert.Equal("Stone", val);
 
         var exp = mc.GetExpire("name");
-        Assert.Equal(days, exp.Days);
+        // TTL 按毫秒精度倒计时：设置后即使只流逝一个滴答，剩余时间也略小于 N 天，
+        // 用 TimeSpan.Days 直接截断会偶发变成 N-1（满载调度下已实测），故按天向上取整断言
+        Assert.Equal(days, (Int32)Math.Ceiling(exp.TotalDays));
     }
 
     [Fact(DisplayName = "移除-单键与通配")]
