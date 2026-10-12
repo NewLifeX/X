@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NewLife.Collections;
+using NewLife.Configuration;
 using NewLife.Log;
 
 namespace NewLife.Reflection;
@@ -143,7 +144,10 @@ public class AssemblyX
             }
 
             // 辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false
-            if (Setting.Current.AssemblyResolve) return OnResolve(name);
+            // 采用非阻塞读取：配置正在被其它线程初始化时，放弃本次辅助解析。
+            // 程序集解析回调可能在任意线程、且持有类初始化锁等状态下被触发，阻塞等待配置初始化锁会形成互等死锁
+            var setting = Config<Setting>.TryGetCurrent();
+            if (setting != null && setting.AssemblyResolve) return OnResolve(name);
         }
         catch (Exception ex)
         {

@@ -12,6 +12,12 @@ public class ConfigTests
         public Boolean Enabled { get; set; } = true;
     }
 
+    /// <summary>仅用于模拟“配置初始化进行中”的独立配置类型，避免影响其它用例</summary>
+    public class InitHoldConfig : Config<InitHoldConfig>
+    {
+        public String? Tag { get; set; }
+    }
+
     [Fact]
     public void Current_ReturnsInstance()
     {
@@ -62,5 +68,39 @@ public class ConfigTests
         var ex = Record.Exception(() => cfg.Save());
 
         Assert.Null(ex);
+    }
+
+    [Fact(DisplayName = "配置初始化中_TryGetCurrent不阻塞且返回空")]
+    public async Task TryGetCurrent_ReturnsNullWhileInitializing()
+    {
+        // 模拟另一线程正在初始化 InitHoldConfig：占用其监视器（Config 的锁对象为 typeof(TConfig)）
+        using var hold = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var holder = Task.Run(() =>
+        {
+            lock (typeof(InitHoldConfig))
+            {
+                hold.Set();
+                release.Wait(10_000);
+            }
+        });
+        Assert.True(hold.Wait(5_000), "占用线程未就绪");
+
+        try
+        {
+            // 初始化进行中必须快速返回 null；若等待，将与“持配置锁等待类初始化/程序集解析”的场景互锁
+            var cfg0 = await Task.Run(() => Config<InitHoldConfig>.TryGetCurrent()).WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Null(cfg0);
+        }
+        finally
+        {
+            release.Set();
+            await holder.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+
+        // 无竞争时完成初始化并缓存，与 Current 同源
+        var cfg = Config<InitHoldConfig>.TryGetCurrent();
+        Assert.NotNull(cfg);
+        Assert.Same(cfg, InitHoldConfig.Current);
     }
 }
