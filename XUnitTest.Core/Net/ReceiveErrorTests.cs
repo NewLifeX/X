@@ -295,4 +295,70 @@ public class ReceiveErrorTests
 
         Assert.True(log.Contains("ReceiveAsyncError"));
     }
+
+    [Fact(DisplayName = "UDP接收错误_Reset携带来源端点_关闭对应会话")]
+    public void UdpReceiveError_ResetWithSourceEndPoint_ClosesSession()
+    {
+        using var server = new UdpServer { Port = 0, MaxAsync = 2 };
+        server.Open();
+
+        var ep = new IPEndPoint(IPAddress.Loopback, 40001);
+        var session = server.CreateSession(null, ep);
+        Assert.NotNull(session);
+        Assert.False(session.Disposed);
+
+        var se = new SocketAsyncEventArgs { SocketError = SocketError.ConnectionReset, RemoteEndPoint = ep };
+        Assert.False(server.OnReceiveError(se));
+
+        // 端点可用时关闭对应会话，服务器本身不关闭
+        Assert.True(session.Disposed);
+        Assert.True(server.Active);
+    }
+
+    [Fact(DisplayName = "UDP接收错误_客户端模式ICMP重置_按已连接目标关闭会话")]
+    public void UdpReceiveError_ClientModeReset_ClosesConnectedSession()
+    {
+        using var receiver = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        receiver.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        var target = (IPEndPoint)receiver.LocalEndPoint!;
+
+        // 未指定本地端口 + 打开前设远端 → 客户端模式：打开时连接唯一目标
+        using var udp = new UdpServer { Remote = new NetUri($"udp://127.0.0.1:{target.Port}") };
+        udp.Open();
+
+        var session = udp.CreateSession(null, target);
+        Assert.NotNull(session);
+
+        // 错误完成不携带来源端点（占位值）：已连接模式下 ICMP 只可能来自唯一目标，据此关闭对应会话
+        var se = new SocketAsyncEventArgs
+        {
+            SocketError = SocketError.ConnectionReset,
+            RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0),
+        };
+        Assert.False(udp.OnReceiveError(se));
+
+        Assert.True(session.Disposed);
+        Assert.True(udp.Active);
+    }
+
+    [Fact(DisplayName = "UDP接收错误_Reset无可识别端点_不误关会话")]
+    public void UdpReceiveError_ResetWithoutSource_KeepsSessions()
+    {
+        using var server = new UdpServer { Port = 0, MaxAsync = 2 };
+        server.Open();
+
+        var session = server.CreateSession(null, new IPEndPoint(IPAddress.Loopback, 40002));
+        Assert.NotNull(session);
+
+        // 占位端点 + 未连接（多对端服务端）：无从判断来源，不得关闭任意会话，交由超时清理
+        var se = new SocketAsyncEventArgs
+        {
+            SocketError = SocketError.ConnectionReset,
+            RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0),
+        };
+        Assert.False(server.OnReceiveError(se));
+
+        Assert.False(session.Disposed);
+        Assert.True(server.Active);
+    }
 }

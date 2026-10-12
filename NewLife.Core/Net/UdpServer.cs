@@ -48,7 +48,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <para>开启时接收环走 <c>ReceiveMessageFromAsync</c>（.NET 自动打开 IP_PKTINFO），事件参数 <see cref="ReceivedEventArgs.Local"/> 为数据报实际到包的本机地址；
     /// 多宿服务器绑定 Any 时据此判断数据报来自哪一张本地网卡，不再退化为 0.0.0.0。</para>
     /// <para>关闭时走 <c>ReceiveFromAsync</c>，省去每包约 112 字节分配与约 1.3 微秒 CPU（高吞吐场景可用），代价是本地地址退化为服务器绑定地址。</para>
-    /// <para>请在打开之前设置。Mono/Android 不支持 ReceiveMessageFromAsync，该平台恒按关闭处理。</para>
+    /// <para>请在打开之前设置。Mono/Android 不支持 ReceiveMessageFromAsync，该平台恒按关闭处理；
+    /// 其它平台若运行时报告不支持，首次接收即自动降级为关闭（本地地址随之退化为服务器绑定地址）。</para>
     /// </remarks>
     public Boolean PacketInformation { get; set; } = true;
 
@@ -462,13 +463,29 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         // se.ReceiveMessageFromPacketInfo，由 GetReceiveLocalAddress 交给 e.Local。代价是运行时每次完成回调多构造包信息与端点对象——
         // 实测每包 104→216 B 分配（+112 B）、每包 CPU +1.3 µs、1KB 高并发包率约 -14%。
         // 不需要包信息的高吞吐场景设置 PacketInformation=false 退回 ReceiveFromAsync。
-        return _usePacketInfo ? sock.ReceiveMessageFromAsync(se) : sock.ReceiveFromAsync(se);
+        if (_usePacketInfo)
+        {
+            try
+            {
+                return sock.ReceiveMessageFromAsync(se);
+            }
+            catch (PlatformNotSupportedException ex)
+            {
+                // 运行时报告不支持包信息（个别平台/旧系统的漏网）：就地降级后重投本槽继续收，不能让异常冒泡——
+                // StartReceive 的 catch 会释放本接收槽，而槽只在启动时创建、销毁后不重建，耗尽即整台服务器静默失聪
+                _usePacketInfo = false;
+
+                WriteLog("ReceiveMessageFromAsync 不受支持，降级为 ReceiveFromAsync：{0}", ex.Message);
+            }
+        }
+
+        return sock.ReceiveFromAsync(se);
     }
 
     /// <summary>本轮数据的本地地址</summary>
     /// <remarks>
     /// <para>默认取每包包信息（ReceiveMessageFromAsync 路径），即数据报实际到包的本机地址，多宿服务器绑 Any 时据此判断来自哪张网卡。</para>
-    /// <para>设置 <see cref="PacketInformation"/>=false 或 Mono/Android 平台走 ReceiveFromAsync，无包信息，退化为服务器绑定地址。</para>
+    /// <para>设置 <see cref="PacketInformation"/>=false、Mono/Android 平台，或运行时报告不支持后自动降级，走 ReceiveFromAsync 无包信息，退化为服务器绑定地址。</para>
     /// </remarks>
     /// <param name="se">接收事件参数</param>
     /// <returns>本地地址</returns>
@@ -551,8 +568,15 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             var sessions = _Sessions;
             if (sessions != null)
             {
+                // 错误完成回调不刷新来源端点：se.RemoteEndPoint 仍是重投时新建的占位端点（实测 Reset 完成时仍为
+                // 占位值且 bytes=0），按它查不到会话。仍保留尝试，兼容将来或个别平台在错误路径上刷新端点
                 var ep = se.RemoteEndPoint as IPEndPoint;
-                var ss = ep != null ? sessions.Get(ep) : null;
+                var ss = ep != null && !ep.Address.IsAny() ? sessions.Get(ep) : null;
+
+                // 已连接模式（纯客户端）下 ICMP 只可能来自唯一的已连接目标，据此关闭对应会话；
+                // 未连接的多对端服务端无从判断来源，交由会话超时清理
+                if (ss == null && _connectedRemote != null) ss = sessions.Get(_connectedRemote);
+
                 ss?.Dispose();
             }
         }
@@ -599,7 +623,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     private IPEndPoint? _connectedRemote;
 
     /// <summary>接收环是否读取包信息。打开时按 <see cref="PacketInformation"/> 与平台能力判定一次，接收热路径只读本字段</summary>
-    private Boolean _usePacketInfo;
+    /// <remarks>运行时报告不支持时由接收线程置假（降级），volatile 保证接收热路径与完成回调及时看到新口径</remarks>
+    private volatile Boolean _usePacketInfo;
 
     /// <summary>是否已提示过报文超出接收缓冲。逐包提示会刷屏，只提示一次</summary>
     private Boolean _messageSizeLogged;
