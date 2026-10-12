@@ -11,6 +11,8 @@ namespace NewLife.Net;
 /// <para>发送出口共用一把写锁（<see cref="_writeLock"/>），任一时刻只有一位写者在写套接字；失败在锁外上报并按失败关闭会话。</para>
 /// <para>直发：<see cref="SessionBase.Send(IPacket)"/> 锁内同步直写（0 分配 0 拷贝，链式包散列写一次系统调用提交整条链），
 /// <see cref="TcpSession.SendAsync(IPacket, CancellationToken)"/> 锁内异步直写；流式/文件/消息发送见对应章节，出站队列（第二出口）与发送泵见 TcpSession.SendQueue。</para>
+/// <para>数据流：入口 → 发送骨架 SendUnderLock/SendUnderLockAsync（等锁 → 写 → 释放 → 锁外上报）→ 写核心（SSL 流 / 散列写）→ 内核；
+/// 平台差异（Span/数组、异步写降级、内核零拷贝）经 TcpSession.Platform。</para>
 /// </remarks>
 public partial class TcpSession
 {
@@ -24,6 +26,7 @@ public partial class TcpSession
     //   SendFileAsync(文件)        锁内让内核零拷贝推文件（SendFile/TransmitFile）
     // 慢对端由内核发送缓冲形成天然背压；需要排队/限流的场合可在上层用 Actor 组合，不进发送核心。
     // 批量场景可选走 TcpSession.SendQueue（见 TcpSession.SendQueue.cs 出站队列与发送泵），由发送泵在锁内批量写出。
+    // 直发入口共用发送骨架 SendUnderLock/SendUnderLockAsync：等锁 → 写 → 释放 → 锁外上报（失败上报/关闭必须在锁外，防回调内再 Send 死锁）。
 
     /// <summary>写锁。四个发送入口共用：任一时刻只有一位写者在写套接字，故多线程/多入口混用不会交错</summary>
     private readonly SemaphoreSlim _writeLock = new(1, 1);
@@ -102,23 +105,25 @@ public partial class TcpSession
         return sent;
     }
 
-    /// <summary>直发：锁内同步写出整个数据包（直接写数据包缓冲，0 拷贝 0 分配），写完才返回</summary>
-    /// <remarks>写锁保证任一时刻只有一位写者；失败已上报并按失败关闭会话</remarks>
-    /// <param name="pk">数据包。借用语义：调用方保留句柄，用完自行释放</param>
+    /// <summary>发送骨架（同步）：等写锁 → 写 → 释放 → 锁外上报/关闭</summary>
+    /// <remarks>
+    /// <para>失败上报与关闭必须放在锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一线程二次进入写锁而死锁。</para>
+    /// <para>写动作用静态 lambda 传入（state 携带数据包等输入），避免每次发送产生闭包分配；Span 入参无法经闭包传递，见下方重载。</para>
+    /// <para>流式/文件/消息发送有额外的失败分类（调用方取消与数据错误不上报不关会话），不走本骨架，见各自方法注释。</para>
+    /// </remarks>
+    /// <param name="state">写动作的输入（数据包等）</param>
+    /// <param name="write">锁内写动作（静态 lambda）</param>
+    /// <param name="data">出错的发送数据，便于日志定位</param>
     /// <returns>已发送字节数；失败返回 -1</returns>
-    private Int32 DirectSend(IPacket pk)
+    private Int32 SendUnderLock<TState>(TState state, Func<TState, TcpSession, Int32> write, Object? data)
     {
-        if (pk == null) return -1;
-
-        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
-
         Exception? error = null;
         var rs = -1;
 
         _writeLock.Wait();
         try
         {
-            rs = WritePacket(pk);
+            rs = write(state, this);
         }
         catch (Exception ex)
         {
@@ -129,10 +134,9 @@ public partial class TcpSession
             _writeLock.Release();
         }
 
-        // 上报与关闭放到锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 将在同一线程二次进入写锁而死锁
         if (error != null)
         {
-            ReportSendError(error, pk);
+            ReportSendError(error, data);
 
             return -1;
         }
@@ -140,22 +144,19 @@ public partial class TcpSession
         return rs;
     }
 
-    /// <summary>直发：锁内同步写出一段数据（直接写调用方缓冲，0 拷贝 0 分配），写完才返回</summary>
-    /// <param name="data">数据。调用方需保证返回前不改写该缓冲</param>
+    /// <summary>发送骨架（同步，内存段）。Span 不能被闭包捕获，单独提供重载；其余语义同 <see cref="SendUnderLock{TState}"/></summary>
+    /// <param name="data">数据</param>
+    /// <param name="write">锁内写动作（静态 lambda）</param>
     /// <returns>已发送字节数；失败返回 -1</returns>
-    private Int32 DirectSend(ReadOnlySpan<Byte> data)
+    private Int32 SendUnderLock(ReadOnlySpan<Byte> data, MemoryWriter write)
     {
-        if (data.IsEmpty) return 0;
-
-        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", data.Length, data.ToHex(LogDataLength));
-
         Exception? error = null;
         var rs = -1;
 
         _writeLock.Wait();
         try
         {
-            rs = WriteMemory(data);
+            rs = write(data, this);
         }
         catch (Exception ex)
         {
@@ -176,6 +177,73 @@ public partial class TcpSession
         return rs;
     }
 
+    /// <summary>内存段写动作（自定义委托：BCL 的 Func 不支持 ref struct 参数）</summary>
+    /// <param name="data">数据</param>
+    /// <param name="session">会话</param>
+    /// <returns>已发送字节数</returns>
+    private delegate Int32 MemoryWriter(ReadOnlySpan<Byte> data, TcpSession session);
+
+    /// <summary>发送骨架（异步）：等写锁 → 写 → 释放 → 锁外上报/关闭；等待可写期间不占线程</summary>
+    /// <remarks>取消在等锁边界生效（WaitAsync）；其余语义同 <see cref="SendUnderLock{TState}"/></remarks>
+    /// <param name="state">写动作的输入（数据包等）</param>
+    /// <param name="write">锁内写动作（静态 lambda）</param>
+    /// <param name="data">出错的发送数据，便于日志定位</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private async ValueTask<Int32> SendUnderLockAsync<TState>(TState state, Func<TState, TcpSession, ValueTask<Int32>> write, Object? data, CancellationToken cancellationToken)
+    {
+        Exception? error = null;
+        var rs = -1;
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            rs = await write(state, this).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        if (error != null)
+        {
+            ReportSendError(error, data);
+
+            return -1;
+        }
+
+        return rs;
+    }
+
+    /// <summary>直发：锁内同步写出整个数据包（直接写数据包缓冲，0 拷贝 0 分配），写完才返回</summary>
+    /// <remarks>写锁保证任一时刻只有一位写者；失败已上报并按失败关闭会话</remarks>
+    /// <param name="pk">数据包。借用语义：调用方保留句柄，用完自行释放</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private Int32 DirectSend(IPacket pk)
+    {
+        if (pk == null) return -1;
+
+        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
+
+        return SendUnderLock(pk, static (p, s) => s.WritePacket(p), pk);
+    }
+
+    /// <summary>直发：锁内同步写出一段数据（直接写调用方缓冲，0 拷贝 0 分配），写完才返回</summary>
+    /// <param name="data">数据。调用方需保证返回前不改写该缓冲</param>
+    /// <returns>已发送字节数；失败返回 -1</returns>
+    private Int32 DirectSend(ReadOnlySpan<Byte> data)
+    {
+        if (data.IsEmpty) return 0;
+
+        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", data.Length, data.ToHex(LogDataLength));
+
+        return SendUnderLock(data, static (d, s) => s.WriteMemory(d));
+    }
+
     /// <summary>直发：锁内异步写出整个数据包（0 拷贝 0 分配），等待可写期间不占线程</summary>
     /// <remarks>失败已上报并按失败关闭会话；同时使用多个发送入口时由写锁串行化</remarks>
     /// <param name="pk">数据包。借用语义：调用方保留句柄，用完自行释放</param>
@@ -189,32 +257,7 @@ public partial class TcpSession
 
         if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
 
-        Exception? error = null;
-        var rs = -1;
-
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            rs = await WritePacketAsync(pk).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            error = ex;
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
-
-        // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一把写锁上二次等待而死锁
-        if (error != null)
-        {
-            ReportSendError(error, pk);
-
-            return -1;
-        }
-
-        return rs;
+        return await SendUnderLockAsync(pk, static (p, s) => s.WritePacketAsync(p), pk, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>写核心（同步）：把整包（含链）写完才返回；短计数自动续发，失败抛异常</summary>

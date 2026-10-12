@@ -224,31 +224,11 @@ public partial class TcpSession
                     // 零拷贝切出整窗并推进消费窗口（同时解除写侧水位）：多条消息合并为一次散列写
                     var frame = reader.TakeFrame(count);
 
-                    Exception? error = null;
-                    _writeLock.Wait();
-                    try
-                    {
-                        WritePacket(frame);
-                        LastTime = DateTime.Now;
-                    }
-                    catch (Exception ex)
-                    {
-                        error = ex;
-                    }
-                    finally
-                    {
-                        _writeLock.Release();
-                    }
+                    var rs = SendUnderLock(frame, static (f, s) => s.WritePacket(f), null);
 
                     frame.TryDispose();
 
-                    // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一线程二次进入写锁而死锁
-                    if (error != null)
-                    {
-                        ReportSendError(error, null);
-
-                        break;
-                    }
+                    if (rs < 0) break;
                 }
 
                 if (result.IsCompleted) break;

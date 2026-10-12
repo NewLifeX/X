@@ -8,6 +8,8 @@ namespace NewLife.Net;
 /// <para>协议模式下数据经数据管道定界，由消息泵逐帧交付。流式专有配置（最大残留、单帧上限、整帧模式）、并发派发信号量
 /// 与消息交付入口（<see cref="OnMessageAsync"/> 等）随本类，不再放到 <see cref="SessionBase"/>：
 /// 数据报会话没有粘包与定界问题，这些成员在它那里只会是"未使用"。</para>
+/// <para>数据流：接收环 → 入站管道（见 TcpSession.Receive）→ MessagePump 定界 → <see cref="OnMessageAsync"/>（事件链与匹配交付）；
+/// 关闭时先停泵并限时排空在途帧（<see cref="PumpDrainTimeout"/>），保证对端“发完即关”时最后一条消息不丢。</para>
 /// </remarks>
 public partial class TcpSession
 {
@@ -57,7 +59,7 @@ public partial class TcpSession
 
     /// <summary>本轮原始数据是否已被消息泵接管</summary>
     /// <remarks>协议模式下数据经数据管道定界交付，接收环不再把原始字节抛给事件；拉取模式（无泵）时仍走事件</remarks>
-    protected override Boolean RawReceiveTaken => _pumpTask != null;
+    protected override Boolean RawReceiveTaken => _pumpObserver != null;
 
     /// <summary>销毁资源</summary>
     /// <param name="disposing">是否释放托管资源</param>
@@ -77,7 +79,7 @@ public partial class TcpSession
     private CancellationTokenSource? _pumpCts;
 
     /// <summary>泵任务的观察续体。存的是 ContinueWith 续体而非泵本体：仅用于观察失败，以及标记“协议模式已启动”（停止时清空）</summary>
-    private Task? _pumpTask;
+    private Task? _pumpObserver;
 
     /// <summary>泵本体任务。关闭时等待在途帧交付完成用（观察续体与泵本体完成时序不同，不可用于等待）</summary>
     private Task? _pumpRunTask;
@@ -102,7 +104,7 @@ public partial class TcpSession
         _pumpRunTask = task;
 
         // 观察泵任务：泵内异常若无人观察会被静默吞掉，表现为“连接还在但再也收不到消息”，极难定位
-        _pumpTask = task.ContinueWith(
+        _pumpObserver = task.ContinueWith(
             t =>
             {
                 try
@@ -126,7 +128,7 @@ public partial class TcpSession
 
         // 清空“泵已启动”标记：RawReceiveTaken 以本生命周期是否已起泵为准。
         // 不清会让标志在泵退出后恒真——后续接收判断仍按“数据已交给泵”静默丢弃原始字节
-        _pumpTask = null;
+        _pumpObserver = null;
         _pumpRunTask = null;
     }
 

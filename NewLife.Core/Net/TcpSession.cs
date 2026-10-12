@@ -20,6 +20,8 @@ namespace NewLife.Net;
 /// <item>支持TCP KeepAlive</item>
 /// <item>线程安全的数据发送</item>
 /// </list>
+/// <para>文件划分：会话生命周期与连接/SSL 编排（TcpSession.cs）、接收与入站管道（TcpSession.Receive.cs）、发送（TcpSession.Send.cs）、
+/// 出站队列与发送泵（TcpSession.SendQueue.cs）、协议模式消息泵（TcpSession.Pump.cs）、平台差异桥（TcpSession.Platform.cs）。</para>
 /// </remarks>
 public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 {
