@@ -177,6 +177,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         try
         {
             sock.Connect(remote);
+
+            // 记录连接端点：已连接的 Socket 走 Send 会忽略传入目标，发送前据此校验目标是否被改过（见 OnSend）
+            _connectedRemote = remote;
         }
         catch (Exception ex)
         {
@@ -266,21 +269,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             if (Client is not { } sock) return -1;
             lock (_sendLock)
             {
-                // Linux+Mono 的Connected总是true，需要特殊处理
-                var connected = sock.Connected;
-                if (Runtime.Mono && Runtime.Linux)
-                {
-                    try
-                    {
-                        var r = sock.RemoteEndPoint;
-                        connected = r is IPEndPoint ep && !ep.Address.IsAny() && ep.Port > 0;
-                    }
-                    catch
-                    {
-                        connected = false;
-                    }
-                }
-                if (connected && !sock.EnableBroadcast)
+                if (IsConnected(sock) && !sock.EnableBroadcast && IsConnectedTarget(remote))
                 {
                     if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
@@ -351,7 +340,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             if (Client is not { } sock) return -1;
             lock (_sendLock)
             {
-                if (sock.Connected && !sock.EnableBroadcast)
+                if (IsConnected(sock) && !sock.EnableBroadcast && IsConnectedTarget(remote))
                 {
                     if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.Array.ToHex(data.Offset, logCount));
 
@@ -394,7 +383,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             if (Client is not { } sock) return -1;
             lock (_sendLock)
             {
-                if (sock.Connected && !sock.EnableBroadcast)
+                if (IsConnected(sock) && !sock.EnableBroadcast && IsConnectedTarget(remote))
                 {
                     if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
 
@@ -606,6 +595,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <summary>本地端口由系统自动分配（未指定监听端口，纯客户端模式）。首次打开时判定，决定是否连接远端</summary>
     private Boolean _autoLocalPort;
 
+    /// <summary>已连接模式下的远端端点。TryConnect 成功时记录，发送前据此校验目标是否与连接端点一致</summary>
+    private IPEndPoint? _connectedRemote;
+
     /// <summary>接收环是否读取包信息。打开时按 <see cref="PacketInformation"/> 与平台能力判定一次，接收热路径只读本字段</summary>
     private Boolean _usePacketInfo;
 
@@ -745,6 +737,39 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     #endregion
 
     #region 辅助
+    /// <summary>判断套接字是否处于已连接状态</summary>
+    /// <remarks>Linux+Mono 的Connected总是true，需要特殊处理</remarks>
+    /// <param name="sock">底层套接字</param>
+    /// <returns>是否已连接</returns>
+    private static Boolean IsConnected(Socket sock)
+    {
+        if (!Runtime.Mono || !Runtime.Linux) return sock.Connected;
+
+        IPEndPoint? remote = null;
+        try
+        {
+            remote = sock.RemoteEndPoint as IPEndPoint;
+        }
+        catch
+        {
+            // 取不到远端端点时按未连接处理，回退 SendTo 发送路径
+        }
+
+        return IsConnectedRemote(remote);
+    }
+
+    /// <summary>按远端端点判定是否已连接。远端端点为通配地址或端口为0时视为未连接</summary>
+    /// <param name="remote">套接字的远端端点，取不到时为 null</param>
+    /// <returns>是否已连接</returns>
+    internal static Boolean IsConnectedRemote(IPEndPoint? remote) => remote is { } ep && !ep.Address.IsAny() && ep.Port > 0;
+
+    /// <summary>发送目标是否与套接字的已连接端点一致</summary>
+    /// <remarks>已连接的 Socket 走 Send 会忽略传入目标（发往连接时的端点），目标不一致时必须走 SendTo，
+    /// 由内核以 EISCONN/WSAEISCONN 明确报错，而不是静默发到旧目标。未记录连接端点（外部接管 Socket）时保持原行为</remarks>
+    /// <param name="remote">本次发送的目标端点</param>
+    /// <returns>是否可用已连接路径发送</returns>
+    private Boolean IsConnectedTarget(IPEndPoint remote) => _connectedRemote == null || _connectedRemote.Equals(remote);
+
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String ToString()
