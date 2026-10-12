@@ -566,130 +566,65 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
     #endregion 方法
 
-    #region 发送
-
-    #region 发送泵
-    // 发送泵（出站队列）与 SessionBase 的消息泵（入站定界）是两套独立机制，字段用 send 前缀与本类内的泵状态区分
-    private CancellationTokenSource? _sendPumpCts;
-    private Task? _sendPumpTask;
-    private Int32 _sendPumpThreadId;
-
-    /// <summary>启动发送泵。专用线程（LongRunning）：同步泵不能占用线程池线程，否则同步入队方在等待水位时把线程池占满，泵与入队方会互相等待而死锁</summary>
-    /// <param name="queue">发送队列</param>
-    private void StartSendPump(Pipe queue)
+    #region 关闭收尾
+    /// <summary>关闭。重写以收尾流式收发：出站队列残余直接丢弃并归还缓冲（不排空），入站管道终止（挂起读立即完成）</summary>
+    /// <param name="reason">关闭原因。便于日志分析</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>是否成功</returns>
+    public override async Task<Boolean> CloseAsync(String reason, CancellationToken cancellationToken = default)
     {
-        var cts = new CancellationTokenSource();
-        _sendPumpCts = cts;
-
-        _sendPumpTask = Task.Factory.StartNew(() => SendPumpLoop(queue, cts.Token), cts.Token,
-            TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
-    }
-
-    /// <summary>停止发送泵。先结束写侧唤醒挂起读，再限时等泵退出——泵退出后不再触碰队列缓冲，方能安全释放队列</summary>
-    /// <remarks>本方法可能由泵线程自身触发（发送失败→上报→关闭），此时等待就是自死锁，按线程判定跳过</remarks>
-    /// <param name="queue">发送队列</param>
-    private void StopSendPump(Pipe queue)
-    {
-        // 结束写侧：挂起的 ReadAsync 立即返回完成，入队方的水位等待随之结束
-        queue.Writer.Complete();
-
-        var task = _sendPumpTask;
-        if (task == null || task.IsCompleted) return;
-        if (Environment.CurrentManagedThreadId == _sendPumpThreadId) return;
-
-        // 限时等待：泵可能正阻塞在写锁或慢对端的套接字写上。超时先中止泵再给一小段收尾时间，
-        // 仍不退出就放手——残余缓冲随管道回收，泵持有的帧自带引用计数，不会读到已归还的内存。
-        // 等待上限刻意压在 2 秒内：Close 是常见操作，不能因为一个慢对端把调用方长时间卡住
         try
         {
-            if (!task.Wait(1000))
-            {
-                _sendPumpCts?.Cancel();
-                task.Wait(1000);
-            }
-        }
-        catch (AggregateException) { }
-    }
-
-    /// <summary>发送泵：从队列取数据批量写出。一个读窗口内累积的多条消息一次散列写提交，得出批量发送</summary>
-    /// <param name="queue">发送队列</param>
-    /// <param name="cancellationToken">取消令牌。会话关闭时触发</param>
-    private void SendPumpLoop(Pipe queue, CancellationToken cancellationToken)
-    {
-        _sendPumpThreadId = Environment.CurrentManagedThreadId;
-
-        var reader = queue.Reader;
-        try
-        {
-            // 会话已终结时立即收尾退出。只认两种终态：已释放，或服务端会话已关闭不再活动。
-            // 服务端会话关闭即 Dispose、不会重开；客户端会话关闭后保留未释放（会话对象一次性，由调用方保管终态），
-            // 故客户端泵不按“已关闭”提前收尾，统一交给关闭流程与最终释放处理。
-            //
-            // 本泵可能是关闭收尾之后才建出来的——入队方过了 Open 检查、随后关闭完成（见 SendQueue 的建队列路径），
-            // 此时队列读侧不会再有写入、泵令牌也无人取消，继续阻塞在读取上会让这条 LongRunning 专用线程
-            // 连同它引用的会话永久存活。
-            if (Disposed || (_Server != null && !Active))
-            {
-                // 按关闭收尾的同构动作收尾本队列：完成写侧让等水位的入队方立即退出
-                // （完成写侧不触发 Resumed，必须显式广播），读侧由 finally 完成并归还残余句柄
-                queue.Writer.Complete();
-                WakeQueueWaiters();
-
-                return;
-            }
-
-            while (true)
-            {
-                var result = reader.ReadAsync(cancellationToken).GetAwaiter().GetResult();
-                var count = result.Buffer.Length;
-
-                if (count > 0)
-                {
-                    // 零拷贝切出整窗并推进消费窗口（同时解除写侧水位）：多条消息合并为一次散列写
-                    var frame = reader.TakeFrame(count);
-
-                    Exception? error = null;
-                    _writeLock.Wait();
-                    try
-                    {
-                        WritePacket(frame);
-                        LastTime = DateTime.Now;
-                    }
-                    catch (Exception ex)
-                    {
-                        error = ex;
-                    }
-                    finally
-                    {
-                        _writeLock.Release();
-                    }
-
-                    frame.TryDispose();
-
-                    // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一线程二次进入写锁而死锁
-                    if (error != null)
-                    {
-                        ReportSendError(error, null);
-
-                        break;
-                    }
-                }
-
-                if (result.IsCompleted) break;
-            }
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            ReportSendError(ex, null);
+            return await base.CloseAsync(reason, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
-            reader.Complete();
+            // 仅在关闭真正发生（会话已不活动）时执行流式收尾：取消在入口被拦截（会话仍活动）时
+            // 不得拆掉管道与队列——否则会话外显“还开着”却收不到数据。
+            // 未打开的关闭（Active 亦为假）照常收尾，幂等复位上一轮资源
+            if (!Active) CleanupStreamFlows();
         }
     }
+
+    /// <summary>流式收尾：停发送泵并释放出站队列（残余丢弃）、终止入站管道、释放暂存接收槽</summary>
+    private void CleanupStreamFlows()
+    {
+        // 出站队列：先停泵（结束写侧唤醒挂起读，并等泵退出后不再触碰队列缓冲），
+        // 入队方的水位等待随之结束，最后释放队列归还残余池缓冲。
+        // 不排空——停机场景对端往往已不可达，队列残余本就送不出去，逐会话限时排空会让总耗时随会话数线性放大。
+        //
+        // 取走队列与 getter 的双检锁互斥，避免关闭期间又新建出一个无人释放的队列与发送泵
+        Pipe? queue;
+        lock (_sendQueueLock)
+        {
+            queue = _sendQueue;
+            _sendQueue = null;
+        }
+
+        if (queue != null)
+        {
+            queue.Resumed -= OnSendQueueResumed;
+
+            StopSendPump(queue);
+
+            // 唤醒仍在等水位的入队方：完成写侧不会触发 Resumed，不唤醒它们会永久挂起
+            WakeQueueWaiters();
+
+            queue.Dispose();
+        }
+
+        // 入站流：释放管道（等价于完成写侧唤醒挂起读 + 结束读侧归还残余池缓冲）。
+        // 只完成写侧会让读侧链上尚未消费的池缓冲一直挂到管道随对象不可达，由终结器兜底归还；
+        // 服务端会话还可能存活到 SessionTimeout，等于长期占用内存池。
+        _pipe?.Dispose();
+
+        // 复位入站管道，交由懒创建在再次访问时重建。客户端会话关闭后未释放（会话对象一次性，由调用方保管），
+        // 若继续持有已完成管道，再次访问会拿到已结束的读取器，协议模式接收泵在其上读取即抛异常
+        _pipe = null;
+
+        ReleaseParkedReceive();
+    }
     #endregion
-    #endregion 发送
 
     #region 辅助
     /// <summary>日志前缀</summary>

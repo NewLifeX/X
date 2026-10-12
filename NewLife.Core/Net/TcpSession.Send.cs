@@ -23,7 +23,7 @@ public partial class TcpSession
     //   SendAsync(Stream)          流式：读一块 → 写完（或挂起）再读下一块，内核缓冲即背压，内存有界
     //   SendFileAsync(文件)        锁内让内核零拷贝推文件（SendFile/TransmitFile）
     // 慢对端由内核发送缓冲形成天然背压；需要排队/限流的场合可在上层用 Actor 组合，不进发送核心。
-    // 批量场景可选走 TcpSession.SendQueue（见 TcpSession.Stream.cs 出站队列），由发送泵在锁内批量写出。
+    // 批量场景可选走 TcpSession.SendQueue（见 TcpSession.SendQueue.cs 出站队列与发送泵），由发送泵在锁内批量写出。
 
     /// <summary>写锁。四个发送入口共用：任一时刻只有一位写者在写套接字，故多线程/多入口混用不会交错</summary>
     private readonly SemaphoreSlim _writeLock = new(1, 1);
