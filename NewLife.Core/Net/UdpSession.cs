@@ -218,17 +218,10 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         // 协议模式：消息经协议构建整帧后发送
         if (Protocol is { } codec && message is IMessage msg)
         {
-            var data = codec.Build(msg);
+            using var data = codec.Build(msg);
             if (data == null) return 0;
 
-            try
-            {
-                return Send(data);
-            }
-            finally
-            {
-                data.TryDispose();
-            }
+            return Send(data);
         }
 
         throw new InvalidOperationException($"Protocol not set or message is not IMessage for session [{Name}]");
