@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using NewLife.Data;
 using NewLife.Net;
 using Xunit;
@@ -338,6 +339,68 @@ public class TcpSessionSendQueueTests
             client.Close("test");
 
             Assert.True(await CompletedWithinAsync(sending, 10_000), "关闭后入队方仍未结束：等水位的入队方没有被唤醒");
+        }
+        finally
+        {
+            listener.Dispose();
+        }
+    }
+
+    [Fact]
+    [DisplayName("发送队列_等待水位时取消_入队方立即取消不挂起")]
+    public async Task SendQueued_CanceledWhileWaitingResume_CancelsPromptly()
+    {
+        const Int32 chunkSize = 4 * 1024;
+
+        var listener = CreateListener(out var port);
+        using var client = new SmallQueueSession { Remote = new NetUri($"tcp://127.0.0.1:{port}") };
+        try
+        {
+            client.Open();
+            client.Client!.SendBufferSize = 8 * 1024;
+
+            using var peer = await listener.AcceptWithinAsync();
+            peer.ReceiveBufferSize = 8 * 1024;
+            peer.ReceiveTimeout = 30_000;
+
+            // 对端不读：内核缓冲吃满后泵阻塞，队列积压到水位
+            var sending = Task.Factory.StartNew(async () =>
+            {
+                for (var i = 0; i < 4096; i++)
+                {
+                    var body = new Byte[chunkSize];
+                    body.AsSpan().Fill(0x44);
+
+                    if (!await client.SendQueuedAsync(new ArrayPacket(body)).ConfigureAwait(false)) return i;
+                }
+
+                return -1;
+            }, TaskCreationOptions.LongRunning).Unwrap();
+
+            Assert.False(await CompletedWithinAsync(sending, 500), "前置条件不成立：队列积压应让入队等待");
+            Assert.True(client.SendQueue!.IsPaused, "前置条件不成立：发送队列应处于暂停状态");
+
+            // 水位已暂停时携带取消令牌入队：必须挂起等待，取消后立即结束
+            using var cts = new CancellationTokenSource();
+            var canceled = Task.Factory.StartNew(async () =>
+            {
+                try
+                {
+                    await client.SendQueuedAsync(new ArrayPacket(new Byte[] { 0x55 }), cts.Token).ConfigureAwait(false);
+                    return false;
+                }
+                catch (OperationCanceledException e)
+                {
+                    return e.CancellationToken == cts.Token;
+                }
+            }, TaskCreationOptions.LongRunning).Unwrap();
+
+            Assert.False(await CompletedWithinAsync(canceled, 300), "前置条件不成立：入队方应挂在等待水位上");
+
+            cts.Cancel();
+
+            Assert.True(await CompletedWithinAsync(canceled, 10_000), "取消后入队方仍未结束：等水位的入队方没有被取消唤醒");
+            Assert.True(await canceled, "入队方未以取消令牌对应的取消异常结束");
         }
         finally
         {

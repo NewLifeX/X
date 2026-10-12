@@ -222,7 +222,11 @@ partial class TcpSession
             return;
         }
 
-        // 低版本框架没有 Task.WaitAsync，手工用 WhenAny 附加取消
+        // 低版本框架没有 Task.WaitAsync，手工用 WhenAny 附加取消；
+        // 现代框架直接带取消等待，取消即抛 OperationCanceledException，与下方 ThrowIfCancellationRequested 等价
+#if NET6_0_OR_GREATER
+        await task.WaitAsync(cancellationToken).ConfigureAwait(false);
+#else
 #if NET45
         var tcs = new TaskCompletionSource<Boolean>();
 #else
@@ -234,6 +238,7 @@ partial class TcpSession
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+#endif
     }
 
     /// <summary>发送队列水位恢复：广播唤醒全部等待中的入队方</summary>
