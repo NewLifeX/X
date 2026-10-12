@@ -6,5 +6,14 @@
        用例偶发增多时，改成具体数字（如 5）即可降载。CLI/CI 不受影响（单容器运行，本项无效果）。 -->
   <RunConfiguration>
     <MaxCpuCount>0</MaxCpuCount>
+    <!-- 结果落盘目录（相对本文件所在目录）。VS 全量跑测后各宿主 trx 自动写入，便于事后复盘失败明细；目录已被 .gitignore 忽略 -->
+    <ResultsDirectory>TestResults</ResultsDirectory>
   </RunConfiguration>
+
+  <!-- 结果持久化：VS 运行默认只在 IDE 中展示结果，不落盘；启用 trx logger 后每次运行自动写出（每个测试宿主一个文件） -->
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName="trx" enabled="True" />
+    </Loggers>
+  </LoggerRunSettings>
 </RunSettings>
