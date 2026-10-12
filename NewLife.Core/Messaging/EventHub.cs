@@ -260,24 +260,6 @@ public class EventHub<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes
         return BuildEnvelopeFromString(topic, clientId, msg, out envelope);
     }
 
-    /// <summary>编码事件为字符串（便于通过文本协议发送）</summary>
-    /// <param name="topic">主题</param>
-    /// <param name="clientId">客户端标识</param>
-    /// <param name="event">事件实例</param>
-    /// <returns>编码后的字符串</returns>
-    protected virtual String EncodeEvent(String topic, String clientId, TEvent @event)
-    {
-        var body = @event is String s ? s : JsonHost.Write(@event!, JsonOptions);
-        return $"event#{topic}#{clientId}#{body}";
-    }
-
-    /// <summary>编码控制动作为字符串（订阅/取消订阅等）</summary>
-    /// <param name="topic">主题</param>
-    /// <param name="clientId">客户端标识</param>
-    /// <param name="action">动作指令</param>
-    /// <returns>编码后的字符串</returns>
-    protected virtual String EncodeAction(String topic, String clientId, String action) => $"event#{topic}#{clientId}#{action}";
-
     /// <summary>根据消息体字符串构造事件信封：动作 / 字符串事件 / JSON 解码</summary>
     private Boolean BuildEnvelopeFromString(String topic, String clientId, String msg, out EventEnvelope envelope)
     {
@@ -327,7 +309,7 @@ public class EventHub<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes
         var rest2 = rest[(p2 + 1)..];
         var p3 = rest2.IndexOf((Byte)'#');
 
-        // p3 == 0 表示客户端标识为空：EncodeEvent 允许空标识（会发出 event#topic##body），
+        // p3 == 0 表示客户端标识为空：编码侧允许空标识（会发出 event#topic##body），
         // 解码侧必须同样接受，否则本库编码器产出的消息会被对端当非法头部静默丢弃；只有缺失分隔符（-1）才非法
         if (p3 < 0) return false;
         clientId = rest2[..p3].ToStr();
@@ -357,7 +339,7 @@ public class EventHub<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes
         var rest2 = rest[(p2 + 1)..];
         var p3 = rest2.IndexOf('#');
 
-        // 空客户端标识合法（与 EncodeEvent 对称），仅缺失分隔符非法
+        // 空客户端标识合法（与编码侧对称），仅缺失分隔符非法
         if (p3 < 0) return false;
         clientId = rest2[..p3].ToString();
 

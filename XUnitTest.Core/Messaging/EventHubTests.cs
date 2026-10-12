@@ -89,10 +89,10 @@ public class EventHubTests
         Assert.Equal(0, await hub.OnReceiveAsync("event#topic#client#", null));
     }
 
-    [Fact(DisplayName = "TryParseHeader 客户端标识为空应解析成功（与 EncodeEvent 对称）")]
+    [Fact(DisplayName = "TryParseHeader 客户端标识为空应解析成功（与编码侧对称）")]
     public void TryParseHeader_EmptyClientId_Accepted()
     {
-        // EncodeEvent 允许空标识，会发出 event#topic##body；解码侧若按非法头部拒绝，
+        // 编码侧允许空标识，会发出 event#topic##body；解码侧若按非法头部拒绝，
         // 本库编码器产出的消息会被对端静默丢弃
         var bytes = "event#topic##body".GetBytes();
         Assert.True(EventHub<String>.TryParseHeader(bytes, out var topic, out var clientId, out var headerLen));
