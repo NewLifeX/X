@@ -281,6 +281,14 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         throw new InvalidOperationException($"Protocol not set or message is not IMessage for session [{Name}]");
     }
 
+    /// <summary>协议模式的响应等待包装（Object 版返回）</summary>
+    /// <param name="message">请求消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息</returns>
+    /// <remarks>
+    /// <para>ValueTask 为结构体且不可协变，<c>ValueTask&lt;IMessage&gt;</c> 无法直接转为 <c>ValueTask&lt;Object&gt;</c>，只能经 async 包装转换（同步完成时不装箱，无额外分配）。</para>
+    /// <para>独立成方法也让公开的 Object 重载保持非 async：协议未设或消息类型不支持时同步抛出异常，而不是把异常捕获进返回的 ValueTask，不 await 的调用方也能立刻发现用法错误。</para>
+    /// </remarks>
     private async ValueTask<Object> SendMessageAsyncForObject(IMessage message, CancellationToken cancellationToken)
         => await SendMessageAsync(message, cancellationToken).ConfigureAwait(false);
     #endregion
