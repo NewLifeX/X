@@ -393,7 +393,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <item>调用 <see cref="EnsureCreateServer"/> 确保服务器已创建</item>
     /// <item>启动所有Socket服务器</item>
     /// <item>处理随机端口分配</item>
-    /// <item>输出管道处理器信息</item>
+    /// <item>输出协议编码器信息</item>
     /// <item>启动统计定时器</item>
     /// </list>
     /// </remarks>
@@ -422,6 +422,9 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
             }
             WriteLog("开始监听 {0}", item);
         }
+
+        // 协议模式下输出一次协议编码器，便于启动时确认配置；会话创建时不再重复输出
+        if (Protocol != null) WriteLog("协议编码器：{0}", Protocol);
 
         if (StatPeriod > 0) _Timer = new TimerX(ShowStat, null, 10_000, StatPeriod * 1000);
     }

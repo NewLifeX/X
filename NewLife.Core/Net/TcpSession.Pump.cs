@@ -103,8 +103,6 @@ public partial class TcpSession
         var cts = new CancellationTokenSource();
         _pumpCts = cts;
 
-        WriteLog("启动消息泵：{0}", codec);
-
         var task = PumpAsync(new MessagePump(codec) { MaxCache = MaxCache, RequireFullFrame = RequireFullFrame, MaxFrameSize = MaxFrameSize }, reader, cts.Token);
         _pumpRunTask = task;
 

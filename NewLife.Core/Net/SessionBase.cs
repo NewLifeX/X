@@ -217,6 +217,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
             Active = true;
 
+            // 协议模式：每次打开输出一次所挂载的协议编码器；服务端接入会话不经过本路径，不会逐会话输出
+            if (Protocol != null) WriteLog("协议编码器：{0}", Protocol);
+
             // 触发打开完成的事件（状态已变更）
             Opened?.Invoke(this, EventArgs.Empty);
 
