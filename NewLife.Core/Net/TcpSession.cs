@@ -65,6 +65,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
     private SslStream? _Stream;
 
+    /// <summary>系统自动分配的本地端口。0表示无</summary>
+    /// <remarks>用于区分“自动分配”与“用户指定”：前者只回填展示，重连时重新分配，避免复用上次连接的残留端口</remarks>
+    private Int32 _autoLocalPort;
+
     #endregion 属性
 
     #region 构造
@@ -260,8 +264,17 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                     sock.ReceiveTimeout = timeout;
                 }
 
-                sock.Bind(Local.EndPoint);
-                if (sock.LocalEndPoint is IPEndPoint ep) Local.EndPoint.Port = ep.Port;
+                // 系统自动分配的本地端口只用于展示，重连时不得复用：上次连接的套接字残留状态（TIME_WAIT/关闭中）
+                // 会让相同五元组的新建连随机失败（WSAEADDRINUSE）。仅用户显式指定的端口才复用
+                var autoPort = Local.Port == 0 || Local.Port == _autoLocalPort;
+                sock.Bind(autoPort ? new IPEndPoint(Local.Address, 0) : Local.EndPoint);
+
+                // 回填实际本地端口，便于日志与上层展示；并记录来源，供下一次重连区分自动分配与用户指定
+                if (sock.LocalEndPoint is IPEndPoint ep)
+                {
+                    Local.EndPoint.Port = ep.Port;
+                    _autoLocalPort = autoPort ? ep.Port : 0;
+                }
                 span?.AppendTag($"LocalEndPoint={sock.LocalEndPoint}");
             }
 

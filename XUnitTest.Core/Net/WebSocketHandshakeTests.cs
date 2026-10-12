@@ -73,6 +73,44 @@ public class WebSocketHandshakeTests
     }
 
     [Fact]
+    [DisplayName("ws握手_失败重试_自动本地端口不复用")]
+    public async Task Handshake_FailedRetry_AutoLocalPortRenewed()
+    {
+        // 裸监听套接字：接受连接后立即关闭，握手读到 0 字节即失败
+        using var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        listener.Listen(4);
+        var port = ((IPEndPoint)listener.LocalEndPoint!).Port;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                for (var i = 0; i < 2; i++)
+                {
+                    using var tc = await listener.AcceptAsync();
+                }
+            }
+            catch { }
+        });
+
+        using var client = new WebSocketClient($"ws://127.0.0.1:{port}/ws") { Timeout = 3_000 };
+
+        Assert.False(await client.OpenAsync().WaitAsync(TimeSpan.FromSeconds(10)), "服务端拒绝握手时应返回失败");
+
+        // 占住第一次由系统自动分配的本地端口。系统分配的端口只用于展示，重试若复用该端口，
+        // 绑定会直接失败，且并发满载时与上次连接的残留套接字状态竞争会随机抛 WSAEADDRINUSE
+        var localPort = client.Local.Port;
+        Assert.NotEqual(0, localPort);
+        using var blocker = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        blocker.Bind(new IPEndPoint(IPAddress.Any, localPort));
+
+        // 重试必须重新分配本地端口，不受旧端口被占用影响
+        Assert.False(await client.OpenAsync().WaitAsync(TimeSpan.FromSeconds(10)), "握手失败后重试仍应返回失败");
+        Assert.NotEqual(localPort, client.Local.Port);
+    }
+
+    [Fact]
     [DisplayName("ws握手_响应与首帧同段_首帧不丢失")]
     public async Task Handshake_ImmediateFirstFrame_NotLost()
     {
