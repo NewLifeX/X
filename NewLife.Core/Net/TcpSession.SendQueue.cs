@@ -106,11 +106,7 @@ public partial class TcpSession
             // 与事件回调同锁复查：恢复若发生在判定与登记之间，IsPaused 已为 false，直接返回，避免丢唤醒
             if (!queue.IsPaused || queue.IsCompleted) return;
 
-#if NET45
-            _queueResume ??= new TaskCompletionSource<Boolean>();
-#else
-            _queueResume ??= new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
-#endif
+            _queueResume ??= CreateSignalSource();
             task = _queueResume.Task;
         }
 
@@ -121,23 +117,8 @@ public partial class TcpSession
             return;
         }
 
-        // 低版本框架没有 Task.WaitAsync，手工用 WhenAny 附加取消；
-        // 现代框架直接带取消等待，取消即抛 OperationCanceledException，与下方 ThrowIfCancellationRequested 等价
-#if NET6_0_OR_GREATER
-        await task.WaitAsync(cancellationToken).ConfigureAwait(false);
-#else
-#if NET45
-        var tcs = new TaskCompletionSource<Boolean>();
-#else
-        var tcs = new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
-#endif
-        using (cancellationToken.Register(() => tcs.TrySetResult(false)))
-        {
-            await Task.WhenAny(task, tcs.Task).ConfigureAwait(false);
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-#endif
+        // 低版本框架没有 Task.WaitAsync，由桥方法手工用 WhenAny 附加取消；取消即抛 OperationCanceledException
+        await WaitSignalAsync(task, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>发送队列水位恢复：广播唤醒全部等待中的入队方</summary>

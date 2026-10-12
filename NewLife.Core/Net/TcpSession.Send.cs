@@ -72,30 +72,6 @@ public partial class TcpSession
         return total;
     }
 
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-    /// <summary>发送一段数据，短计数自动续发。返回时全部字节已交给内核，失败抛异常</summary>
-    /// <param name="sock">目标套接字</param>
-    /// <param name="data">数据</param>
-    /// <param name="deadline">续发总预算截止时间（Runtime.TickCount64 毫秒），0 不限制</param>
-    /// <returns>已发送字节数，等于 data.Length</returns>
-    private static Int32 SendAll(Socket sock, ReadOnlySpan<Byte> data, Int64 deadline)
-    {
-        var total = 0;
-        while (total < data.Length)
-        {
-            var sent = sock.Send(data[total..]);
-            if (sent <= 0) throw new IOException($"Send failed (result={sent}), {total}/{data.Length} bytes sent");
-
-            total += sent;
-
-            if (deadline > 0 && total < data.Length && Runtime.TickCount64 > deadline)
-                throw new TimeoutException($"Send timeout, {total}/{data.Length} bytes sent");
-        }
-
-        return total;
-    }
-#endif
-
     /// <summary>发送多段数据（scatter-gather），短计数后按段序跳过已发字节逐段续发</summary>
     /// <param name="sock">目标套接字</param>
     /// <param name="segments">数据段列表</param>
@@ -125,11 +101,6 @@ public partial class TcpSession
 
         return sent;
     }
-
-#if NET5_0_OR_GREATER
-    /// <summary>异步发送的预算取消源。单写者复用；正常完成时解除计时，触发取消即超时失败</summary>
-    private CancellationTokenSource? _sendCts;
-#endif
 
     /// <summary>直发：锁内同步写出整个数据包（直接写数据包缓冲，0 拷贝 0 分配），写完才返回</summary>
     /// <remarks>写锁保证任一时刻只有一位写者；失败已上报并按失败关闭会话</remarks>
@@ -271,15 +242,7 @@ public partial class TcpSession
         // 一次系统调用写出整包：单节点直接写数据包自己的缓冲（0 拷贝 0 分配）；
         // 链式包用散列写（scatter-gather）一次提交整条链——逐节点多次写会把一条逻辑帧拆成多个 TCP 段，
         // 对端“整帧同窗到达”的零拷贝快路径随之失效（同一次解读出内存视图而非流式体）
-        var deadline = GetSendDeadline();
-        if (pk.Next == null && pk.TryGetArray(out var segment))
-            SendAll(sock, segment.Array!, segment.Offset, segment.Count, deadline);
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-        else if (pk.Next == null)
-            SendAll(sock, pk.GetMemory().Span, deadline);
-#endif
-        else
-            SendAll(sock, pk.ToSegments(), count, deadline);
+        SendPacketData(sock, pk, count, GetSendDeadline());
 
         LastTime = DateTime.Now;
 
@@ -299,123 +262,19 @@ public partial class TcpSession
         if (_Stream is { } stream)
         {
             // SSL 流内部处理部分写：整段写完才返回，失败直接抛异常，无需续发循环
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            stream.Write(data);
-#else
-            stream.Write(data.ToArray());
-#endif
+            WriteSsl(stream, data);
             rs = data.Length;
         }
         else
         {
             // 同步 Send 在接收方窗口受限时可能只发出一部分，续发循环保证整段送出；总预算按会话 Timeout 计时
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            rs = SendAll(sock, data, GetSendDeadline());
-#else
-            rs = SendAll(sock, data.ToArray(), 0, data.Length, GetSendDeadline());
-#endif
+            rs = SendAllMemory(sock, data, GetSendDeadline());
         }
 
         LastTime = DateTime.Now;
 
         return rs;
     }
-
-#if NET5_0_OR_GREATER
-    /// <summary>写核心（异步）：把整包（含链）写完才返回，等待可写期间不占线程；失败抛异常</summary>
-    /// <remarks>失败一律抛异常、不在此上报：调用方须先释放写锁再调 <see cref="ReportSendError"/>，否则用户回调内再次 Send 会在同一把写锁上二次等待而死锁</remarks>
-    /// <param name="pk">数据包</param>
-    /// <returns>已发送字节数；无套接字返回 -1</returns>
-    private async ValueTask<Int32> WritePacketAsync(IPacket pk)
-    {
-        var count = pk.Total;
-        if (count == 0) return 0;
-
-        // 逐段写出（通常只有一段），每段发完再发下一段
-        for (var node = pk; node != null; node = node.Next)
-        {
-            if (node.Length == 0) continue;
-
-            var rs = await WriteMemoryAsync(node.GetMemory()).ConfigureAwait(false);
-            if (rs < 0) return -1;
-        }
-
-        LastTime = DateTime.Now;
-
-        return count;
-    }
-
-    /// <summary>写核心（异步）：写完一块内存才返回，短计数自动续发；失败抛异常</summary>
-    /// <remarks>
-    /// <para>失败一律抛异常、不在此上报（同 <see cref="WritePacketAsync"/>）。</para>
-    /// <para>不接收调用方取消令牌：写侧取消由 <see cref="SessionBase.Timeout"/> 预算承担（与同步写一致），
-    /// 调用方取消在等写锁与流式读块（<see cref="Stream.ReadAsync(Byte[], Int32, Int32, CancellationToken)"/>）的边界生效。</para>
-    /// </remarks>
-    /// <param name="data">数据</param>
-    /// <returns>已发送字节数；无套接字返回 -1</returns>
-    private async ValueTask<Int32> WriteMemoryAsync(ReadOnlyMemory<Byte> data)
-    {
-        var count = data.Length;
-        if (count == 0) return 0;
-
-        var sock = Client;
-        if (sock == null) return -1;
-
-        var total = 0;
-
-        // 预算取消源：正常完成不取消（可复用）；已取消说明上轮超时失败，重建后本轮结束即终止
-        var cts = _sendCts ??= new CancellationTokenSource();
-        if (cts.IsCancellationRequested) cts = _sendCts = new CancellationTokenSource();
-
-        var timeout = Timeout;
-        try
-        {
-            while (total < count)
-            {
-                // 每次发送前重设计时预算
-                if (timeout > 0) cts.CancelAfter(timeout);
-
-                Int32 sent;
-                if (_Stream is { } stream)
-                {
-                    // SSL 流内部处理部分写：整段写完才返回，无需续发
-                    await stream.WriteAsync(data[total..], cts.Token).ConfigureAwait(false);
-                    sent = count - total;
-                }
-                else
-                    sent = await sock.SendAsync(data[total..], SocketFlags.None, cts.Token).ConfigureAwait(false);
-
-                if (sent <= 0) throw new IOException($"Send failed (result={sent}), {total}/{count} bytes sent");
-
-                total += sent;
-            }
-        }
-        catch (OperationCanceledException) when (cts.IsCancellationRequested)
-        {
-            // 预算超时：与同步发送超时一致，按发送失败处理（由调用方在锁外上报）
-            throw new TimeoutException($"Send timeout, {total}/{count} bytes sent");
-        }
-        finally
-        {
-            // 解除计时预算（触发过取消的取消源不复用）
-            if (!cts.IsCancellationRequested) cts.CancelAfter(System.Threading.Timeout.Infinite);
-        }
-
-        LastTime = DateTime.Now;
-
-        return total;
-    }
-#else
-    /// <summary>写核心（异步）。本框架无带取消令牌的 Socket.SendAsync 重载，降级为同步写完（仍然零拷贝）；失败抛异常</summary>
-    /// <param name="pk">数据包</param>
-    /// <returns>已发送字节数</returns>
-    private ValueTask<Int32> WritePacketAsync(IPacket pk) => new(WritePacket(pk));
-
-    /// <summary>写核心（异步，低版本 TFM）。降级为同步写完；失败抛异常</summary>
-    /// <param name="data">数据</param>
-    /// <returns>已发送字节数</returns>
-    private ValueTask<Int32> WriteMemoryAsync(ReadOnlyMemory<Byte> data) => new(WriteMemory(data.Span));
-#endif
 
     /// <summary>发送失败上报：记错误日志并关闭会话</summary>
     /// <remarks>调用方必须已释放写锁：OnError/Close 会触发用户事件回调，回调内再次 Send 会二次进入写锁而死锁</remarks>
@@ -597,34 +456,10 @@ public partial class TcpSession
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-#if NET6_0_OR_GREATER
-            // 非 SSL 会话：整个文件交给内核零拷贝推送，等待可写期间不占线程。
-            // 仅 IP 套接字可用：Unix 域套接字上 sendfile/TransmitFile 既不会推进也不会完成（实测永久挂起：
-            // 对端不读时 1KB 即挂，TCP 同条件 0ms 完成），必须排除，否则静态文件响应会一直挂着不返回。
-            if (_Stream == null && Client is { AddressFamily: AddressFamily.InterNetwork or AddressFamily.InterNetworkV6 } sock)
-            {
-                try
-                {
-                    // 内核 SendFileAsync(string) 无返回值（推完整个文件即成功），以文件长度作为发送量
-                    await sock.SendFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+            // 非 SSL 会话优先尝试内核零拷贝（NET6+；SSL/Unix 域/低版本由桥内部排除并返回 -1 后降级）
+            var kernel = await TrySendFileKernelAsync(filePath, length, cancellationToken).ConfigureAwait(false);
+            if (kernel >= 0) return kernel;
 
-                    LastTime = DateTime.Now;
-
-                    return length;
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    // 调用方主动取消：不是发送故障，向上抛出
-                    throw;
-                }
-                catch (Exception ex) when (ex is NotSupportedException or FileNotFoundException)
-                {
-                    // 只有「根本没发出任何数据」的失败才能安全降级：平台/套接字类型不支持零拷贝、或路径在存在性检查后被删除。
-                    // 网络中断、对端复位一类失败可能已送出部分文件，重发会让对端收到重复内容，必须交由外层按发送失败处理
-                    WriteLog("内核零拷贝不可用，降级为分块发送 {0}：{1}", filePath, ex.Message);
-                }
-            }
-#endif
             // SSL 会话或无零拷贝发送 API 的框架：分块读取发送（语义相同，多一次读块搬运）。
             // 显式启用异步 IO 与顺序扫描：默认 OpenRead 得到的 FileStream 未开异步，ReadAsync 会同步阻塞线程
             using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);

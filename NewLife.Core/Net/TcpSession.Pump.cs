@@ -83,12 +83,7 @@ public partial class TcpSession
     private Task? _pumpRunTask;
 
     /// <summary>当前异步流是否处于消息泵内。用于识别泵内关闭（处理器内主动关闭、泵内报错关闭），避免等待泵自身退出</summary>
-#if NET45
-    // net45 无 AsyncLocal，退回线程本地（与 TokenHttpFilter 同一降级口径）；异步续体切线程后标记可能丢失，此时退化为等到上限
-    private readonly ThreadLocal<Boolean> _inPump = new();
-#else
-    private readonly AsyncLocal<Boolean> _inPump = new();
-#endif
+    private readonly PumpFlag _inPump = new();
 
     /// <summary>启动消息泵。协议模式（<see cref="SessionBase.Protocol"/> 非空）下由打开流程与服务端会话启动流程调用</summary>
     /// <remarks>首次访问数据管道确保其在接收环启动前就绪。调用方须保证时序（每次会话生命周期至多一次）</remarks>

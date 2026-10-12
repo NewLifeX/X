@@ -90,19 +90,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         if (socket.LocalEndPoint is IPEndPoint localEp) Local.EndPoint = localEp;
         if (socket.RemoteEndPoint is IPEndPoint remoteEp) Remote.EndPoint = remoteEp;
 
-#if !NETFRAMEWORK && !NETSTANDARD2_0
-        // Unix域套接字回填路径，便于日志显示
-        if (socket.LocalEndPoint is UnixDomainSocketEndPoint localUds && !localUds.ToString().IsNullOrEmpty())
-        {
-            Local.Type = NetType.Unix;
-            Local.Path = localUds.ToString();
-        }
-        if (socket.RemoteEndPoint is UnixDomainSocketEndPoint remoteUds && !remoteUds.ToString().IsNullOrEmpty())
-        {
-            Remote.Type = NetType.Unix;
-            Remote.Path = remoteUds.ToString();
-        }
-#endif
+        TryFillUnixEndPoints(socket, Local, Remote);
     }
 
     internal TcpSession(ISocketServer server, Socket client)
@@ -223,44 +211,6 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         StartReceive();
     }
 
-    /// <summary>服务端SSL认证，支持超时</summary>
-    /// <param name="sslStream">SSL流</param>
-    /// <param name="sock">底层套接字（旧框架超时后关闭以中止挂起的握手读）</param>
-    /// <param name="cert">服务端证书</param>
-    /// <param name="protocols">协议版本</param>
-    /// <param name="timeout">超时（毫秒），小于等于零表示不启用</param>
-#if NETCOREAPP
-    private static async Task AuthenticateAsServerAsync(SslStream sslStream, Socket sock, X509Certificate cert, SslProtocols protocols, Int32 timeout)
-    {
-        using var source = timeout > 0 ? new CancellationTokenSource(timeout) : new CancellationTokenSource();
-        await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
-        {
-            ServerCertificate = cert,
-            EnabledSslProtocols = protocols,
-            CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-        }, source.Token).ConfigureAwait(false);
-    }
-#else
-    private static async Task AuthenticateAsServerAsync(SslStream sslStream, Socket sock, X509Certificate cert, SslProtocols protocols, Int32 timeout)
-    {
-        var task = sslStream.AuthenticateAsServerAsync(cert, false, protocols, false);
-        if (timeout > 0)
-        {
-            // 旧框架不支持取消耗时认证。超时后先关闭套接字中止挂起的握手读，再等待任务结束以观测其异常
-            var completed = await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false);
-            if (completed != task)
-            {
-                sock.Close();
-                try { await task.ConfigureAwait(false); } catch { }
-
-                throw new TimeoutException($"服务端SSL认证超时！[{timeout}ms]");
-            }
-        }
-
-        await task.ConfigureAwait(false);
-    }
-#endif
-
     /// <summary>打开</summary>
     /// <param name="cancellationToken">取消通知</param>
     protected override async Task<Boolean> OnOpenAsync(CancellationToken cancellationToken)
@@ -329,14 +279,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             // Unix域套接字直接以文件路径连接
             if (isUnix)
             {
-#if NETFRAMEWORK || NETSTANDARD2_0
-                throw new PlatformNotSupportedException("Unix Domain Socket 需要 .NET Standard 2.1 或更高版本的目标框架");
-#else
-                var ep = new UnixDomainSocketEndPoint(uri.Path!);
+                var ep = CreateUnixEndPoint(uri.Path!);
                 span?.AppendTag($"RemoteEndPoint={ep}");
 
                 await ConnectAsync(sock, ep, timeout, cancellationToken).ConfigureAwait(false);
-#endif
             }
             else
             {
@@ -365,42 +311,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
                 var cert = Certificate;
                 if (cert != null) certs.Add(cert);
 
-                var ns = new NetworkStream(sock);
-                var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
-#if NETCOREAPP
-                // 超时预算 + 调用方取消：两者任一触发都中止握手（超时以 OperationCanceledException 呈现，与建连口径一致）
-                using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                if (timeout > 0) source.CancelAfter(timeout);
-                await sslStream.AuthenticateAsClientAsync(
-                    new SslClientAuthenticationOptions
-                    {
-                        TargetHost = host,
-                        ClientCertificates = certs,
-                        EnabledSslProtocols = sp,
-                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                    },
-                    source.Token).ConfigureAwait(false);
-#else
-                // 旧框架不支持取消耗时认证：超时/取消后先关闭套接字中止挂起的握手读，再等待任务结束以观测其异常
-                var authTask = sslStream.AuthenticateAsClientAsync(host, certs, sp, false);
-                if (timeout > 0 || cancellationToken.CanBeCanceled)
-                {
-                    var completed = await Task.WhenAny(authTask, Task.Delay(timeout > 0 ? timeout : System.Threading.Timeout.Infinite, cancellationToken)).ConfigureAwait(false);
-                    if (completed != authTask)
-                    {
-                        sock.Close();
-                        try { await authTask.ConfigureAwait(false); } catch { }
-
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        throw new TimeoutException($"客户端SSL认证超时！[{timeout}ms]");
-                    }
-                }
-
-                await authTask.ConfigureAwait(false);
-#endif
-
-                _Stream = sslStream;
+                _Stream = await AuthenticateAsClientAsync(sock, host, certs, sp, timeout, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -437,74 +348,6 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         return chain.ChainElements
                 .Cast<X509ChainElement>()
                 .Any(x => x.Certificate.Thumbprint == cert.Thumbprint);
-    }
-
-#if !NETFRAMEWORK && !NETSTANDARD2_0
-    /// <summary>异步连接Unix域套接字，支持超时</summary>
-    /// <param name="sock">套接字</param>
-    /// <param name="ep">远程终结点</param>
-    /// <param name="timeout">超时时间（毫秒）</param>
-    /// <param name="cancellationToken">取消通知</param>
-    private static Task ConnectAsync(Socket sock, EndPoint ep, Int32 timeout, CancellationToken cancellationToken)
-        => ConnectCoreAsync(sock, timeout, cancellationToken, null, 0, ep, ep);
-#endif
-
-    /// <summary>异步连接IP地址数组（同族地址按序回退），支持超时</summary>
-    /// <param name="sock">套接字</param>
-    /// <param name="addrs">目标地址数组</param>
-    /// <param name="port">目标端口</param>
-    /// <param name="timeout">超时时间（毫秒）</param>
-    /// <param name="cancellationToken">取消通知</param>
-    /// <param name="remote">远程描述，仅用于超时异常消息</param>
-    private static Task ConnectAsync(Socket sock, IPAddress[] addrs, Int32 port, Int32 timeout, CancellationToken cancellationToken, Object remote)
-        => ConnectCoreAsync(sock, timeout, cancellationToken, addrs, port, null, remote);
-
-    /// <summary>连接核心：统一TCP与Unix域套接字的同步/异步建连及超时处理</summary>
-    /// <remarks>
-    /// <para>无超时（timeout小于等于零）时同步连接；高版本.NET用可取消的 ConnectAsync 配预算取消源；低版本用 BeginConnect+WaitOne 模拟超时。</para>
-    /// <para>超时异常类型随目标框架而异：高版本为预算取消源触发的 OperationCanceledException，低版本为本方法抛出的 TimeoutException。</para>
-    /// </remarks>
-    /// <param name="sock">套接字</param>
-    /// <param name="timeout">超时时间（毫秒），小于等于零表示不启用超时</param>
-    /// <param name="cancellationToken">取消通知</param>
-    /// <param name="addrs">目标地址数组（TCP），与 <paramref name="ep"/> 二选一</param>
-    /// <param name="port">目标端口（TCP）</param>
-    /// <param name="ep">远程终结点（Unix域套接字），与 <paramref name="addrs"/> 二选一</param>
-    /// <param name="remote">远程描述，仅用于超时异常消息</param>
-    private static async Task ConnectCoreAsync(Socket sock, Int32 timeout, CancellationToken cancellationToken,
-        IPAddress[]? addrs, Int32 port, EndPoint? ep, Object? remote)
-    {
-        if (timeout <= 0)
-        {
-            if (ep != null)
-                sock.Connect(ep);
-            else
-                sock.Connect(addrs!, port);
-
-            return;
-        }
-
-#if NET5_0_OR_GREATER
-        using var source = new CancellationTokenSource(timeout);
-        using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, source.Token);
-        using var _ = cts2.Token.Register(() => sock.Close());
-
-        if (ep != null)
-            await sock.ConnectAsync(ep, cts2.Token).ConfigureAwait(false);
-        else
-            await sock.ConnectAsync(addrs!, port, cts2.Token).ConfigureAwait(false);
-#else
-        // 采用异步来解决连接超时设置问题
-        var ar = ep != null ? sock.BeginConnect(ep, null, null) : sock.BeginConnect(addrs!, port, null, null);
-        if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
-        {
-            sock.Close();
-            throw new TimeoutException($"The connection to server [{remote}] timed out! [{timeout}ms]");
-        }
-
-        //sock.EndConnect(ar);
-        await Task.Factory.FromAsync(ar, sock.EndConnect).ConfigureAwait(false);
-#endif
     }
 
     /// <summary>关闭</summary>
