@@ -8,7 +8,7 @@ using Xunit;
 
 namespace XUnitTest.Net;
 
-/// <summary>接收模式二选一（AutoReceive）测试：事件模式禁止拉取、拉取模式直读、手动开环、UdpServer.MaxAsync 并发数</summary>
+/// <summary>接收模式二选一（AutoReceive）测试：事件模式禁止拉取、拉取模式直读、手动开环、UdpServer.MaxAsync 并发数、UdpSession 会话级拉取明确拒绝</summary>
 [Collection("Net.A")]
 public class PullModeTests
 {
@@ -254,64 +254,29 @@ public class PullModeTests
     }
     #endregion
 
-    #region UdpSession 会话拉取（来源过滤与接收环互斥）
-    /// <summary>拉取模式下，会话只接受本会话远端的数据报，其它对端的数据报被丢弃</summary>
-    [Fact(DisplayName = "拉取_UdpSession会话_过滤其它对端数据报")]
-    public void UdpSessionPull_FilterForeignDatagram()
-    {
-        // 服务器拉取模式：不会启动接收环，可手动创建会话直接拉取
-        using var server = new UdpServer { AutoReceive = false, Log = XTrace.Log };
-        server.Open();
-        var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
-
-        using var sockA = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        sockA.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-        var epA = (IPEndPoint)sockA.LocalEndPoint!;
-
-        using var sockB = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        sockB.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-
-        var session = Assert.IsType<UdpSession>(server.CreateSession(null, epA));
-        session.Timeout = 3_000;
-
-        // B 先发：应被会话丢弃；A 后发：应被取到
-        sockB.SendTo("foreign-bbb".GetBytes(), serverEp);
-        Thread.Sleep(50);
-        sockA.SendTo("own-aaa".GetBytes(), serverEp);
-
-        using var pk = session.Receive();
-        Assert.Equal("own-aaa", pk.ToStr());
-    }
-
-    /// <summary>拉取模式下，仅有其它对端数据时全部被丢弃，本会话收不到数据（接收超时）</summary>
-    [Fact(DisplayName = "拉取_UdpSession会话_仅其它对端数据_丢弃后超时")]
-    public void UdpSessionPull_ForeignOnly_TimesOut()
+    #region UdpSession 会话拉取收口（共享 Socket 不支持会话级拉取）
+    /// <summary>UDP 会话共享服务器 Socket：会话级拉取一律明确拒绝，并指引替代入口</summary>
+    [Fact(DisplayName = "拉取_UdpSession会话_明确拒绝并指引替代入口")]
+    public async Task UdpSessionPull_NotSupported()
     {
         using var server = new UdpServer { AutoReceive = false, Log = XTrace.Log };
         server.Open();
-        var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
 
-        using var sockA = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        sockA.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-        var epA = (IPEndPoint)sockA.LocalEndPoint!;
+        var remote = new IPEndPoint(IPAddress.Loopback, 12345);
+        var session = Assert.IsType<UdpSession>(server.CreateSession(null, remote));
 
-        using var sockB = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        sockB.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        // 拉取模式下同样拒绝：按会话过滤拉取会丢弃其他会话的数据报，且与服务器级拉取争抢同一 Socket
+        var ex = Assert.Throws<NotSupportedException>(() => session.Receive());
+        Assert.Contains("UdpServer", ex.Message);
+        Assert.Contains("NetClient", ex.Message);
 
-        var session = Assert.IsType<UdpSession>(server.CreateSession(null, epA));
-        session.Timeout = 300;
-
-        sockB.SendTo("foreign-bbb".GetBytes(), serverEp);
-        Thread.Sleep(50);
-
-        // 非本会话来源的数据被丢弃，直到接收超时（未修复前会直接返回 foreign-bbb）
-        var ex = Assert.Throws<SocketException>(() => session.Receive());
-        Assert.Equal(SocketError.TimedOut, ex.SocketErrorCode);
+        var ex2 = await Assert.ThrowsAsync<NotSupportedException>(() => session.ReceiveAsync(default));
+        Assert.Contains("Received", ex2.Message);
     }
 
-    /// <summary>默认事件模式（服务器接收环运行）下，会话拉取直接抛异常</summary>
-    [Fact(DisplayName = "拉取_UdpSession会话_服务器接收环运行时抛异常")]
-    public async Task UdpSessionPull_RefusedWhenServerReceiving()
+    /// <summary>默认事件模式（服务器接收环运行）下，会话拉取同样明确拒绝</summary>
+    [Fact(DisplayName = "拉取_UdpSession会话_接收环运行同样拒绝")]
+    public void UdpSessionPull_NotSupportedWhenServerReceiving()
     {
         using var server = new UdpServer { Log = XTrace.Log };
         server.Open();
@@ -330,53 +295,9 @@ public class PullModeTests
         }
         Assert.NotNull(session);
 
-        var ex = Assert.Throws<InvalidOperationException>(() => session!.Receive());
-        Assert.Contains("AutoReceive", ex.Message);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => session!.ReceiveAsync(default));
+        Assert.Throws<NotSupportedException>(() => session!.Receive());
     }
 
-    /// <summary>拉取模式：UdpSession 会话级连续拉取多个数据报（同步异步交替），内容与顺序正确</summary>
-    [Fact(DisplayName = "拉取_UdpSession_连续多数据报同步异步交替")]
-    public async Task UdpSessionPull_MultipleDatagrams_Mixed()
-    {
-        using var server = new UdpServer { AutoReceive = false, Log = XTrace.Log };
-        server.Open();
-        var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
-
-        using var sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        sock.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-        var localEp = (IPEndPoint)sock.LocalEndPoint!;
-
-        var session = Assert.IsType<UdpSession>(server.CreateSession(null, localEp));
-        session.Timeout = 5_000;
-
-        // 发送 5 个大小不一的文本数据报
-        var expected = new List<String>();
-        for (var i = 0; i < 5; i++)
-        {
-            var text = $"pkt-{i}-" + new String('x', i * 64);
-            expected.Add(text);
-            sock.SendTo(text.GetBytes(), serverEp);
-            Thread.Sleep(20);
-        }
-
-        // 同步与异步交替拉取，逐个校验内容
-        for (var i = 0; i < 5; i++)
-        {
-            if (i % 2 == 0)
-            {
-                using var pk = session.Receive();
-                Assert.NotNull(pk);
-                Assert.Equal(expected[i], pk!.ToStr());
-            }
-            else
-            {
-                using var pk = await session.ReceiveAsync(default).WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.NotNull(pk);
-                Assert.Equal(expected[i], pk!.ToStr());
-            }
-        }
-    }
     #endregion
 
     #region 服务端会话强制事件模式

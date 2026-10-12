@@ -15,6 +15,7 @@ namespace NewLife.Net;
 /// <list type="bullet">
 /// <item>绑定到固定的远程地址</item>
 /// <item>共享UdpServer的底层Socket</item>
+/// <item>不支持会话级拉取：Socket 为多会话共享，按会话过滤拉取会丢弃其他会话的数据报，<see cref="Receive()"/> 与 <see cref="ReceiveAsync(CancellationToken)"/> 直接抛 <see cref="NotSupportedException"/>；接收请订阅 <see cref="Received"/> 事件，拉取请使用 <see cref="UdpServer"/> 继承自 SessionBase 的 Receive/ReceiveAsync（需 AutoReceive=false）</item>
 /// <item>收到空数据包时自动结束会话。判定以收到的原始数据报为准，在进入事件链之前定下；业务在事件内释放或置空 <see cref="ReceivedEventArgs.Packet"/> 不影响判定，要主动结束会话请 <see cref="DisposeBase.Dispose()"/></item>
 /// </list>
 /// </remarks>
@@ -49,19 +50,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <remarks>通信的目标远程地址</remarks>
     public NetUri Remote { get; set; }
 
-    private Int32 _timeout;
     /// <summary>超时时间（毫秒）</summary>
-    /// <remarks>接收操作的超时时间，默认3000ms</remarks>
-    public Int32 Timeout
-    {
-        get => _timeout;
-        set
-        {
-            _timeout = value;
-            if (Server?.Client is { } sock)
-                sock.ReceiveTimeout = _timeout;
-        }
-    }
+    /// <remarks>仅为 <see cref="ITransport"/> 契约保留，不参与会话收发超时；接收超时由共享 Socket 的所属服务器下发——<see cref="UdpServer"/> 的 Timeout（默认3000ms）在打开时写入</remarks>
+    public Int32 Timeout { get; set; }
 
     /// <summary>协议编解码器。非空时为协议模式：数据报按完整帧定界并构造消息分发（无粘包/半包处理，无需泵任务）</summary>
     public IMessageCodec? Protocol { get; set; }
@@ -295,92 +286,16 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     #endregion
 
     #region 接收
-    /// <summary>同步接收数据</summary>
-    /// <returns>接收到的数据包</returns>
-    /// <exception cref="ObjectDisposedException">会话已销毁</exception>
-    /// <exception cref="InvalidOperationException">服务器未设置</exception>
-    public IOwnerPacket Receive()
-    {
-        if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        var server = Server;
-        if (server?.Client is not { } sock) throw new InvalidOperationException(nameof(Server));
+    /// <summary>同步接收数据。UDP 会话共享服务器 Socket，不支持会话级拉取</summary>
+    /// <returns>无，本方法总是抛出异常</returns>
+    /// <exception cref="NotSupportedException">UDP 会话不支持拉取（共享 Socket 上按会话过滤会丢弃其他会话的数据报）</exception>
+    public IOwnerPacket Receive() => throw new NotSupportedException(NoPullMessage);
 
-        // 服务器接收环运行时禁止会话拉取：两条读路径会争抢同一Socket，数据被分流且不可预期
-        if (server.IsReceiving) throw new InvalidOperationException(NoPullMessage);
-
-        using var span = Tracer?.NewSpan($"net:{Name}:Receive");
-        try
-        {
-            var remote = Remote.EndPoint;
-            var ep = remote as EndPoint;
-            var pk = new OwnerPacket(server.BufferSize);
-            while (true)
-            {
-                var size = sock.ReceiveFrom(pk.Buffer, ref ep);
-                // 共享Socket可能收到其他对端的数据报，丢弃非本会话来源的数据报继续等待（契约：Udp只接受来自所属远方的数据）
-                if (!IsFromRemote(ep, remote)) continue;
-
-                span?.Value = size;
-                return pk.Resize(size);
-            }
-        }
-        catch (Exception ex)
-        {
-            span?.SetError(ex, null);
-            throw;
-        }
-    }
-
-    /// <summary>异步接收数据</summary>
+    /// <summary>异步接收数据。UDP 会话共享服务器 Socket，不支持会话级拉取</summary>
     /// <param name="cancellationToken">取消通知</param>
-    /// <returns>接收到的数据包</returns>
-    /// <exception cref="ObjectDisposedException">会话已销毁</exception>
-    /// <exception cref="InvalidOperationException">服务器未设置</exception>
-    public virtual async Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
-    {
-        if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        var server = Server;
-        if (server?.Client is not { } socket) throw new InvalidOperationException(nameof(Server));
-
-        // 服务器接收环运行时禁止会话拉取：两条读路径会争抢同一Socket，数据被分流且不可预期
-        if (server.IsReceiving) throw new InvalidOperationException(NoPullMessage);
-
-        using var span = Tracer?.NewSpan($"net:{Name}:Receive");
-        try
-        {
-            var remote = Remote.EndPoint;
-            var ep = remote as EndPoint;
-            var pk = new OwnerPacket(server.BufferSize);
-            while (true)
-            {
-#if NETFRAMEWORK || NETSTANDARD2_0
-                var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);
-                var size = ar.IsCompleted ?
-                    socket.EndReceiveFrom(ar, ref ep) :
-                    await Task.Factory.FromAsync(ar, e => socket.EndReceiveFrom(e, ref ep)).ConfigureAwait(false);
-                // 共享Socket可能收到其他对端的数据报，丢弃非本会话来源的数据报继续等待
-                if (!IsFromRemote(ep, remote)) continue;
-#elif NET7_0_OR_GREATER
-                var result = await socket.ReceiveFromAsync(pk.GetMemory(), ep, cancellationToken).ConfigureAwait(false);
-                // 共享Socket可能收到其他对端的数据报，丢弃非本会话来源的数据报继续等待
-                if (!IsFromRemote(result.RemoteEndPoint, remote)) continue;
-                var size = result.ReceivedBytes;
-#else
-                var result = await socket.ReceiveFromAsync(pk.Buffer, SocketFlags.None, ep).ConfigureAwait(false);
-                // 共享Socket可能收到其他对端的数据报，丢弃非本会话来源的数据报继续等待
-                if (!IsFromRemote(result.RemoteEndPoint, remote)) continue;
-                var size = result.ReceivedBytes;
-#endif
-                span?.Value = size;
-                return pk.Resize(size);
-            }
-        }
-        catch (Exception ex)
-        {
-            span?.SetError(ex, null);
-            throw;
-        }
-    }
+    /// <returns>无，本方法总是抛出异常</returns>
+    /// <exception cref="NotSupportedException">UDP 会话不支持拉取（共享 Socket 上按会话过滤会丢弃其他会话的数据报）</exception>
+    public virtual Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException(NoPullMessage);
 
     /// <summary>数据接收事件</summary>
     public event EventHandler<ReceivedEventArgs>? Received;
@@ -602,20 +517,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             return Local.ToString();
     }
 
-    /// <summary>拉取模式提示。服务器接收环已启动时拉取数据将被拒绝</summary>
-    private String NoPullMessage => $"[{Name}] 服务器接收环已启动（AutoReceive=true），不允许从会话拉取数据；请改用 Received 事件接收，或在服务器打开前设置 AutoReceive=false 使用拉取模式";
-
-    /// <summary>判断数据报是否来自本会话的远端</summary>
-    /// <param name="source">数据报的实际来源地址</param>
-    /// <param name="remote">本会话的远端地址</param>
-    /// <returns></returns>
-    private static Boolean IsFromRemote(EndPoint? source, IPEndPoint remote)
-    {
-        // 远端为通配地址时不做过滤（防御）
-        if (remote.Address.IsAny()) return true;
-
-        return source is IPEndPoint ep && ep.Port == remote.Port && ep.Address.Equals(remote.Address);
-    }
+    /// <summary>拉取拒绝提示。UDP 会话共享服务器 Socket，按会话过滤拉取会丢弃其他会话的数据报</summary>
+    private String NoPullMessage => $"[{Name}] UDP 会话共享服务器 Socket，不支持会话级拉取（按会话过滤会丢弃其他会话的数据报）；接收请订阅 Received 事件，拉取请在服务器打开前设置 AutoReceive=false 后使用 UdpServer.Receive/ReceiveAsync，客户端场景请使用 NetClient";
     #endregion
 
     #region ITransport接口
