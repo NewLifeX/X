@@ -798,46 +798,6 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         return rs;
     }
 
-    /// <summary>直发：锁内异步写出一块内存（供流式分块使用，0 拷贝 0 分配）</summary>
-    /// <param name="data">数据。调用方需保证写完前不改写该缓冲</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>已发送字节数；失败返回 -1</returns>
-    private async ValueTask<Int32> DirectSendAsync(ReadOnlyMemory<Byte> data, CancellationToken cancellationToken = default)
-    {
-        if (data.IsEmpty) return 0;
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", data.Length, data.Span.ToHex(LogDataLength));
-
-        Exception? error = null;
-        var rs = -1;
-
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            rs = await WriteMemoryAsync(data).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            error = ex;
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
-
-        // 上报与关闭放锁外：OnError/Close 会触发用户事件回调，回调内再次 Send 会在同一把写锁上二次等待而死锁
-        if (error != null)
-        {
-            ReportSendError(error, null);
-
-            return -1;
-        }
-
-        return rs;
-    }
-
     /// <summary>写核心（同步）：把整包（含链）写完才返回；短计数自动续发，失败抛异常</summary>
     /// <param name="pk">数据包</param>
     /// <returns>已发送字节数</returns>

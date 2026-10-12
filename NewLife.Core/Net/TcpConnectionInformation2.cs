@@ -81,10 +81,6 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         public Byte remotePort3;
         public Byte remotePort4;
         public Int32 owningPid;
-
-        public UInt16 LocalPort => BitConverter.ToUInt16([localPort2, localPort1], 0);
-
-        public UInt16 RemotePort => BitConverter.ToUInt16([remotePort2, remotePort1], 0);
     }
 
     [StructLayout(LayoutKind.Sequential)]

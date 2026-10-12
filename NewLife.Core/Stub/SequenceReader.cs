@@ -286,21 +286,6 @@ public ref partial struct SequenceReader<T> where T : unmanaged, IEquatable<T>
             GetNextSpan();
     }
 
-    /// <summary>
-    /// Only call this helper if you know that you are advancing in the current span
-    /// with valid count and there is no need to fetch the next one.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AdvanceWithinSpan(long count)
-    {
-        Debug.Assert(count >= 0);
-
-        Consumed += count;
-        CurrentSpanIndex += (int)count;
-
-        Debug.Assert(CurrentSpanIndex < CurrentSpan.Length);
-    }
-
     private void AdvanceToNextSpan(long count)
     {
         if (count < 0)
