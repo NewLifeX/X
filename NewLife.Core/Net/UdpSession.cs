@@ -360,6 +360,14 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var headerSize = rs.Value.HeaderSize;
             var bodyLength = rs.Value.BodyLength;
 
+            // 零进展防护（协议契约“成功即有进展”）：产出消息却不消费任何字节会让本循环原地打转，丢弃本报文等下一包；
+            // 内置协议不会出现，防的是违反契约的自定义协议
+            if (headerSize + bodyLength <= 0)
+            {
+                message.Dispose();
+                break;
+            }
+
             // 声明长度超出数据报窗口：坏帧截断丢弃
             if (headerSize + bodyLength > seq.Length - pos)
             {
@@ -397,35 +405,17 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
                 continue;
             }
 
-            var delivered = false;
-            try
-            {
-                OnMessage(message);
-
-                // 事件链（可观测）可能已在处理器内读空消息体；命中配对的等待方还要消费同一份体，
-                // 交付前把内存模式体复位到起点（数据报体天然为内存模式，与流式会话口径一致）
-                if (message.Body is { IsStreaming: false } body) body.Reset();
-
-                // 交付阶段配对：命中则交付等待方（由等待方释放）；未命中的按普通消息收尾
-                delivered = _matcher.TryMatch(this, Protocol, message);
-            }
-            catch (Exception ex)
-            {
-                OnError("OnMessage", ex);
-            }
-            finally
-            {
-                if (!delivered) message.TryDispose();
-            }
+            // 串行处理：与并行分支共用同一交付逻辑（信号量传 null，不涉及并发槽位）
+            ProcessMessage(message, null);
 
             pos += headerSize + bodyLength;
         }
     }
 
-    /// <summary>并行处理单个消息：完成后释放并发信号量</summary>
+    /// <summary>处理单个消息：进入事件链并尝试交付配对，未命中则释放；并行派发时完成后释放并发信号量</summary>
     /// <param name="message">消息（体为数据报内零拷贝共享切片，天然独立）</param>
-    /// <param name="concurrency">派发前等待到的信号量实例。归还必须用同一实例：会话首访并发时可能各建一个，重读属性会把槽位还到另一个满额实例并抛 <see cref="SemaphoreFullException"/></param>
-    private void ProcessMessage(IMessage message, SemaphoreSlim concurrency)
+    /// <param name="concurrency">派发前等待到的信号量实例；串行分支为 null。归还必须用同一实例：会话首访并发时可能各建一个，重读属性会把槽位还到另一个满额实例并抛 <see cref="SemaphoreFullException"/></param>
+    private void ProcessMessage(IMessage message, SemaphoreSlim? concurrency)
     {
         var delivered = false;
         try
@@ -447,9 +437,12 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         {
             if (!delivered) message.TryDispose();
 
-            // 释放自己等待到的那个并发槽位（背压）；会话销毁时该实例已被释放，忽略该异常
-            try { concurrency.Release(); }
-            catch (ObjectDisposedException) { }
+            if (concurrency != null)
+            {
+                // 释放自己等待到的那个并发槽位（背压）；会话销毁时该实例已被释放，忽略该异常
+                try { concurrency.Release(); }
+                catch (ObjectDisposedException) { }
+            }
         }
     }
 
