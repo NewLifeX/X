@@ -71,7 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
-    <ProjectReference Include="..\NewLife.Security\NewLife.Security.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- v12 破坏性变更：外部 Remoting 仓库（ApiServer/ApiClient 等旧栈重度用户）待其 v12 大版本适配后恢复项目引用；

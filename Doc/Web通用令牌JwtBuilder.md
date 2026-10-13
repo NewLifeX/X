@@ -253,6 +253,8 @@ var builder = new JwtBuilder
 var token = builder.Encode(new { });
 ```
 
+> `ECDsaHelper`（`NewLife.Security` 命名空间）自 v12 起随 `NewLife.Core` 提供，无需另行引用加密扩展包。
+
 ## 支持的算法
 
 | 算法 | 类型 | 密钥要求 | 说明 |

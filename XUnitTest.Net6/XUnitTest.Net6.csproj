@@ -93,6 +93,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
-    <ProjectReference Include="..\NewLife.Security\NewLife.Security.csproj" />
   </ItemGroup>
 </Project>

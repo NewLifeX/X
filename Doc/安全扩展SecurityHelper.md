@@ -264,6 +264,25 @@ var signature = DSAHelper.Sign(data, privateKey);
 var isValid = DSAHelper.Verify(data, signature, publicKey);
 ```
 
+### ECDsaHelper
+
+ECDSA 椭圆曲线数字签名辅助类，支持 CNG KeyBlob 与 PEM 两种密钥格式，Windows 底层为 CNG、Linux/macOS 由 OpenSSL 支撑。
+
+```csharp
+using NewLife.Security;
+
+// 生成密钥对，下标0为私钥、下标1为公钥（CNG KeyBlob 格式的 Base64）
+var ks = ECDsaHelper.GenerateKey(256);
+
+// 签名与验签（SHA256；另有 Sign/Verify 采用 MD5 散列，SignSha384/SignSha512 等）
+var signature = data.SignSha256(ks[0]);
+var isValid = data.VerifySha256(ks[1], signature);
+
+// 也支持 PEM 格式的公私钥
+var signature2 = data.SignSha256(pemPrivateKey);
+var isValid2 = data.VerifySha256(pemPublicKey, signature2);
+```
+
 ### Rand
 
 随机数生成器。

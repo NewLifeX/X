@@ -13,25 +13,27 @@ public class ECKey : IAccessor, ISpanSerializable
     public String Algorithm { get => _Algorithm + ""; set => _Algorithm = (AlgorithmKeyBlob)Enum.Parse(typeof(AlgorithmKeyBlob), value); }
 
     /// <summary>坐标X</summary>
-    public Byte[] X { get; set; }
+    public Byte[]? X { get; set; }
 
     /// <summary>坐标Y</summary>
-    public Byte[] Y { get; set; }
+    public Byte[]? Y { get; set; }
 
     /// <summary>私钥才有</summary>
-    public Byte[] D { get; set; }
+    public Byte[]? D { get; set; }
     #endregion
 
     #region 方法
     /// <summary>设置算法参数</summary>
-    /// <param name="oid"></param>
-    /// <param name="privateKey"></param>
+    /// <param name="oid">曲线Oid</param>
+    /// <param name="privateKey">是否私钥</param>
     public void SetAlgorithm(Oid oid, Boolean privateKey)
     {
+        var name = oid.FriendlyName ?? throw new ArgumentNullException(nameof(oid));
+
         if (privateKey)
-            Algorithm = oid.FriendlyName.Replace("_", "_PRIVATE_");
+            Algorithm = name.Replace("_", "_PRIVATE_");
         else
-            Algorithm = oid.FriendlyName.Replace("_", "_PUBLIC_");
+            Algorithm = name.Replace("_", "_PUBLIC_");
     }
     #endregion
 
@@ -53,7 +55,7 @@ public class ECKey : IAccessor, ISpanSerializable
     /// <param name="stream"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    public Boolean Read(Stream stream, Object context)
+    public Boolean Read(Stream stream, Object? context)
     {
         var reader = context as BinaryReader ?? new BinaryReader(stream);
 
@@ -73,31 +75,39 @@ public class ECKey : IAccessor, ISpanSerializable
     /// <param name="stream"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    public Boolean Write(Stream stream, Object context)
+    public Boolean Write(Stream stream, Object? context)
     {
         var writer = context as BinaryWriter ?? new BinaryWriter(stream);
 
+        var x = X ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标X");
+        var y = Y ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标Y");
+
         // 幻数(4) + 长度len(4) + X(len) + Y(len) + D(len)
         writer.Write((Int32)_Algorithm);
-        writer.Write(X.Length);
-        writer.Write(X);
-        writer.Write(Y);
+        writer.Write(x.Length);
+        writer.Write(x);
+        writer.Write(y);
         if (D != null && D.Length > 0) writer.Write(D);
 
         return true;
     }
 
+#if !NETFRAMEWORK
     /// <summary>导出参数</summary>
+    /// <remarks>net45/net461/net462 等老框架没有 ECParameters 类型，仅在其余目标提供</remarks>
     /// <returns></returns>
     public ECParameters ExportParameters()
     {
+        var x = X ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标X");
+        var y = Y ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标Y");
+
         var name = Algorithm.Replace("_PRIVATE_", "_").Replace("_PUBLIC_", "_");
 
         // 通用幻数（ECDSA_GENERIC/ECDH_GENERIC）不带曲线信息，按坐标长度推断命名曲线
         if (name.EndsWith("_GENERIC"))
         {
             var family = name.StartsWith("ECDH") ? "ECDH" : "ECDSA";
-            name = X.Length switch
+            name = x.Length switch
             {
                 32 => $"{family}_P256",
                 48 => $"{family}_P384",
@@ -111,22 +121,26 @@ public class ECKey : IAccessor, ISpanSerializable
             D = D,
             Q = new ECPoint
             {
-                X = X,
-                Y = Y,
+                X = x,
+                Y = y,
             },
             Curve = ECCurve.CreateFromFriendlyName(name),
         };
     }
+#endif
 
     /// <summary>写入到Span写入器</summary>
     /// <param name="writer">Span写入器</param>
     public void Write(ref SpanWriter writer)
     {
+        var x = X ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标X");
+        var y = Y ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标Y");
+
         // 幻数(4) + 长度len(4) + X(len) + Y(len) + D(len)
         writer.Write((Int32)_Algorithm);
-        writer.Write(X.Length);
-        writer.Write(X);
-        writer.Write(Y);
+        writer.Write(x.Length);
+        writer.Write(x);
+        writer.Write(y);
         if (D != null && D.Length > 0)
         {
             writer.Write(D);
