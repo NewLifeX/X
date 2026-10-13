@@ -198,9 +198,12 @@ public class TinyHttpClient : DisposeBase
             if ((Int32)res.StatusCode is 301 or 302 or 303 or 307 or 308 &&
                 res.Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
             {
-                // 再次请求。Location 可能是相对路径（真实服务器常见），按当前请求 URI 解析；
-                // 直接 new Uri(location) 会在相对路径上抛 UriFormatException
-                var uri2 = Uri.TryCreate(location, UriKind.Absolute, out var abs) ? abs : new Uri(uri, location);
+                // 再次请求。Location 可能是绝对 URL、绝对路径（/b）或相对路径，以当前请求 URI 为基解析；
+                // 不能先用 UriKind.Absolute 试解析：Unix 上绝对路径 "/b" 会被当作 file:///b 的绝对 URI，随后按 file 协议建连时报端口非法
+                var uri2 = new Uri(uri, location);
+
+                // 只支持 http(s) 重定向目标；其它协议（如 file）就地报错，避免带着非法端点继续建连
+                if (uri2.Scheme is not ("http" or "https")) throw new NotSupportedException($"不支持重定向到 {uri2.Scheme} 协议：{location}");
 
                 if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
 
