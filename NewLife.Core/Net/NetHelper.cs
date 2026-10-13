@@ -408,12 +408,14 @@ public static class NetHelper
     public static TcpConnectionInformation2[] GetAllTcpConnections() => GetAllTcpConnections(-1);
 
     /// <summary>获取所有Tcp连接，带进程Id</summary>
-    /// <returns></returns>
+    /// <remarks>Windows 走扩展Tcp表，Linux 解析 /proc/net/tcp；macOS 等其它平台暂无实现，返回空数组</remarks>
+    /// <returns>连接数组；不支持的平台返回空数组</returns>
     public static TcpConnectionInformation2[] GetAllTcpConnections(Int32 processId = -1)
     {
-        var rs = !Runtime.Windows ?
-            TcpConnectionInformation2.GetLinuxTcpConnections(processId) :
-            TcpConnectionInformation2.GetWindowsTcpConnections();
+        // Linux 之外的类 Unix 平台（macOS 等）没有 /proc，不能走 GetLinuxTcpConnections，否则读文件直接抛异常
+        var rs = Runtime.Windows ?
+            TcpConnectionInformation2.GetWindowsTcpConnections() :
+            Runtime.Linux ? TcpConnectionInformation2.GetLinuxTcpConnections(processId) : [];
 
         if (processId <= 0) return rs;
 
