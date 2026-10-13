@@ -5,6 +5,7 @@
 // 说明：AOT 能力验收冒烟件，由 .github/workflows/aot.yml 的 aot（win-x64）/aot-linux job 自动执行（非 0 退出码即失败）。
 // 背景与实测结论见 Doc/AOT兼容性分析.md。
 using System.Buffers;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -408,6 +409,62 @@ Run("Reflect 泛型入口保留", () =>
     pi.SetValue(obj, "ok");
     if (pi.GetValue(obj) as String != "ok") throw new Exception("属性读写失败");
     if (mi.Invoke(obj, null) as String != "ok") throw new Exception("方法调用失败");
+});
+
+Run("运行时平台探测 Runtime", () =>
+{
+    // 三个平台标志互斥且必有一个成立；TickCount64 单调不回退
+    var count = (Runtime.Windows ? 1 : 0) + (Runtime.Linux ? 1 : 0) + (Runtime.OSX ? 1 : 0);
+    if (count != 1) throw new Exception($"平台探测异常 Windows={Runtime.Windows} Linux={Runtime.Linux} OSX={Runtime.OSX}");
+
+    var t0 = Runtime.TickCount64;
+    if (t0 <= 0) throw new Exception("TickCount64 非正");
+    Thread.Sleep(20);
+    if (Runtime.TickCount64 < t0) throw new Exception("TickCount64 回退");
+});
+
+Run("机器信息 MachineInfo 平台分支", () =>
+{
+    // 各平台走各自的探测分支（Windows 注册表/WMI、Linux /proc、macOS system_profiler）；
+    // AOT 下动态能力按空值降级，只断言稳定字段
+    var mi = new MachineInfo();
+    mi.Init();
+    if (mi.OSName.IsNullOrEmpty()) throw new Exception("OSName 为空");
+    if (mi.OSVersion.IsNullOrEmpty()) throw new Exception("OSVersion 为空");
+    if (mi.Guid.IsNullOrEmpty()) throw new Exception("Guid 为空");
+    if (mi.Memory <= 0) throw new Exception("Memory 未采集");
+    Console.WriteLine($"[diag] OSName={mi.OSName} OSVersion={mi.OSVersion} Processor={mi.Processor} Memory={mi.Memory}");
+
+    // 动态数据刷新（Windows 性能接口 / Linux /proc），失败按空值降级不抛异常
+    mi.Refresh();
+    if (mi.AvailableMemory > mi.Memory) throw new Exception($"AvailableMemory 异常 {mi.AvailableMemory}/{mi.Memory}");
+});
+
+Run("临时路径与文件IO PathHelper", () =>
+{
+    var dir = Path.Combine(Path.GetTempPath(), "aot-smoke-io-" + Environment.ProcessId);
+    var di = dir.AsDirectory();
+    if (di.Exists) di.Delete(true);
+    di.Create();
+    if (!di.Exists) throw new Exception("目录创建失败");
+
+    var file = Path.Combine(dir, "t.txt");
+    File.WriteAllText(file, "hello");
+    if (File.ReadAllText(file) != "hello") throw new Exception("文本往返失败");
+
+    var fi = file.AsFile();
+    if (!fi.Exists || fi.Length != 5) throw new Exception("文件信息不一致");
+    if (fi.FullName != Path.GetFullPath(file)) throw new Exception("FullName 不一致");
+});
+
+Run("进程信息 ProcessHelper", () =>
+{
+    var p = Process.GetCurrentProcess();
+    if (p.Id <= 0) throw new Exception("进程 Id 异常");
+    var name = p.GetProcessName();
+    if (name.IsNullOrEmpty()) throw new Exception("进程名为空");
+    if (p.WorkingSet64 <= 0) throw new Exception("WorkingSet64 异常");
+    Console.WriteLine($"[diag] process={name} id={p.Id} ws={p.WorkingSet64 / 1024 / 1024}MB");
 });
 
 Console.WriteLine("=== summary ===");
