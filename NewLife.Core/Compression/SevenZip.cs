@@ -15,8 +15,8 @@ public class SevenZip
         var p = "";
         var set = Setting.Current;
 
-        // 附近文件
-        if (p.IsNullOrEmpty())
+        // 附近文件（7z.exe 是Windows程序，其它平台不能选用）
+        if (Runtime.Windows)
         {
             p = "7z.exe".GetFullPath();
             if (!File.Exists(p)) p = set.PluginPath.CombinePath("7z.exe").GetFullPath();
@@ -28,8 +28,8 @@ public class SevenZip
         // 系统已安装的7-Zip
         if (p.IsNullOrEmpty()) p = FindInstalled();
 
-        // 自动下载
-        if (p.IsNullOrEmpty())
+        // 自动下载（插件包为Windows可执行文件，仅Windows平台启用）
+        if (p.IsNullOrEmpty() && Runtime.Windows)
         {
             XTrace.WriteLine("准备下载7z扩展包");
 
@@ -53,19 +53,37 @@ public class SevenZip
     }
 
     /// <summary>查找系统已安装的7-Zip</summary>
-    /// <returns>7z.exe 全路径，未找到时返回空字符串</returns>
+    /// <returns>7z 全路径，未找到时返回空字符串</returns>
     private static String FindInstalled()
     {
-        // 7z.exe 是Windows程序，其它平台只认前面几个相对目录
-        if (!Runtime.Windows) return "";
-
-        foreach (var folder in new[] { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86 })
+        if (Runtime.Windows)
         {
-            var root = Environment.GetFolderPath(folder);
-            if (root.IsNullOrEmpty()) continue;
+            foreach (var folder in new[] { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86 })
+            {
+                var root = Environment.GetFolderPath(folder);
+                if (root.IsNullOrEmpty()) continue;
 
-            var file = root.CombinePath("7-Zip", "7z.exe");
-            if (File.Exists(file)) return file;
+                var file = root.CombinePath("7-Zip", "7z.exe");
+                if (File.Exists(file)) return file;
+            }
+        }
+        else
+        {
+            // Unix：在 PATH 中查找 7z/7za/7zr（发行版 p7zip、Homebrew 等安装的可执行文件）
+            var path = Environment.GetEnvironmentVariable("PATH");
+            if (!path.IsNullOrEmpty())
+            {
+                foreach (var dir in path.Split(Path.PathSeparator))
+                {
+                    if (dir.IsNullOrEmpty()) continue;
+
+                    foreach (var name in new[] { "7z", "7za", "7zr" })
+                    {
+                        var file = Path.Combine(dir, name);
+                        if (File.Exists(file)) return file;
+                    }
+                }
+            }
         }
 
         return "";
