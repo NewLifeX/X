@@ -110,7 +110,9 @@ public class UtilityTests
         Assert.Equal(dt3.Trim("ms"), dt3.ToLong().ToDateTimeOffset());
 
         // Nepal Standard Time,(GMT+05:45) 加德满都,尼泊尔标准时间
-        var dt4 = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dto, "Nepal Standard Time");
+        // Windows 时区 Id 在 Linux/macOS 上依赖 ICU 映射表（Nepal 的映射在新版 tzdata 已改名），按平台直选可用 Id；两地均为 +05:45
+        var tzId = NewLife.Runtime.Windows ? "Nepal Standard Time" : "Asia/Kathmandu";
+        var dt4 = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dto, tzId);
         Assert.Equal(dt4.ToString("yyyy-MM-dd HH:mm:ss zzz"), dt4.ToFullString());
         Assert.Equal(dt4.Trim(), dt4.ToFullString().ToDateTimeOffset());
         Assert.Equal(dt4.Trim(), dt4.ToInt().ToDateTimeOffset());

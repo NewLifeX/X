@@ -921,8 +921,8 @@ public class HttpServerTests : IDisposable
     [Fact]
     public async Task MapStaticFiles()
     {
-        XTrace.WriteLine("root: {0}", "http/".GetFullPath());
-        _server.MapStaticFiles("/logos", "http/");
+        XTrace.WriteLine("root: {0}", "Http/".GetFullPath());
+        _server.MapStaticFiles("/logos", "Http/");
 
         var client = new HttpClient { BaseAddress = _baseUri };
         var rs = await client.GetStreamAsync("/logos/leaf.png");
@@ -974,7 +974,7 @@ public class HttpServerTests : IDisposable
     [Fact(DisplayName = "静态文件_HEAD请求_只返回头部不发实体")]
     public async Task HeadRequest_StaticFile_NoEntity()
     {
-        _server.MapStaticFiles("/logos", "http/");
+        _server.MapStaticFiles("/logos", "Http/");
 
         using var client = new HttpClient { BaseAddress = _baseUri };
         using var req = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Head, "/logos/leaf.png");
@@ -1280,7 +1280,7 @@ Content-Disposition: form-data; name=""avatar""; filename=""logo.png""
 Content-Type: image/jpeg
 
 ";
-        var png = File.ReadAllBytes("http/leaf.png".GetFullPath());
+        var png = File.ReadAllBytes("Http/leaf.png".GetFullPath());
         IPacket pk = (ArrayPacket)data.GetBytes();
         var pngPk = (ArrayPacket)png;
         pngPk.Next = (ArrayPacket)"\r\n------WebKitFormBoundary3ZXeqQWNjAzojVR7--\r\n".GetBytes();

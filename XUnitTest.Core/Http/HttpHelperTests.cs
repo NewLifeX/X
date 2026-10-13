@@ -103,7 +103,7 @@ public class HttpHelperTests
         var rs = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
 
         Assert.NotNull(rs);
-        Assert.Equal("state: xxxyyy\r\n", rs);
+        Assert.Equal("state: xxxyyy" + Environment.NewLine, rs);
     }
 
     [Fact]

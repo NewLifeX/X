@@ -9,6 +9,17 @@ namespace XUnitTest.Common;
 
 public class MachineInfoTests
 {
+    /// <summary>WMI 仅 Windows 可用；其它平台跳过并留痕</summary>
+    /// <param name="method">用例名</param>
+    /// <returns>是否应跳过</returns>
+    private static Boolean SkipWmi(String method)
+    {
+        if (Runtime.Windows) return false;
+
+        XTrace.WriteLine("非 Windows 平台跳过 WMI 用例 {0}", method);
+        return true;
+    }
+
     [Fact(DisplayName = "基础测试")]
     public void BasicTest()
     {
@@ -116,6 +127,8 @@ public class MachineInfoTests
     [Fact(DisplayName = "WMI单属性查询测试")]
     public void GetInfoTest()
     {
+        if (SkipWmi(nameof(GetInfoTest))) return;
+
         // 基本查询：操作系统名称
         var value = MachineInfo.GetInfo("Win32_OperatingSystem", "Caption");
         Assert.NotEmpty(value);
@@ -137,6 +150,8 @@ public class MachineInfoTests
     [Fact(DisplayName = "WMI多属性查询测试")]
     public void ReadWmiComMultiTest()
     {
+        if (SkipWmi(nameof(ReadWmiComMultiTest))) return;
+
         // 别名映射查询：os → Win32_OperatingSystem
         var dic = MachineInfo.ReadWmiComMulti("os", "Caption", "Version");
         Assert.NotNull(dic);
@@ -165,6 +180,8 @@ public class MachineInfoTests
     [Fact(DisplayName = "GetInfo 显式命名空间测试")]
     public void GetInfoWithExplicitNamespaceTest()
     {
+        if (SkipWmi(nameof(GetInfoWithExplicitNamespaceTest))) return;
+
         // 显式传入默认命名空间 root\cimv2（验证 nameSpace 参数传递路径）
         var value1 = MachineInfo.GetInfo("Win32_OperatingSystem", "Caption", "root\\cimv2");
         Assert.NotEmpty(value1);
@@ -217,6 +234,8 @@ public class MachineInfoTests
     [InlineData("Win32_ComputerSystem", "TotalPhysicalMemory")]
     public void GetInfo_MultipleCommonWmiClasses(String wmiClass, String property)
     {
+        if (SkipWmi(nameof(GetInfo_MultipleCommonWmiClasses))) return;
+
         var value = MachineInfo.GetInfo(wmiClass, property);
         Assert.NotNull(value);
         if (wmiClass == "Win32_OperatingSystem")
@@ -235,6 +254,8 @@ public class MachineInfoTests
     [Fact(DisplayName = "GetInfo 正斜杠命名空间测试")]
     public void GetInfo_ForwardSlashNamespace()
     {
+        if (SkipWmi(nameof(GetInfo_ForwardSlashNamespace))) return;
+
         // 验证 nameSpace 参数的正斜杠被正确归一化为反斜杠
         // 覆盖 GetInfo 首行：if (nameSpace != null) nameSpace = nameSpace.Replace("/", "\\");
         var value = MachineInfo.GetInfo("Win32_OperatingSystem", "Caption", "root/cimv2");
