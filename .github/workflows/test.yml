@@ -204,8 +204,9 @@ jobs:
         cache-dependency-path: '**/*.csproj'
     - name: Test
       # test.ci.runsettings：4 核 runner 把 xUnit 并行线程压到与核数匹配，避免过度订阅导致时序用例失真（macOS 用专用配置降为 3）；
-      # blame-hang：用例挂起时超时转储，便于事后定位（正常单 job 约 2~3 分钟，远小于 15 分钟阈值）
-      run: dotnet test ${{ matrix.project }} -f ${{ matrix.framework }} -c Release -s ${{ matrix.runsettings || 'test.ci.runsettings' }} --blame-hang-timeout 15m --blame-hang-dump-type Mini --logger "trx;LogFileName=${{ matrix.name }}.trx" --results-directory TestResults
+      # blame-hang：用例挂起时超时转储，便于事后定位（正常单 job 约 2~3 分钟，远小于 15 分钟阈值）；
+      # dump-type 取值 full/mini/none 区分大小写，写 Mini 会让 dotnet test 直接报参数错误、整个 job 秒退
+      run: dotnet test ${{ matrix.project }} -f ${{ matrix.framework }} -c Release -s ${{ matrix.runsettings || 'test.ci.runsettings' }} --blame-hang-timeout 15m --blame-hang-dump-type mini --logger "trx;LogFileName=${{ matrix.name }}.trx" --results-directory TestResults
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
