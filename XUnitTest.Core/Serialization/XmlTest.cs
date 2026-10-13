@@ -115,7 +115,7 @@ public class XmlTest
                   <!--协议标识。默认0-->
                   <ProtocolId>0</ProtocolId>
                 </ModbusTcpParameter>
-                """, str);
+                """.NormalizeNewline(), str.NormalizeNewline());
 
         var xml2 = new NewLife.Serialization.Xml
         {
@@ -148,7 +148,7 @@ public class XmlTest
                   <!--协议标识。默认0-->
                   <ProtocolId>0</ProtocolId>
                 </ModbusTcpParameter>
-                """, str2);
+                """.NormalizeNewline(), str2.NormalizeNewline());
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class XmlTest
               <Server>127.0.0.1:502</Server>
               <ProtocolId>0</ProtocolId>
             </ModbusTcpParameter>
-            """, xml);
+            """.NormalizeNewline(), xml.NormalizeNewline());
 
         xml = set.ToXml(null, true, false, true);
         Assert.Equal("""
@@ -226,7 +226,7 @@ public class XmlTest
               <!--协议标识。默认0-->
               <ProtocolId>0</ProtocolId>
             </ModbusTcpParameter>
-            """, xml);
+            """.NormalizeNewline(), xml.NormalizeNewline());
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public class XmlTest
               <Server>127.0.0.1:502</Server>
               <ProtocolId>0</ProtocolId>
             </ModbusTcpParameter>
-            """, xml);
+            """.NormalizeNewline(), xml.NormalizeNewline());
 
         xml = set.ToXml(null, false, false, true);
         Assert.Equal("""
@@ -270,6 +270,6 @@ public class XmlTest
               <Server>127.0.0.1:502</Server>
               <ProtocolId>0</ProtocolId>
             </ModbusTcpParameter>
-            """, xml);
+            """.NormalizeNewline(), xml.NormalizeNewline());
     }
 }

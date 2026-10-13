@@ -62,21 +62,17 @@ public class HttpHelperTests
         var client = new HttpClient(new MyHandler());
         var rs = client.PostXml(url, new { state = "1234", state2 = "abcd" });
         Assert.NotNull(rs);
-        Assert.Contains("""
+        var expected = """
             <_f__AnonymousType4_2>
               <state>1234</state>
               <state2>abcd</state2>
             </_f__AnonymousType4_2>
-            """, rs);
+            """;
+        Assert.Contains(expected.NormalizeNewline(), rs.NormalizeNewline());
 
         rs = await client.PostXmlAsync(url, new { state = "1234", state2 = "abcd" });
         Assert.NotNull(rs);
-        Assert.Contains("""
-            <_f__AnonymousType4_2>
-              <state>1234</state>
-              <state2>abcd</state2>
-            </_f__AnonymousType4_2>
-            """, rs);
+        Assert.Contains(expected.NormalizeNewline(), rs.NormalizeNewline());
     }
 
     [Fact]
