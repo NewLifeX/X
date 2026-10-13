@@ -10,6 +10,7 @@
 #   pwsh -File run-tests.ps1 -Only "Core-*"       # 只跑名称匹配的宿主（正则）
 #   pwsh -File run-tests.ps1 -TimeoutSec 1200     # 单宿主超时秒数（默认 900）
 #   pwsh -File run-tests.ps1 -ThrottleLimit 5     # 限制同时运行的宿主数（默认 0=不限）
+#   pwsh -File run-tests.ps1 -Repeat 10           # 稳定性验收：连续跑 10 轮，任一轮失败即退出码非零
 #   pwsh -File run-tests.ps1 -List                # 列出全部宿主后退出
 #
 # 结果：TestResults\<时间戳>\<宿主>.trx（用例明细，可与 CI 矩阵产物对照）+ <宿主>.log（控制台输出）
@@ -20,6 +21,7 @@ param(
     [String]$Only = "",
     [Int32]$TimeoutSec = 900,
     [Int32]$ThrottleLimit = 0,
+    [Int32]$Repeat = 1,
     [Switch]$List
 )
 
@@ -76,10 +78,6 @@ else
         if (-not (Test-Path (Join-Path $root $h.OutDir))) { throw "-SkipBuild 但产物目录不存在：$($h.OutDir)，请先去掉 -SkipBuild 构建一次" }
     }
 }
-
-$stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$resultDir = Join-Path $root "TestResults\$stamp"
-New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
 
 # 递归终止进程树：宿主进程为 cmd → dotnet test → testhost（.dll/.exe），必须沿子进程递归清理
 function Stop-ProcessTree([Int32]$ProcessId)
@@ -147,6 +145,14 @@ function Get-TrxCounters([String]$Path)
     }
     catch { $null }
 }
+
+# 单轮跑测：并行执行全部宿主，返回失败宿主数。每轮生成独立的结果目录
+function Invoke-TestRound([Int32]$RoundIndex)
+{
+    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    if ($Repeat -gt 1) { $stamp += "-r$RoundIndex" }
+    $resultDir = Join-Path $root "TestResults\$stamp"
+    New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
 
 # 阶段二：并行跑测（窗口调度：默认全部并发，-ThrottleLimit 限流）
 $limit = if ($ThrottleLimit -gt 0) { [Math]::Min($ThrottleLimit, $hosts.Count) } else { $hosts.Count }
@@ -224,7 +230,7 @@ foreach ($run in $runs)
         Seconds = [Math]::Round($run.Duration.TotalSeconds, 1)
     })
 }
-$rows | Format-Table -AutoSize
+$rows | Format-Table -AutoSize | Out-Host
 
 foreach ($run in $runs)
 {
@@ -237,10 +243,40 @@ foreach ($run in $runs)
     }
 }
 
-if ($failed -gt 0)
-{
-    Write-Warning "有 $failed 个宿主未通过，trx 与日志见 $resultDir"
-    exit 1
+    if ($failed -gt 0)
+    {
+        Write-Warning "有 $failed 个宿主未通过，trx 与日志见 $resultDir"
+    }
+    else
+    {
+        Write-Host "全部 $($runs.Count) 个宿主通过，trx 与日志见 $resultDir"
+    }
+
+    return $failed
 }
 
-Write-Host "全部 $($runs.Count) 个宿主通过，trx 与日志见 $resultDir"
+# 阶段三：轮次驱动。Repeat>1 为稳定性验收模式：任一轮出现失败，整体退出码非零
+$roundsFailed = 0
+for ($round = 1; $round -le $Repeat; $round++)
+{
+    if ($Repeat -gt 1) { Write-Host ""; Write-Host "######## 第 $round/$Repeat 轮 ########" }
+
+    $roundFailed = Invoke-TestRound $round
+    if ($roundFailed -gt 0) { $roundsFailed++ }
+}
+
+if ($Repeat -gt 1)
+{
+    Write-Host ""
+    if ($roundsFailed -eq 0)
+    {
+        Write-Host ("== 稳定性验收通过：{0} 轮全部零失败 ==" -f $Repeat)
+    }
+    else
+    {
+        Write-Warning ("== 稳定性验收失败：{0} 轮中 {1} 轮出现失败 ==" -f $Repeat, $roundsFailed)
+    }
+}
+
+if ($roundsFailed -gt 0) { exit 1 }
+exit 0

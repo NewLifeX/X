@@ -2,10 +2,11 @@
 <RunSettings>
   <!-- 进程级并行：默认 1（各测试容器串行）；0 = 按逻辑核数并行启动 testhost。
        VS 2026「自动检测 runsettings」（Tools > Options > Test，默认开启）会把解决方案根目录的
-       本文件应用于所有测试运行，10 个测试宿主（4 工程 × TFM）即可并行；并发过高导致环境敏感
-       用例偶发增多时，改成具体数字（如 5）即可降载。CLI/CI 不受影响（单容器运行，本项无效果）。 -->
+       本文件应用于所有测试运行。全量跑测共约 10 个测试宿主（4 工程 × TFM），全开会把机器打满，
+       满载下网络/时序类用例误判增多，故默认限 5 个宿主并行（稳定性优先）；
+       需要更快可临时调大，或改回 0（全开）。CLI/CI 不受影响（单容器运行，本项无效果）。 -->
   <RunConfiguration>
-    <MaxCpuCount>0</MaxCpuCount>
+    <MaxCpuCount>5</MaxCpuCount>
     <!-- 结果落盘目录（相对本文件所在目录）。VS 全量跑测后各宿主 trx 自动写入，便于事后复盘失败明细；目录已被 .gitignore 忽略 -->
     <ResultsDirectory>TestResults</ResultsDirectory>
   </RunConfiguration>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <!-- CI 专用运行配置：windows-latest 为 4 核 runner，把 xUnit 并行线程压到与核数匹配（默认 10 会过度订阅，
+       满载下网络/时序类用例失真）。本地与 VS 不指定本文件，仍按 xunit.runner.json 执行。 -->
+  <xUnit>
+    <MaxParallelThreads>4</MaxParallelThreads>
+  </xUnit>
+</RunSettings>

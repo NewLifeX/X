@@ -6,6 +6,7 @@ using Xunit;
 
 namespace XUnitTest.Log;
 
+[Collection("Telemetry")]
 [DisplayName("OpenTelemetry跟踪器")]
 public class OpenTelemetryTracerTests
 {

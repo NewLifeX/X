@@ -6,6 +6,9 @@ using Xunit;
 
 namespace XUnitTest.IO;
 
+/// <summary>路径工具单元测试</summary>
+/// <remarks>本类会改写 <see cref="PathHelper.BasePath"/> 全局静态，必须放入串行集合，避免其它用例在改写窗口内解析相对路径</remarks>
+[Collection("GlobalState")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class PathHelperTests
 {
@@ -119,9 +122,14 @@ public class PathHelperTests
 
         // 改变
         PathHelper.BasePath = "../xx";
-        Assert.Equal("../xx/config".GetFullPath(), "config".GetBasePath());
-
-        PathHelper.BasePath = bpath;
+        try
+        {
+            Assert.Equal("../xx/config".GetFullPath(), "config".GetBasePath());
+        }
+        finally
+        {
+            PathHelper.BasePath = bpath;
+        }
     }
 
     [Fact]
