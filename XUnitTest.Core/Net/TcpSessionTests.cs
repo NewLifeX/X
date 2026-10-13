@@ -110,14 +110,31 @@ public class TcpSessionTests
         Assert.NotNull(addr);
 
         var uri = new NetUri($"https://test.newlifex.com:{_httpsPort}");
-        var client = uri.CreateRemote() as TcpSession;
-        client.Local.Address = addr;
 
-        Assert.Equal(0, client.Local.Port);
+        // 服务端 TLS 握手超时沿用产品默认 3 秒，满载并行跑测下偶发超时（服务端关闭连接，客户端读到 EOF）。
+        // 用例校验的是客户端绑定本地地址，与握手时长无关，故重试建连
+        TcpSession? client = null;
+        for (var i = 0; ; i++)
+        {
+            client?.Dispose();
+            client = uri.CreateRemote() as TcpSession;
+            client.Local.Address = addr;
 
-        client.Log = XTrace.Log;
-        client.Open();
+            Assert.Equal(0, client.Local.Port);
 
+            // 默认 3 秒握手超时在满载并行跑测下不足，放宽到 10 秒
+            client.Timeout = 10_000;
+            client.Log = XTrace.Log;
+
+            try
+            {
+                client.Open();
+                break;
+            }
+            catch (Exception) when (i < 2) { }
+        }
+
+        using var _ = client;
         Assert.Equal(client.Local.Address, addr);
         Assert.NotEqual(0, client.Local.Port);
         Assert.True(client.RemoteAddress.IsIPv4());
@@ -130,13 +147,28 @@ public class TcpSessionTests
         Assert.NotNull(addr);
 
         var uri = new NetUri($"https://test.newlifex.com:{_httpsPort}");
-        var client = uri.CreateRemote() as TcpSession;
 
-        Assert.Equal(0, client.Local.Port);
+        // 服务端 TLS 握手超时沿用产品默认 3 秒，满载并行跑测下偶发超时，故重试建连（用例校验的是本地地址绑定）
+        TcpSession? client = null;
+        for (var i = 0; ; i++)
+        {
+            client?.Dispose();
+            client = uri.CreateRemote() as TcpSession;
 
-        client.Log = XTrace.Log;
-        client.Open();
+            Assert.Equal(0, client.Local.Port);
 
+            client.Timeout = 10_000;
+            client.Log = XTrace.Log;
+
+            try
+            {
+                client.Open();
+                break;
+            }
+            catch (Exception) when (i < 2) { }
+        }
+
+        using var _ = client;
         Assert.True(client.Local.Address.IsAny());
         Assert.NotEqual(0, client.Local.Port);
         //Assert.True(!client.RemoteAddress.IsIPv4());
@@ -148,21 +180,15 @@ public class TcpSessionTests
         Assert.True(Socket.OSSupportsIPv4);
         Assert.True(Socket.OSSupportsIPv6);
 
-        var entry = Dns.GetHostEntry("newlifex.com");
-        //var entry = Dns.GetHostEntry("newlifex.com.w.cdngslb.com");
-        Assert.NotNull(entry);
-
+        // 本地化：不再向真实 DNS 查询公网域名；test.newlifex.com 已由静态构造器映射到本机（含 IPv6）
         var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => !e.IsIPv4() && !IPAddress.IsLoopback(e));
         Assert.NotNull(addr);
 
-        if (entry.AddressList.Any(_ => !_.IsIPv4()))
-        {
-            var uri = new NetUri($"https://test.newlifex.com:{_httpsPort}");
-            var client = uri.CreateRemote();
-            client.Local.Address = addr;
-            client.Log = XTrace.Log;
-            client.Open();
-        }
+        var uri = new NetUri($"https://test.newlifex.com:{_httpsPort}");
+        var client = uri.CreateRemote();
+        client.Local.Address = addr;
+        client.Log = XTrace.Log;
+        client.Open();
     }
 
     /// <summary>加载测试自签名证书（内嵌 pfx）</summary>
@@ -200,6 +226,8 @@ public class TcpSessionTests
             Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
             SslProtocol = SslProtocols.Tls12,
             AutoReceive = false,
+            // 本地 TLS 握手，默认 3 秒超时在满载并行跑测下会超时，放宽到 10 秒
+            Timeout = 10_000,
             Log = XTrace.Log,
         };
         client.Open();
@@ -428,7 +456,9 @@ public class TcpSessionTests
 
         Assert.NotNull(session);
         var ss = (SessionBase)session!;
-        Assert.False(ss.Active, $"握手失败的会话不应保持活动：Active={ss.Active} Disposed={ss.Disposed} CloseReason={ss.CloseReason}");
+        // 会话出集合（Disposed）后关闭流程仍在收尾：停消息泵、交付在途帧后才置 Active=false，
+        // 满载调度停顿下瞬时断言会误报，改为条件等待（真的不清除活动标志时仍会超时失败）
+        Assert.True(TestWait.Until(() => !ss.Active, 10_000), $"握手失败的会话不应保持活动：Active={ss.Active} Disposed={ss.Disposed} CloseReason={ss.CloseReason}");
     }
 
     /// <summary>

@@ -251,6 +251,8 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
         {
             var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws")
             {
+                // 20 路并发建连，默认 3 秒建连超时在满载并行跑测下会被击穿（实测 ConnectAsync 取消），放宽到 10 秒
+                Timeout = 10_000,
                 Log = XTrace.Log,
             };
             Assert.True(await ws.OpenAsync());
@@ -297,6 +299,8 @@ public class WebSocketIntegrationTests(WebSocketServerFixture fixture) : IClassF
                 var ws = new WebSocketClient($"ws://127.0.0.1:{fixture.Port}/ws")
                 {
                     KeepAlive = TimeSpan.Zero,  // 禁用 Ping 计时器，避免 Pong 帧混入计数
+                    // 20 路并发建连，默认 3 秒建连超时在满载并行跑测下会被击穿，放宽到 10 秒
+                    Timeout = 10_000,
                 };
                 ws.Received += (s, e) =>
                 {

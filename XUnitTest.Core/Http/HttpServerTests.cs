@@ -481,10 +481,11 @@ public class HttpServerTests : IDisposable
         Assert.StartsWith("HTTP/1.1 400", buf.AsSpan(0, n).ToStr());
     }
 
-    /// <summary>把在途请求停滞上限压到 1s 的服务器。HttpSession 按连接创建，配置入口是重载 CreateHandler</summary>
-    private sealed class SlowIdleHttpServer : HttpServer
+    /// <summary>把在途请求停滞上限压低的服务器。HttpSession 按连接创建，配置入口是重载 CreateHandler</summary>
+    /// <remarks>阈值取 3 秒：满载调度抖动可达秒级，1 秒阈值会被误触（见下方两个用例的判定口径）</remarks>
+    private sealed class SlowIdleHttpServer(Int32 idleMs = 3_000) : HttpServer
     {
-        public override INetHandler? CreateHandler(INetSession session) => new HttpSession { MaxRequestIdle = 1000 };
+        public override INetHandler? CreateHandler(INetSession session) => new HttpSession { MaxRequestIdle = idleMs };
     }
 
     [Fact(DisplayName = "HTTP服务端_在途请求长期无进展_回408并关闭")]
@@ -502,8 +503,8 @@ public class HttpServerTests : IDisposable
         await ns.WriteAsync("GET /slow HTTP/1.1\r\nHost: 127.0.0.1\r\n"u8.ToArray());
         await ns.FlushAsync();
 
-        // 停滞超过 MaxRequestIdle（1s）后才有新字节：滴字节占用连接的慢速攻击应被回 408 并断开
-        await Task.Delay(1500);
+        // 停滞超过 MaxRequestIdle（3s）后才有新字节：滴字节占用连接的慢速攻击应被回 408 并断开
+        await Task.Delay(3_500);
         await ns.WriteAsync("X: 1\r\n\r\n"u8.ToArray());
         await ns.FlushAsync();
 
@@ -526,7 +527,7 @@ public class HttpServerTests : IDisposable
 
         await ns.WriteAsync("POST /up HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 6\r\n\r\n"u8.ToArray());
 
-        // 单次间隔 200ms、阈值 1s（5 倍余量），总耗时远超阈值：判定看的是“停滞”，不得打断有进展的上传
+        // 单次间隔 200ms、阈值 3s（15 倍余量），总耗时远超阈值：判定看的是“停滞”，不得打断有进展的上传
         foreach (var ch in "abcdef")
         {
             await Task.Delay(200);

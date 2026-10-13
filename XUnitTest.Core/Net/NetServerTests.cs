@@ -67,21 +67,18 @@ public class NetServerTests
     public void TcpUdpServerStartStop()
     {
         // 显式指定端口（生产即如此使用）：避免 Port=0 时先启动协议选中的端口对另一协议不可绑
-        var port = TestPort.PickDual(26000);
-        using var server = new NetServer
+        using var server = TestPort.StartAny(26000, port => new NetServer
         {
             Port = port,
             ProtocolType = NetType.Unknown,
             AddressFamily = AddressFamily.InterNetwork,
             Log = XTrace.Log,
-        };
-
-        server.Start();
+        }, e => e.Start());
 
         Assert.True(server.Active);
-        Assert.Equal(port, server.Port);
+        Assert.True(server.Port > 0);
         Assert.Equal(2, server.Servers.Count); // TCP + UDP
-        Assert.All(server.Servers, e => Assert.Equal(port, e.Port));
+        Assert.All(server.Servers, e => Assert.Equal(server.Port, e.Port));
 
         server.Stop("Test");
 
@@ -230,12 +227,18 @@ public class NetServerTests
         using var client = new UdpClient();
         var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
         var sendData = "Hello UDP"u8.ToArray();
-        client.Send(sendData, sendData.Length, serverEp);
 
-        // 回环UDP必须收到，未收到即失败
-        Assert.True(receivedEvent.Wait(10000), "未在超时内收到UDP数据");
-        Assert.Single(receivedData);
-        Assert.Equal(sendData, receivedData[0]);
+        // 回环UDP必须收到，未收到即失败。UDP 不可靠且满载下接收环可能被调度滞后，采用“重发轮询”触达；
+        // 断言口径不变（收到内容仍逐字节校验，重发的多个副本也必须是同一报文）
+        var end = Environment.TickCount64 + 15_000;
+        while (!receivedEvent.IsSet && Environment.TickCount64 < end)
+        {
+            client.Send(sendData, sendData.Length, serverEp);
+            receivedEvent.Wait(500);
+        }
+        Assert.True(receivedEvent.IsSet, "未在超时内收到UDP数据");
+        Assert.NotEmpty(receivedData);
+        Assert.All(receivedData, d => Assert.Equal(sendData, d));
 
         // 客户端读取Echo回复，验证双向
         client.Client.ReceiveTimeout = 10000;
@@ -282,9 +285,8 @@ public class NetServerTests
             Thread.Sleep(100);
         }
 
-        // 等待接收（可能由于粘包合并为较少次数接收）
-        Thread.Sleep(1000);
-        Assert.True(receivedCount >= 1);
+        // 等待接收（可能由于粘包合并为较少次数接收）。条件轮询等待，超时仅作防挂起兜底
+        Assert.True(TestWait.Until(() => Volatile.Read(ref receivedCount) >= 1, 10_000), "未在超时内收到数据");
     }
     #endregion
 
@@ -1110,10 +1112,11 @@ public class NetServerTests
         // 创建连接
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
 
-        // 获取统计
-        var stat = server.GetStat();
+        // 会话受理后统计才会出现最高会话数（满载下受理可能滞后），条件等待替代固定睡眠
+        var stat = "";
+        Assert.True(TestWait.Until(() => !(stat = server.GetStat()).IsNullOrEmpty(), 10_000), "未在超时内产出统计信息");
+
         Assert.NotEmpty(stat);
         Assert.Contains("在线", stat);
     }

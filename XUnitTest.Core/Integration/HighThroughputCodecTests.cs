@@ -160,8 +160,19 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
         wc.Received += (_, _) => { if (Interlocked.Increment(ref done) >= count) tcs.TrySetResult(true); };
         wc.Open();
         if (wc.Client?.Client != null) wc.Client.Client.ReceiveBufferSize = 1 << 20;
-        for (var i = 0; i < count; i++) wc.SendMessage(NewRequest(new Byte[16]));
-        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // 满载下服务端接收环可能尚未就绪而整批丢包，单轮发送收不齐无法补救：改为有界补发轮次
+        // （热身只求通道被踩热，不校验内容；通道彻底不通时由主体用例的收到率断言兜底）
+        var end = Environment.TickCount64 + 30_000;
+        while (!tcs.Task.IsCompleted && Environment.TickCount64 < end)
+        {
+            for (var i = 0; i < count; i++) wc.SendMessage(NewRequest(new Byte[16]));
+            try
+            {
+                await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(500));
+            }
+            catch (TimeoutException) { }
+        }
         wc.Close("warmup");
     }
 

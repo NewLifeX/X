@@ -550,8 +550,9 @@ public class MessageSessionTests
         using var server = new NetServer { Port = 0, ProtocolType = NetType.Tcp, Protocol = new SrmpCodec(), MaxCache = 256 };
         server.Start();
 
-        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}") { AutoReconnect = false };
-        client.Open();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}") { AutoReconnect = false, Timeout = 10_000 };
+        // 默认 3 秒建连超时在满载并行跑测下会被击穿（实测：未连上时 Send 抛"未连接"），放宽并显式断言
+        Assert.True(client.Open());
 
         var closed = NewTcs<Boolean>();
         client.Closed += (s, e) => closed.TrySetResult(true);

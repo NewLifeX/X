@@ -22,15 +22,14 @@ public class EchoServerFixture : IDisposable
 
     public EchoServerFixture()
     {
-        var server = new EchoNetServer
+        Server = TestPort.StartAny(27000, port => new EchoNetServer
         {
-            Port = TestPort.PickDual(27000),
+            Port = port,
             AddressFamily = AddressFamily.InterNetwork,
             Log = ServerLog,
             SessionLog = ServerLog,
-        };
-        Server = server;
-        Server.Start();
+        }, e => e.Start());
+
         // 增大 UDP 收发缓冲区，防止高并发吞吐测试中操作系统层面丢包
         foreach (var srv in Server.Servers)
         {
@@ -519,12 +518,17 @@ public class EchoServerIntegrationTests : IClassFixture<EchoServerFixture>
         {
             while (!recvCts.IsCancellationRequested)
             {
+                // 超时必须取消挂起的接收：仅放弃等待会让被遗弃的接收请求继续吃掉后续数据报，计数被系统性少算
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(recvCts.Token);
+                cts.CancelAfter(200);
+
                 try
                 {
-                    await udp.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(200), recvCts.Token);
+                    await udp.ReceiveAsync(cts.Token);
                     var n = Interlocked.Increment(ref totalReceived);
                     if (n >= total / 2) tcs.TrySetResult(true);
                 }
+                catch when (!recvCts.IsCancellationRequested) { }
                 catch { break; }
             }
         })).ToArray();

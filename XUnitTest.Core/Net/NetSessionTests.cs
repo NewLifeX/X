@@ -67,14 +67,16 @@ public class NetSessionTests
         var end = Environment.TickCount64 + 10_000;
         while (sessionIds.Count < 5 && Environment.TickCount64 < end) Thread.Sleep(10);
 
-        // 验证ID递增且唯一
+        // 验证ID唯一且为连续递增序列。TcpServer 的 Accept 完成回调可能在线程池并发派发，
+        // NewSession 回调顺序不等于ID分配（Interlocked.Increment）顺序，故不能按回调收集顺序断言递增
         Assert.Equal(5, sessionIds.Count);
         Assert.Equal(sessionIds.Count, sessionIds.Distinct().Count());
 
-        // 验证ID是递增的
-        for (var i = 1; i < sessionIds.Count; i++)
+        // 排序后必须首尾连续：ID 原子递增且无跳跃
+        var sorted = sessionIds.OrderBy(e => e).ToList();
+        for (var i = 1; i < sorted.Count; i++)
         {
-            Assert.True(sessionIds[i] > sessionIds[i - 1]);
+            Assert.Equal(sorted[i - 1] + 1, sorted[i]);
         }
 
         // 清理

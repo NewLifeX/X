@@ -26,6 +26,45 @@ public class TcpSessionSendQueueTests
         return ReferenceEquals(finished, task);
     }
 
+    /// <summary>等待发送队列进入"泵被对端零窗口阻塞"的稳定暂停：暂停且积压长度在观测窗口内不再下降</summary>
+    /// <remarks>
+    /// 仅凭 IsPaused 单次采样会被两种瞬时状态骗过：泵仍有内核余量时的"暂停→排空→恢复"循环，以及满载下泵调度滞后造成的短暂暂停。
+    /// 只有暂停且积压长度持续不降，才说明泵真正写不动，后续入队在取消前必然挂在等待水位上。
+    /// </remarks>
+    private static async Task<Boolean> WaitStablePauseAsync(TcpSession client, Task sending, Int32 timeoutMs = 15_000)
+    {
+        const Int32 stableWindow = 500;
+        var deadline = Environment.TickCount64 + timeoutMs;
+        var lastLength = -1L;
+        var stableSince = 0L;
+
+        while (Environment.TickCount64 < deadline)
+        {
+            if (sending.IsCompleted) return false;
+
+            var queue = client.GetSendQueue();
+            if (queue == null || !queue.IsPaused)
+            {
+                lastLength = -1L;
+                stableSince = 0;
+            }
+            else if (queue.UnconsumedLength == lastLength)
+            {
+                if (stableSince == 0) stableSince = Environment.TickCount64;
+                if (Environment.TickCount64 - stableSince >= stableWindow) return true;
+            }
+            else
+            {
+                lastLength = queue.UnconsumedLength;
+                stableSince = 0;
+            }
+
+            await Task.Delay(20);
+        }
+
+        return false;
+    }
+
     /// <summary>创建裸监听套接字，返回端口</summary>
     private static Socket CreateListener(out Int32 port)
     {
@@ -377,25 +416,35 @@ public class TcpSessionSendQueueTests
                 return -1;
             }, TaskCreationOptions.LongRunning).Unwrap();
 
-            Assert.False(await CompletedWithinAsync(sending, 500), "前置条件不成立：队列积压应让入队等待");
-            Assert.True(client.SendQueue!.IsPaused, "前置条件不成立：发送队列应处于暂停状态");
+            // 对端不读：内核缓冲吃满后泵阻塞，队列积压到稳定暂停（暂停且积压长度在窗口内不再下降）
+            Assert.True(await WaitStablePauseAsync(client, sending), "前置条件不成立：发送队列未进入稳定暂停状态");
 
-            // 水位已暂停时携带取消令牌入队：必须挂起等待，取消后立即结束
+            // 水位已暂停时携带取消令牌入队：必须挂起等待，取消后立即结束。
+            // 水位在泵仍有内核余量时仍可能瞬时恢复，令本次入队直接完成（前置不稳，非被测行为），按有界重试重建水位
+            var waiting = false;
             using var cts = new CancellationTokenSource();
-            var canceled = Task.Factory.StartNew(async () =>
+            Task<Boolean> canceled = null!;
+            for (var attempt = 0; attempt < 3 && !waiting; attempt++)
             {
-                try
-                {
-                    await client.SendQueuedAsync(new ArrayPacket(new Byte[] { 0x55 }), cts.Token).ConfigureAwait(false);
-                    return false;
-                }
-                catch (OperationCanceledException e)
-                {
-                    return e.CancellationToken == cts.Token;
-                }
-            }, TaskCreationOptions.LongRunning).Unwrap();
+                if (attempt > 0) Assert.True(await WaitStablePauseAsync(client, sending), "前置条件不成立：发送队列未进入稳定暂停状态");
 
-            Assert.False(await CompletedWithinAsync(canceled, 300), "前置条件不成立：入队方应挂在等待水位上");
+                canceled = Task.Factory.StartNew(async () =>
+                {
+                    try
+                    {
+                        await client.SendQueuedAsync(new ArrayPacket(new Byte[] { 0x55 }), cts.Token).ConfigureAwait(false);
+                        return false;
+                    }
+                    catch (OperationCanceledException e)
+                    {
+                        return e.CancellationToken == cts.Token;
+                    }
+                }, TaskCreationOptions.LongRunning).Unwrap();
+
+                waiting = !await CompletedWithinAsync(canceled, 500);
+            }
+
+            Assert.True(waiting, "前置条件不成立：入队方应挂在等待水位上");
 
             cts.Cancel();
 

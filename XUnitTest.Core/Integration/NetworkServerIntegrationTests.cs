@@ -22,15 +22,13 @@ public class NetworkServerFixture : IDisposable
 
     public NetworkServerFixture()
     {
-        var server = new MyNetServer
+        Server = TestPort.StartAny(27500, port => new MyNetServer
         {
-            Port = TestPort.PickDual(27500),
+            Port = port,
             AddressFamily = AddressFamily.InterNetwork,
             Log = ServerLog,
             SessionLog = ServerLog,
-        };
-        Server = server;
-        Server.Start();
+        }, e => e.Start());
     }
 
     public void Dispose() => Server?.Stop("IntegrationTestDone");

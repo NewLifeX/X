@@ -473,7 +473,7 @@ public class NetEdgeCaseTests
         var sendData = "Test Data"u8.ToArray();
         ns.Write(sendData, 0, sendData.Length);
 
-        Assert.True(receivedEvent.Wait(3000));
+        Assert.True(receivedEvent.Wait(15_000));
         Assert.Single(receivedData);
     }
 
@@ -523,7 +523,7 @@ public class NetEdgeCaseTests
         var ns = client.GetStream();
         ns.Write("test"u8.ToArray());
 
-        Assert.True(verified.Wait(3000));
+        Assert.True(verified.Wait(15_000));
     }
 
     /// <summary>测试会话Close方法</summary>
@@ -561,7 +561,8 @@ public class NetEdgeCaseTests
         // 服务端主动关闭会话
         testSession.Close("ServerClose");
 
-        Assert.True(sessionClosed.Wait(3000));
+        // 事件等待预算 15 秒：满载并行跑测下断开传播可滞后数秒（实测 3 秒预算曾超时）
+        Assert.True(sessionClosed.Wait(15_000));
     }
 
     class CloseTestSession : NetSession
@@ -659,7 +660,7 @@ public class NetEdgeCaseTests
         var ns = client.GetStream();
         ns.Write("test args"u8.ToArray());
 
-        Assert.True(argsVerified.Wait(3000));
+        Assert.True(argsVerified.Wait(15_000));
     }
     #endregion
 
@@ -702,7 +703,7 @@ public class NetEdgeCaseTests
         // 发送数据
         ns.Write("Client Request"u8.ToArray());
 
-        Assert.True(serverReceived.Wait(3000));
+        Assert.True(serverReceived.Wait(15_000));
         Assert.Equal("Client Request", Encoding.UTF8.GetString(serverData!));
 
         // 接收响应
@@ -723,14 +724,13 @@ public class NetEdgeCaseTests
         var udpReceived = new ManualResetEventSlim(false);
 
         // 显式指定端口（生产即如此使用）：避免 Port=0 时先启动协议选中的端口对另一协议不可绑
-        var port = TestPort.PickDual(26500);
-        using var server = new NetServer
+        using var server = TestPort.StartAny(26500, port => new NetServer
         {
             Port = port,
             ProtocolType = NetType.Unknown, // 同时监听TCP和UDP
             AddressFamily = AddressFamily.InterNetwork,
             Log = XTrace.Log,
-        };
+        }, e => e.Start());
 
         server.Received += (s, e) =>
         {
@@ -743,8 +743,6 @@ public class NetEdgeCaseTests
             }
         };
 
-        server.Start();
-
         // TCP客户端
         using var tcpClient = new TcpClient();
         tcpClient.Connect(IPAddress.Loopback, server.Port);
@@ -754,8 +752,8 @@ public class NetEdgeCaseTests
         using var udpClient = new UdpClient();
         udpClient.Send("udp"u8.ToArray(), 3, new IPEndPoint(IPAddress.Loopback, server.Port));
 
-        Assert.True(tcpReceived.Wait(3000));
-        Assert.True(udpReceived.Wait(3000));
+        Assert.True(tcpReceived.Wait(15_000));
+        Assert.True(udpReceived.Wait(15_000));
     }
     #endregion
 }

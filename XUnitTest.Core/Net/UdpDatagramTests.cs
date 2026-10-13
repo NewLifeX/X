@@ -34,9 +34,25 @@ public class UdpDatagramTests
         // 服务仍可正常收发（新客户端 = 新远端端点；空数据报按约定会结束原端点会话）
         using var client2 = NetHelper.CreateUdpClient();
         var payload = new Byte[] { 1, 2, 3, 4, 5 };
-        await client2.SendAsync(payload, payload.Length, remote);
-        var result = await client2.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Equal(payload, result.Buffer);
+
+        // 满载下回环 UDP 可能丢包或服务端接收环滞后：重发轮询触达，断言口径不变（回显逐字节一致）
+        Byte[]? result = null;
+        var end = Environment.TickCount64 + 15_000;
+        while (result == null && Environment.TickCount64 < end)
+        {
+            await client2.SendAsync(payload, payload.Length, remote);
+
+            using var cts = new CancellationTokenSource(1_000);
+            try
+            {
+                var rs = await client2.ReceiveAsync(cts.Token);
+                result = rs.Buffer;
+            }
+            catch (OperationCanceledException) { }
+        }
+
+        Assert.NotNull(result);
+        Assert.Equal(payload, result);
     }
 
     [Fact(DisplayName = "UDP事件内释放本轮句柄_会话存活且状态跨报文保留")]
@@ -111,18 +127,20 @@ public class UdpDatagramTests
         Random.Shared.NextBytes(payload);
 
         // UDP 不可靠：超大报文在 IP 层被分片，任一碎片丢失即整个数据报丢失，并行满载时回环也会丢包。
-        // 故采用“丢包重发 + 轮询”，断言口径不变（仍逐字节校验，损坏的报文同样会被断言拦下）
+        // 故采用“丢包重发 + 轮询”，断言口径不变（仍逐字节校验，损坏的报文同样会被断言拦下）。
+        // 超时必须取消挂起的接收：仅放弃等待会让被遗弃的接收请求继续吃掉后续回显，导致永远收不到
         Byte[]? received = null;
         var end = Environment.TickCount64 + 10_000;
         while (received == null && Environment.TickCount64 < end)
         {
             await client.SendAsync(payload, payload.Length, remote);
 
+            using var cts = new CancellationTokenSource(2_000);
             try
             {
-                received = (await client.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(2))).Buffer;
+                received = (await client.ReceiveAsync(cts.Token)).Buffer;
             }
-            catch (TimeoutException) { }
+            catch (OperationCanceledException) { }
         }
 
         Assert.NotNull(received);
@@ -177,7 +195,19 @@ public class UdpDatagramTests
 
         using var client = NetHelper.CreateUdpClient();
         var payload = "local-addr"u8.ToArray();
-        await client.SendAsync(payload, payload.Length, new IPEndPoint(dest, server.Port));
+        var remote = new IPEndPoint(dest, server.Port);
+
+        // 回环 UDP 不可靠且满载下接收环可能滞后：重发轮询触达（断言口径不变，事件触发后逐项校验）
+        var end = Environment.TickCount64 + 15_000;
+        while (!hit.Task.IsCompleted && Environment.TickCount64 < end)
+        {
+            await client.SendAsync(payload, payload.Length, remote);
+            try
+            {
+                await hit.Task.WaitAsync(TimeSpan.FromMilliseconds(500));
+            }
+            catch (TimeoutException) { }
+        }
 
         await hit.Task.WaitAsync(TimeSpan.FromSeconds(5));
 

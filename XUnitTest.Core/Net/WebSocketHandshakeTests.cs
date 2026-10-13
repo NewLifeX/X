@@ -28,7 +28,8 @@ public class WebSocketHandshakeTests
 
         using var client = new WebSocketClient($"ws://127.0.0.1:{port}/ws")
         {
-            Timeout = 1_000,
+            // 建连与握手读共用该超时：1 秒在满载并行跑测下连建连都可能被取消，放宽到 5 秒仍远快于用例的 10 秒上限
+            Timeout = 5_000,
         };
 
         var sw = Stopwatch.StartNew();

@@ -316,11 +316,13 @@ public class ProcessHelperTests
     [Fact]
     public void Execute_ReturnError()
     {
+        // 等待时间放宽到 30 秒：满载并行跑测时进程创建与退出本身可能停滞数秒（实测 5 秒偶发超时返回 null）。
+        // 本用例验证的是 returnError 语义，超时值不是被测对象
         String? rs;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            rs = "cmd".Execute("/c echo err_out 1>&2", 5_000, true);
+            rs = "cmd".Execute("/c echo err_out 1>&2", 30_000, true);
         else
-            rs = "sh".Execute("-c \"echo err_out 1>&2\"", 5_000, true);
+            rs = "sh".Execute("-c \"echo err_out 1>&2\"", 30_000, true);
 
         Assert.NotNull(rs);
         Assert.Contains("err_out", rs);

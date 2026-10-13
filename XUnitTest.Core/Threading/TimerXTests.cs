@@ -19,25 +19,29 @@ public class TimerXTests
     [Fact]
     public void NormalTest()
     {
-        var now = DateTime.Now;
+        var beforeTime = DateTime.Now;
+        var before = Runtime.TickCount64;
         var count = 0;
+        // 首跳取 30 秒：1 秒首跳在满载并行跑测下会先于断言触发，触发后 NextTick 被改写为“实际触发时刻+周期”，
+        // Timers 也会自增，导致“尚未触发”的断言前提失效。改用长首跳把该前提变成确定性事实
         using var timer = new TimerX(s =>
         {
             Interlocked.Increment(ref count);
 
             //Assert.Equal(s, TimerX.Current);
-        }, "NewLife", 1000, 3000, "Test");
+        }, "NewLife", 30_000, 60_000, "Test");
+        var after = Runtime.TickCount64;
+        var afterTime = DateTime.Now;
 
         Assert.True(timer.Id > 0);
         Assert.Equal("Test", timer.Scheduler.Name);
         //Assert.NotNull(timer.Callback);
         Assert.Equal("NewLife", timer.State);
-        Assert.True(timer.NextTick > Runtime.TickCount64);
-        Assert.True(timer.NextTick <= Runtime.TickCount64 + 1000);
-        Assert.True(timer.NextTime > now.AddMilliseconds(100));
-        //Assert.True(timer.NextTime < now.AddMilliseconds(20));
+        // 用构造前后的读数窗口收窄断言：NextTick/NextTime 恰为构造时读数加首跳间隔，窗口容纳读数延迟与时钟粒度
+        Assert.InRange(timer.NextTick, before + 30_000, after + 30_000);
+        Assert.InRange(timer.NextTime, beforeTime.AddSeconds(29.9), afterTime.AddSeconds(30.1));
         Assert.Equal(0, timer.Timers);
-        Assert.Equal(3000, timer.Period);
+        Assert.Equal(60_000, timer.Period);
         Assert.False(timer.Async);
         Assert.False(timer.Absolutely);
 

@@ -113,10 +113,14 @@ public class PullModeTests
         {
             Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
             AutoReceive = false,
-            Timeout = 200,
+            // 建连与读取共用同一超时：200ms 预算在满载并行跑测下连建连都会被取消（实测 ConnectAsync 取消），
+            // 故建连用宽松预算，建连成功后再把套接字读超时收紧到 200ms
+            Timeout = 10_000,
             Log = XTrace.Log,
         };
         client.Open();
+
+        client.Client!.ReceiveTimeout = 200;
 
         // 失败路径归还池化缓冲，但异常必须原样上抛（归还不得替换或吞掉原始异常）
         Assert.ThrowsAny<SocketException>(() => client.Receive());
@@ -154,7 +158,8 @@ public class PullModeTests
     [Fact(DisplayName = "拉取_UdpServer_连续多数据报顺序完整")]
     public void UdpServerPull_MultipleDatagrams()
     {
-        using var server = new UdpServer { AutoReceive = false, Log = XTrace.Log };
+        // 直读走 Socket 接收超时（Timeout 默认 3 秒），满载下数据报到达可能被调度滞后，放宽等待窗口
+        using var server = new UdpServer { AutoReceive = false, Timeout = 15_000, Log = XTrace.Log };
         server.Open();
         var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
 
