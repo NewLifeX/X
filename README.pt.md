@@ -33,7 +33,7 @@ O diretório `Doc/` do repositório mantém o sistema de documentação de capac
 - [Lista de funcionalidades](Doc/功能清单.md) (中文): rastreamento do status de implementação/teste/comentários de todos os pontos de funcionalidade
 - [Design de arquitetura](Doc/架构设计.md) (中文): camadas, componentes de módulos e decisões-chave de design
 - [Catálogo da biblioteca principal](Doc/核心库目录.md) (中文): índice de artigos dos componentes principais
-- [Análise de compatibilidade com AOT](Doc/AOT兼容性分析.md) (中文): escopo de suporte do NativeAOT, conclusões de testes reais (smoke 25/25), guia de uso e limites conhecidos
+- [Análise de compatibilidade com AOT](Doc/AOT兼容性分析.md) (中文): escopo de suporte do NativeAOT, conclusões de testes reais (smoke 29/29), guia de uso e limites conhecidos
 
 ## Início rápido
 

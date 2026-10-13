@@ -31,7 +31,7 @@ Das Verzeichnis `Doc/` des Repositorys pflegt ein Dokumentationssystem für die 
 - [Funktionsliste (中文)](Doc/功能清单.md): Statusverfolgung von Implementierung/Test/Kommentaren aller Funktionspunkte
 - [Architekturentwurf (中文)](Doc/架构设计.md): Schichten, Modulkomponenten und zentrale Designentscheidungen
 - [Verzeichnis der Kernbibliothek (中文)](Doc/核心库目录.md): Artikelindex der Kernkomponenten
-- [AOT-Kompatibilitätsanalyse (中文)](Doc/AOT兼容性分析.md): Unterstützungsbereich von NativeAOT, Messergebnisse (Smoke-Test 25/25), Nutzungshinweise und bekannte Grenzen
+- [AOT-Kompatibilitätsanalyse (中文)](Doc/AOT兼容性分析.md): Unterstützungsbereich von NativeAOT, Messergebnisse (Smoke-Test 29/29), Nutzungshinweise und bekannte Grenzen
 
 ## Schnellstart
 

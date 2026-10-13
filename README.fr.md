@@ -33,7 +33,7 @@ Le répertoire `Doc/` du dépôt maintient le système de documentation des capa
 - [Liste des fonctionnalités (中文)](Doc/功能清单.md) : suivi de l'état d'implémentation / de test / de commentaires de tous les points fonctionnels
 - [Conception de l'architecture (中文)](Doc/架构设计.md) : couches, composants modulaires et décisions de conception clés
 - [Catalogue de la bibliothèque principale (中文)](Doc/核心库目录.md) : index des articles sur les composants principaux
-- [Analyse de compatibilité AOT (中文)](Doc/AOT兼容性分析.md) : périmètre de prise en charge NativeAOT, conclusions des tests réels (smoke test 25/25), guide d'utilisation et limites connues
+- [Analyse de compatibilité AOT (中文)](Doc/AOT兼容性分析.md) : périmètre de prise en charge NativeAOT, conclusions des tests réels (smoke test 29/29), guide d'utilisation et limites connues
 
 ## Démarrage rapide
 

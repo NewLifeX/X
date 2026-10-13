@@ -6,7 +6,7 @@
 
 ## 1. 现状摘要
 
-- **核心链路实测全通**：25 场景冒烟 JIT/AOT 双通（§2.1），覆盖日志、网络（TCP/HTTP/WebSocket）、序列化（JSON/Binary/Span/STJ 源生成上下文）、配置、IoC、Http 控制器、CsvDb/DbTable、反射泛型入口保留。
+- **核心链路实测全通**：29 场景冒烟 JIT/AOT 双通（§2.1），覆盖日志、网络（TCP/HTTP/WebSocket）、序列化（JSON/Binary/Span/STJ 源生成上下文）、配置、IoC、Http 控制器、CsvDb/DbTable、反射泛型入口保留、平台探测（Runtime/MachineInfo/PathHelper/ProcessHelper）。
 - **支持方式**：主链路以「泛型/Type 入口的保留注解 + 源生成器静态表」达成——生成器承接 DI 注册、Json 成员访问、配置绑定、Http 分发四条通道；生成物未覆盖的场景自动回退原反射路径，运行语义不变（§4）。
 - **已知边界**：动态能力（脚本/插件/DLR/表达式编译）设计性不支持；部分只能经 `Object`/运行时类型进入的成员枚举路径无法静态表达保留要求（§5 收口记录）。
 - **告警面已收敛**：编译期分析器与发布期 ILC 均 **0 条**告警（§2.2）。动态能力以声明与守卫承接，能静态表达的一律传导。
@@ -15,7 +15,7 @@
 
 ## 2. 实测数据
 
-### 2.1 运行期：25 场景冒烟（JIT/AOT 双通）
+### 2.1 运行期：29 场景冒烟（JIT/AOT 双通）
 
 | # | 场景 | # | 场景 |
 |---|------|---|------|
@@ -32,6 +32,8 @@
 | 11 | HttpServer+ApiHttpClient GET（含对象反序列化） | 23 | DbTable 模型读写往返 |
 | 12 | WebSocket 文本回显 | 24 | SystemJson 上下文透传 |
 | | | 25 | Reflect 泛型入口保留（`GetPropertyEx<T>`） |
+| 26 | 运行时平台探测 Runtime | 27 | 机器信息 MachineInfo 平台分支 |
+| 28 | 临时路径与文件IO PathHelper | 29 | 进程信息 ProcessHelper |
 
 > AOT 判真：原生发布件入口 `Assembly.Location` 为空，而 JIT 基线为磁盘路径；因冒烟工程固定“严格 AOT 姿态”，两种运行的 `IsDynamicCodeSupported` 均为 False，该值不作判别依据。
 
@@ -104,10 +106,55 @@
 # 1) 分析器全量警告（库自身编译，期望 0 条；IsAotCompatible 已随 csproj 对 net8.0+ 常驻启用）
 dotnet build NewLife.Core\NewLife.Core.csproj -f net10.0 -c Release
 
-# 2) 冒烟实测（25 场景工程；PublishAot 写在工程文件内）
+# 2) 冒烟实测（29 场景工程；PublishAot 写在工程文件内）
 dotnet run -c Release --project AotSmoke\AotSmoke.csproj                # JIT 基线
 dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # NativeAOT 真编译（期望 0 条 ILC 告警）
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
 
-> CI 防回归：`.github/workflows/aot.yml`（win-x64 冒烟与分析器硬约束阻断；linux-x64 冒烟为观察期）。
+> CI 防回归：`.github/workflows/aot.yml` —— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 阻断基线；win-arm64/linux-x64/linux-arm64/osx-x64/osx-arm64/linux-musl-x64/linux-musl-arm64 观察期，稳定后逐项转阻断）；边缘 RID（win-x86/linux-arm/LA64）见 `.github/workflows/edge.yml` 夜间任务。
+
+---
+
+## 7. 多 RID 支持矩阵与 CI
+
+> 目标：常用 win-x64 / linux-x64 / linux-arm64 全量覆盖，扩展 win-arm64、linux-musl、osx 双架构；边缘 RID（win-x86、linux-arm、linux-riscv64）与 LA64（linux-loongarch64）尽力而为。
+> 前提：**NativeAOT 官方不支持跨 OS 编译**（Windows→Linux 需 WSL/VM），支持同 OS 内 x64↔arm64 交叉；因此每个 RID 均使用原生 runner 发布运行。
+
+### 7.1 覆盖分层
+
+| 层级 | 目标 RID | 单测 | AOT 冒烟 | runner / 载体 | 状态 |
+|---|---|---|---|---|---|
+| T1 主流 | win-x64 | ✔（既有 10 个 job） | ✔ 阻断 | windows-latest | 门禁 |
+| T1 主流 | win-arm64 | ✔ Core net8/net10 | ✔ | windows-11-arm（自带 ARM64 MSVC 工具链） | 观察期 |
+| T1 主流 | linux-x64 | ✔ Core 双 TFM + Compat + 源生成器 | ✔ | ubuntu-latest | 观察期 |
+| T1 主流 | linux-arm64 | ✔ Core net8/net10 | ✔ | ubuntu-24.04-arm | 观察期 |
+| T1 主流 | linux-musl-x64 / arm64 | ✔ Core net10（alpine 容器） | ✔ | ubuntu(-arm) + alpine:3.20 容器 | 观察期 |
+| T1 主流 | osx-arm64 / osx-x64 | ✔ Core net8/net10 | ✔ | macos-latest / macos-15-intel（官方称可用至 2027-08） | 观察期 |
+| T2 边缘 | win-x86 | — | ✔ | windows-latest 交叉发布 | 观察期（edge.yml 夜间） |
+| T2 边缘 | linux-arm（32 位） | — | 探索 | QEMU 容器 JIT 冒烟 + 交叉发布尝试 | 观察期（edge.yml 夜间） |
+| T2 边缘 | linux-riscv64 | — | — | 待社区构建渠道核实后按 LA64 配方接入 | 待启动 |
+| T3 LA64 | linux-loongarch64 | 全量尝试（容错） | 官方不支持（探索） | QEMU 用户态 + 龙芯 SDK | spike（edge.yml 夜间） |
+
+- **观察期约定**：新增平台 job 均带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁（与 aot-linux 既有节奏一致）。
+- **测试并行度**：Windows/Linux CI 使用 `test.ci.runsettings`（4 线程，匹配 4 vCPU runner）；macOS 3 vCPU 使用专用 `test.ci.macos.runsettings`（3 线程）。
+- **本地 Linux 预跑**：WSL/容器内 `dotnet test XUnitTest.Core -f net8.0/net10.0`（无需任何平台开关）。
+
+### 7.2 LA64（linux-loongarch64，社区支持平台）
+
+- **现状**：官方不发 runtime pack、无 NativeAOT 支持（ILCompiler 源码含 LoongArch64 后端但不构成承诺）。龙芯 [loongson/dotnet](https://github.com/loongson/dotnet) 提供 .NET 8/9/10 SDK（当前 v10.0.112），pack 走 `https://lnuget.loongnix.cn/v3/index.json`。
+- **CI 方案（观察期）**：qemu-loongarch64 用户态仿真（binfmt）+ 龙芯 SDK —— 先 `dotnet --info` 验证通路，再跑 AotSmoke JIT 冒烟，最后容错尝试单测全量；宿主无 LA64 原生 ICU，以 `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` 运行（冒烟场景不依赖区域性数据）。
+- **自托管接入（有真机后升级为阻断级）**：
+  1. 龙芯 Linux 机器接入 GitHub Actions self-hosted runner（社区已有 runner 容器镜像 `kubernetes-loong64/actions-runner-loong64`）；
+  2. 在 `edge.yml` 增加 `runs-on: [self-hosted, loongarch64]` 的 job，复用 QEMU job 的步骤（去掉 qemu 安装与仿真环境变量）；
+  3. 真机转绿后把状态同步进本节表格并考虑转阻断。
+
+### 7.3 明确排除（避免反复讨论）
+
+| 目标 | 排除理由 |
+|---|---|
+| Android / iOS / tvOS / macCatalyst / WASM | 应用模型类目标，无法用 `dotnet test` 在本仓验证（Android 见独立 `NewLife.Android` 工程） |
+| FreeBSD / linux-ppc64le / linux-s390x | 无托管 runner，官方/社区 pack 渠道未验；需要时按 LA64 的 QEMU 配方另立专项 |
+| Windows x64→Linux 交叉 NativeAOT | 官方不支持跨 OS 编译 |
+
+> 事实依据（2026-10 联网核实）：GitHub 托管 runner 标准表（公开仓库标准 runner 免费且不限量）；NativeAOT 交叉编译文档（learn.microsoft.com/dotnet/core/deploying/native-aot/cross-compile）；社区平台清单（dotnet/runtime `docs/workflow/building/coreclr/cross-building.md`）；龙芯 SDK 发布页与 lnuget 源。

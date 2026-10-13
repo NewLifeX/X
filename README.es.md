@@ -31,7 +31,7 @@ El directorio `Doc/` del repositorio mantiene el sistema de documentación de ca
 - [Lista de funcionalidades (中文)](Doc/功能清单.md): seguimiento del estado de implementación/pruebas/comentarios de todos los puntos funcionales
 - [Diseño de arquitectura (中文)](Doc/架构设计.md): capas, componentes de módulos y decisiones clave de diseño
 - [Catálogo de la biblioteca principal (中文)](Doc/核心库目录.md): índice de artículos de los componentes principales
-- [Análisis de compatibilidad AOT (中文)](Doc/AOT兼容性分析.md): alcance de soporte de NativeAOT, conclusiones de pruebas reales (smoke 25/25), guía de uso y límites conocidos
+- [Análisis de compatibilidad AOT (中文)](Doc/AOT兼容性分析.md): alcance de soporte de NativeAOT, conclusiones de pruebas reales (smoke 29/29), guía de uso y límites conocidos
 
 ## Inicio rápido
 

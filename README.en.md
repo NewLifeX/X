@@ -33,7 +33,7 @@ The repository's `Doc/` directory maintains a capability documentation system (r
 - [Feature List (中文)](Doc/功能清单.md): Implementation/test/comment status tracking for all feature points
 - [Architecture Design (中文)](Doc/架构设计.md): Layering, module components, and key design decisions
 - [Core Library Contents (中文)](Doc/核心库目录.md): Index of core component articles
-- [AOT Compatibility Analysis (中文)](Doc/AOT兼容性分析.md): NativeAOT support scope, measured conclusions (smoke test 25/25), usage guidance, and known boundaries
+- [AOT Compatibility Analysis (中文)](Doc/AOT兼容性分析.md): NativeAOT support scope, measured conclusions (smoke test 29/29), usage guidance, and known boundaries
 
 ## Quick Start
 
