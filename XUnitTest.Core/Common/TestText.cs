@@ -9,4 +9,11 @@ internal static class TestText
     /// <param name="text">待归一文本</param>
     /// <returns>归一后的文本，null 视为空串</returns>
     public static String NormalizeNewline(this String? text) => text?.Replace("\r\n", "\n") ?? String.Empty;
+
+    /// <summary>把任意换行统一为 CRLF，供 HTTP 报文等要求 CRLF 分隔的测试数据使用</summary>
+    /// <remarks>仓库不同文件的源码行尾不一（部分按 LF 存储），原始字符串字面量直接 GetBytes
+    /// 会随检出平台产生不同报文；HTTP 协议要求 CRLF 分隔，先归一再用</remarks>
+    /// <param name="text">待归一文本</param>
+    /// <returns>CRLF 换行的文本，null 视为空串</returns>
+    public static String Crlf(this String? text) => (text?.Replace("\r\n", "\n") ?? String.Empty).Replace("\n", "\r\n");
 }

@@ -24,7 +24,7 @@ public class HttpRequestTests
 
 
             """;
-        var raw = header.GetBytes();
+        var raw = header.Crlf().GetBytes();
         var pk = new ArrayPacket(raw) { Next = (ArrayPacket)body };
 
         var req = new HttpRequest();
@@ -71,7 +71,7 @@ public class HttpRequestTests
 
             """;
         var body = "Hello".GetBytes();
-        var pk = new ArrayPacket(header.GetBytes()) { Next = (ArrayPacket)body };
+        var pk = new ArrayPacket(header.Crlf().GetBytes()) { Next = (ArrayPacket)body };
 
         var req = new HttpRequest();
         var ok = req.Parse(pk);

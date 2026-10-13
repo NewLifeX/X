@@ -21,7 +21,7 @@ public class HttpResponseTests
 
 
             """;
-        var pk = new ArrayPacket(header.GetBytes()) { Next = (ArrayPacket)body };
+        var pk = new ArrayPacket(header.Crlf().GetBytes()) { Next = (ArrayPacket)body };
         var resp = new HttpResponse();
         var ok = resp.Parse(pk);
         Assert.True(ok);

@@ -1281,7 +1281,7 @@ Content-Type: image/jpeg
 
 ";
         var png = File.ReadAllBytes("Http/leaf.png".GetFullPath());
-        IPacket pk = (ArrayPacket)data.GetBytes();
+        IPacket pk = (ArrayPacket)data.Crlf().GetBytes();
         var pngPk = (ArrayPacket)png;
         pngPk.Next = (ArrayPacket)"\r\n------WebKitFormBoundary3ZXeqQWNjAzojVR7--\r\n".GetBytes();
         pk.Next = pngPk;
@@ -1336,7 +1336,7 @@ Content-Type: application/octet-stream
         var tail = "\r\n------WebKitFormBoundary3ZXeqQWNjAzojVR7--\r\n";
 
         // 头部、文件数据、尾部各成一段；首段从边界标记中切开，文件数据再切两段（现代链式包的首段 GetSpan 只覆盖首个节点）
-        var raw = head.GetBytes();
+        var raw = head.Crlf().GetBytes();
         IPacket pk = new ArrayPacket(raw[..30]);
         pk.Append(new ArrayPacket(raw[30..]));
         pk.Append(new ArrayPacket(fileData[..200]));
