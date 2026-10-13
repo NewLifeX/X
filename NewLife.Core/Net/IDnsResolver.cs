@@ -82,9 +82,9 @@ public class DnsResolver : IDnsResolver
             // 执行DNS解析
 #if NET6_0_OR_GREATER
             using var source = new CancellationTokenSource(5000);
-            var addrs = await Dns.GetHostAddressesAsync(host, source.Token).ConfigureAwait(false);
+            var addrs = await ResolveHostAsync(host, source.Token).ConfigureAwait(false);
 #else
-            var task = Dns.GetHostAddressesAsync(host);
+            var task = ResolveHostAsync(host, CancellationToken.None);
             if (!task.Wait(5000)) throw new TaskCanceledException();
             var addrs = task.ConfigureAwait(false).GetAwaiter().GetResult();
 #endif
@@ -128,6 +128,19 @@ public class DnsResolver : IDnsResolver
         }
 
         return item;
+    }
+
+    /// <summary>执行域名解析。默认走系统DNS，可重写以接入自定义解析源（如本机映射或专用DNS服务）</summary>
+    /// <param name="host">域名</param>
+    /// <param name="cancellationToken">取消通知。低版本框架无带取消的解析重载，忽略该参数</param>
+    /// <returns>IP地址集合</returns>
+    protected virtual Task<IPAddress[]> ResolveHostAsync(String host, CancellationToken cancellationToken)
+    {
+#if NET6_0_OR_GREATER
+        return Dns.GetHostAddressesAsync(host, cancellationToken);
+#else
+        return Dns.GetHostAddressesAsync(host);
+#endif
     }
 
     /// <summary>设置缓存</summary>

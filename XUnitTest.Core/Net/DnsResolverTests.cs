@@ -26,14 +26,16 @@ public class DnsResolverTests
     [DisplayName("DnsResolver_陈旧数据超阈值_同步刷新返回最新地址")]
     public void StaleCache_SyncRefresh()
     {
-        // 模拟长时间无人访问后仍指向过期地址的缓存：一小时前更新
-        var resolver = new DnsResolver { Expire = TimeSpan.FromMilliseconds(1), StaleTime = TimeSpan.FromMinutes(10) };
+        // 模拟长时间无人访问后仍指向过期地址的缓存：一小时前更新。
+        // 解析桩返回本机地址：不依赖真实 DNS，满载下不会因解析超时保留旧值而误判
+        var resolver = new StubResolver { Expire = TimeSpan.FromMilliseconds(1), StaleTime = TimeSpan.FromMinutes(10) };
+        resolver.Handler = _ => [IPAddress.Loopback];
         resolver.Set("localhost", [IPAddress.Parse("1.2.3.4")], -3600);
 
         var addrs = resolver.Resolve("localhost");
 
         Assert.NotNull(addrs);
-        // 超过陈旧阈值时同步刷新，返回本机真实解析结果，而不是缓存中的假地址
+        // 超过陈旧阈值时同步刷新，返回解析桩的最新结果，而不是缓存中的假地址
         Assert.DoesNotContain(IPAddress.Parse("1.2.3.4"), addrs);
         Assert.Contains(addrs, IPAddress.IsLoopback);
     }
@@ -43,9 +45,10 @@ public class DnsResolverTests
     public void SlightlyExpired_AsyncRefresh()
     {
         // 仅超过 Expire 而未达 StaleTime 的缓存，由后台异步刷新，本次请求立即返回旧值
-        var resolver = new DnsResolver { Expire = TimeSpan.FromMilliseconds(1), StaleTime = TimeSpan.FromMinutes(10) };
+        var resolver = new StubResolver { Expire = TimeSpan.FromMilliseconds(1), StaleTime = TimeSpan.FromMinutes(10) };
 
-        // 使用必然解析失败的主机，保证后台刷新不会替换缓存，结果可确定断言
+        // 解析桩必然失败，保证后台刷新不会替换缓存，结果可确定断言
+        resolver.Handler = _ => throw new InvalidOperationException("stub dns failure");
         var host = new String('a', 300) + ".invalid";
         resolver.Set(host, [IPAddress.Parse("1.2.3.4")], -10);
 
@@ -62,9 +65,10 @@ public class DnsResolverTests
     [DisplayName("DnsResolver_同步刷新失败_进入退避不再同步阻塞")]
     public void SyncRefreshFails_BacksOff()
     {
-        var resolver = new DnsResolver { Expire = TimeSpan.FromSeconds(30), StaleTime = TimeSpan.FromMilliseconds(1) };
+        var resolver = new StubResolver { Expire = TimeSpan.FromSeconds(30), StaleTime = TimeSpan.FromMilliseconds(1) };
 
-        // 使用必然解析失败的超长主机名，模拟DNS异常
+        // 解析桩必然失败，模拟DNS异常
+        resolver.Handler = _ => throw new InvalidOperationException("stub dns failure");
         var host = new String('a', 300) + ".invalid";
         resolver.Set(host, [IPAddress.Parse("1.2.3.4")], -3600);
 
@@ -82,7 +86,8 @@ public class DnsResolverTests
     [DisplayName("DnsResolver_退避期内_不再同步刷新")]
     public void Backoff_NoSyncRefresh()
     {
-        var resolver = new DnsResolver { Expire = TimeSpan.FromSeconds(30), StaleTime = TimeSpan.FromMilliseconds(1) };
+        var resolver = new StubResolver { Expire = TimeSpan.FromSeconds(30), StaleTime = TimeSpan.FromMilliseconds(1) };
+        resolver.Handler = _ => throw new InvalidOperationException("stub dns failure");
         var host = new String('a', 300) + ".invalid";
         resolver.Set(host, [IPAddress.Parse("1.2.3.4")], -3600);
 
@@ -115,12 +120,22 @@ public class DnsResolverTests
     [DisplayName("DnsResolver_首次解析_同步等待并返回本机地址")]
     public void FirstResolve_Sync()
     {
-        var resolver = new DnsResolver();
+        // 解析桩返回本机地址：首次解析同步等待并返回解析结果，不依赖真实 DNS
+        var resolver = new StubResolver { Handler = _ => [IPAddress.Loopback] };
 
         var addrs = resolver.Resolve("localhost");
 
         Assert.NotNull(addrs);
         Assert.Contains(addrs, IPAddress.IsLoopback);
+    }
+
+    /// <summary>解析桩：注入确定性解析结果，用例不再依赖真实 DNS（满载下真实解析会超时导致误判）</summary>
+    private sealed class StubResolver : DnsResolver
+    {
+        /// <summary>解析委托。抛出异常表示解析失败</summary>
+        public Func<String, IPAddress[]>? Handler { get; set; }
+
+        protected override Task<IPAddress[]> ResolveHostAsync(String host, CancellationToken cancellationToken) => Task.FromResult(Handler!(host));
     }
 
     /// <summary>读取缓存项的下次同步刷新时间。退避行为无法从公开返回值观察，只能反射验证</summary>
