@@ -422,6 +422,7 @@ public class TimerX : ITimer, IDisposable
 
     private static TimerX? _NowTimer;
     private static DateTime _Now;
+    private static readonly Object _NowLock = new();
 
     /// <summary>当前时间。定时读取系统时间，避免频繁读取系统时间造成性能瓶颈</summary>
     public static DateTime Now
@@ -430,7 +431,9 @@ public class TimerX : ITimer, IDisposable
         {
             if (_NowTimer == null)
             {
-                lock (TimerScheduler.Default)
+                // 专用锁对象：初始化期间不得占用调度器监视器。构造 TimerX 会读取开机滴答（可能触发 Runtime 类初始化），
+                // 一旦同时持有调度器监视器，就会与“持有 Runtime 类初始化锁又需要调度器监视器”的线程互等死锁
+                lock (_NowLock)
                 {
                     if (_NowTimer == null)
                     {

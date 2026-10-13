@@ -65,26 +65,15 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
         set { _Current = value; }
     }
 
-    /// <summary>尝试获取当前实例。配置正在被其它线程初始化时不等待，直接返回 null</summary>
+    /// <summary>非阻塞读取当前实例。未初始化时返回空，且不触发初始化</summary>
     /// <remarks>
-    /// 供程序集解析回调等不能阻塞的上下文使用。这类回调可能在任意线程持有关键锁时被触发，
-    /// 阻塞等待配置初始化会与“初始化路径中途获取其它锁”的线程形成互等死锁。
+    /// 供程序集解析回调等不能执行任何初始化动作的上下文使用。这类回调可能在任意线程持有类初始化锁时被触发，
+    /// 而配置初始化会绑定文件配置并创建定时器（需要类初始化与调度器监视器），形成互等死锁：
+    /// Runtime 类初始化 → 程序集解析 → 配置初始化 → 定时调度器监视器 ↺ 定时器初始化 → Runtime 类初始化。
+    /// 需要初始化时请走 <see cref="Current"/>。
     /// </remarks>
-    /// <returns>当前实例；未初始化时在无竞争情况下完成初始化，初始化进行中则返回 null</returns>
-    internal static TConfig? TryGetCurrent()
-    {
-        if (_Current != null) return _Current;
-
-        if (!Monitor.TryEnter(typeof(TConfig))) return null;
-        try
-        {
-            return _Current ??= Create();
-        }
-        finally
-        {
-            Monitor.Exit(typeof(TConfig));
-        }
-    }
+    /// <returns>已初始化的当前实例；未初始化时返回 null，绝不触发初始化</returns>
+    internal static TConfig? TryGetCurrent() => _Current;
 
     [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "配置绑定依赖类型成员反射；AOT 下请使用显式绑定入口")]
     private static TConfig Create()

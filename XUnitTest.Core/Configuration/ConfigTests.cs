@@ -98,9 +98,12 @@ public class ConfigTests
             await holder.WaitAsync(TimeSpan.FromSeconds(5));
         }
 
-        // 无竞争时完成初始化并缓存，与 Current 同源
-        var cfg = Config<InitHoldConfig>.TryGetCurrent();
+        // 只读已初始化的实例：未初始化时返回空，绝不触发初始化（程序集解析回调等路径依赖该契约）
+        Assert.Null(Config<InitHoldConfig>.TryGetCurrent());
+
+        // 需要初始化时走 Current
+        var cfg = InitHoldConfig.Current;
         Assert.NotNull(cfg);
-        Assert.Same(cfg, InitHoldConfig.Current);
+        Assert.Same(cfg, Config<InitHoldConfig>.TryGetCurrent());
     }
 }
