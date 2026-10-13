@@ -170,34 +170,19 @@ public class SessionBaseTests
         Assert.True(client.Active);
     }
 
-    /// <summary>探测地址是否构成“黑洞”：预算内既没连上、也不立刻失败</summary>
-    private static Boolean IsBlackhole(String host, Int32 port, Int32 budgetMs)
-    {
-        try
-        {
-            using var tc = new TcpClient();
-            var task = tc.ConnectAsync(host, port);
-
-            return !task.Wait(budgetMs);
-        }
-        catch
-        {
-            return false;   // 立刻失败（拒绝或路由不可达）→ 不是黑洞
-        }
-    }
-
     /// <summary>测试TcpSession建连超时受Timeout约束</summary>
     [Fact(DisplayName = "TcpSession_建连超时_受Timeout约束")]
     public void TcpSessionTimeout()
     {
-        // 192.0.2.0/24 为文档保留网段，正常不会被路由；若本机对它立刻拒绝（ICMP 或路由不可达），
-        // 就无从验证建连超时约束，跳过
-        if (!IsBlackhole("192.0.2.1", 12345, 1000)) return;
+        // 本机黑洞（accept 队列打满的半开连接）：不依赖任何外部网络。
+        // 本机 backlog 语义不支持构造黑洞时跳过（属本机环境差异，与外部依赖无关）
+        using var blackhole = TestBlackhole.TryCreate();
+        if (blackhole == null) return;
 
         using var client = new TcpSession
         {
-            Remote = new NetUri("tcp://192.0.2.1:12345"), // 黑洞地址
-            Timeout = 800,
+            Remote = new NetUri($"tcp://127.0.0.1:{blackhole.Port}"), // 半开地址
+            Timeout = 600,
         };
 
         var sw = Stopwatch.StartNew();
@@ -728,9 +713,15 @@ public class SessionBaseTests
         var errorReceived = false;
         String? errorAction = null;
 
+        // 本地不可达：绑定后立即释放的端口，连接会被立刻拒绝，不再使用外部黑洞地址
+        var probe = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        probe.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        var closedPort = ((IPEndPoint)probe.LocalEndPoint!).Port;
+        probe.Dispose();
+
         using var client = new TcpSession
         {
-            Remote = new NetUri("tcp://192.0.2.1:12345"),
+            Remote = new NetUri($"tcp://127.0.0.1:{closedPort}"),
             Timeout = 500,
         };
         client.Error += (s, e) =>

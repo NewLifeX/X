@@ -230,10 +230,25 @@ public class EchoServerIntegrationTests : IClassFixture<EchoServerFixture>
         var payload = new Byte[32];
         Random.Shared.NextBytes(payload);
         var endpoint = new IPEndPoint(IPAddress.Loopback, port);
-        await udp.SendAsync(payload, payload.Length, endpoint);
 
-        var result = await udp.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(10));
-        Assert.Equal(payload, result.Buffer);
+        // UDP 不可靠：满载下回环也可能丢包，有界重发轮询触达；断言口径不变（回显逐字节一致）。
+        // 超时必须取消挂起的接收，避免被遗弃的接收请求继续吃掉后续回显
+        Byte[]? reply = null;
+        var end = Environment.TickCount64 + 10_000;
+        while (reply == null && Environment.TickCount64 < end)
+        {
+            await udp.SendAsync(payload, payload.Length, endpoint);
+
+            using var cts = new CancellationTokenSource(1_000);
+            try
+            {
+                reply = (await udp.ReceiveAsync(cts.Token)).Buffer;
+            }
+            catch (OperationCanceledException) { }
+        }
+
+        Assert.NotNull(reply);
+        Assert.Equal(payload, reply!);
 
         await Task.Delay(50);
         Assert.True(Interlocked.Read(ref _fixture.Server.TotalBytesReceived) >= beforeBytes + payload.Length,
@@ -246,16 +261,29 @@ public class EchoServerIntegrationTests : IClassFixture<EchoServerFixture>
         var port = _fixture.Server.Port;
         var beforeBytes = Interlocked.Read(ref _fixture.Server.TotalBytesReceived);
         using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        socket.ReceiveTimeout = 5_000;
+        socket.ReceiveTimeout = 1_000;
         var endpoint = new IPEndPoint(IPAddress.Loopback, port);
         EndPoint remote = endpoint;
 
         var payload = new Byte[32];
         Random.Shared.NextBytes(payload);
-        await socket.SendToAsync(payload, SocketFlags.None, endpoint);
 
+        // UDP 不可靠：满载下回环也可能丢包，有界重发轮询触达；断言口径不变（回显逐字节一致）
         var received = new Byte[256];
-        var n = socket.ReceiveFrom(received, ref remote);
+        var n = 0;
+        var end = Environment.TickCount64 + 10_000;
+        while (n == 0 && Environment.TickCount64 < end)
+        {
+            await socket.SendToAsync(payload, SocketFlags.None, endpoint);
+
+            try
+            {
+                n = socket.ReceiveFrom(received, ref remote);
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode == SocketError.TimedOut) { }
+        }
+
+        Assert.True(n > 0, "未在超时内收到UDP回显");
         Assert.Equal(payload, received[..n]);
 
         await Task.Delay(50);

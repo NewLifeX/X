@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using NewLife;
 using NewLife.Data;
@@ -11,24 +14,6 @@ namespace XUnitTest.Http;
 
 public class TinyHttpClientTest
 {
-    /// <summary>检查目标服务器是否可达</summary>
-    private static Boolean IsServerReachable(String host, Int32 port, Int32 timeoutMs = 2000)
-    {
-        try
-        {
-            using var client = new TcpClient();
-            var result = client.BeginConnect(host, port, null, null);
-            var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(timeoutMs));
-            if (!success) return false;
-            client.EndConnect(result);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     /// <summary>启动本地一次性 HTTP 服务器，返回端口与完成任务</summary>
     private static (Int32 Port, Task Server) StartLocalServer(Func<NetworkStream, Task> handler)
     {
@@ -87,12 +72,15 @@ public class TinyHttpClientTest
     [Fact(DisplayName = "异步请求")]
     public async Task SendAsyncTest()
     {
-        // 在 CI 环境中跳过，因为目标服务器可能不可达
-        if (!IsServerReachable("newlifex.com", 80)) return;
+        // 本地化：由本地服务提供超过 500 字符的页面，验证请求/基地址/正文读取链路，不触网
+        using var server = new HttpServer { Port = 0 };
+        server.Map("/", () => "<html><body>" + new String('x', 600) + "</body></html>");
+        server.Start();
 
-        var uri = new Uri("http://newlifex.com");
+        var uri = new Uri($"http://127.0.0.1:{server.Port}/");
         var req = new HttpRequest { RequestUri = uri };
         var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(3) };
+
         var html = (await client.SendAsync(req))?.Body.ToStr();
 
         Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
@@ -102,25 +90,56 @@ public class TinyHttpClientTest
     [Fact(DisplayName = "异步字符串")]
     public async Task GetStringAsyncTest()
     {
-        // 在 CI 环境中跳过，因为目标服务器可能不可达
-        if (!IsServerReachable("x.newlifex.com", 80)) return;
+        // 本地化：同样以超过 500 字符的本地页面校验字符串接口，不触网
+        using var server = new HttpServer { Port = 0 };
+        server.Map("/", () => "<html><body>" + new String('y', 600) + "</body></html>");
+        server.Start();
 
         var client = new TinyHttpClient();
-        var html = await client.GetStringAsync("http://x.newlifex.com");
+        var html = await client.GetStringAsync($"http://127.0.0.1:{server.Port}/");
 
         Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
     }
 
-    [Fact(DisplayName = "https")]
+    [Fact(DisplayName = "https_自签名证书_严格校验拒绝")]
     public async Task GetStringHttpsTest()
     {
-        // 在 CI 环境中跳过，因为目标服务器可能不可达
-        if (!IsServerReachable("newlifex.com", 443)) return;
+        // 本地化说明：无法为公网域名在本机取得受系统信任的证书，故 https 以"自签名证书被拒绝"作为确定性验收口径。
+        // TinyHttpClient 按系统信任链严格校验服务器证书，本地自签证书必须被拒绝（含主机名不匹配）
+        var pfx = typeof(TinyHttpClientTest).Assembly.GetManifestResourceStream("XUnitTest.certs.newlifex.com.pfx")!.ReadBytes(-1);
+#if NET9_0_OR_GREATER
+        using var cert = X509CertificateLoader.LoadPkcs12(pfx, "123456");
+#else
+        using var cert = new X509Certificate2(pfx, "123456", X509KeyStorageFlags.DefaultKeySet);
+#endif
 
-        var client = new TinyHttpClient();
-        var html = await client.GetStringAsync("https://newlifex.com");
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var client = await listener.AcceptTcpClientAsync();
+                using var ssl = new SslStream(client.GetStream(), false);
+                await ssl.AuthenticateAsServerAsync(cert, false, SslProtocols.Tls12, false);
+                var head = "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok".GetBytes();
+                await ssl.WriteAsync(head, 0, head.Length);
+                await ssl.FlushAsync();
+            }
+            catch { }
+            finally
+            {
+                listener.Stop();
+            }
+        });
 
-        Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
+        var http = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        var ex = await Record.ExceptionAsync(() => http.GetStringAsync($"https://127.0.0.1:{port}/"));
+
+        Assert.NotNull(ex);
+        Assert.True(ex is AuthenticationException || ex.InnerException is AuthenticationException,
+            $"应为证书校验失败，实际 {ex.GetType().Name}: {ex.Message}");
     }
 
     [Theory(DisplayName = "HTTP客户端_跟随303/307/308重定向与相对Location")]
@@ -217,10 +236,18 @@ public class TinyHttpClientTest
             catch { }
         });
 
-        using var client = new TinyHttpClient { Timeout = TimeSpan.FromMilliseconds(200) };
+        // 超时预算 1 秒：服务端永远补不全响应头，客户端必须在预算内失败而非被逐字节读取无限拖住。
+        // 满载下建连本身也可能先行超时（TimeoutException），两者都是“未挂住”的合法失败形态；同时校验耗时确实在预算量级
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(1) };
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") }).WaitAsync(TimeSpan.FromSeconds(10)));
+        var sw = Stopwatch.StartNew();
+        var ex = await Record.ExceptionAsync(() =>
+            client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/") }).WaitAsync(TimeSpan.FromSeconds(10)));
+        sw.Stop();
+
+        Assert.NotNull(ex);
+        Assert.True(ex is OperationCanceledException or TimeoutException, $"应为超时类异常，实际 {ex.GetType().Name}: {ex.Message}");
+        Assert.True(sw.ElapsedMilliseconds < 5_000, $"请求未被超时预算限制，耗时 {sw.ElapsedMilliseconds}ms");
     }
 
     [Fact(DisplayName = "HTTP客户端_错误状态码_抛异常")]
@@ -397,7 +424,8 @@ public class TinyHttpClientTest
             await Task.Delay(1500);
         });
 
-        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(1) };
+        // 超时只作为兜底（本地服务端回调即时响应），满载下连接与读取可能滞后秒级，1 秒会误伤
+        using var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(10) };
         var res = await client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{port}/a") });
 
         Assert.NotNull(res);
@@ -472,35 +500,21 @@ public class TinyHttpClientTest
     }
     #endregion
 
-    /// <summary>探测地址是否构成“黑洞”：预算内既没连上、也不立刻失败</summary>
-    private static Boolean IsBlackhole(String host, Int32 port, Int32 budgetMs)
-    {
-        try
-        {
-            using var tc = new TcpClient();
-            var task = tc.ConnectAsync(host, port);
-
-            return !task.Wait(budgetMs);
-        }
-        catch
-        {
-            return false;   // 立刻失败（拒绝或路由不可达）→ 不是黑洞
-        }
-    }
-
-    [Fact(DisplayName = "建连_黑洞地址_受整次超时约束")]
+    [Fact(DisplayName = "建连_半开地址_受整次超时约束")]
     public async Task Connect_Blackhole_BoundedByTimeout()
     {
-        // 192.0.2.0/24 为文档保留网段，正常不会被路由。若本机对该地址立刻拒绝（ICMP 或路由不可达），
-        // 就无从验证建连超时约束，跳过
-        if (!IsBlackhole("192.0.2.1", 80, 1000)) return;
+        // 本机黑洞（accept 队列打满的半开连接）：不依赖任何外部网络。
+        // 本机 backlog 语义不支持构造黑洞时跳过（属本机环境差异，与外部依赖无关）
+        using var blackhole = TestBlackhole.TryCreate();
+        if (blackhole == null) return;
 
+        // 预算必须明显小于黑洞探测窗口（1 秒），确保探测通过后建连仍处于半开状态
         using var client = new TinyHttpClient { Timeout = TimeSpan.FromMilliseconds(500) };
 
         var sw = Stopwatch.StartNew();
         // 没有超时约束时，建连要等操作系统默认 TCP 超时（Windows 约 21 秒）
         var ex = await Assert.ThrowsAnyAsync<Exception>(() =>
-            client.SendAsync(new HttpRequest { RequestUri = new Uri("http://192.0.2.1/") }).WaitAsync(TimeSpan.FromSeconds(10)));
+            client.SendAsync(new HttpRequest { RequestUri = new Uri($"http://127.0.0.1:{blackhole.Port}/") }).WaitAsync(TimeSpan.FromSeconds(10)));
         sw.Stop();
 
         Assert.IsType<TimeoutException>(ex);

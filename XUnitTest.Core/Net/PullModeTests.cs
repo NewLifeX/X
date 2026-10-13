@@ -147,19 +147,36 @@ public class PullModeTests
         client.Remote = new NetUri($"udp://127.0.0.1:{server.Port}");
         client.Open();
 
-        client.Send("hello");
+        // UDP 不可靠：满载下回环也可能丢包，有界重发轮询触达；断言口径不变（回显逐字节一致）。
+        // 超时必须取消挂起的接收，避免被遗弃的接收请求继续吃掉后续回显
+        IOwnerPacket? pk = null;
+        var deadline = Runtime.TickCount64 + 15_000;
+        while (pk == null && Runtime.TickCount64 < deadline)
+        {
+            client.Send("hello");
 
-        using var pk = await client.ReceiveAsync(default).WaitAsync(TimeSpan.FromSeconds(5));
+            using var cts = new CancellationTokenSource(1_000);
+            try
+            {
+                pk = await client.ReceiveAsync(cts.Token);
+            }
+            catch (OperationCanceledException) { }
+        }
+
         Assert.NotNull(pk);
-        Assert.Equal("echo:hello", pk!.ToStr());
+        using (pk)
+        {
+            Assert.Equal("echo:hello", pk!.ToStr());
+        }
     }
 
     /// <summary>拉取模式：UDP 服务器级直读连续数据报，一次拉取恰为一个完整数据报，大小与顺序完整</summary>
     [Fact(DisplayName = "拉取_UdpServer_连续多数据报顺序完整")]
     public void UdpServerPull_MultipleDatagrams()
     {
-        // 直读走 Socket 接收超时（Timeout 默认 3 秒），满载下数据报到达可能被调度滞后，放宽等待窗口
-        using var server = new UdpServer { AutoReceive = false, Timeout = 15_000, Log = XTrace.Log };
+        // 直读走 Socket 接收超时；UDP 无重传保障，满载下存在极小概率丢包，超时后按序补发缺失数据报再拉取。
+        // 验证目标不变：每个成功拉取恰为一个完整数据报，内容与顺序完整，不粘不拆
+        using var server = new UdpServer { AutoReceive = false, Timeout = 1_000, Log = XTrace.Log };
         server.Open();
         var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
 
@@ -173,18 +190,49 @@ public class PullModeTests
             var data = new Byte[96 + i * 53];
             for (var j = 0; j < data.Length; j++) data[j] = (Byte)(i * 31 + j);
             expected.Add(data);
+        }
+
+        foreach (var data in expected)
+        {
             sock.SendTo(data, serverEp);
             Thread.Sleep(20);
         }
 
         // 逐个拉取：每次 Receive 恰为一个完整数据报，不粘不拆
-        for (var i = 0; i < 5; i++)
+        var index = 0;
+        var deadline = Runtime.TickCount64 + 30_000;
+        while (index < expected.Count && Runtime.TickCount64 < deadline)
         {
-            using var pk = server.Receive();
-            Assert.NotNull(pk);
-            Assert.Equal(expected[i].Length, pk!.Length);
-            Assert.Equal(expected[i], pk.ToArray());
+            IOwnerPacket? pk;
+            try
+            {
+                pk = server.Receive();
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode == SocketError.TimedOut)
+            {
+                sock.SendTo(expected[index], serverEp);
+                continue;
+            }
+
+            using (pk)
+            {
+                Assert.NotNull(pk);
+                var data = pk!.ToArray();
+
+                // 补发与迟到的原包可能同时到达，已收过的数据报按重复包跳过
+                var duplicate = false;
+                for (var k = 0; k < index; k++)
+                {
+                    if (expected[k].AsSpan().SequenceEqual(data)) { duplicate = true; break; }
+                }
+                if (duplicate) continue;
+
+                Assert.Equal(expected[index], data);
+            }
+            index++;
         }
+
+        Assert.Equal(expected.Count, index);
     }
 
     /// <summary>拉取模式可手动启动接收环，此后拉取被禁止（单向切换）</summary>

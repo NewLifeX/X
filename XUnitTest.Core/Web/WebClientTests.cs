@@ -1,5 +1,5 @@
-﻿using System.Net.Sockets;
 using NewLife;
+using NewLife.Http;
 using NewLife.Web;
 using Xunit;
 
@@ -7,32 +7,26 @@ namespace XUnitTest.Web;
 
 public class WebClientTests
 {
-    /// <summary>检查目标服务器是否可达</summary>
-    private static Boolean IsServerReachable(String host, Int32 port, Int32 timeoutMs = 2000)
-    {
-        try
-        {
-            using var client = new TcpClient();
-            var result = client.BeginConnect(host, port, null, null);
-            var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(timeoutMs));
-            if (!success) return false;
-            client.EndConnect(result);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     [Fact]
     public void GetLinks()
     {
-        // 在 CI 环境中跳过，因为目标服务器可能不可达
-        if (!IsServerReachable("x.newlifex.com", 80)) return;
+        // 本地化：与软件站同构的表格页面（时间/大小/链接/哈希四列），解析语义不变，全程不触网
+        using var server = new HttpServer { Port = 0 };
+        server.Map("/", () => """
+            <table>
+            <tr><td>2024-05-14 10:00:00</td><td>1 MB</td><td><a href="/files/System.Data.SQLite.win-x64.zip">System.Data.SQLite.win-x64.zip</a></td><td>-</td></tr>
+            <tr><td>2024-05-10 10:00:00</td><td>1 MB</td><td><a href="/files/System.Data.SQLite.win.zip">System.Data.SQLite.win.zip</a></td><td>-</td></tr>
+            <tr><td>2024-04-01 10:00:00</td><td>1 MB</td><td><a href="/files/System.Data.SQLite_net80.zip">System.Data.SQLite_net80.zip</a></td><td>-</td></tr>
+            <tr><td>2024-04-01 10:00:00</td><td>1 MB</td><td><a href="/files/System.Data.SQLite_netstandard21.zip">System.Data.SQLite_netstandard21.zip</a></td><td>-</td></tr>
+            <tr><td>2024-04-01 10:00:00</td><td>1 MB</td><td><a href="/files/System.Data.SQLite_netstandard20.zip">System.Data.SQLite_netstandard20.zip</a></td><td>-</td></tr>
+            <tr><td>2024-04-01 10:00:00</td><td>1 MB</td><td><a href="/files/System.Data.SQLite.zip">System.Data.SQLite.zip</a></td><td>-</td></tr>
+            </table>
+            """);
+        server.Start();
 
         var client = new WebClientX();
-        var links = client.GetLinks("http://x.newlifex.com");
+        var links = client.GetLinks($"http://127.0.0.1:{server.Port}/");
+
         Assert.NotEmpty(links);
 
         var names = "System.Data.SQLite.win-x64,System.Data.SQLite.win,System.Data.SQLite_net80,System.Data.SQLite_netstandard21,System.Data.SQLite_netstandard20,System.Data.SQLite".Split(",", ";");

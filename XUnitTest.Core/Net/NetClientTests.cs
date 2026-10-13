@@ -677,7 +677,8 @@ public class NetClientTests
 
         using var client = new NetClient($"tcp://127.0.0.1:{server.Port}")
         {
-            Timeout = 300,
+            // 建连预算放宽：满载并行下 300ms 会让初始 Open 偶发失败；断线检测由显式 Close 触发，不依赖该值
+            Timeout = 3_000,
             AutoReconnect = true,
             ReconnectDelay = 100,
             MaxReconnect = 2,

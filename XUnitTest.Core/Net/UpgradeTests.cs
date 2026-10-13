@@ -1,4 +1,5 @@
-﻿using System.Net;
+using System.IO.Compression;
+using System.Net;
 using System.Net.Sockets;
 using NewLife;
 using NewLife.Log;
@@ -9,71 +10,102 @@ namespace XUnitTest.Net;
 
 public class UpgradeTests
 {
-    /// <summary>检查目标服务器是否可达</summary>
-    private static Boolean IsServerReachable(String host, Int32 port, Int32 timeoutMs = 2000)
+    /// <summary>判断文件是否为 zip（PK 魔数）</summary>
+    private static Boolean IsZip(String file)
     {
-        try
-        {
-            using var client = new TcpClient();
-            var result = client.BeginConnect(host, port, null, null);
-            var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(timeoutMs));
-            if (!success) return false;
-            client.EndConnect(result);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        if (file.IsNullOrEmpty() || !File.Exists(file)) return false;
+
+        using var fs = File.OpenRead(file);
+        var buffer = new Byte[2];
+
+        return fs.Read(buffer, 0, 2) == 2 && buffer[0] == (Byte)'P' && buffer[1] == (Byte)'K';
     }
 
-    [Fact]
+    [Fact(DisplayName = "下载解压替换_本地更新包全链路")]
     public void CopyAndReplace()
     {
-        // 在 CI 环境中跳过，因为目标服务器可能不可达
-        if (!IsServerReachable("x.newlifex.com", 80))
+        // 本地化：更新包由本地服务提供（真实 zip），下载→解压→替换全链路不触网。
+        // 包名带随机后缀，解压目录（按包名生成）随之唯一，多目标框架并行不再互相占用，无需跨进程互斥
+        var tag = Guid.NewGuid().ToString("N");
+        var zipName = $"upgrade_{tag}.zip";
+        var zipPath = Path.GetTempPath().CombinePath(zipName);
+        using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
         {
-            return; // Skip test when server is not reachable
-        }
-
-        // Upgrade.Extract 把更新包解压到系统临时目录下的同名子目录（staragent50），
-        // 多目标框架并行运行时会相互占用同一个解压目录，故用跨进程互斥串行执行
-        using var mutex = new Mutex(false, @"Global\NewLife.Core.UpgradeTests.CopyAndReplace");
-        var acquired = false;
-        try
-        {
-            try
+            var entry = zip.CreateEntry("payload.txt");
+            using (var writer = new StreamWriter(entry.Open()))
             {
-                acquired = mutex.WaitOne(TimeSpan.FromMinutes(5));
+                writer.Write("local update payload");
             }
-            catch (AbandonedMutexException)
-            {
-                // 上一个持有者进程异常退出，互斥量已归本线程
-                acquired = true;
-            }
-
-            if (!acquired) return;
-
-            //Directory.Delete("./Update", true);
-
-            var url = "http://x.newlifex.com/star/staragent50.zip";
-            var fileName = Path.GetFileName(url);
-            //fileName = "Update".CombinePath(fileName).EnsureDirectory(true);
-
-            var ug = new Upgrade { Log = XTrace.Log };
-            ug.Download(url, fileName);
-
-            // 解压
-            var source = ug.Extract(ug.SourceFile);
-
-            // 覆盖
-            var dest = "./updateTest";
-            ug.CopyAndReplace(source, dest);
         }
-        finally
+
+        using var listener = StartFileServer(zipPath, out var port);
+
+        var ug = new Upgrade
         {
-            if (acquired) mutex.ReleaseMutex();
-        }
+            UpdatePath = Path.GetTempPath().CombinePath("upgrade_src_" + tag),
+            Log = XTrace.Log,
+        };
+
+        var url = $"http://127.0.0.1:{port}/{zipName}";
+        ug.Download(url, zipName);
+
+        Assert.True(IsZip(ug.SourceFile));
+
+        // 解压
+        var source = ug.Extract(ug.SourceFile);
+
+        // 覆盖
+        var dest = Path.GetTempPath().CombinePath("upgrade_dst_" + tag);
+        ug.CopyAndReplace(source, dest);
+
+        Assert.True(File.Exists(Path.Combine(dest, "payload.txt")));
+        Assert.Equal("local update payload", File.ReadAllText(Path.Combine(dest, "payload.txt")));
+    }
+
+    /// <summary>启动一个返回指定文件内容的本地 HTTP 服务（一次性下载桩）</summary>
+    private static TcpListener StartFileServer(String file, out Int32 port)
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                TcpClient client;
+                try
+                {
+                    client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    break;
+                }
+
+                _ = Task.Run(async () =>
+                {
+                    using (client)
+                    using (var ns = client.GetStream())
+                    {
+                        try
+                        {
+                            // 读走请求行与头部即可，响应固定文件内容
+                            await ns.ReadAsync(new Byte[1024], 0, 1024).ConfigureAwait(false);
+
+                            var body = File.ReadAllBytes(file);
+                            var head = $"HTTP/1.1 200 OK\r\nContent-Type: application/zip\r\nContent-Length: {body.Length}\r\nConnection: close\r\n\r\n".GetBytes();
+                            await ns.WriteAsync(head, 0, head.Length).ConfigureAwait(false);
+                            await ns.WriteAsync(body, 0, body.Length).ConfigureAwait(false);
+                            await ns.FlushAsync().ConfigureAwait(false);
+                        }
+                        catch { }
+                    }
+                });
+            }
+        });
+
+        return listener;
     }
 
     /// <summary>启动一个固定返回指定 HTML 的本地 HTTP 服务，供检查更新用例使用</summary>

@@ -85,7 +85,8 @@ public class NetAsyncTests
 
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Timeout = 1000; // 1秒超时
+        // 建连/接收超时预算放宽：本用例的"超时"由 500ms 取消令牌驱动，1 秒预算在满载并行下会让建连偶发失败
+        client.Timeout = 5_000;
         client.Log = XTrace.Log;
         if (client is TcpSession tcp2) tcp2.AutoReceive = false;
         client.Open();

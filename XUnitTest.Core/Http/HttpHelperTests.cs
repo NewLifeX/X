@@ -10,6 +10,7 @@ using NewLife;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Net;
 using Xunit;
 
 namespace XUnitTest.Http;
@@ -168,37 +169,43 @@ public class HttpHelperTests
         Assert.Contains("abcd", rs);
     }
 
+    /// <summary>启动本地站点桩：提供与站点同构的最小响应，用例全程不触网</summary>
+    /// <param name="json">响应正文</param>
+    /// <returns>本地服务</returns>
+    private static HttpServer StartCubeServer(String json)
+    {
+        var server = new HttpServer { Port = 0 };
+        server.Map("/cube/info", () => json);
+        server.Start();
+
+        return server;
+    }
+
     [Fact]
     public void GetStringWithDnsResolver()
     {
-        var url = "http://star.newlifex.com/cube/info";
+        // 本地化：域名经 DnsResolver 指向本机，HttpClient 的 ConnectCallback→NetUri.ParseAddress 解析路径不变
+        using var server = StartCubeServer("""{"name":"StarWeb"}""");
+        if (DnsResolver.Instance is DnsResolver resolver) resolver.Set("star.newlifex.com", [IPAddress.Loopback]);
 
-        // 外部网络用例：断网或代理异常时请求会长时间挂起，先做限时可达性探测
-        if (!TestNetworkHelper.IsReachable("star.newlifex.com", 80)) return;
-
-        var client = DefaultTracer.Instance.CreateHttpClient();
-        client.Timeout = TimeSpan.FromSeconds(10);
-        var rs = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
+        var url = $"http://star.newlifex.com:{server.Port}/cube/info";
+        var rs = DefaultTracer.Instance.CreateHttpClient().GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
 
         Assert.NotNull(rs);
-        //Assert.Equal("state: xxxyyy\r\n", rs);
         Assert.Contains("\"name\":\"StarWeb\"", rs, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public void GetStringWithDnsResolver2()
     {
-        var url = "https://sso.newlifex.com/cube/info";
+        // 本地化（第二个域名）：验证多域名经 DnsResolver 解析后均能正常请求
+        using var server = StartCubeServer("""{"name":"CubeSSO"}""");
+        if (DnsResolver.Instance is DnsResolver resolver) resolver.Set("sso.newlifex.com", [IPAddress.Loopback]);
 
-        // 外部网络用例：断网或代理异常时请求会长时间挂起，先做限时可达性探测
-        if (!TestNetworkHelper.IsReachable("sso.newlifex.com", 443)) return;
-
-        var client = DefaultTracer.Instance.CreateHttpClient();
-        client.Timeout = TimeSpan.FromSeconds(10);
-        var rs = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
+        var url = $"http://sso.newlifex.com:{server.Port}/cube/info";
+        var rs = DefaultTracer.Instance.CreateHttpClient().GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
 
         Assert.NotNull(rs);
-        //Assert.Equal("state: xxxyyy\r\n", rs);
         Assert.Contains("\"name\":\"CubeSSO\"", rs);
     }
 

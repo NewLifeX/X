@@ -54,9 +54,11 @@ public class NetUriTests
     [Fact]
     public void ParseAddress()
     {
-        var addrs = NetUri.ParseAddress("newlifex.com");
+        // 本地化：域名映射由 DnsResolver 注入（唯一域名，不影响其它用例），不再查询真实 DNS
+        if (DnsResolver.Instance is DnsResolver resolver) resolver.Set("neturi.test", [IPAddress.Loopback, IPAddress.IPv6Loopback]);
+
+        var addrs = NetUri.ParseAddress("neturi.test");
         Assert.NotNull(addrs);
-        //Assert.Equal(3, addrs.Length);
         Assert.True(addrs.Length > 0);
         Assert.Contains(addrs, e => e.AddressFamily == AddressFamily.InterNetwork);
 
@@ -69,11 +71,10 @@ public class NetUriTests
         Assert.Single(addrs2);
         Assert.Equal("240e:e0:9930:2100:9914:b410:c7d8:c0a6", addrs2[0] + "");
 
-        var uri = new NetUri("https://newlifex.com");
-        Assert.Equal("newlifex.com", uri.Host);
+        var uri = new NetUri("https://neturi.test");
+        Assert.Equal("neturi.test", uri.Host);
         var addrs3 = uri.GetAddresses();
-        //Assert.Equal(3, addrs3.Length);
-        Assert.True(addrs.Length > 0);
+        Assert.True(addrs3.Length > 0);
     }
 
     [Fact]
