@@ -77,7 +77,7 @@ public class SevenZip
                 {
                     if (dir.IsNullOrEmpty()) continue;
 
-                    foreach (var name in new[] { "7z", "7za", "7zr" })
+                    foreach (var name in new[] { "7z", "7za", "7zr", "7zz" })
                     {
                         var file = Path.Combine(dir, name);
                         if (File.Exists(file)) return file;
