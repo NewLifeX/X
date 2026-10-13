@@ -20,6 +20,42 @@ public class MachineInfoTests
         return true;
     }
 
+    /// <summary>本机是否提供 CPU 型号。容器等精简环境的 /proc/cpuinfo 只有 processor 条目，没有型号键；
+    /// 取键与 MachineInfo.LoadLinuxInfo 保持一致</summary>
+    /// <returns>是否可校验 Processor 字段</returns>
+    private static Boolean HasCpuModel()
+    {
+        // 仅 Linux 从 /proc/cpuinfo 取型号，Windows/macOS 分别从注册表与 sysctl 取，均可取到
+        if (!Runtime.Linux) return true;
+
+        var file = "/proc/cpuinfo";
+        if (!File.Exists(file)) return false;
+
+        foreach (var line in File.ReadLines(file))
+        {
+            if (line.StartsWith("Hardware", StringComparison.Ordinal) ||
+                line.StartsWith("cpu model", StringComparison.Ordinal) ||
+                line.StartsWith("model name", StringComparison.Ordinal)) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>本机是否挂载了磁盘标识源。容器等精简环境可能没有 /dev/disk/by-id 等目录</summary>
+    /// <returns>是否可校验 DiskID 字段</returns>
+    private static Boolean HasDiskIdSource()
+    {
+        // 仅 Linux 从 /dev/disk/by-* 取磁盘标识
+        if (!Runtime.Linux) return true;
+
+        foreach (var dir in new[] { "/dev/disk/by-id", "/dev/disk/by-uuid", "/dev/disk/by-partuuid" })
+        {
+            if (Directory.Exists(dir) && Directory.GetFileSystemEntries(dir).Length > 0) return true;
+        }
+
+        return false;
+    }
+
     [Fact(DisplayName = "基础测试")]
     public void BasicTest()
     {
@@ -29,7 +65,11 @@ public class MachineInfoTests
         Assert.NotEmpty(mi.OSName);
         Assert.NotEmpty(mi.OSVersion);
         Assert.NotEmpty(mi.Product);
-        Assert.NotEmpty(mi.Processor);
+
+        // 容器等精简环境不提供 CPU 型号，跳过该字段并留痕
+        if (HasCpuModel()) Assert.NotEmpty(mi.Processor);
+        else XTrace.WriteLine("本机未提供 CPU 型号，跳过 Processor 断言");
+
         Assert.NotEmpty(mi.UUID);
         Assert.NotEmpty(mi.Guid);
         if (mi.Vendor != null) Assert.NotEmpty(mi.Vendor);
@@ -50,7 +90,11 @@ public class MachineInfoTests
         Assert.NotNull(mi.OSName);
         Assert.NotNull(mi.OSVersion);
         Assert.NotNull(mi.Product);
-        Assert.NotNull(mi.Processor);
+
+        // 容器等精简环境不提供 CPU 型号，跳过该字段并留痕
+        if (HasCpuModel()) Assert.NotNull(mi.Processor);
+        else XTrace.WriteLine("本机未提供 CPU 型号，跳过 Processor 断言");
+
         Assert.NotNull(mi.UUID);
         Assert.NotNull(mi.Guid);
 
@@ -109,6 +153,13 @@ public class MachineInfoTests
 
         // 仅 Linux 使用 by-id/by-uuid 逻辑
         if (!Runtime.Linux) return;
+
+        // 容器等精简环境不挂载 /dev/disk，没有磁盘标识源可校验，跳过并留痕
+        if (!HasDiskIdSource())
+        {
+            XTrace.WriteLine("本机未挂载 /dev/disk/by-id 等磁盘标识源，跳过磁盘标识校验");
+            return;
+        }
 
         Assert.NotNull(mi.DiskID);
 

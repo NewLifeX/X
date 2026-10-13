@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -180,6 +181,14 @@ public class TcpSessionTests
         Assert.True(Socket.OSSupportsIPv4);
         Assert.True(Socket.OSSupportsIPv6);
 
+        // 容器等精简环境的网卡只有环回地址，没有非环回 IPv6 可绑定，跳过并留痕。
+        // 探测走独立的 NetworkInterface：环境确实有外部地址而 NetHelper 取不到时，下面的断言仍会失败
+        if (!HasExternalIPv6())
+        {
+            XTrace.WriteLine("本机无非环回 IPv6 地址，跳过 BindTest4");
+            return;
+        }
+
         // 本地化：不再向真实 DNS 查询公网域名；test.newlifex.com 已由静态构造器映射到本机（含 IPv6）
         var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => !e.IsIPv4() && !IPAddress.IsLoopback(e));
         Assert.NotNull(addr);
@@ -189,6 +198,23 @@ public class TcpSessionTests
         client.Local.Address = addr;
         client.Log = XTrace.Log;
         client.Open();
+    }
+
+    /// <summary>本机是否存在非环回 IPv6 地址</summary>
+    /// <returns>是否存在</returns>
+    private static Boolean HasExternalIPv6()
+    {
+        foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (ni.OperationalStatus != OperationalStatus.Up || ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+
+            foreach (var ua in ni.GetIPProperties().UnicastAddresses)
+            {
+                if (ua.Address.AddressFamily == AddressFamily.InterNetworkV6 && !IPAddress.IsLoopback(ua.Address)) return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>加载测试自签名证书（内嵌 pfx）</summary>
