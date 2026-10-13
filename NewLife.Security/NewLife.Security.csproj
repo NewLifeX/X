@@ -43,12 +43,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Security.Cryptography.Cng">
-      <Version>5.0.0</Version>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>
 

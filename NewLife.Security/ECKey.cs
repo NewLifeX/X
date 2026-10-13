@@ -91,6 +91,21 @@ public class ECKey : IAccessor, ISpanSerializable
     /// <returns></returns>
     public ECParameters ExportParameters()
     {
+        var name = Algorithm.Replace("_PRIVATE_", "_").Replace("_PUBLIC_", "_");
+
+        // 通用幻数（ECDSA_GENERIC/ECDH_GENERIC）不带曲线信息，按坐标长度推断命名曲线
+        if (name.EndsWith("_GENERIC"))
+        {
+            var family = name.StartsWith("ECDH") ? "ECDH" : "ECDSA";
+            name = X.Length switch
+            {
+                32 => $"{family}_P256",
+                48 => $"{family}_P384",
+                66 => $"{family}_P521",
+                _ => name,
+            };
+        }
+
         return new ECParameters
         {
             D = D,
@@ -99,7 +114,7 @@ public class ECKey : IAccessor, ISpanSerializable
                 X = X,
                 Y = Y,
             },
-            Curve = ECCurve.CreateFromFriendlyName(Algorithm.Replace("_PRIVATE_", "_").Replace("_PUBLIC_", "_")),
+            Curve = ECCurve.CreateFromFriendlyName(name),
         };
     }
 

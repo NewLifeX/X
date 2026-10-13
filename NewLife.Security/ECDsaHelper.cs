@@ -12,36 +12,71 @@ namespace NewLife.Security
         #region 生成密钥
         /// <summary>产生非对称密钥对</summary>
         /// <param name="keySize">密钥长度，默认521位强密钥</param>
-        /// <returns></returns>
+        /// <returns>下标0为私钥、下标1为公钥，均为 CNG KeyBlob 格式的 Base64 字符串</returns>
         public static String[] GenerateKey(Int32 keySize = 521)
         {
-            var dsa = new ECDsaCng(keySize);
+            var curve = keySize switch
+            {
+                256 => ECCurve.NamedCurves.nistP256,
+                384 => ECCurve.NamedCurves.nistP384,
+                521 => ECCurve.NamedCurves.nistP521,
+                _ => throw new ArgumentOutOfRangeException(nameof(keySize), $"不支持的密钥长度 {keySize}"),
+            };
+
+            // 生成 EC 参数后写成 CNG KeyBlob（幻数+长度+X+Y+D），产物与历史 Windows CNG 导出格式一致，全平台通用
+            using var dsa = ECDsa.Create(curve);
+            var prm = dsa.ExportParameters(true);
 
             var ss = new String[2];
-            ss[0] = dsa.Key.Export(CngKeyBlobFormat.EccPrivateBlob).ToBase64();
-            ss[1] = dsa.Key.Export(CngKeyBlobFormat.EccPublicBlob).ToBase64();
+            ss[0] = ToKeyBlob(prm, true).ToBase64();
+            ss[1] = ToKeyBlob(prm, false).ToBase64();
 
             return ss;
         }
 
-        /// <summary>创建ECDsa对象，支持Base64密钥和Pem密钥</summary>
-        /// <param name="key"></param>
-        /// <param name="privateKey"></param>
+        /// <summary>把EC参数写成 CNG KeyBlob（幻数+长度+X+Y+D）</summary>
+        /// <param name="prm">EC参数</param>
+        /// <param name="privateKey">是否包含私钥D</param>
         /// <returns></returns>
-        public static ECDsaCng Create(String key, Boolean? privateKey = null)
+        private static Byte[] ToKeyBlob(ECParameters prm, Boolean privateKey)
+        {
+            // 不用 Curve.Oid.FriendlyName：现代 .NET 的命名曲线友好名为 nistPxxx，与幻数枚举命名不一致，按坐标长度显式映射
+            var keySize = prm.Q.X.Length switch
+            {
+                32 => 256,
+                48 => 384,
+                66 => 521,
+                _ => throw new NotSupportedException($"不支持的椭圆曲线坐标长度 {prm.Q.X.Length}"),
+            };
+
+            var ek = new ECKey
+            {
+                X = prm.Q.X,
+                Y = prm.Q.Y,
+                D = privateKey ? prm.D : null,
+            };
+            ek.Algorithm = $"{(privateKey ? "ECDSA_PRIVATE" : "ECDSA_PUBLIC")}_P{keySize}";
+
+            return ek.ToArray();
+        }
+
+        /// <summary>创建ECDsa对象，支持Base64密钥和Pem密钥</summary>
+        /// <param name="key">密钥内容。CNG KeyBlob 的 Base64，或 PEM 格式的公钥/私钥</param>
+        /// <param name="privateKey">是否私钥。仅作兼容保留；KeyBlob 与 PEM 均自带公私标识，以实际内容为准</param>
+        /// <returns></returns>
+        public static ECDsa Create(String key, Boolean? privateKey = null)
         {
             key = key?.Trim();
             if (key.IsNullOrEmpty()) return null;
+
+            var ec = ECDsa.Create();
 
             if (key.StartsWith("-----") && key.EndsWith("-----"))
             {
                 var ek = ReadPem(key);
 
                 // netcore下优先使用ExportParameters，CngKey.Import有兼容问题
-                var ec = new ECDsaCng();
                 ec.ImportParameters(ek.ExportParameters());
-
-                return ec;
 
                 //var buf = ek.ToArray();
                 //var ckey = CngKey.Import(buf, ek.D == null ? CngKeyBlobFormat.EccPublicBlob : CngKeyBlobFormat.EccPrivateBlob);
@@ -49,14 +84,14 @@ namespace NewLife.Security
             }
             else
             {
-                var buf = key.ToBase64();
-                var ckey =
-                    privateKey != null ?
-                    CngKey.Import(buf, !privateKey.Value ? CngKeyBlobFormat.EccPublicBlob : CngKeyBlobFormat.EccPrivateBlob) :
-                    CngKey.Import(buf, buf.Length < 100 ? CngKeyBlobFormat.EccPublicBlob : CngKeyBlobFormat.EccPrivateBlob);
+                // 托管解析 CNG KeyBlob（幻数+长度+X+Y+D），替代 CngKey.Import，Linux/macOS 不再依赖 Windows CNG
+                var eckey = new ECKey();
+                eckey.Read(key.ToBase64());
 
-                return new ECDsaCng(ckey);
+                ec.ImportParameters(eckey.ExportParameters());
             }
+
+            return ec;
         }
         #endregion
 
@@ -67,10 +102,9 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] Sign(Byte[] data, String priKey)
         {
-            var ecc = Create(priKey, true);
-            ecc.HashAlgorithm = CngAlgorithm.MD5;
+            using var ecc = Create(priKey, true);
 
-            return ecc.SignData(data);
+            return ecc.SignData(data, HashAlgorithmName.MD5);
         }
 
         /// <summary>验证，MD5散列</summary>
@@ -80,10 +114,9 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean Verify(Byte[] data, String pukKey, Byte[] rgbSignature)
         {
-            var ecc = Create(pukKey, false);
-            ecc.HashAlgorithm = CngAlgorithm.MD5;
+            using var ecc = Create(pukKey, false);
 
-            return ecc.VerifyData(data, rgbSignature);
+            return ecc.VerifyData(data, rgbSignature, HashAlgorithmName.MD5);
         }
 
         /// <summary>Sha256</summary>
@@ -92,10 +125,9 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] SignSha256(this Byte[] data, String priKey)
         {
-            var ecc = Create(priKey, true);
-            ecc.HashAlgorithm = CngAlgorithm.Sha256;
+            using var ecc = Create(priKey, true);
 
-            return ecc.SignData(data);
+            return ecc.SignData(data, HashAlgorithmName.SHA256);
         }
 
         /// <summary>Sha256</summary>
@@ -105,10 +137,9 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean VerifySha256(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
-            var ecc = Create(pukKey, false);
-            ecc.HashAlgorithm = CngAlgorithm.Sha256;
+            using var ecc = Create(pukKey, false);
 
-            return ecc.VerifyData(data, rgbSignature);
+            return ecc.VerifyData(data, rgbSignature, HashAlgorithmName.SHA256);
         }
 
         /// <summary>Sha384</summary>
@@ -117,10 +148,9 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] SignSha384(this Byte[] data, String priKey)
         {
-            var ecc = Create(priKey, true);
-            ecc.HashAlgorithm = CngAlgorithm.Sha384;
+            using var ecc = Create(priKey, true);
 
-            return ecc.SignData(data);
+            return ecc.SignData(data, HashAlgorithmName.SHA384);
         }
 
         /// <summary>Sha384</summary>
@@ -130,10 +160,9 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean VerifySha384(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
-            var ecc = Create(pukKey, false);
-            ecc.HashAlgorithm = CngAlgorithm.Sha384;
+            using var ecc = Create(pukKey, false);
 
-            return ecc.VerifyData(data, rgbSignature);
+            return ecc.VerifyData(data, rgbSignature, HashAlgorithmName.SHA384);
         }
 
         /// <summary>Sha512</summary>
@@ -142,10 +171,9 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] SignSha512(this Byte[] data, String priKey)
         {
-            var ecc = Create(priKey, true);
-            ecc.HashAlgorithm = CngAlgorithm.Sha512;
+            using var ecc = Create(priKey, true);
 
-            return ecc.SignData(data);
+            return ecc.SignData(data, HashAlgorithmName.SHA512);
         }
 
         /// <summary>Sha512</summary>
@@ -155,10 +183,9 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean VerifySha512(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
-            var ecc = Create(pukKey, false);
-            ecc.HashAlgorithm = CngAlgorithm.Sha512;
+            using var ecc = Create(pukKey, false);
 
-            return ecc.VerifyData(data, rgbSignature);
+            return ecc.VerifyData(data, rgbSignature, HashAlgorithmName.SHA512);
         }
         #endregion
 
