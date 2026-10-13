@@ -39,8 +39,10 @@ jobs:
   # 测试内并行度由各工程 xunit.runner.json 的 maxParallelThreads 控制。
   test:
     name: test (${{ matrix.name }})
-    runs-on: windows-latest
-    timeout-minutes: 30
+    # 未声明 os 的矩阵项按 windows-latest（现状矩阵不动）；experimental 项为观察期，平台稳定全绿后逐项去掉该标记转阻断
+    runs-on: ${{ matrix.os || 'windows-latest' }}
+    timeout-minutes: 40
+    continue-on-error: ${{ matrix.experimental == true }}
     strategy:
       fail-fast: false
       matrix:
@@ -98,6 +100,100 @@ jobs:
             framework: net10.0
             dotnet: 10.x
 
+          # ================= 跨平台矩阵（观察期） =================
+          # Linux x64：全量工程覆盖（Core 双 TFM + Compat + 源生成器）
+          - name: Core-net8.0-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            experimental: true
+          - name: Core-net10.0-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+            experimental: true
+          - name: Compat-net8.0-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.Compat/XUnitTest.Compat.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            experimental: true
+          - name: SourceGenerator-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.SourceGenerator/XUnitTest.SourceGenerator.csproj
+            framework: net10.0
+            dotnet: 10.x
+            experimental: true
+          # Linux arm64
+          - name: Core-net8.0-linux-arm64
+            os: ubuntu-24.04-arm
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            experimental: true
+          - name: Core-net10.0-linux-arm64
+            os: ubuntu-24.04-arm
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+            experimental: true
+          # macOS：3 vCPU，改用 test.ci.macos.runsettings 降并行度
+          - name: Core-net8.0-osx-arm64
+            os: macos-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            runsettings: test.ci.macos.runsettings
+            experimental: true
+          - name: Core-net10.0-osx-arm64
+            os: macos-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+            runsettings: test.ci.macos.runsettings
+            experimental: true
+          - name: Core-net8.0-osx-x64
+            os: macos-15-intel
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            runsettings: test.ci.macos.runsettings
+            experimental: true
+          - name: Core-net10.0-osx-x64
+            os: macos-15-intel
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+            runsettings: test.ci.macos.runsettings
+            experimental: true
+          # Windows arm64
+          - name: Core-net8.0-win-arm64
+            os: windows-11-arm
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            experimental: true
+          - name: Core-net10.0-win-arm64
+            os: windows-11-arm
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+            experimental: true
+
     steps:
     - uses: actions/checkout@v4
     - name: Setup dotNET
@@ -107,9 +203,9 @@ jobs:
         cache: true
         cache-dependency-path: '**/*.csproj'
     - name: Test
-      # test.ci.runsettings：4 核 runner 把 xUnit 并行线程压到与核数匹配，避免过度订阅导致时序用例失真；
+      # test.ci.runsettings：4 核 runner 把 xUnit 并行线程压到与核数匹配，避免过度订阅导致时序用例失真（macOS 用专用配置降为 3）；
       # blame-hang：用例挂起时超时转储，便于事后定位（正常单 job 约 2~3 分钟，远小于 15 分钟阈值）
-      run: dotnet test ${{ matrix.project }} -f ${{ matrix.framework }} -c Release -s test.ci.runsettings --blame-hang-timeout 15m --blame-hang-dump-type Mini --logger "trx;LogFileName=${{ matrix.name }}.trx" --results-directory TestResults
+      run: dotnet test ${{ matrix.project }} -f ${{ matrix.framework }} -c Release -s ${{ matrix.runsettings || 'test.ci.runsettings' }} --blame-hang-timeout 15m --blame-hang-dump-type Mini --logger "trx;LogFileName=${{ matrix.name }}.trx" --results-directory TestResults
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
@@ -117,6 +213,42 @@ jobs:
         name: test-results-${{ matrix.name }}
         path: TestResults/*.trx
         if-no-files-found: ignore
+
+  # musl 容器矩阵（观察期）：alpine 内原生运行单测（x64/arm64 各一档，只跑 net10.0）
+  # 容器内 actions/setup-dotnet 不可用，改用 dotnet-install.sh；宿主先 warm NuGet 缓存并挂载进容器复用
+  test-musl:
+    name: test (musl-${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            os: ubuntu-latest
+          - arch: arm64
+            os: ubuntu-24.04-arm
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (warm NuGet cache)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+        cache: true
+        cache-dependency-path: '**/*.csproj'
+    - name: Test (alpine, net10.0)
+      run: |
+        docker run --rm -v "$PWD:/src" -v "$HOME/.nuget/packages:/nuget-packages" -e NUGET_PACKAGES=/nuget-packages -w /src alpine:3.20 sh -c '
+          set -e
+          apk add --no-cache bash curl icu-libs krb5-libs libgcc libstdc++ tzdata >/dev/null
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+          bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet >/dev/null
+          ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+          export DOTNET_CLI_TELEMETRY_OPTOUT=1
+          dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release --nologo -s test.ci.runsettings
+        '
 
   # 源生成器随主包分发校验
   pack:

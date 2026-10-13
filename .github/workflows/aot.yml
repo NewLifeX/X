@@ -8,8 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  # AOT 防回归（Windows）：分析器 0 告警硬约束 + 25 场景原生冒烟（能力基线见 Doc/AOT兼容性分析.md）
-  aot:
+  # AOT 防回归：分析器 0 告警硬约束（与 RID 无关，单一 job）
+  aot-analyzer:
+    name: aot analyzer check
     runs-on: windows-latest
     timeout-minutes: 30
 
@@ -24,17 +25,41 @@ jobs:
       run: |
         dotnet build NewLife.Core\NewLife.Core.csproj -f net8.0 -c Release -warnaserror
         dotnet build NewLife.Core\NewLife.Core.csproj -f net8.0-windows -c Release -warnaserror
-    - name: Publish NativeAOT Smoke
-      run: dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o AotSmoke\bin\aot-out
-    - name: Run NativeAOT Smoke
-      # 任一场景失败即非 0 退出码，阻断合并
-      run: AotSmoke\bin\aot-out\AotSmoke.exe
 
-  # AOT 冒烟（Linux）：win 之外的平台覆盖；观察期（稳定全绿后取消 continue-on-error 转为阻断）
-  aot-linux:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    continue-on-error: true
+  # NativeAOT 冒烟矩阵：NativeAOT 官方不支持跨 OS 编译，每个 RID 用原生 runner 发布运行。
+  # win-x64 为既有阻断基线；其余平台先观察期（continue-on-error），稳定全绿后逐项转阻断（见 Doc/AOT兼容性分析.md）
+  aot:
+    name: aot (${{ matrix.rid }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    continue-on-error: ${{ matrix.experimental == true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            os: windows-latest
+            bin: AotSmoke.exe
+          - rid: win-arm64
+            os: windows-11-arm
+            bin: AotSmoke.exe
+            experimental: true
+          - rid: linux-x64
+            os: ubuntu-latest
+            bin: AotSmoke
+            experimental: true
+          - rid: linux-arm64
+            os: ubuntu-24.04-arm
+            bin: AotSmoke
+            experimental: true
+          - rid: osx-arm64
+            os: macos-latest
+            bin: AotSmoke
+            experimental: true
+          - rid: osx-x64
+            os: macos-15-intel
+            bin: AotSmoke
+            experimental: true
 
     steps:
     - uses: actions/checkout@v4
@@ -42,10 +67,47 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.x
-    - name: Install NativeAOT Prerequisites
+    - name: Install NativeAOT Prerequisites (Linux)
+      if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
-    - name: Publish NativeAOT Smoke (linux-x64)
-      run: dotnet publish AotSmoke/AotSmoke.csproj -c Release -r linux-x64 -o AotSmoke/bin/aot-out-linux
-    - name: Run NativeAOT Smoke (linux-x64)
+    - name: JIT Baseline
+      # 同一冒烟工程以 JIT 运行（29 场景），为 AOT 结果提供对照；JIT 不支持的 RID 也能留下行为数据
+      run: dotnet run -c Release --project AotSmoke/AotSmoke.csproj
+    - name: Publish NativeAOT Smoke
+      run: dotnet publish AotSmoke/AotSmoke.csproj -c Release -r ${{ matrix.rid }} -o AotSmoke/bin/aot-out
+    - name: Run NativeAOT Smoke
       # 任一场景失败即非 0 退出码
-      run: ./AotSmoke/bin/aot-out-linux/AotSmoke
+      shell: bash
+      run: ./AotSmoke/bin/aot-out/${{ matrix.bin }}
+
+  # NativeAOT 冒烟（musl）：alpine 容器内原生发布运行。
+  # 容器内 actions/setup-dotnet 不可用，改用 dotnet-install.sh；官方要求 alpine 3.15+ 且安装 clang/build-base/zlib-dev
+  aot-musl:
+    name: aot (${{ matrix.rid }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-musl-x64
+            os: ubuntu-latest
+          - rid: linux-musl-arm64
+            os: ubuntu-24.04-arm
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Publish & Run NativeAOT Smoke (alpine)
+      run: |
+        docker run --rm -v "$PWD:/src" -w /src alpine:3.20 sh -c '
+          set -e
+          apk add --no-cache bash curl clang build-base zlib-dev icu-libs >/dev/null
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+          bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet >/dev/null
+          ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+          export DOTNET_CLI_TELEMETRY_OPTOUT=1
+          dotnet run -c Release --project AotSmoke/AotSmoke.csproj
+          dotnet publish AotSmoke/AotSmoke.csproj -c Release -r ${{ matrix.rid }} -o AotSmoke/bin/aot-out
+          ./AotSmoke/bin/aot-out/AotSmoke
+        '

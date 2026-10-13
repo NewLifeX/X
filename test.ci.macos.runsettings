@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <!-- macOS CI 专用运行配置：macos runner 为 3 vCPU，把 xUnit 并行线程压到与核数匹配；
+       本地与 VS 不指定本文件，仍按 xunit.runner.json 执行。 -->
+  <xUnit>
+    <MaxParallelThreads>3</MaxParallelThreads>
+  </xUnit>
+</RunSettings>
