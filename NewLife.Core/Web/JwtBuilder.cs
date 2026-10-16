@@ -244,8 +244,8 @@ public class JwtBuilder : IExtend
             return false;
         }
 
-        // 防算法混淆：对称算法以非对称密钥材料（PEM/XML/JWK 形式的公钥）作 HMAC 密钥时，公开的公钥即可伪造签名（RS256→HS256 降级攻击）
-        if (tokenAlg.StartsWithIgnoreCase("HS") && LooksAsymmetricKey(Secret))
+        // 防算法混淆：对称算法以非对称密钥材料（PEM/XML/JWK/紧凑Base64形式的公钥）作 HMAC 密钥时，公开的公钥即可伪造签名（RS256→HS256 降级攻击）
+        if (tokenAlg.StartsWithIgnoreCase("HS") && IsAsymmetricKey(Secret))
         {
             message = "算法混淆：对称算法不得使用非对称密钥作为密钥";
             return false;
@@ -315,11 +315,42 @@ public class JwtBuilder : IExtend
     #endregion
 
     #region 辅助
-    /// <summary>判断密钥是否像非对称密钥材料（PEM / .NET XML / JWK）。仅用于识别"公钥被当对称密钥"的算法混淆场景</summary>
+    /// <summary>判断密钥是否为非对称密钥材料（PEM / .NET XML / JWK，或紧凑 Base64 的 RSA/ECDsa 密钥）。仅用于识别"公钥被当对称密钥"的算法混淆场景</summary>
+    /// <remarks>先做 PEM/XML/JWK 字符串快速识别；紧凑 Base64 形态无法从字符串区分，再尝试真实解析 RSA/ECDsa 密钥，解析失败按"非非对称密钥"处理，探测异常不向外抛。
+    /// 任何非对称密钥序列化都远超32字符，用长度过滤普通短密钥，避免高频 HMAC 验证路径付出无谓的解析成本</remarks>
     /// <param name="secret">密钥</param>
     /// <returns></returns>
-    private static Boolean LooksAsymmetricKey(String secret)
-        => secret.Contains("-----BEGIN") || secret.Contains("<RSAKeyValue") || secret.Contains("\"kty\"");
+    private static Boolean IsAsymmetricKey(String secret)
+    {
+        // 快速识别：PEM/XML/JWK 形态一眼可辨
+        if (secret.Contains("-----BEGIN") || secret.Contains("<RSAKeyValue") || secret.Contains("\"kty\"")) return true;
+
+        // 长度过滤：普通短密钥无需进入解析路径
+        if (secret.Length < 32) return false;
+
+        // 真格式探测：紧凑 Base64 密钥（如 RSAHelper.WriteParameters 产出）只能靠真实解析识别
+        try
+        {
+            using var rsa = RSAHelper.Create(secret);
+            return true;
+        }
+        catch (Exception)
+        {
+            // 普通 HMAC 密钥解析失败，继续探测 ECDsa
+        }
+
+        try
+        {
+            using var ecdsa = ECDsaHelper.Create(secret);
+            if (ecdsa != null) return true;
+        }
+        catch (Exception)
+        {
+            // 普通 HMAC 密钥解析失败，按非非对称密钥处理
+        }
+
+        return false;
+    }
     #endregion
 
     #region 算法管理

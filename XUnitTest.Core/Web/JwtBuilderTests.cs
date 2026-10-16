@@ -558,6 +558,64 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
         Assert.NotNull(msg);
     }
 
+    [Fact(DisplayName = "算法混淆：紧凑格式公钥当HMAC密钥伪造的HS256令牌被拒绝")]
+    public void AlgorithmConfusion_CompactKey_RejectsForgedHS256()
+    {
+        var keys = RSAHelper.GenerateParameters();
+        var prv = keys[0];
+        var pub = keys[1];
+
+        // 正规RS256令牌：私钥签名，紧凑格式公钥验证（防误伤：正常流程不受影响）
+        var signer = new JwtBuilder { Algorithm = "RS256", Secret = prv, Subject = "admin" };
+        var real = signer.Encode(new { sub = "admin" });
+
+        var verifier = new JwtBuilder { Secret = pub };
+        Assert.True(verifier.TryDecode(real, out _));
+
+        // 伪造令牌：头部算法降级为HS256，用公开的紧凑格式公钥作HMAC密钥签名
+        var header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}".GetBytes().ToUrlBase64();
+        var body = "{\"sub\":\"attacker\",\"exp\":4102444800}".GetBytes().ToUrlBase64();
+        var data = $"{header}.{body}".GetBytes();
+        var sig = data.SHA256(pub.GetBytes());
+        var forged = $"{header}.{body}.{sig.ToUrlBase64()}";
+
+        var verifier2 = new JwtBuilder { Secret = pub };
+        Assert.False(verifier2.TryDecode(forged, out var msg));
+        Assert.NotNull(msg);
+
+        // 普通随机字符串密钥的HS256令牌照常通过
+        var normal = new JwtBuilder { Secret = "Smart", Expire = DateTime.MinValue };
+        var token = normal.Encode(new { sub = "0201" });
+        var jwt = new JwtBuilder { Secret = "Smart" };
+        Assert.True(jwt.TryDecode(token, out _));
+    }
+
+    [Fact(DisplayName = "算法混淆：紧凑格式EC公钥当HMAC密钥伪造的HS256令牌被拒绝")]
+    public void AlgorithmConfusion_CompactECKey_RejectsForgedHS256()
+    {
+        var keys = ECDsaHelper.GenerateKey(256);
+        var prv = keys[0];
+        var pub = keys[1];
+
+        // 正规ES256令牌：私钥签名，紧凑格式公钥验证
+        var signer = new JwtBuilder { Algorithm = "ES256", Secret = prv, Subject = "admin" };
+        var real = signer.Encode(new { sub = "admin" });
+
+        var verifier = new JwtBuilder { Secret = pub };
+        Assert.True(verifier.TryDecode(real, out var msg0), msg0);
+
+        // 伪造令牌：头部算法降级为HS256，用公开的紧凑格式EC公钥作HMAC密钥签名
+        var header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}".GetBytes().ToUrlBase64();
+        var body = "{\"sub\":\"attacker\",\"exp\":4102444800}".GetBytes().ToUrlBase64();
+        var data = $"{header}.{body}".GetBytes();
+        var sig = data.SHA256(pub.GetBytes());
+        var forged = $"{header}.{body}.{sig.ToUrlBase64()}";
+
+        var verifier2 = new JwtBuilder { Secret = pub };
+        Assert.False(verifier2.TryDecode(forged, out var msg));
+        Assert.NotNull(msg);
+    }
+
     [Fact(DisplayName = "算法钉死：令牌算法与期望不一致时验证失败")]
     public void PinnedAlgorithm_Mismatch_Rejects()
     {
