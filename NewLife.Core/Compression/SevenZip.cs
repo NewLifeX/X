@@ -97,7 +97,9 @@ public class SevenZip
     /// <returns></returns>
     public void Compress(String path, String destFile)
     {
-        if (Directory.Exists(path)) path = path.GetFullPath().EnsureEnd("\\") + "*";
+        // 目录末尾通配符须用平台目录分隔符：Windows 的反斜杠在 Linux/macOS 上会按字面路径匹配
+        // 不到任何文件，7z 以警告码 1 退出并生成空归档，解压端再表现为“文件缺失”
+        if (Directory.Exists(path)) path = Path.Combine(path.GetFullPath(), "*");
 
         Run($"a \"{destFile}\" \"{path}\" -mx9 -ssw");
     }
