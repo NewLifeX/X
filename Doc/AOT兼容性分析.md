@@ -113,13 +113,13 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
 
-> CI 防回归：`.github/workflows/aot.yml` + `.github/workflows/test.yml`（push/PR + 人工手动触发，无夜间任务）—— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 / linux-x64 / linux-arm64 阻断门禁；win-arm64、osx 双架构、musl 容器观察期，稳定后逐项转阻断）；边缘 RID（win-x86 / linux-arm）与 LA64（linux-loongarch64，QEMU 仿真）已由原夜间 `edge.yml` 并入常规任务，其中 LA64 为必选门禁。
+> CI 防回归：`.github/workflows/aot.yml` + `.github/workflows/test.yml`（push/PR + 人工手动触发，无夜间任务）—— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 / linux-x64 / linux-arm64 阻断门禁；win-arm64、osx 双架构、musl 容器观察期，稳定后逐项转阻断）；边缘 RID（win-x86 / linux-arm）与 LA64（linux-loongarch64，loong64 容器 + QEMU 仿真）已由原夜间 `edge.yml` 并入常规任务，其中 LA64 单测为必选门禁、LA64 的 AOT 冒烟为观察期（不阻塞）。
 
 ---
 
 ## 7. 多 RID 支持矩阵与 CI
 
-> 目标：win-x64 / linux-x64 / linux-arm64 / linux-la64 四者必选（阻断门禁），扩展 win-arm64、linux-musl、osx 双架构与边缘 RID（win-x86、linux-arm，观察期容错）；linux-riscv64 待社区构建渠道核实后按 LA64 配方接入。
+> 目标：win-x64 / linux-x64 / linux-arm64 / linux-la64 四者单测必选（阻断门禁；LA64 的 AOT 冒烟为观察期，不阻塞），扩展 win-arm64、linux-musl、osx 双架构与边缘 RID（win-x86、linux-arm，观察期容错）；linux-riscv64 待社区构建渠道核实后按 LA64 的容器化 QEMU 配方接入。
 > 前提：**NativeAOT 官方不支持跨 OS 编译**（Windows→Linux 需 WSL/VM），支持同 OS 内 x64↔arm64 交叉；因此每个 RID 均使用原生 runner 发布运行。
 
 ### 7.1 覆盖分层
@@ -134,17 +134,17 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 | T1 主流 | osx-arm64 / osx-x64 | ✔ Core net8/net10 | ✔ | macos-latest / macos-15-intel（官方称可用至 2027-08） | 观察期 |
 | T2 边缘 | win-x86 | — | ✔ | windows-latest 交叉发布 | 观察期容错（aot.yml） |
 | T2 边缘 | linux-arm（32 位） | — | 探索 | QEMU 容器 JIT 冒烟 + 交叉发布尝试 | 观察期容错（aot.yml） |
-| T2 边缘 | linux-riscv64 | — | — | 待社区构建渠道核实后按 LA64 配方接入 | 待启动 |
-| T3 LA64 | linux-loongarch64 | ✔ 全量 net10.0（必选） | JIT 冒烟必选 + 发布探索 | QEMU 用户态 + 龙芯 SDK（test.yml / aot.yml） | 门禁 |
+| T2 边缘 | linux-riscv64 | — | — | 待社区构建渠道核实后按 LA64 的容器化 QEMU 配方接入 | 待启动 |
+| T3 LA64 | linux-loongarch64 | ✔ 全量 net10.0（必选） | JIT 冒烟观察期 + 发布探索 | docker + loong64 容器（QEMU 用户态）+ 龙芯 SDK（test.yml / aot.yml） | 单测门禁；AOT 观察期 |
 
-- **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 / linux-la64 已为阻断门禁（LA64 必选）。
+- **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 与 LA64 单测已为阻断门禁；LA64 的 AOT 冒烟为观察期（不阻塞）。
 - **测试并行度**：Windows/Linux CI 使用 `test.ci.runsettings`（4 线程，匹配 4 vCPU runner）；macOS 3 vCPU 使用专用 `test.ci.macos.runsettings`（3 线程）。
 - **本地 Linux 预跑**：WSL/容器内 `dotnet test XUnitTest.Core -f net8.0/net10.0`（无需任何平台开关）。
 
 ### 7.2 LA64（linux-loongarch64，社区支持平台）
 
 - **现状**：官方不发 runtime pack、无 NativeAOT 支持（ILCompiler 源码含 LoongArch64 后端但不构成承诺）。龙芯 [loongson/dotnet](https://github.com/loongson/dotnet) 提供 .NET 8/9/10 SDK（当前 v10.0.112），pack 走 `https://lnuget.loongnix.cn/v3/index.json`。
-- **CI 方案（必选门禁）**：qemu-loongarch64 用户态仿真（binfmt）+ 龙芯 SDK —— 先 `dotnet --info` 验证通路；`test.yml` 跑 XUnitTest.Core net10.0 全量单测，`aot.yml` 跑 AotSmoke JIT 冒烟（必选），并容错尝试 NativeAOT 发布与运行（探索，官方当前不支持 LA64）；宿主无 LA64 原生 ICU，以 `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` 运行。
+- **CI 方案（单测必选门禁；AOT 冒烟观察期）**：docker + QEMU 用户态仿真（loong64 binfmt）+ 龙芯 SDK 在 loong64 容器内执行 —— 裸宿主缺 LA64 动态加载器（`Could not open /lib64/ld-linux-loongarch-lp64d.so.1`），LA64 二进制必须在容器内运行；基础镜像 `lcr.loongnix.cn/debian:14-slim`（Debian unstable 的 loong64 端口，自带 loader，apt 指向 deb.debian.org 可用），容器内补装 libicu/libssl，使全球化/加密用例与其它 Linux job 行为一致。龙芯 SDK 在 QEMU 下的 MSBuild 链路不稳（NuGet 还原触发 `RemoveDuplicates` 任务 NRE，MSB4018），还原与构建均放宿主 x64 SDK（产出 RID 无关 IL 与可移植 deps.json），容器内仅以 LA64 运行时执行（`--no-build --no-restore`）。`test.yml` 跑 XUnitTest.Core net10.0 全量单测（阻断门禁），`aot.yml` 跑 AotSmoke JIT 冒烟（观察期，`continue-on-error` 不阻塞）并容错尝试 NativeAOT 发布与运行（探索，官方当前不支持 LA64）。
 - **自托管接入（有真机后升级为阻断级）**：
   1. 龙芯 Linux 机器接入 GitHub Actions self-hosted runner（社区已有 runner 容器镜像 `kubernetes-loong64/actions-runner-loong64`）；
   2. 在 `aot.yml` / `test.yml` 增加 `runs-on: [self-hosted, loongarch64]` 的 job，复用 QEMU job 的步骤（去掉 qemu 安装与仿真环境变量）；
