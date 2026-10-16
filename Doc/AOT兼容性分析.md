@@ -97,6 +97,7 @@
 | Windows 系统信息探测（WMI/注册表/COM/性能计数器） | `Common/MachineInfo*.cs` | 依赖 COM 与运行时反射绑定，AOT 下不受支持；探测失败按空值降级，不参与业务主链；可静态表达的（`Marshal.SizeOf<T>`）已改用泛型入口。 |
 | 动态语义边界（DLR 动态成员、运行时特性读取、服务定位、调试用内存读取等） | `Reflection/DynamicInternal.cs`、`AttributeX.cs`、`Model/ObjectContainer.cs`、`Extension/ProcessHelper.cs` 等 | 语义本身即运行时类型，逐方法显式声明裁剪语义（含替代入口指引），不逐点改造。 |
 | 控制器分发参数绑定（`ref/out/params`/`ValueTask` 等） | `HttpControllerDispatchGenerator` | 生成器主动跳过无法安全生成的签名（回退反射），未求穷尽。 |
+| 低版本 TFM 的注解元数据体积 | `Stub/CodeAnalysisAttributes.cs` | 实测注解使用点在每个低版本 DLL 约占 9.5~10 KB（以 `UnconditionalSuppressMessage` 的中文说明串为主，Roslyn 已共享相同 blob）；已用 `[Conditional]` 镜像符号在低版本编译期整体消除（net45 −10,752 B、netstandard2.0 −10,240 B、netcoreapp3.1 −10,752 B；net6.0 仅 RDC 一处）。注解类型定义本身（约 4 KB）保留——编译期必须可解析。边界：低版本资产不再携带这些注解，链接器场景如需恢复，删除对应 Conditional 行即可。 |
 
 ---
 

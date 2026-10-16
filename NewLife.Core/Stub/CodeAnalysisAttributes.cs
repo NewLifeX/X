@@ -1,5 +1,11 @@
 namespace System.Diagnostics.CodeAnalysis;
 
+// 低版本元数据减重：本文件仅被低版本 TFM 编译，而这些注解在低版本没有裁剪器/分析器消费，
+// 使用点纯属元数据负担（实测每个低版本 DLL 约 9~10 KB，主要是 UnconditionalSuppressMessage 的说明串）。
+// 各注解类加 [Conditional(镜像符号)] 后，符号未定义（低版本编译时必然如此，与本文件 #if 守卫互为镜像）
+// 时使用点自动不进入元数据，源码使用点零改动；高版本 TFM 不编译本文件（经 CodeAnalysisForwards 转发 BCL），
+// 注解原样保留供裁剪/AOT 使用。与 BCL 的 SuppressMessageAttribute（[Conditional("CODE_ANALYSIS")]）同源；
+// 若未来低版本需要保留这些注解，删除对应 Conditional 行即可恢复。
 #if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1
 /// <summary>指定反射访问所需的成员类型，供裁剪器/AOT 编译器保留对应元数据。BCL 从 net5 起提供，低版本在此补齐</summary>
 [Flags]
@@ -56,6 +62,7 @@ public enum DynamicallyAccessedMemberTypes
 
 /// <summary>指示某个类型值会被反射访问指定成员，裁剪器据此保留元数据</summary>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.ReturnValue | AttributeTargets.GenericParameter | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Method, Inherited = false)]
+[System.Diagnostics.Conditional("NET5_0_OR_GREATER")]
 public sealed class DynamicallyAccessedMembersAttribute : Attribute
 {
     /// <summary>需要保留的成员类型</summary>
@@ -68,6 +75,7 @@ public sealed class DynamicallyAccessedMembersAttribute : Attribute
 
 /// <summary>指示该方法或类型在裁剪后可能失效（依赖被裁剪的代码），调用方需自行评估</summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Class, Inherited = false)]
+[System.Diagnostics.Conditional("NET5_0_OR_GREATER")]
 public sealed class RequiresUnreferencedCodeAttribute : Attribute
 {
     /// <summary>说明消息</summary>
@@ -83,6 +91,7 @@ public sealed class RequiresUnreferencedCodeAttribute : Attribute
 
 /// <summary>无条件抑制指定的分析告警，且不依赖 SuppressMessage 的字符串条件</summary>
 [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+[System.Diagnostics.Conditional("NET5_0_OR_GREATER")]
 public sealed class UnconditionalSuppressMessageAttribute : Attribute
 {
     /// <summary>分类</summary>
@@ -114,6 +123,7 @@ public sealed class UnconditionalSuppressMessageAttribute : Attribute
 }
 /// <summary>声明对指定类型成员的依赖，裁剪器/AOT 编译器据此保留元数据。适用于成员访问目标无法静态关联到调用点的场景（如运行时未知的泛型实例）</summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
+[System.Diagnostics.Conditional("NET5_0_OR_GREATER")]
 public sealed class DynamicDependencyAttribute : Attribute
 {
     /// <summary>成员签名</summary>
@@ -165,6 +175,7 @@ public sealed class DynamicDependencyAttribute : Attribute
 #if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1 || NET5_0 || NET6_0
 /// <summary>指示该方法依赖运行时代码生成，NativeAOT 下不可用</summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Class, Inherited = false)]
+[System.Diagnostics.Conditional("NET7_0_OR_GREATER")]
 public sealed class RequiresDynamicCodeAttribute : Attribute
 {
     /// <summary>说明消息</summary>
