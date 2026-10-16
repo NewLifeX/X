@@ -97,10 +97,23 @@ public class CommandParserTests
             Assert.Equal(kv.Value, dic[kv.Key]);
         }
 
-        // 用宿主必然注入的选项确认确实读到了当前进程命令行，而非空集合
-        Assert.True(dic.ContainsKey("port"));
-        Assert.True(dic.ContainsKey("endpoint"));
-        Assert.True(dic.ContainsKey("role"));
+        // 用宿主必然注入的选项确认确实读到了当前进程命令行，而非空集合；
+        // 仅 VSTest 宿主会注入 --port/--endpoint，自宿主运行器（LA64 等无 vstest 环境）下跳过该校验
+        var injected = false;
+        foreach (var a in Environment.GetCommandLineArgs())
+        {
+            if (a.Equals("--port", StringComparison.OrdinalIgnoreCase) || a.Equals("-port", StringComparison.OrdinalIgnoreCase))
+            {
+                injected = true;
+                break;
+            }
+        }
+        if (injected)
+        {
+            Assert.True(dic.ContainsKey("port"));
+            Assert.True(dic.ContainsKey("endpoint"));
+            Assert.True(dic.ContainsKey("role"));
+        }
     }
 
     [Fact]
