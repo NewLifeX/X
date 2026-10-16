@@ -19,7 +19,12 @@ jobs:
     - name: Setup dotNET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 10.x
+        # 全解决方案含 net8.0-windows/net9.0-windows，需对应 SDK 提供 WindowsDesktop 目标包
+        # （runner 镜像已不再预装旧版 SDK，缺 pack 时报 NETSDK1127）
+        dotnet-version: |
+          8.x
+          9.x
+          10.x
         cache: true
         cache-dependency-path: '**/*.csproj'
     - name: Build
@@ -247,8 +252,11 @@ jobs:
         '
 
   # Linux LoongArch64（LA64，必选门禁）：GitHub 无 LA64 runner/runtime pack，
-  # 采用 QEMU 用户态仿真（binfmt）+ 龙芯 SDK 跑 net10.0 全量单测；宿主无 LA64 原生 ICU，以 invariant 模式运行。
-  # QEMU 下速度未实测，job 限时 300 分钟、内层 timeout 兜底（留出产物上传时间）。
+  # 采用 docker + QEMU 用户态仿真（loong64 binfmt）+ 龙芯 SDK 在 loong64 容器内跑 net10.0 全量单测。
+  # 裸宿主无 LA64 动态加载器（Could not open /lib64/ld-linux-loongarch-lp64d.so.1）必须在容器内执行；
+  # 基础镜像 lcr.loongnix.cn/debian:14-slim 为 Debian unstable loong64 端口，自带 loader 与可用 apt（deb.debian.org），
+  # 容器内补装 libicu/libssl（基准镜像未含），使全球化/加密用例与其它 Linux job 行为一致。
+  # QEMU 下速度未实测，job 限时 300 分钟、容器内 timeout 兜底（留出产物上传时间）。
   loongarch64:
     name: test (linux-la64 qemu)
     runs-on: ubuntu-latest
@@ -256,30 +264,38 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Install QEMU (loong64 binfmt)
-      run: |
-        sudo apt-get update && sudo apt-get install -y qemu-user-static binfmt-support
-        sudo update-binfmts --enable qemu-loongarch64 || true
-        ls -l /usr/bin/qemu-loongarch64* || true
+    - name: Set up QEMU (loong64)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: loong64
     - name: Download Loongson .NET SDK (linux-loongarch64)
-      # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证
       run: |
         curl -fL -o "$HOME/la64-sdk.tar.gz" \
           https://github.com/loongson/dotnet/releases/download/v10.0.112-loongarch64/dotnet-sdk-10.0.112-linux-loongarch64.tar.gz
         mkdir -p "$HOME/la64" && tar -xzf "$HOME/la64-sdk.tar.gz" -C "$HOME/la64"
-        "$HOME/la64/dotnet" --info
+        chmod +x "$HOME/la64/dotnet" || true
+        mkdir -p "$HOME/.nuget/packages"
+    - name: Unit Tests (net10.0) in loong64 Container
+      # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证
       env:
-        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    - name: Unit Tests (net10.0)
-      env:
-        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
-        DOTNET_ROOT: /home/runner/la64
       run: |
-        export PATH="$HOME/la64:$PATH"
-        dotnet nuget add source https://lnuget.loongnix.cn/v3/index.json -n loongnuget || true
-        timeout 270m dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release -s test.ci.runsettings --nologo --logger "trx;LogFileName=loongarch64.trx" --results-directory TestResults
+        docker run --rm --platform linux/loong64 \
+          -v "$PWD:/src" -w /src \
+          -v "$HOME/la64:/opt/dotnet" \
+          -v "$HOME/.nuget/packages:/nuget-packages" \
+          -e NUGET_PACKAGES=/nuget-packages \
+          -e DOTNET_ROOT=/opt/dotnet \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          lcr.loongnix.cn/debian:14-slim \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libicu-dev libssl-dev >/dev/null
+            /opt/dotnet/dotnet --info
+            /opt/dotnet/dotnet nuget add source https://lnuget.loongnix.cn/v3/index.json -n loongnuget || true
+            timeout 240m /opt/dotnet/dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release -s test.ci.runsettings --nologo --logger "trx;LogFileName=loongarch64.trx" --results-directory TestResults
+          '
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
@@ -299,7 +315,11 @@ jobs:
     - name: Setup dotNET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 10.x
+        # 主包含 net8.0-windows/net9.0-windows，pack 需对应 SDK 的 WindowsDesktop 目标包
+        dotnet-version: |
+          8.x
+          9.x
+          10.x
     - name: Pack 校验（源生成器随主包分发）
       # 校验主包 NewLife.Core 内含 analyzers/dotnet/cs 的分析器程序集，且 lib 正常
       run: |
