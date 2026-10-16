@@ -187,6 +187,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
     - name: Set up QEMU (loong64)
       uses: docker/setup-qemu-action@v3
       with:
@@ -198,7 +202,12 @@ jobs:
           https://github.com/loongson/dotnet/releases/download/v10.0.112-loongarch64/dotnet-sdk-10.0.112-linux-loongarch64.tar.gz
         mkdir -p "$HOME/la64" && tar -xzf "$HOME/la64-sdk.tar.gz" -C "$HOME/la64"
         chmod +x "$HOME/la64/dotnet" || true
-        mkdir -p "$HOME/.nuget/packages"
+    - name: Restore NuGet Packages (host x64 SDK)
+      # 龙芯 SDK 在 QEMU 下的 MSBuild 链路不稳（NuGet 还原触发 RemoveDuplicates 任务 NRE，MSB4018），
+      # 还原与构建均放宿主 x64 SDK（产出 RID 无关 IL），容器内仅以 LA64 运行时执行
+      run: dotnet restore AotSmoke/AotSmoke.csproj
+    - name: Build AotSmoke (host x64 SDK)
+      run: dotnet build AotSmoke/AotSmoke.csproj -c Release --no-restore
     - name: JIT Smoke in loong64 Container (AotSmoke 29 场景)
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -206,21 +215,23 @@ jobs:
         docker run --rm --platform linux/loong64 \
           -v "$PWD:/src" -w /src \
           -v "$HOME/la64:/opt/dotnet" \
-          -v "$HOME/.nuget/packages:/nuget-packages" \
-          -e NUGET_PACKAGES=/nuget-packages \
+          -v "$HOME/.nuget/packages:/home/runner/.nuget/packages" \
+          -e NUGET_PACKAGES=/home/runner/.nuget/packages \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e MSBUILDDISABLENODEREUSE=1 \
+          -e DOTNET_CLI_DO_NOT_USE_MSBUILD_SERVER=1 \
           -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
           lcr.loongnix.cn/debian:14-slim \
-          sh -c '/opt/dotnet/dotnet --info && /opt/dotnet/dotnet run -c Release --project AotSmoke/AotSmoke.csproj'
+          sh -c '/opt/dotnet/dotnet --info && /opt/dotnet/dotnet run -c Release --no-build --no-restore --project AotSmoke/AotSmoke.csproj'
     - name: NativeAOT Publish (linux-loongarch64, 探索)
       continue-on-error: true
       run: |
         docker run --rm --platform linux/loong64 \
           -v "$PWD:/src" -w /src \
           -v "$HOME/la64:/opt/dotnet" \
-          -v "$HOME/.nuget/packages:/nuget-packages" \
-          -e NUGET_PACKAGES=/nuget-packages \
+          -v "$HOME/.nuget/packages:/home/runner/.nuget/packages" \
+          -e NUGET_PACKAGES=/home/runner/.nuget/packages \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
           -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \

@@ -264,6 +264,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
     - name: Set up QEMU (loong64)
       uses: docker/setup-qemu-action@v3
       with:
@@ -274,7 +278,13 @@ jobs:
           https://github.com/loongson/dotnet/releases/download/v10.0.112-loongarch64/dotnet-sdk-10.0.112-linux-loongarch64.tar.gz
         mkdir -p "$HOME/la64" && tar -xzf "$HOME/la64-sdk.tar.gz" -C "$HOME/la64"
         chmod +x "$HOME/la64/dotnet" || true
-        mkdir -p "$HOME/.nuget/packages"
+    - name: Restore NuGet Packages (host x64 SDK)
+      # 龙芯 SDK 在 QEMU 下的 MSBuild 链路不稳（NuGet 还原触发 RemoveDuplicates 任务 NRE，MSB4018），
+      # 还原与构建均放宿主 x64 SDK：默认构建产出 RID 无关的 IL 与可移植 deps.json，
+      # 容器内仅以 LA64 运行时执行测试；包目录保持 $HOME/.nuget/packages 同路径挂载
+      run: dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+    - name: Build (host x64 SDK)
+      run: dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
     - name: Unit Tests (net10.0) in loong64 Container
       # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证
       env:
@@ -283,18 +293,19 @@ jobs:
         docker run --rm --platform linux/loong64 \
           -v "$PWD:/src" -w /src \
           -v "$HOME/la64:/opt/dotnet" \
-          -v "$HOME/.nuget/packages:/nuget-packages" \
-          -e NUGET_PACKAGES=/nuget-packages \
+          -v "$HOME/.nuget/packages:/home/runner/.nuget/packages" \
+          -e NUGET_PACKAGES=/home/runner/.nuget/packages \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e MSBUILDDISABLENODEREUSE=1 \
+          -e DOTNET_CLI_DO_NOT_USE_MSBUILD_SERVER=1 \
           lcr.loongnix.cn/debian:14-slim \
           sh -c '
             set -e
             apt-get update -qq
             apt-get install -y -qq --no-install-recommends libicu-dev libssl-dev >/dev/null
             /opt/dotnet/dotnet --info
-            /opt/dotnet/dotnet nuget add source https://lnuget.loongnix.cn/v3/index.json -n loongnuget || true
-            timeout 240m /opt/dotnet/dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release -s test.ci.runsettings --nologo --logger "trx;LogFileName=loongarch64.trx" --results-directory TestResults
+            timeout 240m /opt/dotnet/dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release -s test.ci.runsettings --no-build --no-restore --nologo --logger "trx;LogFileName=loongarch64.trx" --results-directory TestResults
           '
     - name: Upload Test Results
       if: always()
