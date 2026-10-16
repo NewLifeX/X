@@ -275,7 +275,7 @@ jobs:
     - name: Download Loongson .NET SDK (linux-loongarch64)
       run: |
         curl -fL -o "$HOME/la64-sdk.tar.gz" \
-          https://github.com/loongson/dotnet/releases/download/v10.0.112-loongarch64/dotnet-sdk-10.0.112-linux-loongarch64.tar.gz
+          https://github.com/loongson/dotnet/releases/download/v10.0.113-loongarch64/dotnet-sdk-10.0.113-linux-loongarch64.tar.gz
         mkdir -p "$HOME/la64" && tar -xzf "$HOME/la64-sdk.tar.gz" -C "$HOME/la64"
         chmod +x "$HOME/la64/dotnet" || true
     - name: Restore NuGet Packages (host x64 SDK)
@@ -287,43 +287,32 @@ jobs:
       run: dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
     - name: Unit Tests (net10.0) in loong64 Container
       # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证。
-      # 龙芯 SDK 自带的 vstest 过旧，PlatformAbstractions 不识别 LoongArch64 架构而抛 NotSupportedException，
-      # 改用宿主 x64 SDK 中的 vstest.console（10.x 已识别 LoongArch64）在容器内经 LA64 运行时执行测试；
-      # 该方式同时绕开容器内 MSBuild 链路（其 NuGet 还原曾触发 RemoveDuplicates 任务 NRE，MSB4018）
+      # 宿主 SDK 的 vstest 为 x64 R2R 复合镜像，无法在 LA64 运行时加载（BadImageFormatException），
+      # 故使用龙芯 SDK 自带的 vstest（10.0.113 已具备 LoongArch64 架构识别；10.0.112 会抛 NotSupportedException）；
+      # 还原与构建已由宿主完成，容器内 --no-build --no-restore，绕开容器内 NuGet 还原链路
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
       run: |
-        HOST_DOTNET_DIR=$(dirname "$(readlink -f "$(command -v dotnet)")")
-        HOST_SDK_DIR="$HOST_DOTNET_DIR/sdk/$(ls "$HOST_DOTNET_DIR/sdk" | sort -V | tail -1)"
-        echo "host vstest dir: $HOST_SDK_DIR"
-        ls -l "$HOST_SDK_DIR/vstest.console.dll"
         docker run --rm --platform linux/loong64 \
           -v "$PWD:/src" -w /src \
           -v "$HOME/la64:/opt/dotnet" \
           -v "$HOME/.nuget/packages:/home/runner/.nuget/packages" \
-          -v "$HOST_SDK_DIR:/opt/host-vstest:ro" \
           -e NUGET_PACKAGES=/home/runner/.nuget/packages \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e MSBUILDDISABLENODEREUSE=1 \
+          -e DOTNET_CLI_DO_NOT_USE_MSBUILD_SERVER=1 \
           lcr.loongnix.cn/debian:14-slim \
           sh -c '
             set -e
             apt-get update -qq
             apt-get install -y -qq --no-install-recommends libicu-dev libssl-dev >/dev/null
             /opt/dotnet/dotnet --info
-            # 宿主 SDK 的 vstest 请求其配套运行时补丁版（10.0.13），容器内为龙芯 10.0.12；
-            # 复制 runtimeconfig 并把框架版本降为 10.0.0，交由 rollForward 选择可用的 10.0.12
-            cp /opt/host-vstest/vstest.console.runtimeconfig.json /tmp/vstest.runtimeconfig.json
-            sed -i "s/\"version\": \"10.0.[0-9]*\"/\"version\": \"10.0.0\"/" /tmp/vstest.runtimeconfig.json
-            cat /tmp/vstest.runtimeconfig.json
-            timeout 240m /opt/dotnet/dotnet exec \
-              --runtimeconfig /tmp/vstest.runtimeconfig.json \
-              --depsfile /opt/host-vstest/vstest.console.deps.json \
-              /opt/host-vstest/vstest.console.dll \
-              /src/Bin/UnitTest/net10.0/XUnitTest.Core.dll \
-              --settings:/src/test.ci.runsettings \
+            timeout 240m /opt/dotnet/dotnet test /src/XUnitTest.Core/XUnitTest.Core.csproj \
+              -f net10.0 -c Release -s /src/test.ci.runsettings \
+              --no-build --no-restore --nologo \
               --logger:"trx;LogFileName=loongarch64.trx" \
-              --ResultsDirectory:/src/TestResults
+              --results-directory /src/TestResults
           '
     - name: Upload Test Results
       if: always()

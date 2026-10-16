@@ -199,7 +199,7 @@ jobs:
       # 宿主下载（GitHub 直连快），容器通过挂载点使用；容器内 --info 是 QEMU 通路的第一道验证
       run: |
         curl -fL -o "$HOME/la64-sdk.tar.gz" \
-          https://github.com/loongson/dotnet/releases/download/v10.0.112-loongarch64/dotnet-sdk-10.0.112-linux-loongarch64.tar.gz
+          https://github.com/loongson/dotnet/releases/download/v10.0.113-loongarch64/dotnet-sdk-10.0.113-linux-loongarch64.tar.gz
         mkdir -p "$HOME/la64" && tar -xzf "$HOME/la64-sdk.tar.gz" -C "$HOME/la64"
         chmod +x "$HOME/la64/dotnet" || true
     - name: Restore NuGet Packages (host x64 SDK)
