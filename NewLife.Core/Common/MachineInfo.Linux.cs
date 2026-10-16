@@ -267,6 +267,9 @@ public partial class MachineInfo
             // 并非 Linux 发行版，视为不可识别
             if (uname.StartsWithIgnoreCase("MSYS_NT", "CYGWIN_NT", "MINGW", "UWIN")) return null;
 
+            // macOS 的 uname 返回 Darwin <版本>，并非 Linux 发行版，视为不可识别
+            if (uname.StartsWithIgnoreCase("Darwin")) return null;
+
             // 支持Android系统名
             var ss = uname.Split('-');
             foreach (var item in ss)
