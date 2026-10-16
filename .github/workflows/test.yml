@@ -286,26 +286,36 @@ jobs:
     - name: Build (host x64 SDK)
       run: dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
     - name: Unit Tests (net10.0) in loong64 Container
-      # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证
+      # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证。
+      # 龙芯 SDK 自带的 vstest 过旧，PlatformAbstractions 不识别 LoongArch64 架构而抛 NotSupportedException，
+      # 改用宿主 x64 SDK 中的 vstest.console（10.x 已识别 LoongArch64）在容器内经 LA64 运行时执行测试；
+      # 该方式同时绕开容器内 MSBuild 链路（其 NuGet 还原曾触发 RemoveDuplicates 任务 NRE，MSB4018）
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
       run: |
+        HOST_DOTNET_DIR=$(dirname "$(readlink -f "$(command -v dotnet)")")
+        HOST_SDK_DIR="$HOST_DOTNET_DIR/sdk/$(ls "$HOST_DOTNET_DIR/sdk" | sort -V | tail -1)"
+        echo "host vstest dir: $HOST_SDK_DIR"
+        ls -l "$HOST_SDK_DIR/vstest.console.dll"
         docker run --rm --platform linux/loong64 \
           -v "$PWD:/src" -w /src \
           -v "$HOME/la64:/opt/dotnet" \
           -v "$HOME/.nuget/packages:/home/runner/.nuget/packages" \
+          -v "$HOST_SDK_DIR:/opt/host-vstest:ro" \
           -e NUGET_PACKAGES=/home/runner/.nuget/packages \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
-          -e MSBUILDDISABLENODEREUSE=1 \
-          -e DOTNET_CLI_DO_NOT_USE_MSBUILD_SERVER=1 \
           lcr.loongnix.cn/debian:14-slim \
           sh -c '
             set -e
             apt-get update -qq
             apt-get install -y -qq --no-install-recommends libicu-dev libssl-dev >/dev/null
             /opt/dotnet/dotnet --info
-            timeout 240m /opt/dotnet/dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release -s test.ci.runsettings --no-build --no-restore --nologo --logger "trx;LogFileName=loongarch64.trx" --results-directory TestResults
+            timeout 240m /opt/dotnet/dotnet /opt/host-vstest/vstest.console.dll \
+              /src/Bin/UnitTest/net10.0/XUnitTest.Core.dll \
+              --settings:/src/test.ci.runsettings \
+              --logger:"trx;LogFileName=loongarch64.trx" \
+              --ResultsDirectory:/src/TestResults
           '
     - name: Upload Test Results
       if: always()

@@ -219,11 +219,9 @@ jobs:
           -e NUGET_PACKAGES=/home/runner/.nuget/packages \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
-          -e MSBUILDDISABLENODEREUSE=1 \
-          -e DOTNET_CLI_DO_NOT_USE_MSBUILD_SERVER=1 \
           -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
           lcr.loongnix.cn/debian:14-slim \
-          sh -c '/opt/dotnet/dotnet --info && /opt/dotnet/dotnet run -c Release --no-build --no-restore --project AotSmoke/AotSmoke.csproj'
+          sh -c '/opt/dotnet/dotnet --info && /opt/dotnet/dotnet /src/AotSmoke/bin/Release/net10.0/AotSmoke.dll'
     - name: NativeAOT Publish (linux-loongarch64, 探索)
       continue-on-error: true
       run: |
