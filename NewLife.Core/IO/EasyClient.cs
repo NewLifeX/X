@@ -96,7 +96,9 @@ public class EasyClient : IObjectStorage
     /// <summary>根据Id获取对象</summary>
     /// <param name="id">对象标识。支持斜杠目录结构</param>
     /// <returns>文件对象信息</returns>
+    /// <remarks>对象不存在时，服务端以 HTTP 200 + code=500 错误信封返回，此处抛出 <see cref="ApiException"/>，调用方不再拿到错误 Json 充当的文件内容</remarks>
     /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ApiException">对象不存在等服务端业务错误</exception>
     public virtual async Task<IObjectInfo?> GetAsync(String id)
     {
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
@@ -123,6 +125,7 @@ public class EasyClient : IObjectStorage
     /// <summary>检查文件是否存在</summary>
     /// <param name="id">对象文件名，支持斜杠目录结构</param>
     /// <returns>存在返回true，不存在返回false</returns>
+    /// <remarks>服务端实现 Exists 接口时直接判定；未实现该接口时回退为 Get 探测，探测抛出 <see cref="ApiException"/> 视为对象不存在</remarks>
     /// <exception cref="ArgumentNullException"></exception>
     public virtual async Task<Boolean> ExistsAsync(String id)
     {
@@ -137,8 +140,16 @@ public class EasyClient : IObjectStorage
         catch
         {
             // 服务端不支持 Exists 方法时，尝试获取文件
-            var info = await GetAsync(id).ConfigureAwait(false);
-            return info != null;
+            try
+            {
+                var info = await GetAsync(id).ConfigureAwait(false);
+                return info != null;
+            }
+            catch (ApiException)
+            {
+                // 对象不存在时服务端返回错误信封，Get 抛出业务异常，据此判定不存在
+                return false;
+            }
         }
     }
 

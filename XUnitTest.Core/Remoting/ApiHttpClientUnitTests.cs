@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Configuration;
+using NewLife.Data;
 using NewLife.Remoting;
 using NewLife.Serialization;
 using Xunit;
@@ -666,6 +668,64 @@ public class ApiHttpClientUnitTests
         await client.GetAsync<Byte[]>("api/test");
 
         Assert.Equal("application/octet-stream", capturedAccept);
+    }
+    #endregion
+
+    #region 二进制响应错误信封
+    [Fact(DisplayName = "二进制响应_Json错误信封_抛ApiException")]
+    public async Task BinaryResponse_JsonErrorEnvelope_ThrowsApiException()
+    {
+        var handler = new MockHttpMessageHandler
+        {
+            Handler = _ => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"code\":500,\"data\":\"文件不存在\"}", Encoding.UTF8, "application/json")
+            }
+        };
+        var client = new TestableApiHttpClient(handler, "http://127.0.0.1:8080");
+
+        // IPacket 与 Byte[] 走同一识别分支
+        var ex = await Assert.ThrowsAsync<ApiException>(() => client.GetAsync<IPacket>("io/Get"));
+        Assert.Equal(500, ex.Code);
+        Assert.Contains("文件不存在", ex.Message);
+
+        ex = await Assert.ThrowsAsync<ApiException>(() => client.GetAsync<Byte[]>("io/Get"));
+        Assert.Equal(500, ex.Code);
+        Assert.Contains("文件不存在", ex.Message);
+    }
+
+    [Fact(DisplayName = "二进制响应_非信封正文或非Json类型_原样返回字节")]
+    public async Task BinaryResponse_NonEnvelope_ReturnsRawBytes()
+    {
+        // Json 内容类型但正文不是错误信封：无 code 字段，原始字节直通
+        var json = "{\"hello\":1}";
+        var handler = new MockHttpMessageHandler
+        {
+            Handler = _ => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            }
+        };
+        var client = new TestableApiHttpClient(handler, "http://127.0.0.1:8080");
+
+        var packet = await client.GetAsync<IPacket>("io/Get");
+        Assert.NotNull(packet);
+        Assert.Equal(json, packet.ToStr());
+
+        // 非 Json 内容类型：正文形如信封也不解析
+        var body = "{\"code\":500,\"data\":\"x\"}";
+        var handler2 = new MockHttpMessageHandler
+        {
+            Handler = _ => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(body.GetBytes())
+            }
+        };
+        var client2 = new TestableApiHttpClient(handler2, "http://127.0.0.1:8080");
+
+        var bytes = await client2.GetAsync<Byte[]>("io/Get");
+        Assert.NotNull(bytes);
+        Assert.Equal(body, bytes.ToStr());
     }
     #endregion
 

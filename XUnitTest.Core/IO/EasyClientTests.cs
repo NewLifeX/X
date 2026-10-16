@@ -62,21 +62,17 @@ public class EasyClientTests
         Assert.Equal(_data, inf2.Data.ReadBytes());
     }
 
-    [Fact(DisplayName = "获取不存在的对象：返回非 null（服务端包装文本被当作内容）")]
-    public async Task GetMissingReturnsWrappedError()
+    [Fact(DisplayName = "获取不存在的对象：错误信封解析为 ApiException(500)")]
+    public async Task GetMissingThrowsApiException()
     {
         using var stub = new EasyIoStub();
         var client = stub.CreateClient();
 
-        var inf = await client.GetAsync("missing.txt");
-
-        // 现行契约：服务端异常以 HTTP 200 + {code:500,data:"文件不存在"} 包装返回，
-        // 客户端对 IPacket 返回值按原始字节透传、不解析包装，故返回非 null，内容为错误 Json 原文。
-        // 用例锁定这一互操作现状：将来服务端改用非 200 状态码、或客户端开始解析包装时，本用例会失败提醒同步修订。
-        Assert.NotNull(inf);
-        Assert.Equal("missing.txt", inf.Name);
-        Assert.NotNull(inf.Data);
-        Assert.Contains("文件不存在", inf.Data.ToStr());
+        // 服务端异常以 HTTP 200 + {code:500,data:"文件不存在"} 包装返回，
+        // 客户端对 IPacket 结果同样识别错误信封并抛出业务异常，调用方不再把错误 Json 当文件内容
+        var ex = await Assert.ThrowsAsync<ApiException>(() => client.GetAsync("missing.txt"));
+        Assert.Equal(500, ex.Code);
+        Assert.Contains("文件不存在", ex.Message);
     }
     #endregion
 
@@ -139,9 +135,8 @@ public class EasyClientTests
         // 服务端 404 → 客户端 catch 后回退 Get：文件存在即 true
         Assert.True(await client.ExistsAsync("file.txt"));
 
-        // 文件不存在时，回退的 Get 同样返回非 null（同 GetMissingReturnsWrappedError 的包装透传），
-        // 因此当前实现下也返回 true。锁定现状，服务端补上 Exists 接口后应改走直接判定。
-        Assert.True(await client.ExistsAsync("missing.txt"));
+        // 文件不存在时，回退的 Get 解析到 code=500 错误信封并抛出 ApiException，据此判定 false
+        Assert.False(await client.ExistsAsync("missing.txt"));
     }
     #endregion
 

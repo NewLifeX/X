@@ -290,9 +290,15 @@ public static class ApiHelper
         }
         if (buf == null || buf.Length == 0) return default;
 
-        // 原始数据
-        if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
-        if (rtype == typeof(IPacket)) return (TResult)(Object)new ArrayPacket(buf);
+        // 原始数据。二进制响应同样识别业务错误信封：EasyIO 等服务端以 HTTP 200 + {code,message} Json 包装业务错误，
+        // 二进制契约（application/octet-stream）无法承载该语义，原样返回会让调用方把错误文本误判为文件内容
+        if (rtype == typeof(Byte[]) || rtype == typeof(IPacket))
+        {
+            CheckBinaryEnvelope(response, buf, codeName, dataName ?? "data", jsonHost);
+
+            if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
+            return (TResult)(Object)new ArrayPacket(buf);
+        }
 
         var str = buf.ToStr().Trim();
         return ProcessResponse<TResult>(str, codeName, dataName ?? "data", jsonHost);
@@ -340,6 +346,31 @@ public static class ApiHelper
         // 如果没有指定数据名，或者结果中不包含数据名，则整个字典作为结果数据
         var data = nodata ? dic : dic[dataName];
 
+        CheckError(dic, codeName, data);
+
+        // 简单类型
+        if (data is TResult result) return result;
+        if (rtype == typeof(Object)) return (TResult?)data;
+        if (data == null && rtype.IsNullable()) return (TResult?)(Object?)null;
+        if (rtype.IsBaseType()) return data.ChangeType<TResult>();
+
+        // 反序列化
+        if (data == null) return default;
+
+        if (data is not IDictionary<String, Object> and not IList<Object>)
+            throw new InvalidDataException($"Unrecognized response data [{(data as String)?.Cut(64)}] for [{typeof(TResult).Name}]");
+
+        return jsonHost.Convert<TResult>(data);
+    }
+
+    /// <summary>识别业务错误信封，code 非成功时抛出ApiException</summary>
+    /// <remarks>code 提取规则：codeName 优先，为空时依次尝试 CodeNames；Boolean 按 true=0/false=-1 处理，其它取整。
+    /// message 取 MessageNames 首个命中值，为空时兜底 data 文本</remarks>
+    /// <param name="dic">响应字典</param>
+    /// <param name="codeName">状态码字段名</param>
+    /// <param name="data">数据节点，用于 message 缺省时的兜底文本</param>
+    private static void CheckError(IDictionary<String, Object?> dic, String? codeName, Object? data)
+    {
         var code = 0;
         if (!codeName.IsNullOrEmpty())
         {
@@ -381,20 +412,42 @@ public static class ApiHelper
             if (message.IsNullOrEmpty()) message = data + "";
             throw new ApiException(code, message);
         }
+    }
 
-        // 简单类型
-        if (data is TResult result) return result;
-        if (rtype == typeof(Object)) return (TResult?)data;
-        if (data == null && rtype.IsNullable()) return (TResult?)(Object?)null;
-        if (rtype.IsBaseType()) return data.ChangeType<TResult>();
+    /// <summary>识别二进制响应中的业务错误信封，code 非成功时抛出ApiException</summary>
+    /// <remarks>仅当响应声明 Json 内容类型且正文为 Json 对象时检查，识别规则与文本响应一致；
+    /// 非 Json 内容类型或非信封正文（无 code 字段）维持原始字节直通，成功下载行为不变。
+    /// EasyIO 等服务端以 HTTP 200 + {code,message} Json 包装业务错误，二进制契约无法承载该语义，原样返回会让调用方误判成功</remarks>
+    /// <param name="response">Http响应消息</param>
+    /// <param name="buf">响应内容字节</param>
+    /// <param name="codeName">状态码字段名</param>
+    /// <param name="dataName">数据字段名称</param>
+    /// <param name="jsonHost">Json序列化主机</param>
+    private static void CheckBinaryEnvelope(HttpResponseMessage response, Byte[] buf, String? codeName, String dataName, IJsonHost jsonHost)
+    {
+        var mediaType = response.Content?.Headers.ContentType?.MediaType;
+        if (mediaType.IsNullOrEmpty() || mediaType.IndexOf("json", StringComparison.OrdinalIgnoreCase) < 0) return;
 
-        // 反序列化
-        if (data == null) return default;
+        var str = buf.ToStr().Trim();
+        if (!str.StartsWith("{") || !str.EndsWith("}")) return;
 
-        if (data is not IDictionary<String, Object> and not IList<Object>)
-            throw new InvalidDataException($"Unrecognized response data [{(data as String)?.Cut(64)}] for [{typeof(TResult).Name}]");
+        IDictionary<String, Object?>? dic;
+        try
+        {
+            dic = jsonHost.Decode(str);
+        }
+        catch
+        {
+            // 非法 Json 视为普通正文，保持原始字节直通
+            return;
+        }
+        if (dic == null) return;
 
-        return jsonHost.Convert<TResult>(data);
+        // 与文本响应相同的数据节点规则：未指定数据名或数据名缺失时，整个字典作为数据
+        var nodata = dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName);
+        var data = nodata ? dic : dic[dataName];
+
+        CheckError(dic, codeName, data);
     }
 
     /// <summary>根据动作和参数构造Url</summary>
