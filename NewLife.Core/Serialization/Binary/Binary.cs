@@ -411,7 +411,6 @@ public class Binary : FormatterBase, IBinary
         return buffer;
     }
 
-#if NETCOREAPP || NETSTANDARD2_1
     /// <summary>从当前流中读取字节数组</summary>
     /// <param name="span">字节数组</param>
     /// <returns></returns>
@@ -424,7 +423,7 @@ public class Binary : FormatterBase, IBinary
         var totalRead = 0;
         while (totalRead < span.Length)
         {
-            var bytesRead = Stream.Read(span.Slice(totalRead));
+            var bytesRead = ReadToSpan(Stream, span.Slice(totalRead));
             if (bytesRead <= 0)
             {
                 Total += totalRead;
@@ -442,7 +441,6 @@ public class Binary : FormatterBase, IBinary
 
         return totalRead;
     }
-#endif
 
     /// <summary>从当前流中读取字节数组</summary>
     /// <param name="buffer">字节数组</param>
@@ -898,6 +896,27 @@ public class Binary : FormatterBase, IBinary
     #endregion
 
     #region 辅助
+#if NETCOREAPP || NETSTANDARD2_1
+    /// <summary>从流读取到 Span（BCL 直读）</summary>
+    /// <param name="stream">目标流</param>
+    /// <param name="span">目标字节数组</param>
+    /// <returns>实际读取的字节数</returns>
+    private static Int32 ReadToSpan(Stream stream, Span<Byte> span) => stream.Read(span);
+#else
+    /// <summary>从流读取到 Span。低 TFM 无 Stream.Read(Span&lt;Byte&gt;) 重载，经池化缓冲中转</summary>
+    /// <param name="stream">目标流</param>
+    /// <param name="span">目标字节数组</param>
+    /// <returns>实际读取的字节数</returns>
+    private static Int32 ReadToSpan(Stream stream, Span<Byte> span)
+    {
+        using var buffer = Pool.Rent(span.Length);
+        var n = stream.Read(buffer, 0, span.Length);
+        if (n > 0) buffer.Span.Slice(0, n).CopyTo(span);
+
+        return n;
+    }
+#endif
+
     ///// <summary>是否已达到末尾</summary>
     ///// <returns></returns>
     //public Boolean EndOfStream() => Stream.Position >= Stream.Length;

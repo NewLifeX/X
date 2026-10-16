@@ -5,6 +5,7 @@ using NewLife.Http;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Serialization.Interface;
+using System.ComponentModel;
 using Xunit;
 
 namespace XUnitTest.Serialization;
@@ -35,6 +36,32 @@ public class BinaryTests
         Object value = null;
         Assert.False(bn2.TryRead(typeof(MyModel), ref value));
         Assert.True(bn2.EndOfStream);
+    }
+
+    [Fact]
+    [DisplayName("ReadBytes：Span 完整读取、流末尾截断与越界抛异常")]
+    public void ReadBytesToSpan()
+    {
+        var data = Rand.NextBytes(16);
+
+        // 完整读取
+        var bn = new Binary { Stream = new MemoryStream(data) };
+        var buf = new Byte[16];
+        var n = bn.ReadBytes(buf.AsSpan());
+        Assert.Equal(16, n);
+        Assert.Equal(data, buf);
+        Assert.Equal(16L, bn.Total);
+
+        // 流不足：按实读长度返回并置 EndOfStream
+        var bn2 = new Binary { Stream = new MemoryStream(data) };
+        var buf2 = new Byte[32];
+        var n2 = bn2.ReadBytes(buf2.AsSpan());
+        Assert.Equal(16, n2);
+        Assert.True(bn2.EndOfStream);
+        Assert.Equal(data, buf2[..16]);
+
+        // 已到末尾：再次读取抛 EndOfStreamException
+        Assert.Throws<EndOfStreamException>(() => bn2.ReadBytes(buf2.AsSpan()));
     }
 
     [Fact]
