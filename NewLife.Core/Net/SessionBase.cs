@@ -226,8 +226,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             // 接收流程的附加动作：流式会话在协议模式下启动消息泵（先于接收环，首个数据到达前就绪）
             StartReceiveFlow();
 
-            // 最后开始接收，避免事件处理阻塞接收初始化；拉取模式（AutoReceive=false）不启动接收环
-            if (AutoReceive) StartReceive();
+            // 最后开始接收，避免事件处理阻塞接收初始化；拉取模式（AutoReceive=false）不启动接收环。
+            // 打开过程中可能已被关闭（对端违规帧触发协议失败、握手校验失败等），会话一次性，
+            // 关闭后再调用 Open 会抛异常，故先确认仍处于活动状态
+            if (AutoReceive && Active) StartReceive();
         }
         catch (Exception ex)
         {
