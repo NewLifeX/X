@@ -6,6 +6,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using Xunit;
+using XUnitTest.Net;
 
 namespace XUnitTest.Remoting;
 
@@ -17,16 +18,23 @@ public class ApiHttpClientTests : DisposeBase
 
     public ApiHttpClientTests()
     {
-        // 使用动态端口避免冲突
-        _Server = new ApiServer(0)
+        // 双协议（SRMP TCP+UDP）服务器用显式端口探测，避免 Port=0 跨协议继承落入另一协议保留段（见 TestPort）
+        // HTTP 入口需显式开启（默认关闭），0 表示自动取 SRMP 端口+1
+        _Server = TestPort.StartAny(28000, port => new ApiServer(port)
         {
+            ReuseAddress = true,
+            HttpPort = 0,
+
             //Log = XTrace.Log,
             //EncoderLog = XTrace.Log,
-        };
-        _Server.Handler = new TokenApiHandler { Host = _Server };
-        _Server.Start();
+        }, server =>
+        {
+            server.Handler = new TokenApiHandler { Host = server };
+            server.Start();
+        });
 
-        _Address = $"http://127.0.0.1:{_Server.Port}";
+        // 拆端口后 Http 使用独立端口
+        _Address = $"http://127.0.0.1:{_Server.HttpPort}";
 
         //_Client = new ApiHttpClient();
         //_Client.Add("addr1", new Uri("http://127.0.0.1:12347"));
@@ -238,14 +246,12 @@ public class ApiHttpClientTests : DisposeBase
     [Fact(DisplayName = "加权轮询测试")]
     public async Task RoundRobinTest()
     {
-#pragma warning disable CS0618 // 类型或成员已过时
         var client = new ApiHttpClient("test1=3*http://127.0.0.1:10000,test2=7*http://127.0.0.1:20000,")
         {
-            RoundRobin = true,
+            LoadBalanceMode = LoadBalanceMode.RoundRobin,
             Timeout = 3_000,
             Log = XTrace.Log,
         };
-#pragma warning restore CS0618 // 类型或成员已过时
 
         Assert.Equal(2, client.Services.Count);
 
