@@ -220,6 +220,7 @@ jobs:
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
           -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
+          -e DOTNET_EnableHWIntrinsic=0 \
           lcr.loongnix.cn/debian:14-slim \
           sh -c '/opt/dotnet/dotnet --info && /opt/dotnet/dotnet /src/AotSmoke/bin/Release/net10.0/AotSmoke.dll'
     - name: NativeAOT Publish (linux-loongarch64, 探索)

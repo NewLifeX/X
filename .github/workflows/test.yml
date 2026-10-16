@@ -358,6 +358,8 @@ jobs:
         dotnet build /tmp/selfhost/xr.csproj -c Release --nologo
     - name: Unit Tests (net10.0) in loong64 Container
       # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证；
+      # DOTNET_EnableHWIntrinsic=0：QEMU 用户态对 LASX/LSX 指令覆盖不全，JIT 动态桩实测触发
+      # Illegal instruction（ExecutionEngineException），关闭硬件内建以强制基线指令；
       # 自宿主执行器连同其依赖复制进测试输出目录，保证 AppContext.BaseDirectory 与 VSTest 一致
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -370,6 +372,7 @@ jobs:
           -e NUGET_PACKAGES=/home/runner/.nuget/packages \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e DOTNET_EnableHWIntrinsic=0 \
           lcr.loongnix.cn/debian:14-slim \
           sh -c '
             set -e
