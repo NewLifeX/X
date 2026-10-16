@@ -1,9 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
+using NewLife;
 using NewLife.Http;
+using NewLife.Log;
 using NewLife.Remoting;
+using NewLife.Security;
 using NewLife.Web;
 using Xunit;
 
@@ -79,6 +83,42 @@ public class TokenHttpFilterTests
         Assert.Equal("tok1", request.Headers.Authorization?.Parameter);
     }
 
+    [Fact(DisplayName = "刷新令牌失败日志已脱敏，不含令牌明文")]
+    public async Task RefreshFailure_LogRedacted()
+    {
+        var original = XTrace.Log;
+        var capture = new CaptureLog();
+        var filter = new RefreshFailFilter { UserName = "u", Password = "p" };
+        try
+        {
+            XTrace.Log = capture;
+
+            using var client = new HttpClient(new FakeHandler()) { BaseAddress = new Uri("http://127.0.0.1:1") };
+
+            // 第一次请求取到令牌
+            await filter.OnRequest(client, new HttpRequestMessage(HttpMethod.Get, "api/info"), null, default);
+            Assert.NotNull(filter.Token);
+
+            // 让刷新时间到达：直接改写私有 _refresh 字段，避免真实等待刷新周期
+            var field = typeof(TokenHttpFilter).GetField("_refresh", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.NotNull(field);
+            field.SetValue(filter, DateTime.Now.AddHours(-1));
+
+            // 第二次请求触发刷新，SendRefresh 抛异常进入日志分支
+            await filter.OnRequest(client, new HttpRequestMessage(HttpMethod.Get, "api/info"), null, default);
+            Assert.Equal(1, filter.SendRefreshCalls);
+        }
+        finally
+        {
+            XTrace.Log = original;
+        }
+
+        var text = capture.GetText();
+        Assert.Contains("刷新令牌异常", text);
+        Assert.DoesNotContain(filter.AccessTokenValue, text);
+        Assert.DoesNotContain(filter.RefreshTokenValue, text);
+    }
+
     /// <summary>申请令牌时再次进入过滤器（模拟 SendAuth 内部请求走同一过滤器）</summary>
     private sealed class ReentryFilter : TokenHttpFilter
     {
@@ -98,6 +138,37 @@ public class TokenHttpFilterTests
             NestedCalls++;
 
             return new TokenModel { AccessToken = "tok1", ExpireIn = 3600 };
+        }
+    }
+
+    /// <summary>取到令牌后刷新失败的过滤器，令牌为随机明文便于断言脱敏</summary>
+    private sealed class RefreshFailFilter : TokenHttpFilter
+    {
+        public Int32 SendRefreshCalls;
+        public String AccessTokenValue = "acc_" + Rand.NextString(24);
+        public String RefreshTokenValue = "rfh_" + Rand.NextString(24);
+
+        protected override Task<IToken?> SendAuth(HttpClient client, CancellationToken cancellationToken)
+            => Task.FromResult<IToken?>(new TokenModel { AccessToken = AccessTokenValue, RefreshToken = RefreshTokenValue, ExpireIn = 3600 });
+
+        protected override Task<IToken?> SendRefresh(HttpClient client, CancellationToken cancellationToken)
+        {
+            SendRefreshCalls++;
+            throw new HttpRequestException("刷新失败（模拟网络抖动）");
+        }
+    }
+
+    /// <summary>捕获日志文本的日志实现</summary>
+    private sealed class CaptureLog : Logger
+    {
+        private readonly StringBuilder _sb = new();
+
+        public String GetText() => _sb.ToString();
+
+        protected override void OnWrite(LogLevel level, String format, params Object?[] args)
+        {
+            var msg = args == null || args.Length == 0 ? format : String.Format(format, args);
+            lock (_sb) _sb.AppendLine(msg);
         }
     }
 

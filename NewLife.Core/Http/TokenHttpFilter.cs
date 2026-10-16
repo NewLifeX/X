@@ -4,7 +4,6 @@ using System.Threading;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
 using NewLife.Web;
 
 namespace NewLife.Http;
@@ -156,7 +155,8 @@ public class TokenHttpFilter : IHttpFilter
                 }
                 catch (Exception ex)
                 {
-                    XTrace.WriteLine("刷新令牌异常 {0}", token?.ToJson());
+                    // 令牌凭据不得进日志：只记录令牌类型/到期时间/长度指纹，避免 access_token/refresh_token 明文泄露
+                    XTrace.WriteLine("刷新令牌异常 type={0} expire={1} accessLen={2} refreshLen={3}", token?.GetType().Name, Expire, token?.AccessToken?.Length ?? 0, token?.RefreshToken?.Length ?? 0);
                     XTrace.WriteException(ex);
                 }
                 finally
