@@ -67,8 +67,8 @@ public class HttpSession : INetHandler, IDisposable
     /// <summary>在途请求的实体是否为分块传输（无 Content-Length，必须解码终止块后才能交付）</summary>
     private Boolean _chunkedBody;
 
-    /// <summary>上次收到字节的时间。用于判定在途请求是否停滞（慢速攻击兜底）</summary>
-    private DateTime _lastReceive;
+    /// <summary>上次收到字节的单调时间戳（毫秒）。用单调时钟判定停滞，墙钟回拨不会误判也不解除判定（WSL 实测每约 30 秒回拨 ~2 秒）</summary>
+    private Int64 _lastReceiveTick;
     #endregion
 
     #region 辅助
@@ -124,8 +124,8 @@ public class HttpSession : INetHandler, IDisposable
         // 慢速攻击兜底：在途请求（头部或实体未收齐）长期没有新字节到达时，连接会被无限期占用。
         // 只判“距上次收到字节的间隔”而不判请求总时长，故持续推进的慢速上传不受影响；
         // 完全静默的连接不会进入本方法，由会话超时回收。
-        var now = DateTime.Now;
-        if ((_headCache != null || _cache != null) && MaxRequestIdle > 0 && (now - _lastReceive).TotalMilliseconds > MaxRequestIdle)
+        var now = Runtime.TickCount64;
+        if ((_headCache != null || _cache != null) && MaxRequestIdle > 0 && now - _lastReceiveTick > MaxRequestIdle)
         {
             _headCache = null;
             _cache = null;
@@ -135,7 +135,7 @@ public class HttpSession : INetHandler, IDisposable
 
             return;
         }
-        _lastReceive = now;
+        _lastReceiveTick = now;
 
         // 在途请求的实体尚未收完：本轮字节一律属于该实体，绝不能再尝试解析新的请求头。
         // 否则实体内恰好出现一段合法请求头（代理转发、恶意构造）时，会在此覆盖 Request 并丢弃实体缓存，

@@ -504,7 +504,8 @@ public class HttpServerTests : IDisposable
         await ns.FlushAsync();
 
         // 停滞超过 MaxRequestIdle（3s）后才有新字节：滴字节占用连接的慢速攻击应被回 408 并断开
-        await Task.Delay(3_500);
+        // 客户端再等 5s 留余量：停滞判定按服务端单调时钟计算间隔（墙钟回拨不再干扰），余量吸收满载调度
+        await Task.Delay(5_000);
         await ns.WriteAsync("X: 1\r\n\r\n"u8.ToArray());
         await ns.FlushAsync();
 

@@ -249,10 +249,15 @@ public class MemoryCacheTests
         XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
         Assert.True(sw.ElapsedMilliseconds >= 1000);
 
-        Thread.Sleep(2000 - 1000 + 1);
+        // 到期清理可能随调度延迟；轮询等待键消失（最长 3 秒），避免与到期边界贴边
+        for (var i = 0; i < 60 && ic.ContainsKey("lock:TestLock2"); i++) Thread.Sleep(50);
 
         // 那个锁其实已经不在了，缓存应该把它干掉
         Assert.False(ic.ContainsKey("lock:TestLock2"));
+
+        // Release 下不再被引用的局部变量可被提前回收，锁会被终结器提前释放导致时序断言失真；
+        // 保持引用存活到用例末尾（Linux 满载下实测偶发）
+        GC.KeepAlive(ck1);
     }
 
     [Fact(DisplayName = "抢死锁")]
