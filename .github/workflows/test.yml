@@ -39,7 +39,8 @@ jobs:
   # 测试内并行度由各工程 xunit.runner.json 的 maxParallelThreads 控制。
   test:
     name: test (${{ matrix.name }})
-    # 未声明 os 的矩阵项按 windows-latest（现状矩阵不动）；experimental 项为观察期，平台稳定全绿后逐项去掉该标记转阻断
+    # 未声明 os 的矩阵项按 windows-latest；win-x64/linux-x64/linux-arm64 为阻断门禁（LA64 由独立 job 承担），
+    # experimental 项为观察期（win-arm64/osx/musl），平台稳定全绿后逐项去掉该标记转阻断
     runs-on: ${{ matrix.os || 'windows-latest' }}
     timeout-minutes: 40
     continue-on-error: ${{ matrix.experimental == true }}
@@ -100,8 +101,8 @@ jobs:
             framework: net10.0
             dotnet: 10.x
 
-          # ================= 跨平台矩阵（观察期） =================
-          # Linux x64：全量工程覆盖（Core 双 TFM + Compat + 源生成器）
+          # ================= 跨平台矩阵 =================
+          # Linux x64：全量工程覆盖（Core 双 TFM + Compat + 源生成器），阻断门禁
           - name: Core-net8.0-linux-x64
             os: ubuntu-latest
             project: XUnitTest.Core/XUnitTest.Core.csproj
@@ -109,13 +110,11 @@ jobs:
             dotnet: |
               8.x
               10.x
-            experimental: true
           - name: Core-net10.0-linux-x64
             os: ubuntu-latest
             project: XUnitTest.Core/XUnitTest.Core.csproj
             framework: net10.0
             dotnet: 10.x
-            experimental: true
           - name: Compat-net8.0-linux-x64
             os: ubuntu-latest
             project: XUnitTest.Compat/XUnitTest.Compat.csproj
@@ -123,14 +122,12 @@ jobs:
             dotnet: |
               8.x
               10.x
-            experimental: true
           - name: SourceGenerator-linux-x64
             os: ubuntu-latest
             project: XUnitTest.SourceGenerator/XUnitTest.SourceGenerator.csproj
             framework: net10.0
             dotnet: 10.x
-            experimental: true
-          # Linux arm64
+          # Linux arm64：阻断门禁
           - name: Core-net8.0-linux-arm64
             os: ubuntu-24.04-arm
             project: XUnitTest.Core/XUnitTest.Core.csproj
@@ -138,14 +135,12 @@ jobs:
             dotnet: |
               8.x
               10.x
-            experimental: true
           - name: Core-net10.0-linux-arm64
             os: ubuntu-24.04-arm
             project: XUnitTest.Core/XUnitTest.Core.csproj
             framework: net10.0
             dotnet: 10.x
-            experimental: true
-          # macOS：3 vCPU，改用 test.ci.macos.runsettings 降并行度
+          # macOS：观察期；3 vCPU，改用 test.ci.macos.runsettings 降并行度
           - name: Core-net8.0-osx-arm64
             os: macos-latest
             project: XUnitTest.Core/XUnitTest.Core.csproj
@@ -178,7 +173,7 @@ jobs:
             dotnet: 10.x
             runsettings: test.ci.macos.runsettings
             experimental: true
-          # Windows arm64
+          # Windows arm64：观察期
           - name: Core-net8.0-win-arm64
             os: windows-11-arm
             project: XUnitTest.Core/XUnitTest.Core.csproj
@@ -250,6 +245,48 @@ jobs:
           export DOTNET_CLI_TELEMETRY_OPTOUT=1
           dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release --nologo -s test.ci.runsettings
         '
+
+  # Linux LoongArch64（LA64，必选门禁）：GitHub 无 LA64 runner/runtime pack，
+  # 采用 QEMU 用户态仿真（binfmt）+ 龙芯 SDK 跑 net10.0 全量单测；宿主无 LA64 原生 ICU，以 invariant 模式运行。
+  # QEMU 下速度未实测，job 限时 300 分钟、内层 timeout 兜底（留出产物上传时间）。
+  loongarch64:
+    name: test (linux-la64 qemu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install QEMU (loong64 binfmt)
+      run: |
+        sudo apt-get update && sudo apt-get install -y qemu-user-static binfmt-support
+        sudo update-binfmts --enable qemu-loongarch64 || true
+        ls -l /usr/bin/qemu-loongarch64* || true
+    - name: Download Loongson .NET SDK (linux-loongarch64)
+      # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证
+      run: |
+        curl -fL -o "$HOME/la64-sdk.tar.gz" \
+          https://github.com/loongson/dotnet/releases/download/v10.0.112-loongarch64/dotnet-sdk-10.0.112-linux-loongarch64.tar.gz
+        mkdir -p "$HOME/la64" && tar -xzf "$HOME/la64-sdk.tar.gz" -C "$HOME/la64"
+        "$HOME/la64/dotnet" --info
+      env:
+        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    - name: Unit Tests (net10.0)
+      env:
+        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
+        DOTNET_ROOT: /home/runner/la64
+      run: |
+        export PATH="$HOME/la64:$PATH"
+        dotnet nuget add source https://lnuget.loongnix.cn/v3/index.json -n loongnuget || true
+        timeout 270m dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release -s test.ci.runsettings --nologo --logger "trx;LogFileName=loongarch64.trx" --results-directory TestResults
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-loongarch64
+        path: TestResults/*.trx
+        if-no-files-found: ignore
 
   # 源生成器随主包分发校验
   pack:

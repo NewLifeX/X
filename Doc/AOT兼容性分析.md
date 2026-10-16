@@ -112,13 +112,13 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
 
-> CI 防回归：`.github/workflows/aot.yml` —— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 阻断基线；win-arm64/linux-x64/linux-arm64/osx-x64/osx-arm64/linux-musl-x64/linux-musl-arm64 观察期，稳定后逐项转阻断）；边缘 RID（win-x86/linux-arm/LA64）见 `.github/workflows/edge.yml` 夜间任务。
+> CI 防回归：`.github/workflows/aot.yml` + `.github/workflows/test.yml`（push/PR + 人工手动触发，无夜间任务）—— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 / linux-x64 / linux-arm64 阻断门禁；win-arm64、osx 双架构、musl 容器观察期，稳定后逐项转阻断）；边缘 RID（win-x86 / linux-arm）与 LA64（linux-loongarch64，QEMU 仿真）已由原夜间 `edge.yml` 并入常规任务，其中 LA64 为必选门禁。
 
 ---
 
 ## 7. 多 RID 支持矩阵与 CI
 
-> 目标：常用 win-x64 / linux-x64 / linux-arm64 全量覆盖，扩展 win-arm64、linux-musl、osx 双架构；边缘 RID（win-x86、linux-arm、linux-riscv64）与 LA64（linux-loongarch64）尽力而为。
+> 目标：win-x64 / linux-x64 / linux-arm64 / linux-la64 四者必选（阻断门禁），扩展 win-arm64、linux-musl、osx 双架构与边缘 RID（win-x86、linux-arm，观察期容错）；linux-riscv64 待社区构建渠道核实后按 LA64 配方接入。
 > 前提：**NativeAOT 官方不支持跨 OS 编译**（Windows→Linux 需 WSL/VM），支持同 OS 内 x64↔arm64 交叉；因此每个 RID 均使用原生 runner 发布运行。
 
 ### 7.1 覆盖分层
@@ -127,26 +127,26 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 |---|---|---|---|---|---|
 | T1 主流 | win-x64 | ✔（既有 10 个 job） | ✔ 阻断 | windows-latest | 门禁 |
 | T1 主流 | win-arm64 | ✔ Core net8/net10 | ✔ | windows-11-arm（自带 ARM64 MSVC 工具链） | 观察期 |
-| T1 主流 | linux-x64 | ✔ Core 双 TFM + Compat + 源生成器 | ✔ | ubuntu-latest | 观察期 |
-| T1 主流 | linux-arm64 | ✔ Core net8/net10 | ✔ | ubuntu-24.04-arm | 观察期 |
+| T1 主流 | linux-x64 | ✔ Core 双 TFM + Compat + 源生成器 | ✔ 阻断 | ubuntu-latest | 门禁 |
+| T1 主流 | linux-arm64 | ✔ Core net8/net10 | ✔ 阻断 | ubuntu-24.04-arm | 门禁 |
 | T1 主流 | linux-musl-x64 / arm64 | ✔ Core net10（alpine 容器） | ✔ | ubuntu(-arm) + alpine:3.20 容器 | 观察期 |
 | T1 主流 | osx-arm64 / osx-x64 | ✔ Core net8/net10 | ✔ | macos-latest / macos-15-intel（官方称可用至 2027-08） | 观察期 |
-| T2 边缘 | win-x86 | — | ✔ | windows-latest 交叉发布 | 观察期（edge.yml 夜间） |
-| T2 边缘 | linux-arm（32 位） | — | 探索 | QEMU 容器 JIT 冒烟 + 交叉发布尝试 | 观察期（edge.yml 夜间） |
+| T2 边缘 | win-x86 | — | ✔ | windows-latest 交叉发布 | 观察期容错（aot.yml） |
+| T2 边缘 | linux-arm（32 位） | — | 探索 | QEMU 容器 JIT 冒烟 + 交叉发布尝试 | 观察期容错（aot.yml） |
 | T2 边缘 | linux-riscv64 | — | — | 待社区构建渠道核实后按 LA64 配方接入 | 待启动 |
-| T3 LA64 | linux-loongarch64 | 全量尝试（容错） | 官方不支持（探索） | QEMU 用户态 + 龙芯 SDK | spike（edge.yml 夜间） |
+| T3 LA64 | linux-loongarch64 | ✔ 全量 net10.0（必选） | JIT 冒烟必选 + 发布探索 | QEMU 用户态 + 龙芯 SDK（test.yml / aot.yml） | 门禁 |
 
-- **观察期约定**：新增平台 job 均带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁（与 aot-linux 既有节奏一致）。
+- **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 / linux-la64 已为阻断门禁（LA64 必选）。
 - **测试并行度**：Windows/Linux CI 使用 `test.ci.runsettings`（4 线程，匹配 4 vCPU runner）；macOS 3 vCPU 使用专用 `test.ci.macos.runsettings`（3 线程）。
 - **本地 Linux 预跑**：WSL/容器内 `dotnet test XUnitTest.Core -f net8.0/net10.0`（无需任何平台开关）。
 
 ### 7.2 LA64（linux-loongarch64，社区支持平台）
 
 - **现状**：官方不发 runtime pack、无 NativeAOT 支持（ILCompiler 源码含 LoongArch64 后端但不构成承诺）。龙芯 [loongson/dotnet](https://github.com/loongson/dotnet) 提供 .NET 8/9/10 SDK（当前 v10.0.112），pack 走 `https://lnuget.loongnix.cn/v3/index.json`。
-- **CI 方案（观察期）**：qemu-loongarch64 用户态仿真（binfmt）+ 龙芯 SDK —— 先 `dotnet --info` 验证通路，再跑 AotSmoke JIT 冒烟，最后容错尝试单测全量；宿主无 LA64 原生 ICU，以 `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` 运行（冒烟场景不依赖区域性数据）。
+- **CI 方案（必选门禁）**：qemu-loongarch64 用户态仿真（binfmt）+ 龙芯 SDK —— 先 `dotnet --info` 验证通路；`test.yml` 跑 XUnitTest.Core net10.0 全量单测，`aot.yml` 跑 AotSmoke JIT 冒烟（必选），并容错尝试 NativeAOT 发布与运行（探索，官方当前不支持 LA64）；宿主无 LA64 原生 ICU，以 `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` 运行。
 - **自托管接入（有真机后升级为阻断级）**：
   1. 龙芯 Linux 机器接入 GitHub Actions self-hosted runner（社区已有 runner 容器镜像 `kubernetes-loong64/actions-runner-loong64`）；
-  2. 在 `edge.yml` 增加 `runs-on: [self-hosted, loongarch64]` 的 job，复用 QEMU job 的步骤（去掉 qemu 安装与仿真环境变量）；
+  2. 在 `aot.yml` / `test.yml` 增加 `runs-on: [self-hosted, loongarch64]` 的 job，复用 QEMU job 的步骤（去掉 qemu 安装与仿真环境变量）；
   3. 真机转绿后把状态同步进本节表格并考虑转阻断。
 
 ### 7.3 明确排除（避免反复讨论）

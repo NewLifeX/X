@@ -19,7 +19,7 @@
 
 ​	NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持 net45~net10.0 多目标框架（.NET Framework 4.5 至 .NET 10.0），从而在不同环境中实现广泛的兼容性。
 
-**NativeAOT**：核心链路已支持（29 场景实测 + 8 个 RID 的 CI 冒烟矩阵；win-x64 阻断基线、其余观察期）；跨平台单测覆盖 win/linux/osx 的 x64/arm64 与 musl。插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](Doc/AOT兼容性分析.md)。
+**NativeAOT**：核心链路已支持（29 场景实测 + 多 RID 的 CI 冒烟矩阵；win-x64/linux-x64/linux-arm64/linux-la64 为阻断门禁——LA64 经 QEMU 必选覆盖，其余平台观察期；push/PR + 人工手动触发）；跨平台单测覆盖 win/linux/osx 的 x64/arm64、LA64 与 musl。插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](Doc/AOT兼容性分析.md)。
 
 
 
