@@ -63,11 +63,11 @@ public class TokenProvider
     }
 
     /// <summary>尝试解码令牌，即使失败，也会返回用户信息和有效时间</summary>
-    /// <remarks>输入畸形（Base64 非法等）返回 false 而不抛异常</remarks>
+    /// <remarks>输入畸形（Base64 非法等）返回 false 而不抛异常；签名有效且未过期才返回 true，过期判断留 30 秒时钟容差，容忍签发方与验证方的轻微时钟偏差</remarks>
     /// <param name="token">令牌</param>
     /// <param name="user">用户信息</param>
     /// <param name="expire">有效时间</param>
-    /// <returns>解码结果，成功或失败</returns>
+    /// <returns>true=签名有效且未过期；false=格式非法、签名无效或已过期</returns>
     public Boolean TryDecode(String token, out String user, out DateTime expire)
     {
         if (token.IsNullOrEmpty()) throw new ArgumentNullException(nameof(token));
@@ -117,6 +117,9 @@ public class TokenProvider
         // 验证签名
         //if (!DSAHelper.Verify(data, Key, sig)) throw new InvalidOperationException("签名验证失败！");
         if (!DSAHelper.Verify(data, Key, sig)) return false;
+
+        // 签名有效还需未过期，早于当前时间超过30秒容差即视为过期
+        if (expire < DateTime.Now.AddSeconds(-30)) return false;
 
         return true;
     }
