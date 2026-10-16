@@ -61,8 +61,8 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
-    <PackageReference Include="NewLife.Modbus" Version="2.0.2026.610" />
-    <PackageReference Include="NewLife.UnitTest" Version="1.1.2026.102" />
+    <PackageReference Include="NewLife.Modbus" Version="2.1.2026.902-beta1359" />
+    <PackageReference Include="NewLife.UnitTest" Version="1.1.2026.301-beta0617" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>

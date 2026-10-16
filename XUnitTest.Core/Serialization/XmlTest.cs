@@ -114,6 +114,14 @@ public class XmlTest
                   <Server>127.0.0.1:502</Server>
                   <!--协议标识。默认0-->
                   <ProtocolId>0</ProtocolId>
+                  <!--SSL协议版本。默认 None 不启用，设置 Tls12 或 Tls13 启用安全传输-->
+                  <SslProtocol>None</SslProtocol>
+                  <!--证书文件路径。用于TLS客户端验证服务端证书（可选）-->
+                  <CertificateFile></CertificateFile>
+                  <!--证书密码-->
+                  <CertificatePassword></CertificatePassword>
+                  <!--Enron Modbus 32位浮点模式。启用后寄存器值为32位IEEE754浮点数-->
+                  <IsEnron>false</IsEnron>
                 </ModbusTcpParameter>
                 """.NormalizeNewline(), str.NormalizeNewline());
 
@@ -147,6 +155,14 @@ public class XmlTest
                   <Server>127.0.0.1:502</Server>
                   <!--协议标识。默认0-->
                   <ProtocolId>0</ProtocolId>
+                  <!--SSL协议版本。默认 None 不启用，设置 Tls12 或 Tls13 启用安全传输-->
+                  <SslProtocol>0</SslProtocol>
+                  <!--证书文件路径。用于TLS客户端验证服务端证书（可选）-->
+                  <CertificateFile></CertificateFile>
+                  <!--证书密码-->
+                  <CertificatePassword></CertificatePassword>
+                  <!--Enron Modbus 32位浮点模式。启用后寄存器值为32位IEEE754浮点数-->
+                  <IsEnron>false</IsEnron>
                 </ModbusTcpParameter>
                 """.NormalizeNewline(), str2.NormalizeNewline());
     }
@@ -201,6 +217,10 @@ public class XmlTest
               <BatchDelay>0</BatchDelay>
               <Server>127.0.0.1:502</Server>
               <ProtocolId>0</ProtocolId>
+              <SslProtocol>None</SslProtocol>
+              <CertificateFile></CertificateFile>
+              <CertificatePassword></CertificatePassword>
+              <IsEnron>false</IsEnron>
             </ModbusTcpParameter>
             """.NormalizeNewline(), xml.NormalizeNewline());
 
@@ -225,6 +245,14 @@ public class XmlTest
               <Server>127.0.0.1:502</Server>
               <!--协议标识。默认0-->
               <ProtocolId>0</ProtocolId>
+              <!--SSL协议版本。默认 None 不启用，设置 Tls12 或 Tls13 启用安全传输-->
+              <SslProtocol>None</SslProtocol>
+              <!--证书文件路径。用于TLS客户端验证服务端证书（可选）-->
+              <CertificateFile></CertificateFile>
+              <!--证书密码-->
+              <CertificatePassword></CertificatePassword>
+              <!--Enron Modbus 32位浮点模式。启用后寄存器值为32位IEEE754浮点数-->
+              <IsEnron>false</IsEnron>
             </ModbusTcpParameter>
             """.NormalizeNewline(), xml.NormalizeNewline());
     }
@@ -254,6 +282,10 @@ public class XmlTest
               <BatchDelay>0</BatchDelay>
               <Server>127.0.0.1:502</Server>
               <ProtocolId>0</ProtocolId>
+              <SslProtocol>None</SslProtocol>
+              <CertificateFile></CertificateFile>
+              <CertificatePassword></CertificatePassword>
+              <IsEnron>false</IsEnron>
             </ModbusTcpParameter>
             """.NormalizeNewline(), xml.NormalizeNewline());
 
@@ -269,6 +301,10 @@ public class XmlTest
               <BatchDelay>0</BatchDelay>
               <Server>127.0.0.1:502</Server>
               <ProtocolId>0</ProtocolId>
+              <SslProtocol>None</SslProtocol>
+              <CertificateFile></CertificateFile>
+              <CertificatePassword></CertificatePassword>
+              <IsEnron>false</IsEnron>
             </ModbusTcpParameter>
             """.NormalizeNewline(), xml.NormalizeNewline());
     }
