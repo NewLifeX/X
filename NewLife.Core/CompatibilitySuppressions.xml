@@ -53,24 +53,6 @@
     <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
   <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:NewLife.IO.CsvDb`1.FindAllAsync</Target>
-    <Left>lib/netstandard2.1/NewLife.Core.dll</Left>
-    <Right>lib/netcoreapp3.1/NewLife.Core.dll</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:NewLife.IO.CsvDb`1.QueryAsync(System.Func{`0,System.Boolean},System.Int32)</Target>
-    <Left>lib/netstandard2.1/NewLife.Core.dll</Left>
-    <Right>lib/netcoreapp3.1/NewLife.Core.dll</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:NewLife.Serialization.SerialHelper.GetJsonPropertyMap(System.Type)</Target>
-    <Left>lib/netstandard2.1/NewLife.Core.dll</Left>
-    <Right>lib/netcoreapp3.1/NewLife.Core.dll</Right>
-  </Suppression>
-  <Suppression>
     <DiagnosticId>CP0006</DiagnosticId>
     <Target>M:NewLife.Serialization.IBinary.ReadBytes(System.Span{System.Byte})</Target>
     <Left>lib/netstandard2.0/NewLife.Core.dll</Left>
