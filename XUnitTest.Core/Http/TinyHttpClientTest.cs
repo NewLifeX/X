@@ -31,7 +31,7 @@ public class TinyHttpClientTest
 
                 // 读掉请求
                 var buf = new Byte[1024];
-                await ns.ReadAsync(buf);
+                await ns.ReadAtLeastAsync(buf, 1);
 
                 await handler(ns);
             }

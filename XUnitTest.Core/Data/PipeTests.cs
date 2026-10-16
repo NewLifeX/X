@@ -301,12 +301,12 @@ public class PipeTests
 
     [Fact]
     [DisplayName("Pipe_读侧完成带异常_记录到管道错误且不被空异常覆盖")]
-    public void ReaderComplete_WithError_RecordsError()
+    public async Task ReaderComplete_WithError_RecordsError()
     {
         using var pipe = new Pipe();
         var ex = new InvalidOperationException("boom");
 
-        pipe.Reader.CompleteAsync(ex).GetAwaiter().GetResult();
+        await pipe.Reader.CompleteAsync(ex);
 
         Assert.Same(ex, pipe.Error);
 

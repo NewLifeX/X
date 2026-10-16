@@ -69,7 +69,7 @@ public class StaticFilesHandlerTests
     }
 
     [Fact(DisplayName = "静态文件_目录内文件_正常提供")]
-    public void ProcessRequest_InsideDirectory_Serves()
+    public async Task ProcessRequest_InsideDirectory_Serves()
     {
         var root = CreateTempRoot();
         var js = Path.Combine(root, "js");
@@ -81,7 +81,7 @@ public class StaticFilesHandlerTests
             var handler = new StaticFilesHandler { Path = "/js/", ContentPath = js };
             var ctx = CreateContext("/js/a.js", handler);
 
-            handler.ProcessRequestAsync(ctx).GetAwaiter().GetResult();
+            await handler.ProcessRequestAsync(ctx);
 
             // 回归护栏：补分隔符后不得把内容目录内的正常文件也挡在外面
             Assert.NotNull(ctx.Response.BodyStream);

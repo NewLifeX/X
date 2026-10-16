@@ -252,7 +252,7 @@ public class TcpSessionStreamTests
             using var cts = new CancellationTokenSource();
 
             var task = session.SendAsync(source, 1024, cts.Token).AsTask();
-            Assert.True(source.Entered.Wait(5_000), "未进入读块，用例前置条件不成立");
+            Assert.True(await TestWait.CompletedAsync(source.Entered, 5_000), "未进入读块，用例前置条件不成立");
 
             cts.Cancel();
 
