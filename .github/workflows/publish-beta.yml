@@ -31,6 +31,19 @@ jobs:
     - name: Build
       run: |
         dotnet pack --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Core\NewLife.Core.csproj
+    - name: API compatibility gate (observation mode)
+      # 观察期：只报告不阻断；2~4 周无新增噪声后删除 continue-on-error 转为发布阻断。
+      # 基线=本 dev 线（12.0.*）上次已发布的 beta；校验在 Publish 之前，不会被本次发布污染。
+      # 跨 TFM 存量 11 条走 NewLife.Core\CompatibilitySuppressions.xml；本地复现用 check-api-compat.ps1。
+      continue-on-error: true
+      shell: pwsh
+      run: |
+        $versions = (Invoke-RestMethod 'https://api.nuget.org/v3-flatcontainer/newlife.core/index.json').versions
+        $baseline = $versions | Where-Object { $_ -like '12.0.*' } | Select-Object -Last 1
+        Write-Host "Package validation baseline = $baseline"
+        dotnet pack NewLife.Core\NewLife.Core.csproj -c Release -o out-pv `
+          -p:EnablePackageValidation=true `
+          -p:PackageValidationBaselineVersion=$baseline
     - name: Publish
       run: |
         dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
