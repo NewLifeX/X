@@ -1,29 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- https://learn.microsoft.com/dotnet/fundamentals/package-validation/diagnostic-ids -->
 <Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <!-- TimeProvider.System 垫片带 setter（低版本自定义时间注入钩子），net8+ BCL 为只读属性；
+       转发后跨资产对比才暴露该成员差，保留抑制（理由见当前提交说明） -->
   <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:System.Threading.ITimer</Target>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.TimeProvider.set_System(System.TimeProvider)</Target>
     <Left>lib/net7.0/NewLife.Core.dll</Left>
     <Right>lib/net8.0/NewLife.Core.dll</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:System.TimeProvider</Target>
-    <Left>lib/net7.0/NewLife.Core.dll</Left>
-    <Right>lib/net8.0/NewLife.Core.dll</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:System.Index</Target>
-    <Left>lib/netstandard2.0/NewLife.Core.dll</Left>
-    <Right>lib/netstandard2.1/NewLife.Core.dll</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0001</DiagnosticId>
-    <Target>T:System.Range</Target>
-    <Left>lib/netstandard2.0/NewLife.Core.dll</Left>
-    <Right>lib/netstandard2.1/NewLife.Core.dll</Right>
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
