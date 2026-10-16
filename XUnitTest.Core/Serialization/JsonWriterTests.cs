@@ -93,14 +93,17 @@ public class JsonWriterTests
         if (fullTime)
         {
             Assert.Contains("T", str);
-            Assert.Contains("+", str);
 
             var dto = DateTimeOffset.Now;
+            var off = dto.Offset;
+            var sign = off < TimeSpan.Zero ? "-" : "+";
+            var abs = off.Duration();
 
             var str2 = dic["time"];
-            // +08:00
-            Assert.EndsWith(dto.Offset.ToString(), str2 + ":00");
-            Assert.Equal($"{dt:yyyy-MM-ddTHH:mm:ss.fffffff}+{dto.Offset.Hours:00}:00", str2);
+            // 偏移后缀随时区可为负（如 runner 上的 -07:00），正负号与时分均按机器实际时区计算
+            Assert.Contains(sign, str);
+            Assert.EndsWith(off.ToString(), str2 + ":00");
+            Assert.Equal($"{dt:yyyy-MM-ddTHH:mm:ss.fffffff}{sign}{abs.Hours:00}:{abs.Minutes:00}", str2);
 
             var dt2 = dic["time"].ToDateTime();
             Assert.Equal(DateTimeKind.Local, dt2.Kind);
