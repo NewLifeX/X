@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using NewLife;
+using NewLife.Log;
 using NewLife.Security;
 using NewLife.Web;
 using Xunit;
@@ -13,6 +14,14 @@ public class TokenProviderTests
     [Fact]
     public void Test()
     {
+        // TokenProvider 依赖 DSA 密钥生成，macOS 不支持；显式跳过并留痕
+        if (Runtime.OSX)
+        {
+            XTrace.WriteLine("macOS 不支持 DSA 新密钥生成，跳过 TokenProvider 用例");
+
+            return;
+        }
+
         var prv = new TokenProvider();
 
         // 加载或生成密钥
@@ -60,7 +69,14 @@ public class TokenProviderTests
             Assert.False(rs);
         }
 
-        // 有密钥：畸形 Base64 与乱签名同样只返回 false
+        // 有密钥：畸形 Base64 与乱签名同样只返回 false；密钥生成依赖 DSA，macOS 不支持则跳过
+        if (Runtime.OSX)
+        {
+            XTrace.WriteLine("macOS 不支持 DSA 新密钥生成，跳过签名侧断言");
+
+            return;
+        }
+
         var keys = DSAHelper.GenerateKey();
         var tp2 = new TokenProvider { Key = keys[1] };
         foreach (var t in new[] { "!!.!!", "AAA!!!.BBB", "BBBB.CCCC" })

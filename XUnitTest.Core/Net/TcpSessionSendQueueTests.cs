@@ -158,7 +158,7 @@ public class TcpSessionSendQueueTests
     public async Task SendQueued_Backpressure_BlocksThenResumes()
     {
         const Int32 chunkSize = 4 * 1024;
-        const Int32 chunkCount = 64;                    // 合计 256KB，远超收缩后的内核缓冲
+        const Int32 chunkCount = 512;                   // 合计 2MB，远超各平台收缩后的内核缓冲（macOS 缓冲上限较大，64 块不足以积压）
 
         var listener = CreateListener(out var port);
         using var client = new SmallQueueSession { Remote = new NetUri($"tcp://127.0.0.1:{port}") };
