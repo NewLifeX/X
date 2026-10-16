@@ -311,7 +311,15 @@ jobs:
             apt-get update -qq
             apt-get install -y -qq --no-install-recommends libicu-dev libssl-dev >/dev/null
             /opt/dotnet/dotnet --info
-            timeout 240m /opt/dotnet/dotnet /opt/host-vstest/vstest.console.dll \
+            # 宿主 SDK 的 vstest 请求其配套运行时补丁版（10.0.13），容器内为龙芯 10.0.12；
+            # 复制 runtimeconfig 并把框架版本降为 10.0.0，交由 rollForward 选择可用的 10.0.12
+            cp /opt/host-vstest/vstest.console.runtimeconfig.json /tmp/vstest.runtimeconfig.json
+            sed -i "s/\"version\": \"10.0.[0-9]*\"/\"version\": \"10.0.0\"/" /tmp/vstest.runtimeconfig.json
+            cat /tmp/vstest.runtimeconfig.json
+            timeout 240m /opt/dotnet/dotnet exec \
+              --runtimeconfig /tmp/vstest.runtimeconfig.json \
+              --depsfile /opt/host-vstest/vstest.console.deps.json \
+              /opt/host-vstest/vstest.console.dll \
               /src/Bin/UnitTest/net10.0/XUnitTest.Core.dll \
               --settings:/src/test.ci.runsettings \
               --logger:"trx;LogFileName=loongarch64.trx" \
