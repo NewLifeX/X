@@ -340,6 +340,56 @@ public class HttpConfigProviderTests
         Assert.Empty(provider.Keys);
     }
 
+    [Fact(DisplayName = "懒加载失败：访问不抛异常并返回默认值，服务恢复后重试加载成功")]
+    public void TestEnsureLoad_FailureRetries()
+    {
+        using var stub = new ConfigServerStub();
+        stub.SetConfigs(new Dictionary<String, Object?>
+        {
+            ["test1"] = "v1",
+        });
+        using var provider = CreateProvider(stub);
+
+        // 首次访问触发懒加载，远端故障时不抛异常，返回默认值
+        stub.GetAllStatus = HttpStatusCode.InternalServerError;
+        Assert.Null(provider["test1"]);
+        Assert.True(stub.GetAllCalls > 0);
+        Assert.Null(provider["test2"]);
+
+        // 失败后保持未加载状态，下次访问仍会重试
+        var calls = stub.GetAllCalls;
+        Assert.Null(provider["test1"]);
+        Assert.True(stub.GetAllCalls > calls);
+
+        // 服务恢复后再次访问即可加载成功，无需新建提供者
+        stub.GetAllStatus = HttpStatusCode.OK;
+        var beforeRecover = stub.GetAllCalls;
+        Assert.Equal("v1", provider["test1"]);
+        Assert.True(stub.GetAllCalls > beforeRecover);
+    }
+
+    [Fact(DisplayName = "懒加载成功：只加载一次，后续访问不再命中服务端")]
+    public void TestEnsureLoad_LoadsOnceOnSuccess()
+    {
+        using var stub = new ConfigServerStub();
+        stub.SetConfigs(new Dictionary<String, Object?>
+        {
+            ["test1"] = "v1",
+        });
+        using var provider = CreateProvider(stub);
+
+        // 首次访问触发懒加载
+        Assert.Equal("v1", provider["test1"]);
+        Assert.Equal(1, stub.GetAllCalls);
+
+        // 已加载成功：后续访问与键枚举均不再拉取
+        stub.SetConfig("test1", "v2");
+        Assert.Equal("v1", provider["test1"]);
+        Assert.Null(provider["test2"]);
+        Assert.NotNull(provider.Keys);
+        Assert.Equal(1, stub.GetAllCalls);
+    }
+
     [Fact(DisplayName = "刷新失败：DoRefresh 保留现有配置并在恢复后热更新")]
     public void TestDoRefresh_FailureRecovers()
     {
@@ -540,6 +590,9 @@ public class HttpConfigProviderTests
         /// <summary>SetAll 调用次数</summary>
         public Int32 SetAllCalls { get; private set; }
 
+        /// <summary>GetAll 命中次数，用于验证懒加载只执行一次</summary>
+        public Int32 GetAllCalls { get; private set; }
+
         /// <summary>最近一次 SetAll 提交的原始配置</summary>
         public Dictionary<String, Object?> LastSaved { get; private set; } = [];
 
@@ -607,6 +660,7 @@ public class HttpConfigProviderTests
 
             lock (_sync)
             {
+                GetAllCalls++;
                 context.WriteJson(new
                 {
                     code = 0,

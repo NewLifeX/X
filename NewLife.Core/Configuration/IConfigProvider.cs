@@ -187,6 +187,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
 
     #region 加载/保存
     /// <summary>从数据源加载数据到配置树</summary>
+    /// <returns>是否加载成功。返回 false 时保持未加载状态，下次访问将重试</returns>
     public virtual Boolean LoadAll() => true;
 
     private volatile Boolean _loaded;
@@ -199,9 +200,8 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         {
             if (_loaded) return;
 
-            LoadAll();
-
-            _loaded = true;
+            // 仅在加载成功时标记，失败保持未加载状态以便下次访问重试；并发重复加载可接受
+            _loaded = LoadAll();
         }
     }
 
