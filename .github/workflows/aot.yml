@@ -174,15 +174,16 @@ jobs:
           ./AotSmoke/bin/aot-out-arm/AotSmoke
         '
 
-  # LoongArch64（linux-loongarch64，观察期，不阻塞）：官方无 runner、无 runtime pack、无 NativeAOT（ILCompiler 未见 LA64 承诺）。
+  # LoongArch64（linux-loongarch64，观察期，不阻塞，人工触发）：官方无 runner、无 runtime pack、无 NativeAOT（ILCompiler 未见 LA64 承诺）。
   # 方案：docker + QEMU 用户态仿真（loong64 binfmt）+ 龙芯 SDK 在 loong64 容器内运行 ——
   # 裸宿主缺 LA64 动态加载器（Could not open /lib64/ld-linux-loongarch-lp64d.so.1），必须在容器内执行；
   # 基础镜像 lcr.loongnix.cn/debian:14-slim 为 Debian unstable loong64 端口，自带 loader 与可用 apt。
-  # 观察期不阻塞主分支（continue-on-error），通路稳定后再转为门禁（见 Doc/AOT兼容性分析.md）。
+  # 2026-10-17 决议：仅在人工 workflow_dispatch 时运行（push/PR 不参与），失败不阻塞（见 Doc/AOT兼容性分析.md）。
   loongarch64:
     name: aot (linux-loongarch64 qemu)
     runs-on: ubuntu-latest
     timeout-minutes: 150
+    if: github.event_name == 'workflow_dispatch'
     continue-on-error: true
 
     steps:

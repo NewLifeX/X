@@ -251,17 +251,20 @@ jobs:
           dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release --nologo -s test.ci.runsettings
         '
 
-  # Linux LoongArch64（LA64，必选门禁）：GitHub 无 LA64 runner/runtime pack，
-  # 采用 docker + QEMU 用户态仿真（loong64 binfmt）+ 龙芯 SDK 在 loong64 容器内跑 net10.0 全量单测。
-  # 裸宿主无 LA64 动态加载器（Could not open /lib64/ld-linux-loongarch-lp64d.so.1）必须在容器内执行；
-  # 基础镜像 lcr.loongnix.cn/debian:14-slim 为 Debian unstable loong64 端口，自带 loader 与可用 apt（deb.debian.org），
-  # 容器内补装 libicu/libssl（基准镜像未含），使全球化/加密用例与其它 Linux job 行为一致。
-  # vstest 不可用（龙芯 SDK 版不认识 LoongArch64 架构、宿主版是 x64 R2R 无法加载），改自宿主 xunit 执行器。
-  # QEMU 下时长以实测为准，job 限时 300 分钟、容器内 timeout 兜底。
+  # Linux LoongArch64（LA64，观察期，不参与 push/PR 门禁）：GitHub 无 LA64 runner/runtime pack，
+  # QEMU 仿真整套单测耗时以小时计（实测 ≥2 小时仍未跑完），且仿真层仍有崩溃风险；
+  # 2026-10-17 决议：仅在人工 workflow_dispatch 时运行，失败不阻塞。
+  # 配方：docker + QEMU（loong64 binfmt）+ 龙芯 SDK 容器内执行 —— 裸宿主缺 LA64 动态加载器；
+  # 基础镜像 lcr.loongnix.cn/debian:14-slim（自带 loader、apt 可用），容器内补装 libicu/libssl；
+  # 还原与构建在宿主 x64 SDK 完成（龙芯 SDK 的 MSBuild 在 QEMU 下不稳），容器内跑自宿主 xunit 执行器
+  # （龙芯 vstest 不识别 LoongArch64、宿主 vstest 为 x64 R2R 复合镜像无法加载）；
+  # DOTNET_EnableHWIntrinsic=0 规避仿真层非法指令。job 限时 300 分钟、容器内 timeout 兜底。
   loongarch64:
     name: test (linux-la64 qemu)
     runs-on: ubuntu-latest
     timeout-minutes: 300
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
 
     steps:
     - uses: actions/checkout@v4
