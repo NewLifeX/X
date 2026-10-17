@@ -461,8 +461,10 @@ public static class ConfigHelper
             }
         }
 
-        foreach (DictionaryEntry item in dic)
+        foreach (var obj in dic)
         {
+            // 防御性跳过非字典项（含空项），避免潜在空拆箱
+            if (obj is not DictionaryEntry item) continue;
             if (item.Key == null) continue;
 
             var key = item.Key.ChangeType<String>();

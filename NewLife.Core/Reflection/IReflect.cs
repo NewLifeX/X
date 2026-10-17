@@ -1122,8 +1122,11 @@ public class DefaultReflect : IReflect
 
         targetDic.Clear();
 
-        foreach (DictionaryEntry item in sourceDic)
+        foreach (var obj in sourceDic)
         {
+            // 防御性跳过非字典项（含空项），避免潜在空拆箱
+            if (obj is not DictionaryEntry item) continue;
+
             var key = item.Key;
             var value = item.Value;
 
