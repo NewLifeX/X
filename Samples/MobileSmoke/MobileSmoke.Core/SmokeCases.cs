@@ -278,13 +278,7 @@ public static class SmokeCases
 
     private static void TcpLoopback()
     {
-        using var server = new NetServer
-        {
-            Port = 0,
-            ProtocolType = NetType.Tcp,
-            AddressFamily = AddressFamily.InterNetwork,
-            Protocol = new SrmpCodec(),
-        };
+        using var server = new NetServer(IPAddress.Loopback, 0, NetType.Tcp) { Protocol = new SrmpCodec() };
         server.Log = XTrace.Log;
         server.SessionLog = XTrace.Log;
         server.Start();
@@ -334,6 +328,7 @@ public static class SmokeCases
     private static void HttpLoopback()
     {
         using var server = new HttpServer { Port = 0, AddressFamily = AddressFamily.InterNetwork };
+        server.Local.Address = IPAddress.Loopback;
         server.Log = XTrace.Log;
         server.SessionLog = XTrace.Log;
         server.Map("/txt", () => "pong-mobile");
@@ -361,6 +356,7 @@ public static class SmokeCases
     private static void WebSocketLoopback()
     {
         using var server = new HttpServer { Port = 0, AddressFamily = AddressFamily.InterNetwork };
+        server.Local.Address = IPAddress.Loopback;
         server.Log = XTrace.Log;
         server.SessionLog = XTrace.Log;
         server.Map("/ws", new SmokeWsHandler());
