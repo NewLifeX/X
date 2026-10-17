@@ -154,7 +154,7 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 
 | 目标 | 排除理由 |
 |---|---|
-| Android / iOS / tvOS / macCatalyst / WASM | 应用模型类目标，无法用 `dotnet test` 在本仓验证（Android 见独立 `NewLife.Android` 工程） |
+| Android / iOS / tvOS / macCatalyst / WASM | 应用模型类目标，无法用 `dotnet test` 在本仓验证（Android/iOS 见 `Samples/MobileSmoke` 冒烟工程） |
 | FreeBSD / linux-ppc64le / linux-s390x | 无托管 runner，官方/社区 pack 渠道未验；需要时按 LA64 的 QEMU 配方另立专项 |
 | Windows x64→Linux 交叉 NativeAOT | 官方不支持跨 OS 编译 |
 
