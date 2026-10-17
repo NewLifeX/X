@@ -175,7 +175,7 @@ public static class SmokeCases
 
         if (String.IsNullOrEmpty(mi.OSName)) throw new Exception("MachineInfo.OSName 为空");
         if (String.IsNullOrEmpty(mi.OSVersion)) throw new Exception("MachineInfo.OSVersion 为空");
-        if (mi.Memory == 0) SmokeEnvironment.WriteDiagnostic("[diag] MachineInfo.Memory 未采集（移动平台分支可能缺失）");
+        if (mi.Memory == 0) SmokeEnvironment.WriteDiagnostic("[diag] MachineInfo.Memory 未采集（iOS 等移动平台分支可能缺失）");
 
         SmokeEnvironment.WriteDiagnostic($"[diag] OSName={mi.OSName}; OSVersion={mi.OSVersion}; Memory={mi.Memory}; Available={mi.AvailableMemory}");
         mi.Refresh();

@@ -221,6 +221,8 @@ public partial class MachineInfo : IExtend
 #if NET5_0_OR_GREATER
             if (OperatingSystem.IsWindows())
                 LoadWindowsInfo();
+            else if (OperatingSystem.IsAndroid())
+                LoadAndroidInfo();
             else if (OperatingSystem.IsLinux())
                 LoadLinuxInfo();
             else if (OperatingSystem.IsMacOS())
@@ -274,6 +276,10 @@ public partial class MachineInfo : IExtend
     {
         if (Runtime.Windows)
             RefreshWindows();
+#if NET5_0_OR_GREATER
+        else if (OperatingSystem.IsAndroid())
+            RefreshAndroid();
+#endif
         // 特别识别Linux发行版
         else if (Runtime.Linux)
             RefreshLinux();
@@ -379,10 +385,20 @@ public partial class MachineInfo : IExtend
     /// <returns>设备信息字典</returns>
     /// <returns></returns>
     [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "设备信息经 WMI/系统对象反射读取（运行时类型）；读取失败降级为空，不参与业务主链")]
+#if NET5_0_OR_GREATER
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, "Android.OS.Build", "Mono.Android")]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicMethods, "Android.Provider.Settings/Secure", "Mono.Android")]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, "Android.App.Application", "Mono.Android")]
+#endif
     public static IDictionary<String, String?> ReadDeviceInfo()
     {
         var dic = new Dictionary<String, String?>();
+#if NET5_0_OR_GREATER
+        // .NET for Android 使用 Mono 运行时，但不一定暴露 Mono.Runtime 类型
+        if (!Runtime.Mono && !OperatingSystem.IsAndroid()) return dic;
+#else
         if (!Runtime.Mono) return dic;
+#endif
 
         {
             var type = "Android.OS.Build".GetTypeEx();

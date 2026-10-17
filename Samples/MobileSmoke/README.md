@@ -79,7 +79,7 @@ bash Samples/MobileSmoke/run-ios.sh
 
 ## 已知限制
 
-- `MachineInfo.Memory` 在 Android/iOS 上可能为 0（当前只实现 Windows/Linux/macOS 分支），用例只记录不判失败。
+- `MachineInfo.Memory` 在 iOS 上可能为 0（Android 已实现），用例只记录不判失败。
 - `ProcessHelper` 在受限平台可能抛 `PlatformNotSupportedException`，用例标记 SKIP。
 - `PluginHelper` 动态加载在 AOT 下按设计不支持，用例验证其抛出明确异常。
 - `WebSocket` / HTTP 用例只使用回环地址；Android 已开启 `usesCleartextTraffic`，iOS 已开启 `NSAllowsLocalNetworking`。
