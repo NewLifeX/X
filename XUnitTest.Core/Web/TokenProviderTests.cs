@@ -126,4 +126,36 @@ public class TokenProviderTests
         Assert.Equal(user, user4);
         Assert.Equal(future.Trim(), expire4.Trim());
     }
+
+    [Fact(DisplayName = "时钟容差可配置")]
+    public void ClockSkew_Configurable()
+    {
+        // TokenProvider 依赖 DSA 密钥生成，macOS 不支持；显式跳过并留痕
+        if (Runtime.OSX)
+        {
+            XTrace.WriteLine("macOS 不支持 DSA 新密钥生成，跳过 TokenProvider 用例");
+
+            return;
+        }
+
+        var prv = new TokenProvider();
+        Assert.True(prv.ReadKey("keys/test.prvkey", true));
+
+        var pub = new TokenProvider();
+        Assert.True(pub.ReadKey("keys/test.pubkey", false));
+
+        var user = Rand.NextString(8);
+
+        // 40秒前过期：默认30秒容差拒绝，放宽到60秒后有效
+        var token = prv.Encode(user, DateTime.Now.AddSeconds(-40));
+        Assert.False(pub.TryDecode(token, out _, out _));
+
+        pub.ClockSkew = TimeSpan.FromSeconds(60);
+        Assert.True(pub.TryDecode(token, out _, out _));
+
+        // 收紧到0：10秒前过期即拒绝
+        pub.ClockSkew = TimeSpan.Zero;
+        var token2 = prv.Encode(user, DateTime.Now.AddSeconds(-10));
+        Assert.False(pub.TryDecode(token2, out _, out _));
+    }
 }

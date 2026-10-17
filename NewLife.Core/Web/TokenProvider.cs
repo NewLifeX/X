@@ -11,6 +11,9 @@ public class TokenProvider
     #region 属性
     /// <summary>密钥。签发方用私钥，验证方用公钥</summary>
     public String? Key { get; set; }
+
+    /// <summary>时钟容差。允许签发方与验证方之间的时钟偏差，默认30秒</summary>
+    public TimeSpan ClockSkew { get; set; } = TimeSpan.FromSeconds(30);
     #endregion
 
     #region 方法
@@ -63,7 +66,7 @@ public class TokenProvider
     }
 
     /// <summary>尝试解码令牌，即使失败，也会返回用户信息和有效时间</summary>
-    /// <remarks>输入畸形（Base64 非法等）返回 false 而不抛异常；签名有效且未过期才返回 true，过期判断留 30 秒时钟容差，容忍签发方与验证方的轻微时钟偏差</remarks>
+    /// <remarks>输入畸形（Base64 非法等）返回 false 而不抛异常；签名有效且未过期才返回 true，过期判断留 <see cref="ClockSkew"/> 时钟容差，容忍签发方与验证方的轻微时钟偏差</remarks>
     /// <param name="token">令牌</param>
     /// <param name="user">用户信息</param>
     /// <param name="expire">有效时间</param>
@@ -110,7 +113,8 @@ public class TokenProvider
 
         user = str[..p];
         var secs = str[(p + 1)..].ToInt();
-        expire = secs.ToDateTime().ToLocalTime();
+        var expireUtc = secs.ToDateTime();
+        expire = expireUtc.ToLocalTime();
 
         if (Key.IsNullOrEmpty()) return false;
 
@@ -118,8 +122,8 @@ public class TokenProvider
         //if (!DSAHelper.Verify(data, Key, sig)) throw new InvalidOperationException("签名验证失败！");
         if (!DSAHelper.Verify(data, Key, sig)) return false;
 
-        // 签名有效还需未过期，早于当前时间超过30秒容差即视为过期
-        if (expire < DateTime.Now.AddSeconds(-30)) return false;
+        // 签名有效还需未过期，早于当前时间超过容差即视为过期。按UTC比较，避免本地时区与夏令时切换造成误判
+        if (expireUtc < DateTime.UtcNow - ClockSkew) return false;
 
         return true;
     }
