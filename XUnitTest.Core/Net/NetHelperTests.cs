@@ -175,13 +175,26 @@ public class NetHelperTests
     [InlineData("127.0.0.1:abc")]
     public void ParseEndPoint_Malformed(String address) => Assert.Null(NetHelper.ParseEndPoint(address));
 
-    [Fact(DisplayName = "ParseEndPoint 端口越界当前抛异常（现状记录，非契约）")]
-    public void ParseEndPoint_PortOutOfRange()
+    [Theory(DisplayName = "ParseEndPoint 端口越界或非数字返回 null")]
+    [InlineData("127.0.0.1:99999")]
+    [InlineData("127.0.0.1:65536")]
+    [InlineData("127.0.0.1:-1")]
+    [InlineData("127.0.0.1:abc")]
+    [InlineData("[::1]:65536")]
+    [InlineData("[::1]:-1")]
+    public void ParseEndPoint_BadPort(String address) => Assert.Null(NetHelper.ParseEndPoint(address));
+
+    [Fact(DisplayName = "ParseEndPoint 非法默认端口返回 null，边界端口正常")]
+    public void ParseEndPoint_BadDefaultPort()
     {
-        // 现状记录：端口仅做 Int32.TryParse，未校验 0~65535，构造 IPEndPoint 时抛 ArgumentOutOfRangeException。
-        // 与 XML 注释“格式非法（坏端口…）返回 null”不一致，属已知缺陷，本任务只记录不修复。
-        Assert.Throws<ArgumentOutOfRangeException>(() => NetHelper.ParseEndPoint("127.0.0.1:99999"));
-        Assert.Throws<ArgumentOutOfRangeException>(() => NetHelper.ParseEndPoint("127.0.0.1:-1"));
+        Assert.Null(NetHelper.ParseEndPoint("127.0.0.1", -1));
+        Assert.Null(NetHelper.ParseEndPoint("127.0.0.1", 65536));
+        Assert.Null(NetHelper.ParseEndPoint("::1", -1));
+
+        // 0 与 65535 是合法边界
+        Assert.Equal("127.0.0.1:0", NetHelper.ParseEndPoint("127.0.0.1", 0) + "");
+        Assert.Equal("127.0.0.1:65535", NetHelper.ParseEndPoint("127.0.0.1", 65535) + "");
+        Assert.Equal("[::1]:65535", NetHelper.ParseEndPoint("[::1]:65535") + "");
     }
 
     [Fact(DisplayName = "GetRelativeEndPoint 任意地址按远端解析为对应族环回")]

@@ -154,6 +154,9 @@ public static class NetHelper
         var addr = host.ParseAddress();
         if (addr == null) return null;
 
+        // 端口越界（含默认端口）属于格式非法，构造 IPEndPoint 前拦截，避免抛 ArgumentOutOfRangeException
+        if (port is < 0 or > 65535) return null;
+
         return new IPEndPoint(addr, port);
     }
 
