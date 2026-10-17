@@ -1,0 +1,39 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="iPhone" />
+    <Platform Name="iPhoneSimulator" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Others/">
+    <File Path=".editorconfig" />
+    <File Path=".github/workflows/publish-beta.yml" />
+    <File Path=".github/workflows/publish.yml" />
+    <File Path=".github/workflows/test.yml" />
+    <File Path=".gitignore" />
+    <File Path="ChangeLog.md" />
+    <File Path="Readme.MD" />
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="Samples/Zero.Desktop/Zero.Desktop.csproj" />
+    <Project Path="Samples/Zero.EchoServer/Zero.EchoServer.csproj" />
+    <Project Path="Samples/Zero.HttpServer/Zero.HttpServer.csproj" />
+    <Project Path="Samples/Zero.Server/Zero.Server.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="AotSmoke/AotSmoke.csproj" />
+    <Project Path="Benchmark/Benchmark.csproj" />
+    <Project Path="XUnitTest.Compat/XUnitTest.Compat.csproj" />
+    <Project Path="XUnitTest.Core/XUnitTest.Core.csproj">
+      <Build Solution="*|iPhone" Project="false" />
+      <Build Solution="*|iPhoneSimulator" Project="false" />
+    </Project>
+    <Project Path="XUnitTest.Net6/XUnitTest.Net6.csproj" />
+    <Project Path="XUnitTest.SourceGenerator/XUnitTest.SourceGenerator.csproj" />
+  </Folder>
+  <Project Path="NewLife.Core.SourceGenerator/NewLife.Core.SourceGenerator.csproj" />
+  <Project Path="NewLife.Core/NewLife.Core.csproj" />
+  <Project Path="Test/Test.csproj" />
+  <Project Path="Test2/Test2.csproj" />
+</Solution>
