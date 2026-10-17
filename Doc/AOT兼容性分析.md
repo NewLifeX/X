@@ -113,13 +113,13 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
 
-> CI 防回归：`.github/workflows/aot.yml` + `.github/workflows/test.yml`（push/PR + 人工手动触发，无夜间任务）—— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 / linux-x64 / linux-arm64 阻断门禁；win-arm64、osx 双架构、musl 容器观察期，稳定后逐项转阻断）；边缘 RID（win-x86 / linux-arm）与 LA64（linux-loongarch64，loong64 容器 + QEMU 仿真）已由原夜间 `edge.yml` 并入常规任务，其中 LA64 单测为必选门禁、LA64 的 AOT 冒烟为观察期（不阻塞）。
+> CI 防回归：`.github/workflows/aot.yml` + `.github/workflows/test.yml`（push/PR + 人工手动触发，无夜间任务）—— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 / linux-x64 / linux-arm64 阻断门禁；win-arm64、osx 双架构、musl 容器观察期，稳定后逐项转阻断）；边缘 RID（win-x86 / linux-arm）与 LA64（linux-loongarch64，loong64 容器 + QEMU 仿真）已由原夜间 `edge.yml` 并入常规任务，其中 LA64 的单测与 AOT 冒烟自 2026-10-17 起均为观察期（仅人工 `workflow_dispatch` 触发、失败不阻塞）。
 
 ---
 
 ## 7. 多 RID 支持矩阵与 CI
 
-> 目标：win-x64 / linux-x64 / linux-arm64 / linux-la64 四者单测必选（阻断门禁；LA64 的 AOT 冒烟为观察期，不阻塞），扩展 win-arm64、linux-musl、osx 双架构与边缘 RID（win-x86、linux-arm，观察期容错）；linux-riscv64 待社区构建渠道核实后按 LA64 的容器化 QEMU 配方接入。
+> 目标：win-x64 / linux-x64 / linux-arm64 单测必选（阻断门禁）；linux-la64 单测与 AOT 冒烟为观察期（仅人工触发、失败不阻塞，QEMU 下整套单测以小时计），扩展 win-arm64、linux-musl、osx 双架构与边缘 RID（win-x86、linux-arm，观察期容错）；linux-riscv64 待社区构建渠道核实后按 LA64 的容器化 QEMU 配方接入。
 > 前提：**NativeAOT 官方不支持跨 OS 编译**（Windows→Linux 需 WSL/VM），支持同 OS 内 x64↔arm64 交叉；因此每个 RID 均使用原生 runner 发布运行。
 
 ### 7.1 覆盖分层
@@ -135,16 +135,16 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 | T2 边缘 | win-x86 | — | ✔ | windows-latest 交叉发布 | 观察期容错（aot.yml） |
 | T2 边缘 | linux-arm（32 位） | — | 探索 | QEMU 容器 JIT 冒烟 + 交叉发布尝试 | 观察期容错（aot.yml） |
 | T2 边缘 | linux-riscv64 | — | — | 待社区构建渠道核实后按 LA64 的容器化 QEMU 配方接入 | 待启动 |
-| T3 LA64 | linux-loongarch64 | ✔ 全量 net10.0（必选） | JIT 冒烟观察期 + 发布探索 | docker + loong64 容器（QEMU 用户态）+ 龙芯 SDK（test.yml / aot.yml） | 单测门禁；AOT 观察期 |
+| T3 LA64 | linux-loongarch64 | ✔ 全量 net10.0（观察期，人工触发） | JIT 冒烟观察期 + 发布探索 | docker + loong64 容器（QEMU 用户态）+ 龙芯 SDK（test.yml / aot.yml） | 观察期（手动触发，不阻塞） |
 
-- **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 与 LA64 单测已为阻断门禁；LA64 的 AOT 冒烟为观察期（不阻塞）。
+- **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 为阻断门禁；LA64 的单测与 AOT 冒烟为观察期（`workflow_dispatch` 人工触发，push/PR 不参与、失败不阻塞）。
 - **测试并行度**：Windows/Linux CI 使用 `test.ci.runsettings`（4 线程，匹配 4 vCPU runner）；macOS 3 vCPU 使用专用 `test.ci.macos.runsettings`（3 线程）。
 - **本地 Linux 预跑**：WSL/容器内 `dotnet test XUnitTest.Core -f net8.0/net10.0`（无需任何平台开关）。
 
 ### 7.2 LA64（linux-loongarch64，社区支持平台）
 
 - **现状**：官方不发 runtime pack、无 NativeAOT 支持（ILCompiler 源码含 LoongArch64 后端但不构成承诺）。龙芯 [loongson/dotnet](https://github.com/loongson/dotnet) 提供 .NET 8/9/10 SDK（当前 v10.0.112），pack 走 `https://lnuget.loongnix.cn/v3/index.json`。
-- **CI 方案（单测必选门禁；AOT 冒烟观察期）**：docker + QEMU 用户态仿真（loong64 binfmt）+ 龙芯 SDK 在 loong64 容器内执行 —— 裸宿主缺 LA64 动态加载器（`Could not open /lib64/ld-linux-loongarch-lp64d.so.1`），LA64 二进制必须在容器内运行；基础镜像 `lcr.loongnix.cn/debian:14-slim`（Debian unstable 的 loong64 端口，自带 loader，apt 指向 deb.debian.org 可用），容器内补装 libicu/libssl，使全球化/加密用例与其它 Linux job 行为一致。LA64 上 vstest 不可用（龙芯 SDK 版不认识 LoongArch64 架构、宿主版为 x64 R2R 复合镜像加载即 BadImageFormatException），单测改为 `xunit.runner.utility` 构建的自宿主执行器：宿主管还原与构建（RID 无关 IL），容器内以 LA64 运行时直接执行测试程序集。`test.yml` 跑 XUnitTest.Core net10.0 全量单测（阻断门禁），`aot.yml` 跑 AotSmoke JIT 冒烟（观察期，`continue-on-error` 不阻塞）并容错尝试 NativeAOT 发布与运行（探索，官方当前不支持 LA64）。
+- **CI 方案（观察期，人工 `workflow_dispatch` 触发，失败不阻塞）**：docker + QEMU 用户态仿真（loong64 binfmt）+ 龙芯 SDK 在 loong64 容器内执行 —— 裸宿主缺 LA64 动态加载器（`Could not open /lib64/ld-linux-loongarch-lp64d.so.1`），LA64 二进制必须在容器内运行；基础镜像 `lcr.loongnix.cn/debian:14-slim`（Debian unstable 的 loong64 端口，自带 loader，apt 指向 deb.debian.org 可用），容器内补装 libicu/libssl，使全球化/加密用例与其它 Linux job 行为一致。LA64 上 vstest 不可用（龙芯 SDK 版不认识 LoongArch64 架构、宿主版为 x64 R2R 复合镜像加载即 BadImageFormatException），单测改为 `xunit.runner.utility` 构建的自宿主执行器：宿主管还原与构建（RID 无关 IL），容器内以 LA64 运行时直接执行测试程序集；另设 `DOTNET_EnableHWIntrinsic=0` 规避仿真层非法指令。QEMU 下整套单测实测 ≥2 小时仍未跑完，故 2026-10-17 起转观察期：`test.yml` 与 `aot.yml` 的 LA64 job 仅人工触发、push/PR 不参与、失败不阻塞（`continue-on-error`）。
 - **自托管接入（有真机后升级为阻断级）**：
   1. 龙芯 Linux 机器接入 GitHub Actions self-hosted runner（社区已有 runner 容器镜像 `kubernetes-loong64/actions-runner-loong64`）；
   2. 在 `aot.yml` / `test.yml` 增加 `runs-on: [self-hosted, loongarch64]` 的 job，复用 QEMU job 的步骤（去掉 qemu 安装与仿真环境变量）；
