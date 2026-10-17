@@ -936,6 +936,9 @@ public class DefaultReflect : IReflect
     /// <summary>从源对象拷贝数据到目标对象。针对IModel优化</summary>
     /// <remarks>
     /// 来源或目标对象为IModel时，借助IModel的索引器来取值赋值，提升性能。
+    /// <para>目标对象必须预先创建；深拷贝时，目标对象的数组成员也须预先创建且非 null，否则无法为数组类型构造实例。</para>
+    /// <para>深拷贝仅支持一维数组，多维数组会因按单索引访问元素而抛出 <see cref="ArgumentException"/>。</para>
+    /// <para>深拷贝不支持循环引用（<paramref name="deep"/> 为 true 时不做环检测），对循环对象图做深拷贝会栈溢出，请避免；该限制将另案处理。</para>
     /// </remarks>
     /// <param name="target">目标对象</param>
     /// <param name="source">源对象</param>
