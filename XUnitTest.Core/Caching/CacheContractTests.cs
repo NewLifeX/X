@@ -200,6 +200,48 @@ public class MemoryCacheContractTests
         Assert.Equal(2, times);
     }
 
+    [Fact(DisplayName = "GetOrAdd 回调重载：命中但已过期时重建并回填")]
+    public async Task GetOrAdd_Callback_ExpiredRebuild()
+    {
+        var cache = new MemoryCache();
+        var times = 0;
+
+        Assert.Equal("first", cache.GetOrAdd("key", _ => { times++; return "first"; }, 1));
+        Assert.Equal(1, times);
+
+        // 未过期时不重复回调
+        Assert.Equal("first", cache.GetOrAdd("key", _ => { times++; return "second"; }, 1));
+        Assert.Equal(1, times);
+
+        await Task.Delay(1100);
+
+        // 已过期：执行工厂重建并回填，返回新值
+        Assert.Equal("second", cache.GetOrAdd("key", _ => { times++; return "second"; }, 60));
+        Assert.Equal(2, times);
+        Assert.Equal("second", cache.Get<String>("key"));
+
+        // 回填后未过期，不再回调
+        Assert.Equal("second", cache.GetOrAdd("key", _ => { times++; return "third"; }, 60));
+        Assert.Equal(2, times);
+    }
+
+    [Fact(DisplayName = "GetOrAdd 回调重载：过期重建时工厂异常向上传播且不返回旧值")]
+    public async Task GetOrAdd_Callback_ExpiredFactoryException()
+    {
+        var cache = new MemoryCache();
+        cache.Set("key", "old", 1);
+        await Task.Delay(1100);
+
+        Assert.Throws<InvalidOperationException>(() => cache.GetOrAdd<String>("key", _ => throw new InvalidOperationException("factory")));
+
+        // 过期旧值不再可读
+        Assert.Null(cache.Get<String>("key"));
+
+        // 异常未缓存，下一次重新回调
+        Assert.Equal("new", cache.GetOrAdd("key", _ => "new"));
+        Assert.Equal("new", cache.Get<String>("key"));
+    }
+
     [Fact(DisplayName = "RemoveNotAlive 清理已过期缓存项并修正计数")]
     public async Task RemoveNotAlive_RemovesExpired()
     {

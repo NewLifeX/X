@@ -351,6 +351,10 @@ public class MemoryCache : Cache
     }
 
     /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
+    /// <remarks>
+    /// 与值重载语义对齐：命中且未过期时直接返回旧值；命中但已过期时执行 callback 重建并回填，返回新值。
+    /// 并发访问同一过期键时，工厂可能被重复执行（与既有语义一致），最终以最后回填的值为准。
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
     /// <param name="key"></param>
     /// <param name="callback"></param>
@@ -364,7 +368,15 @@ public class MemoryCache : Cache
         CacheItem? item = null;
         do
         {
-            if (_cache.TryGetValue(key, out item) && item != null) return item.Visit<T>();
+            if (_cache.TryGetValue(key, out item) && item != null)
+            {
+                // 未过期直接返回；已过期则重建并回填，避免调用方拿到过期旧值
+                if (!item.Expired) return item.Visit<T>();
+
+                item.Set(callback(key), expire);
+
+                return item.Visit<T>();
+            }
 
             item ??= new CacheItem(callback(key), expire);
         } while (!_cache.TryAdd(key, item));
