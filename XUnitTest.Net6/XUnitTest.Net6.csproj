@@ -7,7 +7,6 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
-    <DefineConstants Condition="$(TargetFramework.Contains('-windows'))">$(DefineConstants);__WIN__</DefineConstants>
     <OutputPath>..\Bin\UnitTest6</OutputPath>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <ImplicitUsings>enable</ImplicitUsings>

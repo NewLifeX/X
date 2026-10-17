@@ -1,4 +1,4 @@
-﻿#if __WIN__
+#if WINDOWS || NETFRAMEWORK
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Reflection;

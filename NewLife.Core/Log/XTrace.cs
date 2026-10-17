@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
-#if __WIN__
+#if WINDOWS || NETFRAMEWORK
 
 using System.Windows.Forms;
 
@@ -306,7 +306,7 @@ public static class XTrace
 
     #region 拦截WinForm异常
 
-#if __WIN__
+#if WINDOWS || NETFRAMEWORK
     private static Int32 initWF = 0;
     private static Boolean _ShowErrorMessage;
     //private static String _Title;

@@ -1,4 +1,4 @@
-﻿#if __WIN__
+#if WINDOWS || NETFRAMEWORK
 using System;
 using System.Drawing;
 

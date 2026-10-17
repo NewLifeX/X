@@ -351,11 +351,11 @@ public class MachineInfoTests
         Assert.NotNull(value2);
     }
 
-#if __WIN__
+#if WINDOWS
     [Fact(DisplayName = "QueryWmiSystemManagement 正常查询测试")]
     public void QueryWmiSystemManagement_NormalTest()
     {
-        // __WIN__ 保证 System.Management 反射可用，直接断言
+        // WINDOWS 保证 System.Management 反射可用，直接断言
         var result = MachineInfo.QueryWmiSystemManagement("Win32_OperatingSystem", "Caption", "root\\cimv2");
         Assert.NotNull(result);
         Assert.NotEmpty(result);

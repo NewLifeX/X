@@ -398,7 +398,7 @@ public partial class MachineInfo
 
         var ns = nameSpace ?? "root\\cimv2";
 
-#if __WIN__
+#if WINDOWS
         // net*-windows：优先反射 System.Management 走标准 WMI，失败回退 COM；两者均失败降级 wmic 兜底
         {
             var value = QueryWmiSystemManagement(path, property, ns);
@@ -423,7 +423,7 @@ public partial class MachineInfo
         if (value != null) return value;
 #endif
 
-        // wmic 兜底（__WIN__ 降级 + 其它运行时）。wmic 自 Windows 11 24H2/Server 2025 起默认不再安装，此时快速返回空结果
+        // wmic 兜底（WINDOWS 分支两条 WMI 路径均失败，以及其它运行时）。wmic 自 Windows 11 24H2/Server 2025 起默认不再安装，此时快速返回空结果
         // 不带命名空间时也要用 path 前缀以支持完整类名
         var type = !ns.EqualIgnoreCase("root\\cimv2") ? $"/namespace:\\\\{ns} path {path}" : $"path {path}";
         var dic = ReadWmic(type, property);
