@@ -32,7 +32,7 @@
 - [架构设计](Doc/架构设计.md)：分层、模块组件与关键设计决策
 - [核心库目录](Doc/核心库目录.md)：核心组件文章索引
 - [AOT兼容性分析](Doc/AOT兼容性分析.md)：NativeAOT 支持范围、实测结论（冒烟 29/29）、多 RID 覆盖矩阵与已知边界
-- [移动端技术选型](Doc/移动端技术选型.md)：.NET 移动技术栈分层、MAUI/原生/Avalonia/Uno/Blazor Hybrid 对比、选型决策树与 NewLife 建议
+- [移动端技术架构](Doc/移动端技术架构.md)：.NET 移动技术栈分层、UI 框架选型、Mobile 示例工程、APK 打包与 JIT/Mono AOT/NativeAOT 说明
 
 ## 快速拥有
 
