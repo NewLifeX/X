@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.Serialization;
 using NewLife;
 using NewLife.Common;
@@ -9,6 +10,7 @@ using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Remoting;
 using NewLife.Serialization;
 using Xunit;
 
@@ -248,6 +250,124 @@ public class HttpConfigProviderTests
         Assert.Equal("团队", provider["Title"]);
     }
 
+    [Fact(DisplayName = "远端 500：LoadAll 返回 false，恢复后重新加载成功")]
+    public void TestLoadAll_ServerError()
+    {
+        using var stub = new ConfigServerStub();
+        stub.SetConfigs(new Dictionary<String, Object?>
+        {
+            ["test1"] = "v1",
+        });
+        using var provider = CreateProvider(stub);
+
+        Assert.True(provider.LoadAll());
+        Assert.Equal("v1", provider["test1"]);
+
+        // 远端故障：返回 false，配置树保留上次成功加载的值
+        stub.GetAllStatus = HttpStatusCode.InternalServerError;
+        Assert.False(provider.LoadAll());
+        Assert.Equal("v1", provider["test1"]);
+
+        // 服务恢复后重新加载成功
+        stub.GetAllStatus = HttpStatusCode.OK;
+        stub.SetConfig("test1", "v2");
+        Assert.True(provider.LoadAll());
+        Assert.Equal("v2", provider["test1"]);
+    }
+
+    [Fact(DisplayName = "连接拒绝：LoadAll 返回 false，切换服务地址后恢复成功")]
+    public void TestLoadAll_ConnectionRefused()
+    {
+        // 先启动再释放，取得一个已关闭的本地端口，确保连接被拒绝
+        String deadServer;
+        using (var temp = new ConfigServerStub()) deadServer = temp.Server;
+
+        using var stub = new ConfigServerStub();
+        stub.SetConfigs(new Dictionary<String, Object?>
+        {
+            ["test1"] = "ok",
+        });
+        using var provider = new HttpConfigProvider
+        {
+            Server = deadServer,
+            AppId = "Test",
+            CacheLevel = ConfigCacheLevel.NoCache,
+            Period = 0,
+        };
+
+        Assert.False(provider.LoadAll());
+
+        provider.Server = stub.Server;
+        provider.Client = null;
+        Assert.True(provider.LoadAll());
+        Assert.Equal("ok", provider["test1"]);
+    }
+
+    [Fact(DisplayName = "请求超时：LoadAll 返回 false，恢复后重新加载成功")]
+    public void TestLoadAll_Timeout()
+    {
+        using var stub = new ConfigServerStub();
+        stub.SetConfigs(new Dictionary<String, Object?>
+        {
+            ["test1"] = "ok",
+        });
+        stub.GetAllDelay = 3_000;
+
+        using var provider = new HttpConfigProvider
+        {
+            Server = stub.Server,
+            AppId = "Test",
+            CacheLevel = ConfigCacheLevel.NoCache,
+            Period = 0,
+            Client = new ApiHttpClient(stub.Server) { Timeout = 300 },
+        };
+
+        Assert.False(provider.LoadAll());
+
+        stub.GetAllDelay = 0;
+        Assert.True(provider.LoadAll());
+        Assert.Equal("ok", provider["test1"]);
+    }
+
+    [Fact(DisplayName = "空配置：LoadAll 返回 true 且标记为新配置")]
+    public void TestLoadAll_EmptyConfig()
+    {
+        using var stub = new ConfigServerStub();
+        using var provider = CreateProvider(stub);
+
+        Assert.True(provider.LoadAll());
+        Assert.True(provider.IsNew);
+        Assert.Empty(provider.Keys);
+    }
+
+    [Fact(DisplayName = "刷新失败：DoRefresh 保留现有配置并在恢复后热更新")]
+    public void TestDoRefresh_FailureRecovers()
+    {
+        using var stub = new ConfigServerStub();
+        stub.SetConfigs(new Dictionary<String, Object?>
+        {
+            ["test1"] = "old",
+        });
+        using var provider = new TestHttpConfigProvider(stub.Server);
+        Assert.True(provider.LoadAll());
+
+        var changed = 0;
+        provider.Changed += (s, e) => changed++;
+
+        // 远端故障：刷新不抛异常、不产生变更通知、保留旧配置
+        stub.GetAllStatus = HttpStatusCode.InternalServerError;
+        provider.Refresh();
+        Assert.Equal(0, changed);
+        Assert.Equal("old", provider["test1"]);
+
+        // 恢复后正常热更新
+        stub.GetAllStatus = HttpStatusCode.OK;
+        stub.SetConfig("test1", "new");
+        provider.Refresh();
+        Assert.Equal(1, changed);
+        Assert.Equal("new", provider["test1"]);
+    }
+
     [Fact(DisplayName = "星尘格式：SetAll 返回影响行数，Bind 按路径绑定")]
     public void TestSetAllAndBind()
     {
@@ -423,6 +543,12 @@ public class HttpConfigProviderTests
         /// <summary>最近一次 SetAll 提交的原始配置</summary>
         public Dictionary<String, Object?> LastSaved { get; private set; } = [];
 
+        /// <summary>GetAll 响应状态码，用于故障注入</summary>
+        public HttpStatusCode GetAllStatus { get; set; } = HttpStatusCode.OK;
+
+        /// <summary>GetAll 响应延迟毫秒数，用于超时故障注入</summary>
+        public Int32 GetAllDelay { get; set; }
+
         public ConfigServerStub()
         {
             // 动态端口由系统分配
@@ -476,6 +602,9 @@ public class HttpConfigProviderTests
 
         private void GetAll(IHttpContext context)
         {
+            var delay = GetAllDelay;
+            if (delay > 0) Thread.Sleep(delay);
+
             lock (_sync)
             {
                 context.WriteJson(new
@@ -486,7 +615,7 @@ public class HttpConfigProviderTests
                         configs = new Dictionary<String, Object?>(_configs),
                         version = _version,
                     },
-                });
+                }, GetAllStatus);
             }
         }
 

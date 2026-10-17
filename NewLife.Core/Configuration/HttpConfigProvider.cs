@@ -127,7 +127,9 @@ public class HttpConfigProvider : ConfigProvider
         }
         catch (Exception ex)
         {
+            // 远端拉取失败：保留不抛异常语义，由调用方按返回值判断；同时输出警告，避免故障被静默掩盖
             if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+            XTrace.Log.Warn("[{0}]配置中心拉取失败，地址：{1}，{2}", AppId, Server, ex.Message);
 
             return null;
         }
@@ -226,10 +228,10 @@ public class HttpConfigProvider : ConfigProvider
                 SaveCache(dic);
             }
 
-            // 自动更新
+            // 自动更新。即使本次拉取失败也保持定时器，等待服务恢复
             if (Period > 0) InitTimer();
 
-            return true;
+            return dic != null;
         }
         catch (Exception ex)
         {
@@ -348,6 +350,7 @@ public class HttpConfigProvider : ConfigProvider
     protected void DoRefresh(Object? state)
     {
         var dic = GetAll();
+        // 远端拉取失败（GetAll 已输出警告），保留现有配置树，等待下次刷新
         if (dic == null) return;
 
         var changed = DetectChanges(dic);
