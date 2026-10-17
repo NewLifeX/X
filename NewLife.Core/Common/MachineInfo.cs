@@ -223,6 +223,8 @@ public partial class MachineInfo : IExtend
                 LoadWindowsInfo();
             else if (OperatingSystem.IsAndroid())
                 LoadAndroidInfo();
+            else if (OperatingSystem.IsIOS())
+                LoadIOSInfo();
             else if (OperatingSystem.IsLinux())
                 LoadLinuxInfo();
             else if (OperatingSystem.IsMacOS())
@@ -279,6 +281,8 @@ public partial class MachineInfo : IExtend
 #if NET5_0_OR_GREATER
         else if (OperatingSystem.IsAndroid())
             RefreshAndroid();
+        else if (OperatingSystem.IsIOS())
+            RefreshIOS();
 #endif
         // 特别识别Linux发行版
         else if (Runtime.Linux)
