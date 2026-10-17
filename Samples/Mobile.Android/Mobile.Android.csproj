@@ -17,6 +17,12 @@
     <OutputPath>..\..\Bin\Mobile.Android</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(IncludeStardust)' == 'true'">
+    <DefineConstants>$(DefineConstants);STARDUST</DefineConstants>
+    <TrimMode>partial</TrimMode>
+    <PublishTrimmed>false</PublishTrimmed>
+    <RunAOTCompilation>false</RunAOTCompilation>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(NativeAot)' == 'true'">
     <PublishAot>true</PublishAot>
     <UseMonoRuntime>false</UseMonoRuntime>
@@ -24,5 +30,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mobile.Core\Mobile.Core.csproj" />
+    <ProjectReference Include="..\Mobile.Stardust.Core\Mobile.Stardust.Core.csproj" Condition="'$(IncludeStardust)' == 'true'" />
   </ItemGroup>
 </Project>

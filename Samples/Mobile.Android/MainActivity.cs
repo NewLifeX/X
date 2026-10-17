@@ -11,6 +11,9 @@ using Android.Views;
 using Android.Widget;
 using NewLife;
 using NewLife.Log;
+#if STARDUST
+using Mobile.Stardust;
+#endif
 
 namespace Mobile.AndroidHost;
 
@@ -31,12 +34,19 @@ public class MainActivity : Activity
     private Boolean _running;
     private Boolean _autoSmoke;
     private String _logDir = "";
+#if STARDUST
+    private Button? _stardustButton;
+    private Boolean _autoStardust;
+#endif
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
 
         _autoSmoke = Intent?.GetBooleanExtra("smoke", false) == true;
+#if STARDUST
+        _autoStardust = Intent?.GetBooleanExtra("stardust", false) == true;
+#endif
 
         var root = new LinearLayout(this) { Orientation = Orientation.Vertical };
         root.SetBackgroundColor(Color.ParseColor(Background));
@@ -69,6 +79,12 @@ public class MainActivity : Activity
         _clearButton.Click += (_, _) => ClearReport();
         row2.AddView(_clearButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1));
 
+#if STARDUST
+        _stardustButton = new Button(this) { Text = "连接星尘" };
+        _stardustButton.Click += (_, _) => ToggleStardust();
+        row2.AddView(_stardustButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1));
+#endif
+
         bar.AddView(row1, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent));
         bar.AddView(row2, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent));
 
@@ -93,6 +109,10 @@ public class MainActivity : Activity
         SmokeEnvironment.DiagnosticLog = AppendSmokeLine;
         SetupLogging();
         RunInfo();
+
+#if STARDUST
+        if (_autoStardust) ToggleStardust();
+#endif
     }
 
     private void SetupLogging()
@@ -238,6 +258,26 @@ public class MainActivity : Activity
         if (_console == null) return;
         _console.Append(line + "\n");
     });
+
+#if STARDUST
+    private void ToggleStardust()
+    {
+        if (_stardustButton != null) _stardustButton.Enabled = false;
+
+        Task.Run(() =>
+        {
+            var on = MobileStardust.Toggle(Append);
+            RunOnUiThread(() =>
+            {
+                if (_stardustButton != null)
+                {
+                    _stardustButton.Text = on ? "断开星尘" : "连接星尘";
+                    _stardustButton.Enabled = true;
+                }
+            });
+        });
+    }
+#endif
 
     private void SetBusy(Boolean busy) => RunOnUiThread(() =>
     {

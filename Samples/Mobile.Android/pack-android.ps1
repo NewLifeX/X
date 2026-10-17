@@ -7,7 +7,8 @@ param(
     [string]$OutputDir = "",
     [string]$RuntimeIdentifier = "android-arm64",
     [switch]$Install,
-    [string]$Device = ""
+    [string]$Device = "",
+    [switch]$Stardust
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,6 +30,13 @@ switch ($Mode) {
 }
 if ($env:ANDROID_HOME) { $buildArgs += "-p:AndroidSdkDirectory=$env:ANDROID_HOME" }
 if ($env:JAVA_HOME) { $buildArgs += "-p:JavaSdkDirectory=$env:JAVA_HOME" }
+if ($Stardust) {
+    $buildArgs += "-p:IncludeStardust=true"
+    if ($Mode -eq "Aot") {
+        Write-Host "Stardust 构建关闭 AOT 编译（NewLife.Stardust 反射/序列化需要）"
+        $buildArgs += "-p:RunAOTCompilation=false"
+    }
+}
 
 Write-Host "Building $Mode APK ..."
 & dotnet @buildArgs
@@ -43,7 +51,8 @@ if (-not $apk) {
 }
 if (-not $apk) { throw "APK not found under $binDir." }
 
-$dest = Join-Path $OutputDir ("Mobile-" + $Mode + ".apk")
+$suffix = if ($Stardust) { "-Stardust" } else { "" }
+$dest = Join-Path $OutputDir ("Mobile-" + $Mode + $suffix + ".apk")
 Copy-Item $apk.FullName $dest -Force
 $hash = (Get-FileHash $dest -Algorithm SHA256).Hash
 $size = (Get-Item $dest).Length

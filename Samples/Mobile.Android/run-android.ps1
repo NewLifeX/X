@@ -7,7 +7,8 @@ param(
     [string]$Device = "",
     [int]$TimeoutSec = 180,
     [switch]$SkipBuild,
-    [switch]$Smoke
+    [switch]$Smoke,
+    [switch]$Stardust
 )
 
 $ErrorActionPreference = "Stop"
@@ -63,11 +64,12 @@ $rid = switch -Regex ($abi) {
 Write-Host "ABI=$abi RID=$rid"
 
 if (-not $SkipBuild) {
-    & pwsh -NoProfile -File $pack -Mode $Mode -Configuration $Configuration -RuntimeIdentifier $rid
+    & pwsh -NoProfile -File $pack -Mode $Mode -Configuration $Configuration -RuntimeIdentifier $rid -Stardust:$Stardust
     if ($LASTEXITCODE -ne 0) { throw "Android build failed." }
 }
 
-$apk = Join-Path $apkDir ("Mobile-" + $Mode + ".apk")
+$suffix = if ($Stardust) { "-Stardust" } else { "" }
+$apk = Join-Path $apkDir ("Mobile-" + $Mode + $suffix + ".apk")
 if (-not (Test-Path $apk)) {
     $apk = Get-ChildItem (Join-Path $root "Bin\Mobile.Android") -Filter "*.apk" -Recurse -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
@@ -84,7 +86,11 @@ if ($LASTEXITCODE -ne 0) { throw "adb install failed." }
 if ($Smoke) {
     $activity = (& $adb -s $Device shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER com.newlife.mobile | Select-Object -Last 1).Trim()
     if (-not $activity) { throw "Unable to resolve com.newlife.mobile launcher activity." }
-    & $adb -s $Device shell am start -n $activity --ez smoke true | Out-Null
+    & $adb -s $Device shell am start -n $activity --ez smoke true --ez stardust $($Stardust.ToString().ToLower()) | Out-Null
+} elseif ($Stardust) {
+    $activity = (& $adb -s $Device shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER com.newlife.mobile | Select-Object -Last 1).Trim()
+    if (-not $activity) { throw "Unable to resolve com.newlife.mobile launcher activity." }
+    & $adb -s $Device shell am start -n $activity --ez stardust true | Out-Null
 } else {
     & $adb -s $Device shell monkey -p com.newlife.mobile -c android.intent.category.LAUNCHER 1 | Out-Null
 }

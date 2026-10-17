@@ -5,9 +5,10 @@
 | 项目 | 用途 |
 |---|---|
 | `Mobile.Core` | `MachineInfoReport`（系统信息）与 21 个冒烟用例、`SmokeRunner` |
+| `Mobile.Stardust.Core` | 可选星尘接入：`NewLife.Stardust` + `MobileAgent`，设备信息复用 `MachineInfo` |
 | `Mobile.Console` | 桌面宿主：默认系统信息，`--smoke` / `--all` 跑冒烟 |
-| `Mobile.Android` | 原生 Activity 控制台：系统信息 / 运行冒烟 / 复制 / 清空 |
-| `Mobile.iOS` | 原生 UIViewController：系统信息 / 运行冒烟，CI 产出 `smoke.json` |
+| `Mobile.Android` | 原生 Activity 控制台：系统信息 / 运行冒烟 / 连接星尘（可选） / 复制 / 清空 |
+| `Mobile.iOS` | 原生 UIViewController：系统信息 / 运行冒烟 / 连接星尘（可选），CI 产出 `smoke.json` |
 
 > 仓库根目录的 `AotSmoke` 是 Windows/Linux 的 NativeAOT 冒烟，不属于移动端示例。
 
@@ -92,6 +93,23 @@ Bin\Mobile.Android\apk\Mobile-NativeAot.apk
   ```powershell
   adb install -r Bin\Mobile.Android\apk\Mobile-Aot.apk
   ```
+
+## 星尘接入（可选）
+
+默认构建**不引用** `NewLife.Stardust`，保持离线冒烟与全裁剪/AOT 门禁。需要把设备信息上报到星尘平台时，用 `-Stardust` 构建：
+
+```powershell
+# 构建、安装并跑冒烟（同时自动连接星尘）
+pwsh Samples/Mobile.Android/run-android.ps1 -Mode Jit -Smoke -Stardust
+
+# 只构建、安装并连接星尘
+pwsh Samples/Mobile.Android/run-android.ps1 -Mode Jit -Stardust
+```
+
+- 服务端默认 `http://star.newlifex.com:6600`，产品编码 `StarAgent-Mobile`；
+- 首次登录由服务端分配节点编码与密钥，保存在应用私有目录的 `stardust.json`；
+- 星尘构建关闭全裁剪/AOT（`TrimMode=partial` / `PublishTrimmed=false`），不影响默认冒烟构建；
+- iOS：`INCLUDE_STARDUST=true bash Samples/Mobile.iOS/run-ios.sh`，`Info.plist` 已为 `star.newlifex.com` 添加 HTTP 例外。
 
 ## iOS
 

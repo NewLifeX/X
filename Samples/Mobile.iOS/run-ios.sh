@@ -8,10 +8,15 @@ RUNTIME="${RUNTIME:-iossimulator-arm64}"
 BUNDLE_ID="com.newlife.mobile"
 TIMEOUT="${TIMEOUT:-180}"
 ARTIFACTS="$ROOT/Bin/Mobile.iOS/artifacts"
+INCLUDE_STARDUST="${INCLUDE_STARDUST:-false}"
 
 mkdir -p "$ARTIFACTS"
 
-dotnet build "$PROJECT" -c "$CONFIGURATION" -f net10.0-ios -p:RuntimeIdentifier="$RUNTIME" --nologo
+if [ "$INCLUDE_STARDUST" = "true" ]; then
+  dotnet build "$PROJECT" -c "$CONFIGURATION" -f net10.0-ios -p:RuntimeIdentifier="$RUNTIME" -p:IncludeStardust=true --nologo
+else
+  dotnet build "$PROJECT" -c "$CONFIGURATION" -f net10.0-ios -p:RuntimeIdentifier="$RUNTIME" --nologo
+fi
 
 APP="$(find "$ROOT/Bin/Mobile.iOS" -maxdepth 5 -name "*.app" -print -quit)"
 if [ -z "$APP" ]; then
@@ -30,7 +35,11 @@ xcrun simctl boot "$UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$UDID" -b
 xcrun simctl install "$UDID" "$APP"
 xcrun simctl terminate "$UDID" "$BUNDLE_ID" 2>/dev/null || true
-xcrun simctl launch "$UDID" "$BUNDLE_ID" --smoke
+if [ "$INCLUDE_STARDUST" = "true" ]; then
+  xcrun simctl launch "$UDID" "$BUNDLE_ID" --smoke --stardust
+else
+  xcrun simctl launch "$UDID" "$BUNDLE_ID" --smoke
+fi
 
 RESULT=""
 DEADLINE=$((SECONDS + TIMEOUT))

@@ -1,5 +1,8 @@
 using Foundation;
 using UIKit;
+#if STARDUST
+using Mobile.Stardust;
+#endif
 
 namespace Mobile.iOSHost;
 
@@ -11,6 +14,9 @@ public sealed class MobileViewController : UIViewController
     private UIButton? _smokeButton;
     private Boolean _started;
     private Boolean _running;
+#if STARDUST
+    private UIButton? _stardustButton;
+#endif
 
     public override void ViewDidLoad()
     {
@@ -37,6 +43,13 @@ public sealed class MobileViewController : UIViewController
         _smokeButton.TouchUpInside += (_, _) => RunSmoke();
         View.AddSubview(_smokeButton);
 
+#if STARDUST
+        _stardustButton = UIButton.FromType(UIButtonType.System);
+        _stardustButton.SetTitle("连接星尘", UIControlState.Normal);
+        _stardustButton.TouchUpInside += (_, _) => ToggleStardust();
+        View.AddSubview(_stardustButton);
+#endif
+
         _text = new UITextView
         {
             Editable = false,
@@ -55,8 +68,12 @@ public sealed class MobileViewController : UIViewController
 
         _titleLabel!.Frame = new CGRect(16, top, bounds.Width - 32, 30);
         var buttonTop = top + 38;
-        _infoButton!.Frame = new CGRect(12, buttonTop, bounds.Width / 2 - 16, 36);
-        _smokeButton!.Frame = new CGRect(bounds.Width / 2 + 4, buttonTop, bounds.Width / 2 - 16, 36);
+        var buttonWidth = (bounds.Width - 24) / 3;
+        _infoButton!.Frame = new CGRect(8, buttonTop, buttonWidth, 36);
+        _smokeButton!.Frame = new CGRect(12 + buttonWidth, buttonTop, buttonWidth, 36);
+#if STARDUST
+        _stardustButton!.Frame = new CGRect(16 + buttonWidth * 2, buttonTop, buttonWidth, 36);
+#endif
 
         var textTop = buttonTop + 44;
         _text!.Frame = new CGRect(0, textTop, bounds.Width, bounds.Height - textTop);
@@ -72,6 +89,11 @@ public sealed class MobileViewController : UIViewController
 
         if (NSProcessInfo.ProcessInfo.Arguments.Any(e => e.Equals("--smoke", StringComparison.OrdinalIgnoreCase)))
             RunSmoke();
+
+#if STARDUST
+        if (NSProcessInfo.ProcessInfo.Arguments.Any(e => e.Equals("--stardust", StringComparison.OrdinalIgnoreCase)))
+            ToggleStardust();
+#endif
     }
 
     private void RunInfo()
@@ -118,6 +140,26 @@ public sealed class MobileViewController : UIViewController
             }
         });
     }
+
+#if STARDUST
+    private void ToggleStardust()
+    {
+        if (_stardustButton != null) _stardustButton.Enabled = false;
+
+        Task.Run(() =>
+        {
+            var on = MobileStardust.Toggle(Append);
+            InvokeOnMainThread(() =>
+            {
+                if (_stardustButton != null)
+                {
+                    _stardustButton.SetTitle(on ? "断开星尘" : "连接星尘", UIControlState.Normal);
+                    _stardustButton.Enabled = true;
+                }
+            });
+        });
+    }
+#endif
 
     private void Append(String line)
     {

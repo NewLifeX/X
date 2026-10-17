@@ -8,11 +8,16 @@
     <RootNamespace>Mobile.iOSHost</RootNamespace>
     <AssemblyName>Mobile.iOS</AssemblyName>
     <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
-    <TrimMode Condition="'$(Configuration)' == 'Release'">full</TrimMode>
+    <TrimMode Condition="'$(Configuration)' == 'Release' and '$(IncludeStardust)' != 'true'">full</TrimMode>
     <OutputPath>..\..\Bin\Mobile.iOS</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(IncludeStardust)' == 'true'">
+    <DefineConstants>$(DefineConstants);STARDUST</DefineConstants>
+    <TrimMode Condition="'$(Configuration)' == 'Release'">partial</TrimMode>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mobile.Core\Mobile.Core.csproj" />
+    <ProjectReference Include="..\Mobile.Stardust.Core\Mobile.Stardust.Core.csproj" Condition="'$(IncludeStardust)' == 'true'" />
   </ItemGroup>
 </Project>
