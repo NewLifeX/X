@@ -560,8 +560,10 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         }
         sw.Stop();
 
-        var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"读取 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
+        var ms = sw.ElapsedMilliseconds;
+        // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
+        var speed = times * 1000 / (ms > 0 ? ms : 1);
+        XTrace.WriteLine($"读取 耗时 {ms,7:n0}ms 速度 {speed,11:n0} ops");
 
         return times + 1;
     }
@@ -635,8 +637,10 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         }
         sw.Stop();
 
-        var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"赋值 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
+        var ms = sw.ElapsedMilliseconds;
+        // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
+        var speed = times * 1000 / (ms > 0 ? ms : 1);
+        XTrace.WriteLine($"赋值 耗时 {ms,7:n0}ms 速度 {speed,11:n0} ops");
 
         return times + 1;
     }
@@ -707,8 +711,10 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         }
         sw.Stop();
 
-        var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"删除 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
+        var ms = sw.ElapsedMilliseconds;
+        // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
+        var speed = times * 1000 / (ms > 0 ? ms : 1);
+        XTrace.WriteLine($"删除 耗时 {ms,7:n0}ms 速度 {speed,11:n0} ops");
 
         return times + 1;
     }
@@ -759,8 +765,10 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         }
         sw.Stop();
 
-        var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"累加 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
+        var ms = sw.ElapsedMilliseconds;
+        // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
+        var speed = times * 1000 / (ms > 0 ? ms : 1);
+        XTrace.WriteLine($"累加 耗时 {ms,7:n0}ms 速度 {speed,11:n0} ops");
 
         return times + 1;
     }

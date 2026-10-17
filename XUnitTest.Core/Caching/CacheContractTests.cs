@@ -273,6 +273,20 @@ public class MemoryCacheContractTests
         Assert.True(cache.Get<Int64>("bench:1") > 0);
     }
 
+    [Fact(DisplayName = "BenchOne 极小负载：耗时不足 1ms 不抛除零异常")]
+    public void BenchOne_TinyLoad_NoDivideByZero()
+    {
+        var cache = new MemoryCache();
+        var keys = new[] { "bench:tiny" };
+
+        // 单次负载极小，毫秒计时极易为 0；重复多轮提高命中率，旧实现会在除零处抛 DivideByZeroException
+        for (var i = 0; i < 100; i++)
+        {
+            var rs = cache.BenchOne(keys, 1, 1, false, 0);
+            Assert.True(rs >= 4);
+        }
+    }
+
     private static void InvokeRemoveNotAlive(MemoryCache cache)
     {
         var method = typeof(MemoryCache).GetMethod("RemoveNotAlive", BindingFlags.Instance | BindingFlags.NonPublic);
