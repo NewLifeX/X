@@ -121,16 +121,26 @@ public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
     #region 构造
     static Host()
     {
-        AppDomain.CurrentDomain.ProcessExit += OnExit;
-        Console.CancelKeyPress += OnExit;
+        // Android/iOS 等移动平台对进程退出/信号钩子的支持不完整，逐个注册并忽略不支持的情况
+        TryRegisterExitHook(() => AppDomain.CurrentDomain.ProcessExit += OnExit);
+        TryRegisterExitHook(() => Console.CancelKeyPress += OnExit);
 #if NETCOREAPP
-        System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnExit(ctx, EventArgs.Empty);
+        TryRegisterExitHook(() => System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnExit(ctx, EventArgs.Empty));
 #endif
 #if NET6_0_OR_GREATER
-        PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
-        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
-        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
+        TryRegisterExitHook(() => PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty)));
+        TryRegisterExitHook(() => PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty)));
+        TryRegisterExitHook(() => PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx.Signal + "", EventArgs.Empty)));
 #endif
+    }
+
+    private static void TryRegisterExitHook(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (PlatformNotSupportedException) { }
     }
 
     /// <summary>销毁资源</summary>

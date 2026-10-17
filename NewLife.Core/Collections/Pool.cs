@@ -23,7 +23,7 @@ namespace NewLife.Collections;
 /// 兼容性：支持 .NET Framework 4.5 起与 .NET Standard / .NET Core / .NET 5+ 多目标。
 /// </remarks>
 /// <typeparam name="T">池化的引用类型</typeparam>
-public class Pool<T> : IPool<T> where T : class
+public class Pool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : IPool<T> where T : class
 {
     #region 属性
     /// <summary>对象池大小。默认 CPU*2，初始化后改变无效</summary>
@@ -187,7 +187,6 @@ public class Pool<T> : IPool<T> where T : class
     /// （网络接收链路 ReceivedEventArgs 每包必炸、网络栈瘫痪的根因），故改用泛型工厂。
     /// </remarks>
     /// <returns>新建对象实例；允许返回 null（将抛出异常）</returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "无工厂委托时使用无参构造创建对象；AOT 下裁剪可能移除无参构造，应传入工厂委托")]
     protected virtual T? OnCreate() => Activator.CreateInstance<T>();
     #endregion
 }
