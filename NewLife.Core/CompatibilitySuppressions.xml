@@ -2,7 +2,7 @@
 <!-- https://learn.microsoft.com/dotnet/fundamentals/package-validation/diagnostic-ids -->
 <Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <!-- TimeProvider.System 垫片带 setter（低版本自定义时间注入钩子），net8+ BCL 为只读属性；
-       转发后跨资产对比才暴露该成员差，保留抑制（理由见当前提交说明） -->
+       转发后跨资产对比才暴露该成员差，保留抑制（理由见 Doc/架构设计.md §7 收口记录） -->
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
     <Target>M:System.TimeProvider.set_System(System.TimeProvider)</Target>
@@ -20,67 +20,5 @@
     <Target>M:System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute.set_AssemblyName(System.String)</Target>
     <Left>lib/netcoreapp3.1/NewLife.Core.dll</Left>
     <Right>lib/net5.0/NewLife.Core.dll</Right>
-  </Suppression>
-  <!-- FIX-134（v12 有意破坏性变更）：PooledByteBufferWriter.WriteToStreamAsync 低 TFM（net45/461/462/ns2.0）返回类型
-       由 Task 统一为 ValueTask（与 ns2.1+ 资产对齐，修复跨资产 MissingMethodException），与基线包同 TFM 对比报 4 条 CP0002；
-       待含该变更的 12.0.* beta 发布后本组条目即可删除（详见 Doc/架构设计.md §7 收口记录） -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:NewLife.Buffers.PooledByteBufferWriter.WriteToStreamAsync(System.IO.Stream,System.Threading.CancellationToken)</Target>
-    <Left>lib/net45/NewLife.Core.dll</Left>
-    <Right>lib/net45/NewLife.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:NewLife.Buffers.PooledByteBufferWriter.WriteToStreamAsync(System.IO.Stream,System.Threading.CancellationToken)</Target>
-    <Left>lib/net461/NewLife.Core.dll</Left>
-    <Right>lib/net461/NewLife.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:NewLife.Buffers.PooledByteBufferWriter.WriteToStreamAsync(System.IO.Stream,System.Threading.CancellationToken)</Target>
-    <Left>lib/net462/NewLife.Core.dll</Left>
-    <Right>lib/net462/NewLife.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:NewLife.Buffers.PooledByteBufferWriter.WriteToStreamAsync(System.IO.Stream,System.Threading.CancellationToken)</Target>
-    <Left>lib/netstandard2.0/NewLife.Core.dll</Left>
-    <Right>lib/netstandard2.0/NewLife.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <!-- FIX-136（v12 有意破坏性变更）：IBinary.ReadBytes(Span<Byte>) 由 ns2.1+ 独占放宽为全 TFM 暴露（System.Memory 已为低 TFM 提供 Span），
-       修复接口成员跨资产类型加载风险；对已发布基线包，4 个低 TFM 资产新增接口成员属 CP0006，待含该变更的 12.0.* beta 发布后本组条目即可删除
-       （已扫描 C:\X 全生态与本仓，IBinary 仅本仓 Binary 一个实现者，详见 Doc/架构设计.md §7 收口记录） -->
-  <Suppression>
-    <DiagnosticId>CP0006</DiagnosticId>
-    <Target>M:NewLife.Serialization.IBinary.ReadBytes(System.Span{System.Byte})</Target>
-    <Left>lib/net45/NewLife.Core.dll</Left>
-    <Right>lib/net45/NewLife.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0006</DiagnosticId>
-    <Target>M:NewLife.Serialization.IBinary.ReadBytes(System.Span{System.Byte})</Target>
-    <Left>lib/net461/NewLife.Core.dll</Left>
-    <Right>lib/net461/NewLife.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0006</DiagnosticId>
-    <Target>M:NewLife.Serialization.IBinary.ReadBytes(System.Span{System.Byte})</Target>
-    <Left>lib/net462/NewLife.Core.dll</Left>
-    <Right>lib/net462/NewLife.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0006</DiagnosticId>
-    <Target>M:NewLife.Serialization.IBinary.ReadBytes(System.Span{System.Byte})</Target>
-    <Left>lib/netstandard2.0/NewLife.Core.dll</Left>
-    <Right>lib/netstandard2.0/NewLife.Core.dll</Right>
-    <IsBaselineSuppression>true</IsBaselineSuppression>
   </Suppression>
 </Suppressions>
