@@ -33,11 +33,14 @@ public partial class MachineInfo
             Serial = str;
             UUID = str;
         }
-        else if (device.TryGetValue("Fingerprint", out str) && !str.IsNullOrEmpty())
-            UUID = str;
 
+        // Android 8.0 起普通应用读不到 Serial，只能退化为 android_id（按应用签名和用户隔离，恢复出厂设置后重置）。
+        // 不能用 Build.Fingerprint，它是 ROM 构建标识，同型号同版本的机器完全相同，既会跨设备重复又会随系统升级改变。
         if (device.TryGetValue("android_id", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("unknown"))
+        {
             Guid = str;
+            if (UUID.IsNullOrEmpty()) UUID = str;
+        }
 
         var release = GetAndroidBuildVersion("Release");
         if (!release.IsNullOrEmpty())
