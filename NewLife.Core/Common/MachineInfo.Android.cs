@@ -14,19 +14,21 @@ public partial class MachineInfo
     [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Android Build 信息经运行时反射读取，读取失败降级为空")]
     private void LoadAndroidInfo()
     {
-        OSName = "Android";
-
         var device = ReadDeviceInfo();
         if (device.TryGetValue("Manufacturer", out var str) && !str.IsNullOrEmpty()) Vendor = str;
         if (device.TryGetValue("Model", out str) && !str.IsNullOrEmpty()) Product = str;
         if (device.TryGetValue("SocModel", out str) && !str.IsNullOrEmpty())
-            Processor = str;
+            Processor = PrettifyProcessor(str);
         else if (device.TryGetValue("Hardware", out str) && !str.IsNullOrEmpty())
-            Processor = str;
+            Processor = PrettifyProcessor(str);
         if (device.TryGetValue("Board", out str) && !str.IsNullOrEmpty())
             Board = str;
         else if (device.TryGetValue("Device", out str) && !str.IsNullOrEmpty())
             Board = str;
+
+        // Xamarin.Essentials 的 Name 通常是系统设置里的设备名称，如“FeiFan”
+        if (device.TryGetValue("Name", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("unknown"))
+            this["DeviceName"] = str;
 
         if (device.TryGetValue("Serial", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("unknown"))
         {
@@ -44,9 +46,38 @@ public partial class MachineInfo
 
         var release = GetAndroidBuildVersion("Release");
         if (!release.IsNullOrEmpty())
+        {
             OSVersion = release;
-        else if (GetAndroidBuildVersion("SdkInt") is { } sdk)
-            OSVersion = sdk;
+            OSName = "Android " + release;
+        }
+        else
+        {
+            OSName = "Android";
+            if (GetAndroidBuildVersion("SdkInt") is { } sdk) OSVersion = sdk;
+        }
+    }
+
+    /// <summary>把 Android 硬件代号转换为更易读的处理器名称</summary>
+    /// <param name="value">Build.SocModel 或 Build.Hardware，如 kirin980</param>
+    /// <returns>友好名称，如 Huawei Kirin 980</returns>
+    private static String PrettifyProcessor(String value)
+    {
+        var name = value.Trim();
+        if (name.IsNullOrEmpty()) return name;
+
+        if (name.StartsWithIgnoreCase("kirin"))
+        {
+            var version = name[5..].Trim();
+            return version.IsNullOrEmpty() ? "Huawei Kirin" : "Huawei Kirin " + version;
+        }
+
+        if (name.StartsWithIgnoreCase("exynos"))
+        {
+            var version = name[6..].Trim();
+            return version.IsNullOrEmpty() ? "Samsung Exynos" : "Samsung Exynos " + version;
+        }
+
+        return name;
     }
 
     /// <summary>刷新 Android 实时信息</summary>

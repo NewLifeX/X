@@ -36,6 +36,7 @@ public static class MachineInfoReport
             ("系统名称", info.OSName),
             ("系统版本", info.OSVersion),
             ("产品名称", info.Product),
+            ("设备名称", info["DeviceName"] as String),
             ("制造商", info.Vendor),
             ("处理器型号", info.Processor),
             ("硬件唯一标识", info.UUID),

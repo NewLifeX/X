@@ -294,6 +294,9 @@ public class MainActivity : Activity
         sb.AppendLine("制造商: " + Build.Manufacturer);
         sb.AppendLine("品牌: " + Build.Brand);
         sb.AppendLine("型号: " + Build.Model);
+        sb.AppendLine("市场名称: " + (AndroidMachineInfoProvider.GetMarketName() ?? ""));
+        sb.AppendLine("设备名称: " + (AndroidMachineInfoProvider.GetDeviceName(ContentResolver) ?? ""));
+        sb.AppendLine("序列号: " + (AndroidMachineInfoProvider.GetSerial() ?? "(不可读)"));
         sb.AppendLine("设备: " + Build.Device);
         sb.AppendLine("产品: " + Build.Product);
         sb.AppendLine("硬件: " + Build.Hardware);
@@ -347,6 +350,9 @@ public class MainActivity : Activity
         {
             sb.AppendLine("android_id 读取失败: " + ex.Message);
         }
+
+        // Android 10 起普通应用无法读取 IMEI/MEID，Serial 也通常返回 unknown
+        sb.AppendLine("IMEI/MEID: Android 10+ 普通应用受系统限制不可读取");
 
         sb.AppendLine("包名: " + PackageName);
         sb.AppendLine("应用数据: " + FilesDir?.AbsolutePath);
@@ -413,11 +419,145 @@ public class MainActivity : Activity
 
     private sealed class AndroidMachineInfoProvider : IMachineInfo
     {
+        private static String? _marketName;
         private readonly Activity _activity;
 
         public AndroidMachineInfoProvider(Activity activity) => _activity = activity;
 
-        public void Init(MachineInfo info) { }
+        public void Init(MachineInfo info)
+        {
+            // Build.Model 是 YAL-AL10 之类的型号代码，优先取厂商提供的市场名称
+            var model = GetMarketName();
+            if (!model.IsNullOrEmpty()) info.Product = model;
+
+            if (!Build.Manufacturer.IsNullOrEmpty()) info.Vendor = Build.Manufacturer;
+
+            // Android 10+ 普通应用通常读不到 Serial；能读到就作为硬件唯一标识，否则保留 android_id
+            var serial = GetSerial();
+            if (!serial.IsNullOrEmpty())
+            {
+                info.Serial = serial;
+                info.UUID = serial;
+            }
+            else if (info.UUID.IsNullOrEmpty() || info.UUID.StartsWith("0-"))
+            {
+                // android_id 也不可用时，用应用私有目录持久化的 GUID，保证重启后不变
+                var id = GetPersistedDeviceId();
+                if (!id.IsNullOrEmpty())
+                {
+                    info.UUID = id;
+                    if (info.Guid.IsNullOrEmpty() || info.Guid.StartsWith("0-")) info.Guid = id;
+                }
+            }
+
+            var deviceName = GetDeviceName(_activity.ContentResolver);
+            if (!deviceName.IsNullOrEmpty()) info["DeviceName"] = deviceName;
+
+            if (!Build.Board.IsNullOrEmpty()) info.Board = Build.Board;
+        }
+
+        /// <summary>读取厂商市场名称，读取一次后缓存</summary>
+        /// <returns>如 HONOR 20 PRO；读取失败时退化为 Build.Model</returns>
+        internal static String? GetMarketName()
+        {
+            if (!_marketName.IsNullOrEmpty()) return _marketName;
+
+            var name = GetProp("ro.product.marketname");
+            if (name.IsNullOrEmpty()) name = GetProp("ro.config.marketing_name");
+            if (name.IsNullOrEmpty()) name = Build.Model;
+
+            _marketName = name;
+            return name;
+        }
+
+        /// <summary>读取 Android 系统属性</summary>
+        /// <param name="name">属性名，如 ro.product.marketname</param>
+        /// <returns>属性值，读取失败时返回 null</returns>
+        internal static String? GetProp(String name)
+        {
+            try
+            {
+                using var process = Java.Lang.Runtime.GetRuntime()?.Exec(["getprop", name]);
+                if (process?.InputStream == null) return null;
+
+                using var reader = new Java.IO.BufferedReader(new Java.IO.InputStreamReader(process.InputStream));
+                var value = reader.ReadLine()?.Trim();
+                process.WaitFor();
+
+                return value;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>读取设备序列号</summary>
+        /// <returns>序列号，Android 10+ 通常不可读</returns>
+        internal static String? GetSerial()
+        {
+            if (OperatingSystem.IsAndroidVersionAtLeast(26))
+            {
+                try
+                {
+                    var serial = Build.GetSerial();
+                    if (!serial.IsNullOrEmpty() && !serial.EqualIgnoreCase("unknown")) return serial;
+                }
+                catch { }
+            }
+
+            var prop = GetProp("ro.serialno");
+            return !prop.IsNullOrEmpty() && !prop.EqualIgnoreCase("unknown") ? prop : null;
+        }
+
+        /// <summary>读取应用私有目录中持久化的设备标识</summary>
+        /// <returns>首次调用时生成并保存，后续保持不变</returns>
+        private String? GetPersistedDeviceId()
+        {
+            try
+            {
+                var sp = _activity.GetSharedPreferences("mobile", FileCreationMode.Private);
+                var id = sp?.GetString("device_id", null);
+                if (id.IsNullOrEmpty())
+                {
+                    id = Guid.NewGuid().ToString("N");
+                    sp?.Edit()?.PutString("device_id", id)?.Apply();
+                }
+
+                return id;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>读取系统设置中的设备名称</summary>
+        /// <param name="resolver">内容解析器</param>
+        /// <returns>设备名称，读取失败时返回 null</returns>
+        internal static String? GetDeviceName(ContentResolver? resolver)
+        {
+            if (resolver == null) return null;
+
+            try
+            {
+                var name = Settings.Secure.GetString(resolver, "bluetooth_name");
+                if (!name.IsNullOrEmpty()) return name;
+            }
+            catch { }
+
+            try
+            {
+                var name = Settings.Global.GetString(resolver, "device_name");
+                if (!name.IsNullOrEmpty()) return name;
+            }
+            catch { }
+
+            var prop = GetProp("persist.sys.device_name");
+            if (!prop.IsNullOrEmpty()) return prop;
+
+            return GetProp("ro.product.marketname");
+        }
 
         public void Refresh(MachineInfo info)
         {

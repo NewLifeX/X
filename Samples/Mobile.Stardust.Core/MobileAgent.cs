@@ -80,6 +80,9 @@ public class MobileAgent : DisposeBase
         Setting = MobileAgentSetting.Current;
         if (Setting.IsNew) Setting.Save();
 
+        // 登录失败时便于判断是首次注册还是本地密钥与服务端不一致
+        XTrace.WriteLine($"[{Platform.Name}] 节点配置：Code={(Setting.Code.IsNullOrEmpty() ? "空" : Setting.Code)}，Secret={(Setting.Secret.IsNullOrEmpty() ? "空" : "已保存")}");
+
         Client = new MobileStarClient(Setting, platform)
         {
             ProductCode = Setting.ProductCode.IsNullOrEmpty() ? "StarAgent-Mobile" : Setting.ProductCode,

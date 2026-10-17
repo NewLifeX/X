@@ -1,6 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using NewLife;
+using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Remoting;
 using NewLife.Remoting.Clients;
 using NewLife.Remoting.Models;
 using Stardust;
@@ -30,6 +32,9 @@ public class MobileStarClient : StarClient
     /// <returns></returns>
     public override ILoginRequest BuildLoginRequest()
     {
+        // 确保密码提供者已初始化，避免直接调用时以明文发送密钥
+        Init();
+
         var request = new LoginInfo();
         FillLoginRequest(request);
 
@@ -38,6 +43,31 @@ public class MobileStarClient : StarClient
 
         return request;
     }
+
+    /// <summary>登录。服务端密钥校验失败时清空本地密钥重试一次，触发动态注册</summary>
+    /// <param name="source">登录来源</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>登录响应</returns>
+    public override async Task<ILoginResponse?> Login(String? source = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await base.Login(source, cancellationToken).ConfigureAwait(false);
+        }
+        catch (ApiException ex) when (IsSecretError(ex) && !Secret.IsNullOrEmpty())
+        {
+            XTrace.WriteLine($"[{Name}]服务端密钥校验失败，清空本地密钥后重试：{ex.Message}");
+
+            Secret = null;
+            _setting.Secret = null;
+            try { _setting.Save(); } catch { }
+
+            return await base.Login(source, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static Boolean IsSecretError(ApiException ex) =>
+        ex.Message.Contains("密钥") || ex.Message.Contains("密码") || ex.Message.Contains("鉴权");
 
     /// <summary>构建心跳请求。只采集移动端可用的指标</summary>
     /// <returns></returns>
@@ -79,7 +109,9 @@ public class MobileStarClient : StarClient
     private NodeInfo BuildNodeInfo()
     {
         var asm = AssemblyX.Create(typeof(MobileStarClient).Assembly);
-        var osTag = Platform.OSName.EqualIgnoreCase("iOS") ? "os:ios" : "os:" + Platform.OSName.ToLowerInvariant();
+        var osName = Platform.OSName?.Trim() ?? "";
+        var osTag = osName.StartsWithIgnoreCase("iOS") ? "os:ios" :
+            osName.StartsWithIgnoreCase("Android") ? "os:android" : "os:" + osName.ToLowerInvariant();
 
         var info = new NodeInfo
         {

@@ -24,6 +24,9 @@ switch ($Mode) {
         $buildArgs += "-p:RunAOTCompilation=false"
         $buildArgs += "-p:AndroidEnableProfiledAot=false"
     }
+    "Aot" {
+        $buildArgs += "-p:RunAOTCompilation=true"
+    }
     "NativeAot" {
         $buildArgs += "-p:NativeAot=true"
     }
@@ -32,10 +35,6 @@ if ($env:ANDROID_HOME) { $buildArgs += "-p:AndroidSdkDirectory=$env:ANDROID_HOME
 if ($env:JAVA_HOME) { $buildArgs += "-p:JavaSdkDirectory=$env:JAVA_HOME" }
 if ($Stardust) {
     $buildArgs += "-p:IncludeStardust=true"
-    if ($Mode -eq "Aot") {
-        Write-Host "Stardust 构建关闭 AOT 编译（NewLife.Stardust 反射/序列化需要）"
-        $buildArgs += "-p:RunAOTCompilation=false"
-    }
 }
 
 Write-Host "Building $Mode APK ..."
@@ -43,17 +42,23 @@ Write-Host "Building $Mode APK ..."
 if ($LASTEXITCODE -ne 0) { throw "$Mode build failed." }
 
 $binDir = Join-Path $root "Bin\Mobile.Android"
-$apk = Get-ChildItem $binDir -Filter "*-Signed.apk" -Recurse -ErrorAction SilentlyContinue |
-    Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if (-not $apk) {
-    $apk = Get-ChildItem $binDir -Filter "*.apk" -Recurse -ErrorAction SilentlyContinue |
+# 优先使用本次构建 RID 目录下的产物，避免误取其它模式（JIT/AOT）遗留的 APK
+$apkPath = Join-Path $binDir "$RuntimeIdentifier\com.newlife.mobile-Signed.apk"
+if (-not (Test-Path $apkPath)) {
+    $apkFile = Get-ChildItem (Join-Path $binDir $RuntimeIdentifier) -Filter "*-Signed.apk" -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($apkFile) { $apkPath = $apkFile.FullName }
 }
-if (-not $apk) { throw "APK not found under $binDir." }
+if (-not (Test-Path $apkPath)) {
+    $apkFile = Get-ChildItem $binDir -Filter "*.apk" -Recurse -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($apkFile) { $apkPath = $apkFile.FullName }
+}
+if (-not $apkPath -or -not (Test-Path $apkPath)) { throw "APK not found under $binDir." }
 
 $suffix = if ($Stardust) { "-Stardust" } else { "" }
 $dest = Join-Path $OutputDir ("Mobile-" + $Mode + $suffix + ".apk")
-Copy-Item $apk.FullName $dest -Force
+Copy-Item $apkPath $dest -Force
 $hash = (Get-FileHash $dest -Algorithm SHA256).Hash
 $size = (Get-Item $dest).Length
 

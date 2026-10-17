@@ -11,7 +11,7 @@ public interface IMobilePlatform
     /// <summary>设备唯一标识。同一设备重装应用后应尽量保持不变</summary>
     String DeviceId { get; }
 
-    /// <summary>设备名称。如手机型号</summary>
+    /// <summary>设备名称。优先系统设置中的名称，其次为手机型号</summary>
     String DeviceName { get; }
 
     /// <summary>操作系统名称</summary>

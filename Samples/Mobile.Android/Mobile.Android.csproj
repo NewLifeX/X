@@ -19,9 +19,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(IncludeStardust)' == 'true'">
     <DefineConstants>$(DefineConstants);STARDUST</DefineConstants>
+    <!-- 星尘依赖反射/序列化，使用 partial 裁剪保留业务程序集；Android 10 真机要求 AOT，避免 JIT 冷启动 n_onCreate 未注册 -->
     <TrimMode>partial</TrimMode>
-    <PublishTrimmed>false</PublishTrimmed>
-    <RunAOTCompilation>false</RunAOTCompilation>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
   <PropertyGroup Condition="'$(NativeAot)' == 'true'">
     <PublishAot>true</PublishAot>

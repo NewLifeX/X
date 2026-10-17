@@ -8,6 +8,8 @@
     <string>com.newlife.mobile</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
+    <key>XSAppIconAssets</key>
+    <string>Assets.xcassets/AppIcon.appiconset</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSRequiresIPhoneOS</key>

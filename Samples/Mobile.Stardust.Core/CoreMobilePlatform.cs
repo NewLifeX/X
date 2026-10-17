@@ -18,8 +18,8 @@ public class CoreMobilePlatform : IMobilePlatform
     /// <summary>设备唯一标识</summary>
     public String DeviceId => !_info.UUID.IsNullOrEmpty() ? _info.UUID! : _info.Guid ?? "";
 
-    /// <summary>设备名称</summary>
-    public String DeviceName => !_info.Product.IsNullOrEmpty() ? _info.Product! : Environment.MachineName;
+    /// <summary>设备名称。优先系统设置中的设备名称（如 FeiFan），否则使用产品型号</summary>
+    public String DeviceName => _info["DeviceName"] as String ?? (!_info.Product.IsNullOrEmpty() ? _info.Product! : Environment.MachineName);
 
     /// <summary>操作系统名称</summary>
     public String OSName => _info.OSName ?? Name;

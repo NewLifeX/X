@@ -1,6 +1,6 @@
 # 新生命移动测试台（Mobile）
 
-一个示例，四个项目：系统信息 + 21 个兼容性冒烟用例 + XTrace 日志。Android/iOS 桌面显示名为“新生命测试台”，首页标题为“新生命移动测试台”。所有项目输出统一到仓库根目录 `Bin\Mobile.*`。
+一个示例，四个项目：系统信息 + 21 个兼容性冒烟用例 + XTrace 日志。Android/iOS 桌面显示名为“新生命测试台”，桌面图标使用新生命四叶草，首页标题为“新生命移动测试台”。所有项目输出统一到仓库根目录 `Bin\Mobile.*`。
 
 | 项目 | 用途 |
 |---|---|
@@ -83,7 +83,7 @@ Bin\Mobile.Android\apk\Mobile-NativeAot.apk
 | 模式 | 运行时 | 实测大小 | 说明 |
 |---|---|---:|---|
 | `Jit` | Mono JIT | 9.40 MB | 构建最快，调试最方便；启动/JIT 开销较大 |
-| `Aot` | Mono AOT（normal + profiled） | 12.10 MB | 默认交付；启动更快，Release 默认开启 |
+| `Aot` | Mono AOT（normal + profiled） | 12.47 MB | 默认交付；启动更快，Release 默认开启 |
 | `NativeAot` | NativeAOT | 未完成 | Android 上实验性；需要 clang/LLVM/Android NDK，反射与动态能力受限 |
 
 - APK 同时包含 `arm64-v8a` 和 `x86_64`，可安装到真机和模拟器。
@@ -100,15 +100,18 @@ Bin\Mobile.Android\apk\Mobile-NativeAot.apk
 
 ```powershell
 # 构建、安装并跑冒烟（同时自动连接星尘）
-pwsh Samples/Mobile.Android/run-android.ps1 -Mode Jit -Smoke -Stardust
+pwsh Samples/Mobile.Android/run-android.ps1 -Mode Aot -Smoke -Stardust
 
 # 只构建、安装并连接星尘
-pwsh Samples/Mobile.Android/run-android.ps1 -Mode Jit -Stardust
+pwsh Samples/Mobile.Android/run-android.ps1 -Mode Aot -Stardust
 ```
 
 - 服务端默认 `http://star.newlifex.com:6600`，产品编码 `StarAgent-Mobile`；
-- 首次登录由服务端分配节点编码与密钥，保存在应用私有目录的 `stardust.json`；
-- 星尘构建关闭全裁剪/AOT（`TrimMode=partial` / `PublishTrimmed=false`），不影响默认冒烟构建；
+- 首次登录由服务端分配节点编码与密钥，保存在应用私有目录的 `staragent.json`；
+- 设备信息优先读取厂商市场名称（如 `HONOR 20 PRO`）、系统设备名称（如 `FeiFan`）和 SoC 友好名称（如 `Huawei Kirin 980`）；
+- Android 10+ 普通应用无法读取 IMEI/MEID，序列号也通常不可读；此时硬件唯一标识继续使用 `android_id`；
+- 服务端密钥校验失败时，客户端会自动清空本地密钥并重试一次，触发服务端动态注册；日志会输出 `Secret=已保存/空` 便于排查；
+- 星尘构建使用 `TrimMode=partial` 裁剪并保持 AOT，避免 Android 10 真机 JIT 冷启动时 `n_onCreate` 未注册崩溃；默认冒烟构建不受影响；
 - iOS：`INCLUDE_STARDUST=true bash Samples/Mobile.iOS/run-ios.sh`，`Info.plist` 已为 `star.newlifex.com` 添加 HTTP 例外。
 
 ## iOS
