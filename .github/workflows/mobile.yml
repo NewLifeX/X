@@ -4,7 +4,10 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'Samples/MobileSmoke/**'
+      - 'Samples/Mobile.Core/**'
+      - 'Samples/Mobile.Console/**'
+      - 'Samples/Mobile.Android/**'
+      - 'Samples/Mobile.iOS/**'
       - 'NewLife.Core/**'
       - '.github/workflows/mobile.yml'
   schedule:
@@ -34,13 +37,13 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: pwsh ./Samples/MobileSmoke/run-android.ps1 -Configuration Release -TimeoutSec 240
+          script: pwsh ./Samples/Mobile.Android/run-android.ps1 -Configuration Release -TimeoutSec 240 -Smoke
       - name: Upload Android artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mobile-android
-          path: Samples/MobileSmoke/artifacts/**
+          path: Bin/Mobile.Android/**
 
   ios:
     name: ios simulator
@@ -54,10 +57,10 @@ jobs:
       - name: Install iOS workload
         run: dotnet workload install ios || sudo dotnet workload install ios
       - name: Run iOS smoke
-        run: bash ./Samples/MobileSmoke/run-ios.sh
+        run: bash ./Samples/Mobile.iOS/run-ios.sh
       - name: Upload iOS artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mobile-ios
-          path: Samples/MobileSmoke/artifacts/**
+          path: Bin/Mobile.iOS/**

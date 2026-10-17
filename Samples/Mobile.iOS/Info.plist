@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDisplayName</key>
-    <string>MobileSmoke</string>
+    <string>新生命测试台</string>
     <key>CFBundleIdentifier</key>
-    <string>com.newlife.mobilesmoke</string>
+    <string>com.newlife.mobile</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>CFBundleVersion</key>
@@ -56,3 +56,4 @@
     </dict>
 </dict>
 </plist>
+

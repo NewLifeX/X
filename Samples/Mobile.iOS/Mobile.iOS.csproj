@@ -5,10 +5,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <RootNamespace>Mobile.iOSHost</RootNamespace>
+    <AssemblyName>Mobile.iOS</AssemblyName>
     <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
     <TrimMode Condition="'$(Configuration)' == 'Release'">full</TrimMode>
+    <OutputPath>..\..\Bin\Mobile.iOS</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MobileSmoke.Core\MobileSmoke.Core.csproj" />
+    <ProjectReference Include="..\Mobile.Core\Mobile.Core.csproj" />
   </ItemGroup>
 </Project>

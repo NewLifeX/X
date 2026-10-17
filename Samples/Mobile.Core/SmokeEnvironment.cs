@@ -1,4 +1,4 @@
-namespace MobileSmoke;
+namespace Mobile;
 
 /// <summary>移动端可写路径与报告位置。</summary>
 public static class SmokeEnvironment
@@ -47,8 +47,9 @@ public static class SmokeEnvironment
 
         if (String.IsNullOrEmpty(root)) root = Path.GetTempPath();
 
-        root = Path.Combine(root, "MobileSmoke");
+        root = Path.Combine(root, "Mobile");
         Directory.CreateDirectory(root);
         return root;
     }
 }
+

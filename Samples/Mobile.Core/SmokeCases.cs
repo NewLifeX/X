@@ -26,7 +26,7 @@ using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
 
-namespace MobileSmoke;
+namespace Mobile;
 
 /// <summary>移动端冒烟用例。全部用例只依赖本机回环，不访问外部网络。</summary>
 public static class SmokeCases
@@ -175,7 +175,12 @@ public static class SmokeCases
 
         if (String.IsNullOrEmpty(mi.OSName)) throw new Exception("MachineInfo.OSName 为空");
         if (String.IsNullOrEmpty(mi.OSVersion)) throw new Exception("MachineInfo.OSVersion 为空");
-        if (mi.Memory == 0) SmokeEnvironment.WriteDiagnostic("[diag] MachineInfo.Memory 未采集（iOS 等移动平台分支可能缺失）");
+        if (OperatingSystem.IsIOS() && mi.OSName != "iOS") throw new Exception($"MachineInfo.OSName 异常：{mi.OSName}");
+        if (mi.Memory == 0)
+        {
+            if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()) throw new Exception("MachineInfo.Memory 未采集");
+            SmokeEnvironment.WriteDiagnostic("[diag] MachineInfo.Memory 未采集（当前平台未提供）");
+        }
 
         SmokeEnvironment.WriteDiagnostic($"[diag] OSName={mi.OSName}; OSVersion={mi.OSVersion}; Memory={mi.Memory}; Available={mi.AvailableMemory}");
         mi.Refresh();

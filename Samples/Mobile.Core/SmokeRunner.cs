@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using NewLife.Log;
 
-namespace MobileSmoke;
+namespace Mobile;
 
 /// <summary>用例跳过标记。</summary>
 public sealed class SkipException : Exception
@@ -146,3 +146,4 @@ internal sealed class DiagnosticLog : ILog
 
     public void Fatal(String format, params Object?[] args) => Write(LogLevel.Fatal, format, args);
 }
+

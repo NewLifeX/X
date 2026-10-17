@@ -9,7 +9,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$project = Join-Path $PSScriptRoot "MobileSmoke.Android\MobileSmoke.Android.csproj"
+$project = Join-Path $PSScriptRoot "Mobile.Android.csproj"
 
 function Find-Jdk {
     if ($env:JAVA_HOME -and (Test-Path (Join-Path $env:JAVA_HOME "bin\java.exe"))) { return $env:JAVA_HOME }
@@ -85,8 +85,8 @@ if ($WithEmulator) {
     & $sdkManager "emulator" $image
     if ($LASTEXITCODE -ne 0) { throw "sdkmanager emulator/system image failed." }
 
-    Write-Host "Creating AVD MobileSmoke ..."
-    cmd.exe /c "echo no|`"$avdManager`" create avd -n MobileSmoke -k `"$image`" --force" | Out-Null
+    Write-Host "Creating AVD Mobile ..."
+    cmd.exe /c "echo no|`"$avdManager`" create avd -n Mobile -k `"$image`" --force" | Out-Null
 }
 
 [Environment]::SetEnvironmentVariable("ANDROID_HOME", $SdkPath, "User")
@@ -99,10 +99,11 @@ Write-Host "  JAVA_HOME=$JdkPath"
 Write-Host "  ANDROID_HOME=$SdkPath"
 
 if ($WithEmulator) {
-    Write-Host "Start emulator: `"$SdkPath\emulator\emulator.exe`" -avd MobileSmoke"
+    Write-Host "Start emulator: `"$SdkPath\emulator\emulator.exe`" -avd Mobile`"
     if ($StartEmulator) {
-        Start-Process (Join-Path $SdkPath "emulator\emulator.exe") -ArgumentList "-avd", "MobileSmoke"
+        Start-Process (Join-Path $SdkPath "emulator\emulator.exe") -ArgumentList "-avd", "Mobile"
     }
 }
 
 Write-Host "Connect a phone with USB debugging, then run: $PSScriptRoot\run-android.ps1"
+

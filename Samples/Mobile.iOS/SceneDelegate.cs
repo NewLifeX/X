@@ -2,7 +2,7 @@ using Foundation;
 using ObjCRuntime;
 using UIKit;
 
-namespace MobileSmoke.iOSHost;
+namespace Mobile.iOSHost;
 
 [Register("SceneDelegate")]
 public class SceneDelegate : UIResponder, IUIWindowSceneDelegate
@@ -16,7 +16,7 @@ public class SceneDelegate : UIResponder, IUIWindowSceneDelegate
         if (scene is not UIWindowScene windowScene) return;
 
         Window ??= new UIWindow(windowScene);
-        Window.RootViewController = new SmokeViewController();
+        Window.RootViewController = new MobileViewController();
         Window.MakeKeyAndVisible();
     }
 }

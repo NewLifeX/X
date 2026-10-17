@@ -2,18 +2,18 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-PROJECT="$ROOT/Samples/MobileSmoke/MobileSmoke.iOS/MobileSmoke.iOS.csproj"
+PROJECT="$ROOT/Samples/Mobile.iOS/Mobile.iOS.csproj"
 CONFIGURATION="${CONFIGURATION:-Release}"
 RUNTIME="${RUNTIME:-iossimulator-arm64}"
-BUNDLE_ID="com.newlife.mobilesmoke"
+BUNDLE_ID="com.newlife.mobile"
 TIMEOUT="${TIMEOUT:-180}"
-ARTIFACTS="$ROOT/Samples/MobileSmoke/artifacts"
+ARTIFACTS="$ROOT/Bin/Mobile.iOS/artifacts"
 
 mkdir -p "$ARTIFACTS"
 
 dotnet build "$PROJECT" -c "$CONFIGURATION" -f net10.0-ios -p:RuntimeIdentifier="$RUNTIME" --nologo
 
-APP="$(find "$ROOT/Samples/MobileSmoke/MobileSmoke.iOS/bin/$CONFIGURATION/net10.0-ios/$RUNTIME" -maxdepth 3 -name "*.app" -print -quit)"
+APP="$(find "$ROOT/Bin/Mobile.iOS" -maxdepth 5 -name "*.app" -print -quit)"
 if [ -z "$APP" ]; then
   echo "iOS app bundle not found."
   exit 1
@@ -30,7 +30,7 @@ xcrun simctl boot "$UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$UDID" -b
 xcrun simctl install "$UDID" "$APP"
 xcrun simctl terminate "$UDID" "$BUNDLE_ID" 2>/dev/null || true
-xcrun simctl launch "$UDID" "$BUNDLE_ID"
+xcrun simctl launch "$UDID" "$BUNDLE_ID" --smoke
 
 RESULT=""
 DEADLINE=$((SECONDS + TIMEOUT))
@@ -47,7 +47,7 @@ done
 
 if [ -z "$RESULT" ]; then
   echo "smoke.json not found within ${TIMEOUT}s. Recent app log:"
-  xcrun simctl spawn "$UDID" log show --last 2m --style compact --predicate 'process == "MobileSmoke"' || true
+  xcrun simctl spawn "$UDID" log show --last 2m --style compact --predicate 'process == "Mobile"' || true
   exit 1
 fi
 

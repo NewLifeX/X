@@ -9,50 +9,68 @@ using Android.Provider;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
-using MobileConsole;
 using NewLife;
 using NewLife.Log;
 
-namespace MobileConsole.AndroidHost;
+namespace Mobile.AndroidHost;
 
-/// <summary>把整个屏幕当作控制台：等宽字体、可滚动、可复制，同时把内容写入 logcat。</summary>
-[Activity(Label = "MobileConsole", MainLauncher = true, Theme = "@android:style/Theme.Material.NoActionBar",
+/// <summary>把整个屏幕当作控制台：系统信息、冒烟测试、XTrace 日志三合一。</summary>
+[Activity(Label = "新生命测试台", MainLauncher = true, Theme = "@android:style/Theme.Material.NoActionBar",
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize)]
 public class MainActivity : Activity
 {
-    private const String Tag = "MobileConsole";
+    private const String Tag = "Mobile";
     private const String Background = "#0B0F14";
     private const String Foreground = "#D7E2EA";
 
     private TextView? _console;
-    private Button? _refresh;
+    private Button? _infoButton;
+    private Button? _smokeButton;
+    private Button? _copyButton;
+    private Button? _clearButton;
     private Boolean _running;
-    private String _report = "";
+    private Boolean _autoSmoke;
     private String _logDir = "";
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
 
+        _autoSmoke = Intent?.GetBooleanExtra("smoke", false) == true;
+
         var root = new LinearLayout(this) { Orientation = Orientation.Vertical };
         root.SetBackgroundColor(Color.ParseColor(Background));
 
-        var bar = new LinearLayout(this) { Orientation = Orientation.Horizontal };
-        bar.SetGravity(GravityFlags.CenterVertical);
+        var bar = new LinearLayout(this) { Orientation = Orientation.Vertical };
         bar.SetPadding(Dp(12), Dp(4), Dp(12), Dp(4));
 
-        var title = new TextView(this) { Text = "MobileConsole", TextSize = 15 };
+        var row1 = new LinearLayout(this) { Orientation = Orientation.Horizontal };
+        row1.SetGravity(GravityFlags.CenterVertical);
+
+        var title = new TextView(this) { Text = "新生命移动测试台", TextSize = 15 };
         title.SetTextColor(Color.ParseColor("#7FD1AE"));
         title.SetTypeface(Typeface.Monospace, TypefaceStyle.Bold);
-        bar.AddView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1));
+        row1.AddView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1));
 
-        _refresh = new Button(this) { Text = "刷新" };
-        _refresh.Click += (_, _) => RunDump();
-        bar.AddView(_refresh);
+        _infoButton = new Button(this) { Text = "系统信息" };
+        _infoButton.Click += (_, _) => RunInfo();
+        row1.AddView(_infoButton);
 
-        var copy = new Button(this) { Text = "复制" };
-        copy.Click += (_, _) => CopyReport();
-        bar.AddView(copy);
+        _smokeButton = new Button(this) { Text = "运行冒烟" };
+        _smokeButton.Click += (_, _) => RunSmoke();
+        row1.AddView(_smokeButton);
+
+        var row2 = new LinearLayout(this) { Orientation = Orientation.Horizontal };
+        _copyButton = new Button(this) { Text = "复制" };
+        _copyButton.Click += (_, _) => CopyReport();
+        row2.AddView(_copyButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1));
+
+        _clearButton = new Button(this) { Text = "清空" };
+        _clearButton.Click += (_, _) => ClearReport();
+        row2.AddView(_clearButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1));
+
+        bar.AddView(row1, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent));
+        bar.AddView(row2, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent));
 
         _console = new TextView(this)
         {
@@ -72,13 +90,14 @@ public class MainActivity : Activity
         SetContentView(root);
 
         MachineInfo.Provider = new AndroidMachineInfoProvider(this);
+        SmokeEnvironment.DiagnosticLog = AppendSmokeLine;
         SetupLogging();
-        RunDump();
+        RunInfo();
     }
 
     private void SetupLogging()
     {
-        var logs = new CompositeLog(new TextViewLog(AppendLine));
+        var logs = new CompositeLog(new TextViewLog(Append));
 
         try
         {
@@ -101,32 +120,23 @@ public class MainActivity : Activity
         XTrace.Log = logs;
     }
 
-    private void AppendLine(String line) => RunOnUiThread(() =>
-    {
-        if (_console == null) return;
-        _console.Append(line + "\n");
-    });
-
-    private void RunDump()
+    private void RunInfo()
     {
         if (_running) return;
         _running = true;
-        if (_refresh != null) _refresh.Enabled = false;
+        SetBusy(true);
         if (_console != null) _console.Text = "";
 
         Task.Run(() =>
         {
             try
             {
-                var text = ConsoleDump.Build() + BuildAndroidSection() + BuildLogSection();
-                _report = text;
-
-                // 通过 XTrace 同时写入日志文件、UI 文本控件与 logcat
+                var text = MachineInfoReport.Build() + BuildAndroidSection() + BuildLogSection();
                 foreach (var line in text.Split('\n'))
                 {
                     XTrace.WriteLine(line.TrimEnd('\r'));
                 }
-                XTrace.WriteLine("=== MobileConsole end ===");
+                XTrace.WriteLine("=== Info end ===");
 
                 if (!_logDir.IsNullOrEmpty())
                 {
@@ -147,10 +157,95 @@ public class MainActivity : Activity
             finally
             {
                 _running = false;
-                RunOnUiThread(() => { if (_refresh != null) _refresh.Enabled = true; });
+                SetBusy(false);
+
+                if (_autoSmoke)
+                {
+                    _autoSmoke = false;
+                    RunSmoke();
+                }
             }
         });
     }
+
+    private void RunSmoke()
+    {
+        if (_running) return;
+        _running = true;
+        SetBusy(true);
+        Append("");
+        Append("=== Smoke ===");
+        Log.Info(Tag, "=== Smoke ===");
+
+        Task.Run(() =>
+        {
+            try
+            {
+                var report = SmokeRunner.RunAll(r =>
+                {
+                    var line = r.ToLine();
+                    Log.Info(Tag, line);
+                    Append(line);
+                });
+
+                var summary = report.Summary;
+                Log.Info(Tag, summary);
+                Append(summary);
+
+                try
+                {
+                    report.Save();
+                    Log.Info(Tag, "report=" + SmokeEnvironment.ReportJsonPath);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(Tag, "smoke report save failed: " + ex);
+                }
+
+                if (!_logDir.IsNullOrEmpty())
+                {
+                    try
+                    {
+                        File.WriteAllText(System.IO.Path.Combine(_logDir, "smoke.txt"), report.ToText());
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(Tag, "smoke text save failed: " + ex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(Tag, "smoke fatal: " + ex);
+                Append("[FAIL] fatal -> " + ex.Message);
+            }
+            finally
+            {
+                _running = false;
+                SetBusy(false);
+            }
+        });
+    }
+
+    private void AppendSmokeLine(String line)
+    {
+        Log.Info(Tag, line);
+        Append(line);
+    }
+
+    private void Append(String line) => RunOnUiThread(() =>
+    {
+        if (_console == null) return;
+        _console.Append(line + "\n");
+    });
+
+    private void SetBusy(Boolean busy) => RunOnUiThread(() =>
+    {
+        if (_infoButton != null) _infoButton.Enabled = !busy;
+        if (_smokeButton != null) _smokeButton.Enabled = !busy;
+        if (_copyButton != null) _copyButton.Enabled = !busy;
+        if (_clearButton != null) _clearButton.Enabled = !busy;
+    });
 
     private String BuildAndroidSection()
     {
@@ -226,7 +321,11 @@ public class MainActivity : Activity
         var sb = new StringBuilder();
         sb.AppendLine("[日志]");
         sb.AppendLine("目录: " + (_logDir.IsNullOrEmpty() ? "(不可用)" : _logDir));
-        if (!_logDir.IsNullOrEmpty()) sb.AppendLine("报告: " + System.IO.Path.Combine(_logDir, "report.txt"));
+        if (!_logDir.IsNullOrEmpty())
+        {
+            sb.AppendLine("报告: " + System.IO.Path.Combine(_logDir, "report.txt"));
+            sb.AppendLine("冒烟: " + System.IO.Path.Combine(_logDir, "smoke.txt"));
+        }
         sb.AppendLine();
 
         return sb.ToString();
@@ -234,13 +333,14 @@ public class MainActivity : Activity
 
     private void CopyReport()
     {
-        if (_report.IsNullOrEmpty()) return;
+        var text = _console?.Text;
+        if (text.IsNullOrEmpty()) return;
 
         try
         {
             if (GetSystemService(ClipboardService) is ClipboardManager clipboard)
             {
-                clipboard.PrimaryClip = ClipData.NewPlainText("MobileConsole", _report);
+                clipboard.PrimaryClip = ClipData.NewPlainText("Mobile", text);
                 Toast.MakeText(this, "已复制", ToastLength.Short)?.Show();
             }
         }
@@ -248,6 +348,11 @@ public class MainActivity : Activity
         {
             Log.Error(Tag, "copy failed: " + ex.Message);
         }
+    }
+
+    private void ClearReport()
+    {
+        if (_console != null) _console.Text = "";
     }
 
     private Int32 Dp(Int32 value) => (Int32)Math.Round(value * (Resources?.DisplayMetrics?.Density ?? 1));

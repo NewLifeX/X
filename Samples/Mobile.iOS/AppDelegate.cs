@@ -2,7 +2,7 @@ using Foundation;
 using ObjCRuntime;
 using UIKit;
 
-namespace MobileSmoke.iOSHost;
+namespace Mobile.iOSHost;
 
 [Register("AppDelegate")]
 public class AppDelegate : UIApplicationDelegate

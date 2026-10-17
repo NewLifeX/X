@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Mobile.ConsoleHost</RootNamespace>
+    <AssemblyName>Mobile.Console</AssemblyName>
+    <OutputPath>..\..\Bin\Mobile.Console</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mobile.Core\Mobile.Core.csproj" />
+  </ItemGroup>
+</Project>

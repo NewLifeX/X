@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MobileSmoke;
+namespace Mobile;
 
 /// <summary>用例状态。</summary>
 public enum SmokeStatus
@@ -145,3 +145,4 @@ public sealed class SmokeReport
         return sb.ToString();
     }
 }
+

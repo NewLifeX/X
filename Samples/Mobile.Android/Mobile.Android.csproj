@@ -6,14 +6,23 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <ApplicationId>com.newlife.mobilesmoke</ApplicationId>
+    <RootNamespace>Mobile.AndroidHost</RootNamespace>
+    <AssemblyName>Mobile.Android</AssemblyName>
+    <ApplicationId>com.newlife.mobile</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <TrimMode>full</TrimMode>
+    <OutputPath>..\..\Bin\Mobile.Android</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(NativeAot)' == 'true'">
+    <PublishAot>true</PublishAot>
+    <UseMonoRuntime>false</UseMonoRuntime>
+    <RunAOTCompilation>false</RunAOTCompilation>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MobileSmoke.Core\MobileSmoke.Core.csproj" />
+    <ProjectReference Include="..\Mobile.Core\Mobile.Core.csproj" />
   </ItemGroup>
 </Project>
