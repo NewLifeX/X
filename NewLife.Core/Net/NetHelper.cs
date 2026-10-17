@@ -706,9 +706,24 @@ public static class NetHelper
 
     private static void Wake(String mac)
     {
+        var bts = BuildWakePacket(mac);
+
+        using var client = new UdpClient
+        {
+            EnableBroadcast = true
+        };
+        client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+        //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+    }
+
+    /// <summary>构造网络唤醒魔包。6 字节 FF + 16 次重复 MAC</summary>
+    /// <param name="mac">MAC 地址，支持横线或冒号分隔</param>
+    /// <returns>魔包字节</returns>
+    internal static Byte[] BuildWakePacket(String mac)
+    {
         mac = mac.Replace("-", null).Replace(":", null);
         using var buffer = Pool.Rent(mac.Length / 2);
-        using var bts = Pool.Rent(6 + 16 * buffer.Length);
+        var bts = new Byte[6 + 16 * buffer.Length];
 
         for (var i = 0; i < buffer.Length; i++)
             buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
@@ -722,12 +737,7 @@ public static class NetHelper
             bts[i] = buffer[k];
         }
 
-        using var client = new UdpClient
-        {
-            EnableBroadcast = true
-        };
-        client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
-        //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+        return bts;
     }
     #endregion
 
