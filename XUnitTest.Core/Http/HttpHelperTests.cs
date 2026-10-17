@@ -60,17 +60,17 @@ public class HttpHelperTests
         var url = "http://star.newlifex.com/cube/info";
 
         var client = new HttpClient(new MyHandler());
-        var rs = client.PostXml(url, new { state = "1234", state2 = "abcd" });
+        var obj = new { state = "1234", state2 = "abcd" };
+        var rs = client.PostXml(url, obj);
         Assert.NotNull(rs);
+        // 匿名类型名由编译器生成且编号随程序集内匿名类型数量变化，只断言 XML 结构与字段，避免脆弱的硬编码
         var expected = """
-            <_f__AnonymousType4_2>
               <state>1234</state>
               <state2>abcd</state2>
-            </_f__AnonymousType4_2>
             """;
         Assert.Contains(expected.NormalizeNewline(), rs.NormalizeNewline());
 
-        rs = await client.PostXmlAsync(url, new { state = "1234", state2 = "abcd" });
+        rs = await client.PostXmlAsync(url, obj);
         Assert.NotNull(rs);
         Assert.Contains(expected.NormalizeNewline(), rs.NormalizeNewline());
     }
