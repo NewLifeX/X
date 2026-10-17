@@ -938,7 +938,7 @@ public class DefaultReflect : IReflect
     /// 来源或目标对象为IModel时，借助IModel的索引器来取值赋值，提升性能。
     /// <para>目标对象必须预先创建；深拷贝时，目标对象的数组成员也须预先创建且非 null，否则无法为数组类型构造实例。</para>
     /// <para>深拷贝仅支持一维数组，多维数组会因按单索引访问元素而抛出 <see cref="ArgumentException"/>。</para>
-    /// <para>深拷贝不支持循环引用（<paramref name="deep"/> 为 true 时不做环检测），对循环对象图做深拷贝会栈溢出，请避免；该限制将另案处理。</para>
+    /// <para>深拷贝支持循环与共享引用：同一源实例在副本中复用同一目标实例，循环对象图不会无限递归。</para>
     /// </remarks>
     /// <param name="target">目标对象</param>
     /// <param name="source">源对象</param>
@@ -995,7 +995,30 @@ public class DefaultReflect : IReflect
             dic[pi.Name] = GetValue(source, pi);
         }
 
-        Copy(target, dic, deep);
+        // 深拷贝维护“源引用→目标副本”映射，环处复用已构造副本，保留共享引用
+        var visited = new Dictionary<Object, Object>(ReferenceComparer.Instance) { [source] = target };
+        Copy(target, dic, deep, visited);
+    }
+
+    /// <summary>从源对象拷贝数据到目标对象（深拷贝，共享引用表）</summary>
+    /// <param name="target">目标对象</param>
+    /// <param name="source">源对象</param>
+    /// <param name="deep">递归深度拷贝</param>
+    /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
+    private void Copy(Object target, Object source, Boolean deep, IDictionary<Object, Object> visited)
+    {
+        if (target == null || source == null || target == source) return;
+
+        // 来源对象转为字典
+        var dic = new Dictionary<String, Object?>();
+        foreach (var pi in _properties.GetOrAdd(source.GetType(), key => key.GetProperties(true).ToDictionary(e => e.Name, e => e)).Values)
+        {
+            if (!pi.CanRead) continue;
+
+            dic[pi.Name] = GetValue(source, pi);
+        }
+
+        Copy(target, dic, deep, visited);
     }
 
     /// <summary>从源字典拷贝数据到目标对象</summary>
@@ -1003,6 +1026,18 @@ public class DefaultReflect : IReflect
     /// <param name="source">源字典</param>
     /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
     public virtual void Copy(Object target, IDictionary<String, Object?> source, Boolean deep = false)
+    {
+        if (target == null || source == null || source.Count == 0 || target == source) return;
+
+        Copy(target, source, deep, new Dictionary<Object, Object>(ReferenceComparer.Instance));
+    }
+
+    /// <summary>从源字典拷贝数据到目标对象</summary>
+    /// <param name="target">目标对象</param>
+    /// <param name="source">源字典</param>
+    /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
+    /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
+    private void Copy(Object target, IDictionary<String, Object?> source, Boolean deep, IDictionary<Object, Object> visited)
     {
         if (target == null || source == null || source.Count == 0 || target == source) return;
 
@@ -1017,6 +1052,13 @@ public class DefaultReflect : IReflect
                     SetValue(target, pi, obj);
                 else
                 {
+                    // 循环/共享引用：源对象已拷贝时直接复用已有副本
+                    if (obj != null && visited.TryGetValue(obj, out var exist) && pi.PropertyType.IsInstanceOfType(exist))
+                    {
+                        SetValue(target, pi, exist);
+                        continue;
+                    }
+
                     var v = GetValue(target, pi);
 
                     // 如果目标对象该成员为空，需要创建再拷贝
@@ -1028,16 +1070,21 @@ public class DefaultReflect : IReflect
 
                     if (pi.PropertyType.IsArray)
                     {
-                        v = ArrayCopy(v, obj, deep);
+                        v = ArrayCopy(v, obj, deep, visited);
                         SetValue(target, pi, v);
                     }
                     else if (typeof(IDictionary).IsAssignableFrom(pi.PropertyType) ||
                         (pi.PropertyType.IsGenericType &&
                         pi.PropertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
-                        DictionaryCopy(v, obj, deep);
+                        DictionaryCopy(v, obj, deep, visited);
                     else if (typeof(IEnumerable).IsAssignableFrom(pi.PropertyType) && pi.PropertyType != typeof(String))
-                        IEnumerableCopy(v, obj, deep);
-                    else if (v != null && obj != null) Copy(v, obj, deep);
+                        IEnumerableCopy(v, obj, deep, visited);
+                    else if (v != null && obj != null)
+                    {
+                        // 先登记再递归，保证自引用/互引用能拿到当前副本
+                        visited[obj] = v;
+                        Copy(v, obj, deep, visited);
+                    }
                 }
             }
         }
@@ -1049,16 +1096,23 @@ public class DefaultReflect : IReflect
     /// <param name="targetArray"></param>
     /// <param name="sourceArray"></param>
     /// <param name="deep"></param>
-    private Object? ArrayCopy(Object targetArray, Object? sourceArray, Boolean deep)
+    /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
+    private Object? ArrayCopy(Object targetArray, Object? sourceArray, Boolean deep, IDictionary<Object, Object> visited)
     {
         if (targetArray is Array tarArr && sourceArray is Array srcArr)
         {
+            // 共享引用：同一源数组复用同一目标数组
+            if (visited.TryGetValue(srcArr, out var exist) && exist is Array existArr) return existArr;
+
             // 目标数组长度不足时，按源数组长度重建，避免越界
             if (tarArr.Length < srcArr.Length)
                 tarArr = (Array)CreateInstance(GetElementType(tarArr.GetType())!, srcArr.Length);
 
             // 清空目标数组
             Array.Clear(tarArr, 0, tarArr.Length);
+
+            // 先登记源数组，元素自引用时可拿回当前副本
+            visited[srcArr] = tarArr;
 
             // 遍历源数组
             var targetArrayType = GetElementType(tarArr.GetType())!;
@@ -1067,6 +1121,8 @@ public class DefaultReflect : IReflect
                 var srcValue = srcArr.GetValue(i);
                 if (!deep || srcValue == null || targetArrayType.IsBaseType())
                     tarArr.SetValue(srcValue, i);
+                else if (visited.TryGetValue(srcValue, out var copy) && targetArrayType.IsInstanceOfType(copy))
+                    tarArr.SetValue(copy, i);
                 else
                 {
                     var tarValue = tarArr.GetValue(i);
@@ -1075,7 +1131,8 @@ public class DefaultReflect : IReflect
                         tarValue = CreateInstance(targetArrayType);
                         tarArr.SetValue(tarValue, i);
                     }
-                    Copy(tarValue!, srcValue!, deep);
+                    if (tarValue != null) visited[srcValue] = tarValue;
+                    Copy(tarValue!, srcValue!, deep, visited);
                 }
             }
 
@@ -1089,7 +1146,15 @@ public class DefaultReflect : IReflect
     /// <param name="source"></param>
     /// <param name="deep"></param>
     [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    public void DictionaryCopy(Object target, Object? source, Boolean deep)
+    public void DictionaryCopy(Object target, Object? source, Boolean deep) => DictionaryCopy(target, source, deep, new Dictionary<Object, Object>(ReferenceComparer.Instance));
+
+    /// <summary>字典拷贝</summary>
+    /// <param name="target"></param>
+    /// <param name="source"></param>
+    /// <param name="deep"></param>
+    /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    private void DictionaryCopy(Object target, Object? source, Boolean deep, IDictionary<Object, Object> visited)
     {
         if (target == null || source == null)
             return;
@@ -1097,7 +1162,7 @@ public class DefaultReflect : IReflect
         // 非泛型 IDictionary
         if (target is IDictionary tarDic && source is IDictionary srcDic)
         {
-            DictionaryCopy(tarDic, srcDic, deep);
+            DictionaryCopy(tarDic, srcDic, deep, visited);
             return;
         }
 
@@ -1109,7 +1174,7 @@ public class DefaultReflect : IReflect
 
         if (dictIface != null)
         {
-            DictionaryCopy(target, source, dictIface, deep);
+            DictionaryCopy(target, source, dictIface, deep, visited);
         }
     }
 
@@ -1119,9 +1184,16 @@ public class DefaultReflect : IReflect
     /// <param name="targetDic"></param>
     /// <param name="sourceDic"></param>
     /// <param name="deep"></param>
-    private void DictionaryCopy(IDictionary targetDic, IDictionary sourceDic, Boolean deep)
+    /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
+    private void DictionaryCopy(IDictionary targetDic, IDictionary sourceDic, Boolean deep, IDictionary<Object, Object> visited)
     {
         if (targetDic.IsReadOnly) return;
+
+        // 共享引用：同一源字典复用同一目标字典
+        if (visited.TryGetValue(sourceDic, out var exist) && exist is IDictionary) return;
+
+        // 先登记再填充，字典自引用（自身作为值）时可拿回当前副本
+        visited[sourceDic] = targetDic;
 
         targetDic.Clear();
 
@@ -1137,10 +1209,15 @@ public class DefaultReflect : IReflect
             {
                 targetDic[key] = value;
             }
+            else if (visited.TryGetValue(value, out var copy))
+            {
+                targetDic[key] = copy;
+            }
             else
             {
                 var dstValue = CreateInstance(value.GetType());
-                Copy(dstValue!, value, true);
+                if (dstValue != null) visited[value] = dstValue;
+                Copy(dstValue!, value, true, visited);
                 targetDic[key] = dstValue;
             }
         }
@@ -1153,10 +1230,17 @@ public class DefaultReflect : IReflect
     /// <param name="sourceDic"></param>
     /// <param name="dictInterface"></param>
     /// <param name="deep"></param>
+    /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
     [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    private void DictionaryCopy(Object targetDic, Object sourceDic, Type dictInterface, Boolean deep)
+    private void DictionaryCopy(Object targetDic, Object sourceDic, Type dictInterface, Boolean deep, IDictionary<Object, Object> visited)
     {
+        // 共享引用：同一源字典复用同一目标字典
+        if (visited.TryGetValue(sourceDic, out var exist) && exist is IDictionary) return;
+
+        // 先登记再填充，字典自引用（自身作为值）时可拿回当前副本
+        visited[sourceDic] = targetDic;
+
         var args = dictInterface.GetGenericArguments();
         var keyType = args[0];
         var valueType = args[1];
@@ -1184,10 +1268,15 @@ public class DefaultReflect : IReflect
             {
                 valueToUse = value;
             }
+            else if (visited.TryGetValue(value, out var copy))
+            {
+                valueToUse = copy;
+            }
             else
             {
                 var dstValue = CreateInstance(valueType);
-                Copy(dstValue, value, true);
+                if (dstValue != null) visited[value] = dstValue;
+                Copy(dstValue!, value, true, visited);
                 valueToUse = dstValue;
             }
 
@@ -1201,10 +1290,18 @@ public class DefaultReflect : IReflect
     /// <param name="targetEnumerable">目标集合</param>
     /// <param name="sourceEnumerable">源集合</param>
     /// <param name="deep">是否深拷贝</param>
+    /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
     [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    private void IEnumerableCopy(Object targetEnumerable, Object? sourceEnumerable, Boolean deep)
+    private void IEnumerableCopy(Object targetEnumerable, Object? sourceEnumerable, Boolean deep, IDictionary<Object, Object> visited)
     {
         if (sourceEnumerable is not IEnumerable srcEnum) return;
+
+        // 共享引用：同一源集合复用同一目标集合
+        if (visited.TryGetValue(sourceEnumerable, out var exist) && exist is IEnumerable) return;
+
+        // 先登记再填充，集合自引用（自身作为元素）时可拿回当前副本
+        visited[sourceEnumerable] = targetEnumerable;
+
         if (targetEnumerable is IList tarList)
         {
             tarList.Clear();
@@ -1217,11 +1314,18 @@ public class DefaultReflect : IReflect
                 {
                     tarList.Add(srcItem);
                 }
+                else if (visited.TryGetValue(srcItem, out var copy))
+                {
+                    tarList.Add(copy);
+                }
                 else
                 {
                     var dstItem = CreateInstance(elemType);
                     if (dstItem != null)
-                        Copy(dstItem, srcItem, true);
+                    {
+                        visited[srcItem] = dstItem;
+                        Copy(dstItem, srcItem, true, visited);
+                    }
                     tarList.Add(dstItem ?? srcItem);
                 }
             }
@@ -1253,16 +1357,33 @@ public class DefaultReflect : IReflect
             {
                 valueToAdd = (srcItem.ChangeType(addParamType) ?? srcItem)!;
             }
+            else if (visited.TryGetValue(srcItem, out var copy))
+            {
+                valueToAdd = copy;
+            }
             else
             {
                 var dstItem = addParamType.CreateInstance();
                 if (dstItem != null)
-                    Copy(dstItem, srcItem, true);
+                {
+                    visited[srcItem] = dstItem;
+                    Copy(dstItem, srcItem, true, visited);
+                }
                 valueToAdd = dstItem ?? srcItem;
             }
 
             addMethod.Invoke(targetEnumerable, [valueToAdd]);
         }
+    }
+
+    /// <summary>引用相等比较器。按对象标识而非重写的 Equals 判等，供深拷贝共享引用表使用</summary>
+    private sealed class ReferenceComparer : IEqualityComparer<Object>
+    {
+        public static readonly ReferenceComparer Instance = new();
+
+        Boolean IEqualityComparer<Object>.Equals(Object? x, Object? y) => ReferenceEquals(x, y);
+
+        Int32 IEqualityComparer<Object>.GetHashCode(Object obj) => RuntimeHelpers.GetHashCode(obj);
     }
     #endregion
 

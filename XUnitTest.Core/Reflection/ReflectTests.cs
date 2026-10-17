@@ -504,6 +504,27 @@ public class ReflectTests
         public Node? Next { get; set; }
     }
 
+    private class SelfNode
+    {
+        public String? Name { get; set; }
+
+        public SelfNode? Self { get; set; }
+    }
+
+    private class SharedHolder
+    {
+        public CopyChild? First { get; set; }
+
+        public CopyChild? Second { get; set; }
+    }
+
+    private class SharedListHolder
+    {
+        public List<CopyChild>? First { get; set; }
+
+        public List<CopyChild>? Second { get; set; }
+    }
+
     private class InvokeSample
     {
         public Int32 Value { get; set; }
@@ -641,8 +662,8 @@ public class ReflectTests
         Assert.Equal("a", deepDst.Child!.Name);
     }
 
-    [Fact(DisplayName = "Copy 循环引用：浅拷贝保留引用，深拷贝无环检测故不做断言")]
-    public void Copy_CircularReference_Shallow()
+    [Fact(DisplayName = "Copy 循环引用：浅拷贝保留引用，深拷贝安全复用副本")]
+    public void Copy_CircularReference()
     {
         var a = new Node { Name = "a" };
         var b = new Node { Name = "b", Next = a };
@@ -656,8 +677,72 @@ public class ReflectTests
         Assert.Same(a, dst.Next!.Next);
         Assert.NotSame(a, dst);
 
-        // deep=true 时 Copy 无环检测、无深度上限，循环图会无限递归直至栈溢出（不可捕获），
-        // 因此这里只固化浅拷贝语义，不对循环图做深拷贝断言，避免测试进程崩溃。
+        // 深拷贝：环处复用已构造的副本，不再无限递归
+        var deepDst = new Node();
+        deepDst.Copy(a, deep: true);
+
+        Assert.Equal("a", deepDst.Name);
+        Assert.NotSame(a, deepDst);
+        Assert.NotNull(deepDst.Next);
+        Assert.NotSame(b, deepDst.Next);
+        Assert.Equal("b", deepDst.Next!.Name);
+        Assert.Same(deepDst, deepDst.Next.Next);
+    }
+
+    [Fact(DisplayName = "Copy 深拷贝：自引用对象复用自身副本")]
+    public void Copy_Deep_SelfReference()
+    {
+        var src = new SelfNode { Name = "root" };
+        src.Self = src;
+
+        var dst = new SelfNode();
+        dst.Copy(src, deep: true);
+
+        Assert.Equal("root", dst.Name);
+        Assert.NotSame(src, dst);
+        Assert.Same(dst, dst.Self);
+    }
+
+    [Fact(DisplayName = "Copy 深拷贝：同一共享子实例复用同一副本")]
+    public void Copy_Deep_SharedReference()
+    {
+        var child = new CopyChild { Name = "shared", Value = 7 };
+        var src = new SharedHolder { First = child, Second = child };
+
+        var dst = new SharedHolder();
+        dst.Copy(src, deep: true);
+
+        Assert.NotSame(child, dst.First);
+        Assert.Same(dst.First, dst.Second);
+        Assert.Equal("shared", dst.First!.Name);
+        Assert.Equal(7, dst.First.Value);
+
+        // 共享集合同样复用同一副本
+        var items = new List<CopyChild> { child };
+        var listSrc = new SharedListHolder { First = items, Second = items };
+        var listDst = new SharedListHolder();
+        listDst.Copy(listSrc, deep: true);
+
+        Assert.NotSame(items, listDst.First);
+        Assert.Same(listDst.First, listDst.Second);
+        Assert.NotSame(child, listDst.First![0]);
+        Assert.Equal("shared", listDst.First[0].Name);
+    }
+
+    [Fact(DisplayName = "Copy 深拷贝：DAG 共享叶节点正常复制")]
+    public void Copy_Deep_Dag()
+    {
+        var leaf = new CopyChild { Name = "leaf", Value = 3 };
+        var src = new SharedHolder { First = leaf, Second = leaf };
+
+        var dst = new SharedHolder();
+        dst.Copy(src, deep: true);
+
+        Assert.NotNull(dst.First);
+        Assert.NotNull(dst.Second);
+        Assert.Same(dst.First, dst.Second);
+        Assert.Equal("leaf", dst.First!.Name);
+        Assert.Equal(3, dst.First.Value);
     }
 
     [Fact(DisplayName = "Copy 深拷贝：目标数组为空时无法构造数组实例（现状固化）")]
