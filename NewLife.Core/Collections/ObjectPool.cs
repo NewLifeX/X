@@ -16,7 +16,7 @@ namespace NewLife.Collections;
 /// <para>文档：https://newlifex.com/core/object_pool</para>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
+public class ObjectPool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : DisposeBase, IPool<T> where T : notnull
 {
     #region 属性
     /// <summary>名称</summary>
