@@ -1,0 +1,63 @@
+name: mobile
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'Samples/MobileSmoke/**'
+      - 'NewLife.Core/**'
+      - '.github/workflows/mobile.yml'
+  schedule:
+    - cron: '0 3 * * 1'
+
+jobs:
+  android:
+    name: android emulator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotNET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Install Android workload
+        run: dotnet workload install android || sudo dotnet workload install android
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Android smoke
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: pwsh ./Samples/MobileSmoke/run-android.ps1 -Configuration Release -TimeoutSec 240
+      - name: Upload Android artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-android
+          path: Samples/MobileSmoke/artifacts/**
+
+  ios:
+    name: ios simulator
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotNET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Install iOS workload
+        run: dotnet workload install ios || sudo dotnet workload install ios
+      - name: Run iOS smoke
+        run: bash ./Samples/MobileSmoke/run-ios.sh
+      - name: Upload iOS artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-ios
+          path: Samples/MobileSmoke/artifacts/**
