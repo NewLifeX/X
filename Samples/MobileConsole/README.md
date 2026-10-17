@@ -15,7 +15,7 @@ Android 没有 Windows 那样的控制台窗口。这个示例把整个 Activity
 dotnet run --project Samples/MobileConsole/MobileConsole.Console -c Release
 ```
 
-桌面宿主与 Android 宿主共用 `MobileConsole.Core` 的采集逻辑，可先在桌面上确认输出格式。
+桌面宿主与 Android 宿主共用 `MobileConsole.Core` 的采集逻辑，可先在桌面上确认输出格式。Android Release 启用 `TrimMode=full`，与 MobileSmoke 的移动端门禁一致。
 
 ## Android 真机
 
@@ -49,4 +49,11 @@ dotnet run --project Samples/MobileConsole/MobileConsole.Console -c Release
 
 ## 已知限制
 
-`MachineInfo` 在 Android/iOS 上的平台分支尚不完整（见 `Doc/功能清单.md` 的 IMP-25），`Memory` 等字段可能为 0。本示例额外读取 Android 原生信息补足显示，但不改变 `MachineInfo` 的现有行为。
+`MachineInfo` 的 Android 分支已补齐系统、硬件、内存与 `android_id`；电池/温度由本示例的 `IMachineInfo` Provider 读取 Android 原生信息填充。iOS 仍未补齐（见 `Doc/功能清单.md` 的 IMP-25）。
+
+日志同时写入 UI 文本控件、logcat 和应用外部文件目录：
+
+- `report.txt`：完整文本报告；
+- `YYYY_MM_DD.log`：`XTrace` 文本日志（含时间、线程等字段）。
+
+> `adb pull /storage/emulated/0/Android/data/com.newlife.mobileconsole/files/Log/report.txt`

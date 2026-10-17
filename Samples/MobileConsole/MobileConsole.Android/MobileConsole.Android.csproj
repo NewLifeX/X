@@ -11,6 +11,7 @@
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+    <TrimMode>full</TrimMode>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MobileConsole.Core\MobileConsole.Core.csproj" />

@@ -11,6 +11,7 @@ using Android.Views;
 using Android.Widget;
 using MobileConsole;
 using NewLife;
+using NewLife.Log;
 
 namespace MobileConsole.AndroidHost;
 
@@ -27,6 +28,7 @@ public class MainActivity : Activity
     private Button? _refresh;
     private Boolean _running;
     private String _report = "";
+    private String _logDir = "";
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -69,35 +71,78 @@ public class MainActivity : Activity
         root.AddView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1));
         SetContentView(root);
 
+        MachineInfo.Provider = new AndroidMachineInfoProvider(this);
+        SetupLogging();
         RunDump();
     }
+
+    private void SetupLogging()
+    {
+        var logs = new CompositeLog(new TextViewLog(AppendLine));
+
+        try
+        {
+            var root = GetExternalFilesDir(null)?.AbsolutePath;
+            if (root.IsNullOrEmpty()) root = FilesDir?.AbsolutePath;
+            if (root.IsNullOrEmpty()) root = CacheDir?.AbsolutePath;
+
+            if (!root.IsNullOrEmpty())
+            {
+                _logDir = System.IO.Path.Combine(root, "Log");
+                Directory.CreateDirectory(_logDir);
+                logs.Add(TextFileLog.Create(_logDir));
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(Tag, "日志初始化失败: " + ex.Message);
+        }
+
+        XTrace.Log = logs;
+    }
+
+    private void AppendLine(String line) => RunOnUiThread(() =>
+    {
+        if (_console == null) return;
+        _console.Append(line + "\n");
+    });
 
     private void RunDump()
     {
         if (_running) return;
         _running = true;
         if (_refresh != null) _refresh.Enabled = false;
-        if (_console != null) _console.Text = "采集中...";
+        if (_console != null) _console.Text = "";
 
         Task.Run(() =>
         {
             try
             {
-                var text = ConsoleDump.Build() + BuildAndroidSection();
+                var text = ConsoleDump.Build() + BuildAndroidSection() + BuildLogSection();
                 _report = text;
 
+                // 通过 XTrace 同时写入日志文件、UI 文本控件与 logcat
                 foreach (var line in text.Split('\n'))
                 {
-                    Log.Info(Tag, line.TrimEnd('\r'));
+                    XTrace.WriteLine(line.TrimEnd('\r'));
                 }
-                Log.Info(Tag, "=== MobileConsole end ===");
+                XTrace.WriteLine("=== MobileConsole end ===");
 
-                RunOnUiThread(() => { if (_console != null) _console.Text = text; });
+                if (!_logDir.IsNullOrEmpty())
+                {
+                    try
+                    {
+                        File.WriteAllText(System.IO.Path.Combine(_logDir, "report.txt"), text);
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteLine("报告写入失败: " + ex.Message);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Log.Error(Tag, ex.ToString());
-                RunOnUiThread(() => { if (_console != null) _console.Text = "采集失败:\n" + ex; });
+                XTrace.WriteLine("采集失败: " + ex);
             }
             finally
             {
@@ -170,6 +215,18 @@ public class MainActivity : Activity
 
         sb.AppendLine("包名: " + PackageName);
         sb.AppendLine("应用数据: " + FilesDir?.AbsolutePath);
+        sb.AppendLine("说明: CPU/网络速度为实时采样值，空闲时可能为 0；Android 应用通常无法读取 /proc/stat");
+        sb.AppendLine();
+
+        return sb.ToString();
+    }
+
+    private String BuildLogSection()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("[日志]");
+        sb.AppendLine("目录: " + (_logDir.IsNullOrEmpty() ? "(不可用)" : _logDir));
+        if (!_logDir.IsNullOrEmpty()) sb.AppendLine("报告: " + System.IO.Path.Combine(_logDir, "report.txt"));
         sb.AppendLine();
 
         return sb.ToString();
@@ -194,4 +251,61 @@ public class MainActivity : Activity
     }
 
     private Int32 Dp(Int32 value) => (Int32)Math.Round(value * (Resources?.DisplayMetrics?.Density ?? 1));
+
+    private sealed class TextViewLog : Logger
+    {
+        private readonly Action<String> _write;
+
+        public TextViewLog(Action<String> write) => _write = write;
+
+        protected override void OnWrite(LogLevel level, String format, params Object?[] args)
+        {
+            var message = Format(format, args);
+            Log.Info(Tag, message);
+            _write(message);
+        }
+    }
+
+    private sealed class AndroidMachineInfoProvider : IMachineInfo
+    {
+        private readonly Activity _activity;
+
+        public AndroidMachineInfoProvider(Activity activity) => _activity = activity;
+
+        public void Init(MachineInfo info) { }
+
+        public void Refresh(MachineInfo info)
+        {
+            try
+            {
+                if (_activity.GetSystemService(Context.ActivityService) is ActivityManager am)
+                {
+                    var memory = new ActivityManager.MemoryInfo();
+                    am.GetMemoryInfo(memory);
+                    if (memory.TotalMem > 0) info.Memory = (UInt64)memory.TotalMem;
+                    if (memory.AvailMem > 0)
+                    {
+                        info.AvailableMemory = (UInt64)memory.AvailMem;
+                        info.FreeMemory = (UInt64)memory.AvailMem;
+                    }
+                }
+            }
+            catch { }
+
+            try
+            {
+                using var filter = new IntentFilter(Intent.ActionBatteryChanged);
+                using var battery = _activity.RegisterReceiver(null, filter);
+                if (battery == null) return;
+
+                var level = battery.GetIntExtra(BatteryManager.ExtraLevel, -1);
+                var scale = battery.GetIntExtra(BatteryManager.ExtraScale, -1);
+                if (level >= 0 && scale > 0) info.Battery = (Double)level / scale;
+
+                var temperature = battery.GetIntExtra(BatteryManager.ExtraTemperature, Int32.MinValue);
+                if (temperature != Int32.MinValue) info.Temperature = temperature / 10.0;
+            }
+            catch { }
+        }
+    }
 }
