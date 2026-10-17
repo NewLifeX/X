@@ -2,7 +2,7 @@
 
 共享冒烟库 + 控制台/Android/iOS 宿主。所有用例只访问 `127.0.0.1` 回环，不依赖外部网络。
 
-- `MobileSmoke.Core`：20 个用例，覆盖平台信息、日志、配置、缓存、定时器、序列化、TCP/HTTP/WebSocket、安全、归档、对象容器、动态能力降级。
+- `MobileSmoke.Core`：21 个用例，覆盖平台信息、日志、配置、缓存、定时器、序列化、BCL 原生 TCP 基线、TCP/HTTP/WebSocket 回环、安全、归档、对象容器、动态能力降级。
 - `MobileSmoke.Console`：桌面快速基线。
 - `MobileSmoke.Android`：原生 Activity 壳，logcat 标签 `MobileSmoke`。
 - `MobileSmoke.iOS`：原生 UIViewController 壳，结果写入应用数据目录。
