@@ -139,7 +139,7 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="NuGet\NewLife.Core.props" Pack="true" PackagePath="build\" Visible="false" />
+    <Content Include="NuGet\NewLife.Core.props" Pack="true" PackagePath="build\" Visible="false" />
   </ItemGroup>
 
 </Project>
