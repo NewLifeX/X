@@ -135,8 +135,8 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 | T1 主流 | osx-arm64 / osx-x64 | ✔ Core net8/net10 | ✔ | macos-latest / macos-15-intel（官方称可用至 2027-08） | 观察期 |
 | T2 边缘 | win-x86 | — | ✔ | windows-latest 交叉发布 | 观察期容错（aot.yml） |
 | T2 边缘 | linux-arm（32 位） | — | 探索 | QEMU 容器 JIT 冒烟 + 交叉发布尝试 | 观察期容错（aot.yml） |
-| T2 边缘 | linux-riscv64 | ✔ smoke（push/PR）+ 全量（人工） | JIT 冒烟观察期 + 发布探索 | docker + riscv64 容器（QEMU 用户态）+ 社区 SDK（test.yml / aot.yml） | 观察期（不阻塞） |
-| T2 边缘 | linux-s390x | ✔ smoke（push/PR）+ 全量（人工） | —（ILCompiler 无 s390x 后端） | docker + s390x 容器（QEMU 用户态）+ Ubuntu `dotnet-runtime-10.0` | 观察期（不阻塞） |
+| T2 边缘 | linux-riscv64 | ✔ smoke（push/PR）+ 全量（人工） | JIT 冒烟观察期 + 发布探索 | docker + riscv64 容器（QEMU 用户态）+ 社区 SDK（test.yml / aot.yml） | 观察期（本地全量 3573/0） |
+| T2 边缘 | linux-s390x | ✔ smoke（push/PR）+ 全量（人工） | —（ILCompiler 无 s390x 后端） | docker + s390x 容器（QEMU 用户态）+ Ubuntu `dotnet-runtime-10.0` | 观察期（本地全量 3573/0） |
 | T3 LA64 | linux-loongarch64 | ✔ 全量 net10.0（观察期，人工触发） | JIT 冒烟观察期 + 发布探索 | docker + loong64 容器（QEMU 用户态）+ 龙芯 SDK（test.yml / aot.yml） | 观察期（手动触发，不阻塞） |
 
 - **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 为阻断门禁；LA64 的单测与 AOT 冒烟为观察期（`workflow_dispatch` 人工触发，push/PR 不参与、失败不阻塞）；linux-riscv64 / s390x 的 smoke 与全量同样带 `continue-on-error`，全量仅人工触发，smoke 稳定后再评估是否进 push/PR 门禁。
@@ -174,14 +174,15 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 | MIPS64 | 无（Mono 时代遗留，龙芯已转 LoongArch） | 无新增覆盖面 | **不做，不再讨论** |
 | FreeBSD / OpenBSD | runtime 有 crossrootfs，但无托管 runner、无 runtime pack | 纯托管库价值低 | 不做 |
 
-- **自宿主执行器**：`Tools/SelfHostRunner`（`--namespace A,B` / `--class X` / `--list`，过滤无匹配返回 3）由宿主构建、容器内执行；LA64 仍用 job 内联版，后续统一。
+- **自宿主执行器**：`Tools/SelfHostRunner`（`--namespace A,B`（精确匹配）/ `--class X` / `--root` / `--list`，过滤无匹配返回 3）由宿主构建、容器内执行；LA64 仍用 job 内联版，后续统一。
 - **为什么要测指令集**：本仓没有 `System.Runtime.Intrinsics` / `Vector128/256` 代码，也没有 Linux 侧 P/Invoke（仅 Windows/iOS/macOS）。矩阵验证的是 JIT/AOT 在新后端上的正确性、**字节序假设**（s390x 是唯一硬证据）、弱内存模型下的并发原语（RISC-V / ppc64le）以及 BCL 行为差异（`MachineInfo`、OpenSSL 加密、端序相关序列化）。
 - **运行时来源约束**：NuGet 上没有 `Microsoft.NETCore.App.Runtime.linux-{riscv64,s390x,ppc64le,loongarch64}` 包，因此只能框架依赖运行（宿主构建 RID 无关 IL + 目标架构运行时执行），不能 self-contained / 交叉发布。
 - **版本锁定与替换预案**：riscv64 固定 `dotnet-sdk-10.0.113-linux-riscv64.tar.gz`；上游断供时改用 [riscv-forks/dotnet-riscv](https://github.com/riscv-forks/dotnet-riscv)；若 Ubuntu 后续在 riscv64 端口提供 `dotnet-*` 包，则改走 apt，与 s390x/ppc64le 同配方。
 - **s390x 首轮失败分流**：大端会同时暴露"用例假设小端"与真实字节序缺陷——前者按《测试稳定性规约》§1 规则 7/8 显式跳过并留痕，后者记入《功能清单》待修复项后修产品；不得为转绿而放宽断言。
 - **本地 WSL 复现（2026-10-18 实测）**：WSL2 已注册 `binfmt_misc`（`qemu-riscv64/s390x`）；下载 `ubuntu-base-24.04.3-base-<arch>.tar.gz` 解出 rootfs，`chroot` 内装目标运行时（s390x 用 `dotnet-runtime-10.0`，riscv64 用社区 SDK），宿主构建的 IL 挂载到 `/src` 直接执行。chroot 前必须 `mount --bind /dev` 与 `mount -t proc proc`，否则 .NET 报 `Mono requires /proc to be mounted`。
-- **s390x 实测结论**：修复 `BinaryGeneral` 的大端反转缺陷后，`Buffers/Algorithms/Collections` 子集 358 例全绿（`DOTNET_EnableHWIntrinsic=0` 非必需）；全量暴露 `IOHelper` 主机序缺陷（FIX-27，已修）、用例小端假设（FIX-28）与 QEMU 全量并行 `SIGSEGV`（IMP-27），**全量转绿前不宣称支持**。
+- **s390x 实测结论**：WSL + Ubuntu 24.04 rootfs + QEMU（单线程）下全量 **3573 通过 / 5 跳过 / 0 失败**。修复的产品缺陷：`BinaryGeneral` 取反、`IOHelper` 主机序、`Utility`/`DSAHelper` 主机序、`TcpConnectionInformation2` IPv4/IPv6 解析、`DbTable` 行数；用例侧消除 `BitConverter` 主机序假设与 CSV 文件叠加。QEMU 偶发 `SIGSEGV` 由单线程 + "无 TOTAL 自动重试" 兜底。
+- **riscv64 实测结论**：社区 SDK `10.0.113` + QEMU（单线程）下全量 **3573 通过 / 5 跳过 / 0 失败**，与 x64 结果一致。
 - **ppc64le 排除结论**：Ubuntu 24.04 的 .NET 8/10 在 QEMU 8.2/9.2 下 `(Int32)double` 恒为错值（`3.0→0`，`Int64` 正常），`SamplingTests` 必然失败；native C 同样转换正确、切换 `-cpu power8/9/10` 与 `DOTNET_JitMinOpts/ReadyToRun/TieredCompilation` 均无效 → 属仿真层与运行时组合限制。`test.yml` 的 ppc64le job 已移除，改由真机或 Red Hat/IBM 构建验证后再议。
-- **README 徽章**：维持现状，待 riscv64 / s390x 全量转绿后统一追加 `RISC-V / s390x`（ppc64le 已排除）。
+- **README 徽章**：`arch` 徽章已加入 `riscv64 / s390x`（11 份 README 同步）。
 
 > 事实依据（2026-10 联网核实）：GitHub 托管 runner 标准表（公开仓库标准 runner 免费且不限量）；NativeAOT 交叉编译文档（learn.microsoft.com/dotnet/core/deploying/native-aot/cross-compile）；社区平台清单（dotnet/runtime `docs/workflow/building/coreclr/cross-building.md`）；龙芯 SDK 发布页与 lnuget 源。
