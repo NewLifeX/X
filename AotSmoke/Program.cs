@@ -7,6 +7,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -67,6 +68,37 @@ Run("基础类型转换 Utility", () =>
     if ("3.14".ToDouble() != 3.14) throw new Exception("ToDouble");
     if ("true".ToBoolean() != true) throw new Exception("ToBoolean");
     if ("2026-10-08".ToDateTime().Year != 2026) throw new Exception("ToDateTime");
+});
+
+Run("多语言 Localization 静态表", () =>
+{
+    var saved = Localization.Culture;
+    try
+    {
+        Localization.Culture = CultureInfo.GetCultureInfo("zh-Hans");
+        var zh = Localization.Translate("Reset is not supported in streaming mode.");
+        if (zh != "流式模式不支持复位") throw new Exception("zh-Hans 译文不正确: " + zh);
+
+        var ex = new XException("Reset is not supported in streaming mode.");
+        if (ex.Message != "流式模式不支持复位") throw new Exception("XException 未本地化: " + ex.Message);
+
+        Localization.Culture = CultureInfo.GetCultureInfo("en-US");
+        var en = Localization.Translate("Reset is not supported in streaming mode.");
+        if (en != "Reset is not supported in streaming mode.") throw new Exception("英文回退不正确: " + en);
+
+        var th = CultureInfo.GetCultureInfo("th-TH");
+        Localization.Culture = th;
+        Localization.Register(th, new Dictionary<String, String>
+        {
+            ["Reset is not supported in streaming mode."] = "th",
+        });
+        if (Localization.Translate("Reset is not supported in streaming mode.") != "th") throw new Exception("注册新语言失败");
+        Localization.Unregister(th);
+    }
+    finally
+    {
+        Localization.Culture = saved;
+    }
 });
 
 Run("反射 Type.GetTypeEx", () =>
