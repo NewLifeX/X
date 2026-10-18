@@ -5,6 +5,11 @@ on:
     tags: [ v* ]
   workflow_dispatch:
 
+# 必须同时声明：缺 packages: write 会让 GitHub Packages 推送 403，缺 contents: write 无法创建 Release
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-publish:
     runs-on: windows-latest
@@ -26,7 +31,84 @@ jobs:
       # NewLife.Security 已并入 NewLife.Core，不再单独打包
       run: |
         dotnet pack --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Core\NewLife.Core.csproj
-    - name: Publish
+    - name: Publish to GitHub Packages
+      id: ghpackages
+      # 备用镜像渠道，失败只告警，不阻断 NuGet.org 正式发布
+      continue-on-error: true
       run: |
         dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
+    - name: Publish to NuGet.org
+      id: nuget
+      run: |
         dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.nugetKey }}
+    - name: Create GitHub Release
+      id: release
+      # 仅 tag 推送时创建；手工触发（master 无 tag）只发包
+      if: startsWith(github.ref, 'refs/tags/')
+      # 观察期：失败只告警，不影响已完成的发包；结尾 Publish Summary 会显式标红
+      continue-on-error: true
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $tag = $env:GITHUB_REF_NAME
+        $repo = $env:GITHUB_REPOSITORY
+
+        # 幂等：同 tag 已有 Release 就直接跳过，失败重跑不会报错
+        gh release view $tag --repo $repo *> $null
+        if ($LASTEXITCODE -eq 0) {
+          Write-Host "Release $tag 已存在，跳过"
+          exit 0
+        }
+
+        # 发布说明优先取 ChangeLog.md 中当前版本段落（标题形如 "## v12.0.2026.0927 (2026-09-27)"）
+        $version = $tag.TrimStart('v')
+        $pattern = '^##\s+v?' + [regex]::Escape($version) + '(\s|\(|$)'
+        $lines = Get-Content -LiteralPath 'ChangeLog.md'
+        $start = -1
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+          if ($lines[$i] -match $pattern) { $start = $i; break }
+        }
+
+        $ghArgs = @('release', 'create', $tag, '--repo', $repo, '--title', $tag, '--verify-tag')
+        if ($start -ge 0) {
+          $end = $lines.Count
+          for ($i = $start + 1; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match '^##\s') { $end = $i; break }
+          }
+          $notes = Join-Path $env:RUNNER_TEMP 'release-notes.md'
+          $lines[$start..($end - 1)] | Set-Content -LiteralPath $notes -Encoding utf8
+          $ghArgs += @('--notes-file', $notes)
+          Write-Host "发布说明取自 ChangeLog.md 的 $version 段落（$($end - $start) 行）"
+        }
+        else {
+          $ghArgs += '--generate-notes'
+          Write-Host "ChangeLog.md 未找到 $version 段落，改用自动生成说明"
+        }
+
+        $assets = @(Get-ChildItem -LiteralPath 'out' -File | Where-Object { $_.Extension -in '.nupkg', '.snupkg' } | ForEach-Object { $_.FullName })
+        $ghArgs += $assets
+
+        & gh @ghArgs
+        if ($LASTEXITCODE -ne 0) { throw "gh release create 失败，退出码 $LASTEXITCODE" }
+
+        Write-Host "已创建 Release $tag，附加资产 $($assets.Count) 个"
+    - name: Publish Summary
+      if: always()
+      shell: pwsh
+      run: |
+        $rows = [ordered]@{
+          'GitHub Packages' = '${{ steps.ghpackages.outcome }}'
+          'NuGet.org'       = '${{ steps.nuget.outcome }}'
+          'GitHub Release'  = '${{ steps.release.outcome }}'
+        }
+        $marks = @{ success = '✅'; failure = '⚠️'; skipped = '⏭'; cancelled = '⛔' }
+        $lines = @('### 发布结果', '', '| 渠道 | 结果 |', '| --- | --- |')
+        foreach ($k in $rows.Keys) {
+          $o = $rows[$k]
+          $lines += "| $k | $($marks[$o]) $o |"
+        }
+        $lines += ''
+        $lines += '> GitHub Release 仅 tag 推送时创建；手工触发只发包。'
+        $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
