@@ -682,7 +682,7 @@ public class HttpSession : INetHandler, IDisposable
         catch (Exception ex)
         {
             // 发送失败（含流已被释放）：记录并关闭连接，客户端可感知响应不完整
-            (_session as NetSession)?.WriteLog("流式发送失败 {0}", ex.Message);
+            (_session as NetSession)?.WriteLog("Streaming send failed: {0}", ex.Message);
             _session.Dispose();
         }
         finally

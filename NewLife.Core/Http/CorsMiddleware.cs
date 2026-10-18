@@ -81,7 +81,7 @@ public class CorsMiddleware
             // 此处失败关闭：不发通配源并警示，而不是按请求源回显——回显等于把“任意源 + 凭据”放行，
             // 属 CORS 反射型漏洞，对 Cookie 鉴权的后台即 CSRF 与数据泄露面。要用凭据请把 AllowOrigin 设为明确的源
             if (AllowCredentials && AllowOrigin.EqualIgnoreCase("*"))
-                XTrace.WriteLine("[CorsMiddleware] 配置无效：AllowOrigin=* 与 AllowCredentials=true 不能同时使用，已忽略 Access-Control-Allow-Origin。请把 AllowOrigin 设置为明确的源。");
+                XTrace.WriteLine("[CorsMiddleware] Invalid configuration: AllowOrigin=* and AllowCredentials=true cannot be used together. Access-Control-Allow-Origin was ignored. Set AllowOrigin to an explicit origin.");
             else
                 res.Headers["Access-Control-Allow-Origin"] = AllowOrigin;
         }

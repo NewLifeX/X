@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -114,7 +114,7 @@ public class TokenHttpFilterTests
         }
 
         var text = capture.GetText();
-        Assert.Contains("刷新令牌异常", text);
+        Assert.Contains("Token refresh error", text);
         Assert.DoesNotContain(filter.AccessTokenValue, text);
         Assert.DoesNotContain(filter.RefreshTokenValue, text);
     }
@@ -190,3 +190,4 @@ public class TokenHttpFilterTests
         }
     }
 }
+

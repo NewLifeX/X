@@ -114,7 +114,7 @@ public class TinyHttpClient : DisposeBase
                 catch (Exception ex) when (source.IsCancellationRequested)
                 {
                     // 中止连接抛出的异常形态随运行时不同（SocketException / ObjectDisposedException），统一收敛为超时
-                    throw new TimeoutException($"连接 {remote} 超时（{remain.TotalMilliseconds:0}ms）", ex);
+                    throw new TimeoutException(L.T("Connection to {0} timed out ({1:0} ms).", remote, remain.TotalMilliseconds), ex);
                 }
             }
 
@@ -203,7 +203,7 @@ public class TinyHttpClient : DisposeBase
                 var uri2 = new Uri(uri, location);
 
                 // 只支持 http(s) 重定向目标；其它协议（如 file）就地报错，避免带着非法端点继续建连
-                if (uri2.Scheme is not ("http" or "https")) throw new NotSupportedException($"不支持重定向到 {uri2.Scheme} 协议：{location}");
+                if (uri2.Scheme is not ("http" or "https")) throw new NotSupportedException(L.T("Redirect to the {0} protocol is not supported: {1}", uri2.Scheme, location));
 
                 if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
 
@@ -276,20 +276,20 @@ public class TinyHttpClient : DisposeBase
                     {
                         if (acc.Length == 0) return null;
 
-                        throw new InvalidDataException($"响应头无法解析：已累积 {acc.Length} 字节仍未成头");
+                        throw new InvalidDataException(L.T("Unable to parse response headers: accumulated {0} bytes without a complete header block.", acc.Length));
                     }
 
-                    throw new InvalidDataException(chunked ? "分块传输未收到终止块" : "响应体不完整：对端提前关闭");
+                    throw new InvalidDataException(chunked ? L.T("Chunked transfer did not receive a terminating chunk.") : L.T("Response body is incomplete: the peer closed the connection early."));
                 }
 
                 pk.CopyTo(acc);
 
-                if (acc.Length > MaxHeadLength + MaxBodySize) throw new InvalidDataException($"响应超过上限 {MaxBodySize}");
+                if (acc.Length > MaxHeadLength + MaxBodySize) throw new InvalidDataException(L.T("Response exceeds the limit of {0}.", MaxBodySize));
 
                 // 每轮重新解析：MemoryStream 扩容后，上一轮取到的主体切片指向的是已被替换的旧缓冲区
                 if (!res.Parse(new ArrayPacket(acc.GetBuffer(), 0, (Int32)acc.Length)))
                 {
-                    if (acc.Length > MaxHeadLength) throw new InvalidDataException($"响应头无法解析：已累积 {acc.Length} 字节仍未成头");
+                    if (acc.Length > MaxHeadLength) throw new InvalidDataException(L.T("Unable to parse response headers: accumulated {0} bytes without a complete header block.", acc.Length));
 
                     continue;
                 }
@@ -297,15 +297,15 @@ public class TinyHttpClient : DisposeBase
                 if (!parsed)
                 {
                     var code = (Int32)res.StatusCode;
-                    if (code is >= 100 and < 200) throw new NotSupportedException($"不支持 1xx 临时响应：{code}");
-                    if (res.InvalidContentLength) throw new InvalidDataException($"响应包含重复或非法的 Content-Length：{res.Headers["Content-Length"]}");
+                    if (code is >= 100 and < 200) throw new NotSupportedException(L.T("1xx interim responses are not supported: {0}", code));
+                    if (res.InvalidContentLength) throw new InvalidDataException(L.T("Response contains a duplicate or invalid Content-Length: {0}", res.Headers["Content-Length"]));
 
                     // 分块编码优先于 Content-Length（RFC 9112 §6.1）：实体长度由分块解码决定，CL 视为未知
                     if (res.Headers.TryGetValue("Transfer-Encoding", out var te) && !te.IsNullOrEmpty())
                     {
                         // 传输编码只认 chunked（RFC 9112 §6.1：chunked 必须位于末位）。含其余编码（gzip 等）时
                         // 本端无法完整还原实体，原样交出会让调用方拿到未解压却以为成功的字节流，故显式拒绝
-                        if (!te.EqualIgnoreCase("chunked")) throw new NotSupportedException($"不支持的传输编码：{te}");
+                        if (!te.EqualIgnoreCase("chunked")) throw new NotSupportedException(L.T("Unsupported transfer encoding: {0}", te));
 
                         chunked = true;
                     }
@@ -326,7 +326,7 @@ public class TinyHttpClient : DisposeBase
                     res.ContentLength = -1;
 
                     var status = ChunkedDecoder.TryDecode(acc.GetBuffer(), bodyStart, (Int32)acc.Length, out var body, out _);
-                    if (status == ChunkedDecoder.ChunkedStatus.Invalid) throw new InvalidDataException("非法的分块传输编码");
+                    if (status == ChunkedDecoder.ChunkedStatus.Invalid) throw new InvalidDataException(L.T("Invalid chunked transfer encoding."));
                     if (status == ChunkedDecoder.ChunkedStatus.Complete)
                     {
                         // 解码结果独立于累积缓冲，替换掉原始分块帧的切片

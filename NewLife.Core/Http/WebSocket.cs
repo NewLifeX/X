@@ -148,13 +148,13 @@ public class WebSocket : IDisposable
         catch (FrameTooLargeException ex)
         {
             // 单帧超限：RFC 6455 §7.4.1 用 1009（Message Too Big），与帧损坏（1002）区分
-            NewLife.Log.XTrace.WriteLine("WebSocket 帧超限，关闭连接：{0}", ex.Message);
+            NewLife.Log.XTrace.WriteLine("WebSocket frame exceeded the limit; closing the connection: {0}", ex.Message);
             FailConnection(1009, "message too big");
         }
         catch (InvalidOperationException ex)
         {
             // 协议帧损坏：残片无法恢复，留在管道会让后续每个包重复解析同一坏帧，直接关闭连接
-            NewLife.Log.XTrace.WriteLine("WebSocket 帧损坏，关闭连接：{0}", ex.Message);
+            NewLife.Log.XTrace.WriteLine("WebSocket frame is corrupted; closing the connection: {0}", ex.Message);
             FailConnection(1002, "protocol error");
         }
     }
@@ -173,13 +173,13 @@ public class WebSocket : IDisposable
                 if (message is not WsMessage ws) continue;
 
                 // RFC 6455 §5.1：客户端发给服务端的每一帧都必须带掩码（防中间设备缓存投毒），未掩码帧按协议错误关闭连接
-                if (ws.MaskKey == null) throw new InvalidOperationException("客户端帧必须带掩码（RFC 6455 §5.1）");
+                if (ws.MaskKey == null) throw new InvalidOperationException(L.T("Client frames must be masked (RFC 6455 §5.1)."));
 
                 // RFC 6455 §5.5：控制帧（Close/Ping/Pong）必须 FIN=1 且负载不超过 125 字节。
                 // 不校验会让对端用一个超大 Ping 触发等量 Pong 回显（反射放大）
                 if (ws.Type is WebSocketMessageType.Close or WebSocketMessageType.Ping or WebSocketMessageType.Pong
                     && (!ws.Fin || ws.Payload?.Total > 125))
-                    throw new InvalidOperationException("控制帧必须 FIN=1 且负载不超过 125 字节（RFC 6455 §5.5）");
+                    throw new InvalidOperationException(L.T("Control frames must have FIN=1 and a payload of at most 125 bytes (RFC 6455 §5.5)."));
 
                 // 客户端帧带掩码：整帧路径对负载原地解码（帧内字节独享）
                 ws.Demask();
@@ -251,7 +251,7 @@ public class WebSocket : IDisposable
     /// <param name="reason">关闭描述，随关闭帧下发</param>
     private void FailConnection(Int32 closeStatus, String reason)
     {
-        NewLife.Log.XTrace.WriteLine("WebSocket 失败连接 {0}：{1}", closeStatus, reason);
+        NewLife.Log.XTrace.WriteLine("WebSocket connection {0} failed: {1}", closeStatus, reason);
 
         try { Close(closeStatus, reason); } catch { }
 

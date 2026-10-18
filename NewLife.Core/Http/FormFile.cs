@@ -107,7 +107,7 @@ public class FormFile
     {
         fileName.EnsureDirectory(true);
         var full = fileName.GetFullPath();
-        if (!overwrite && File.Exists(full)) throw new IOException("目标文件已存在且不允许覆盖：" + full);
+        if (!overwrite && File.Exists(full)) throw new IOException(L.T("Target file already exists and cannot be overwritten: {0}", full));
 
         // 先写入临时文件，再原子移动到目标路径，防止写入中断产生损坏文件
         var tmp = full + ".tmp";
