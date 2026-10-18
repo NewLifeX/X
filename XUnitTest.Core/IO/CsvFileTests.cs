@@ -62,6 +62,10 @@ public class CsvFileTests
     {
         var file = "data/test.csv";
 
+        // 写入模式不截断，重复运行时旧内容会叠加，先删除保证用例可重入
+        var fullPath = file.GetFullPath();
+        if (File.Exists(fullPath)) File.Delete(fullPath);
+
         var list = new List<Object[]>
         {
             new Object[] { 1234, "Stone", true, DateTime.Now },

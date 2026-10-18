@@ -305,7 +305,7 @@ public class UtilityTests
     public void ToDouble()
     {
         var n = 12.34;
-        var buf = BitConverter.GetBytes(n);
+        var buf = n.GetBytes();
         Assert.Equal(8, buf.Length);
 
         var v = buf.ToDouble();

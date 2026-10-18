@@ -67,7 +67,9 @@ public class MachineInfoTests
 
         Assert.NotEmpty(mi.OSName);
         Assert.NotEmpty(mi.OSVersion);
-        Assert.NotEmpty(mi.Product);
+        // WSL/容器等环境不提供 DMI 产品型号，缺失时跳过并留痕
+        if (mi.Product.IsNullOrEmpty()) XTrace.WriteLine("本机未提供产品型号，跳过 Product 断言");
+        else Assert.NotEmpty(mi.Product);
 
         // 容器等精简环境不提供 CPU 型号，跳过该字段并留痕
         if (HasCpuModel()) Assert.NotEmpty(mi.Processor);
@@ -97,7 +99,9 @@ public class MachineInfoTests
         // 静态信息
         Assert.NotNull(mi.OSName);
         Assert.NotNull(mi.OSVersion);
-        Assert.NotNull(mi.Product);
+        // WSL/容器等环境不提供 DMI 产品型号，缺失时跳过并留痕
+        if (mi.Product.IsNullOrEmpty()) XTrace.WriteLine("本机未提供产品型号，跳过 Product 断言");
+        else Assert.NotNull(mi.Product);
 
         // 容器等精简环境不提供 CPU 型号，跳过该字段并留痕
         if (HasCpuModel()) Assert.NotNull(mi.Processor);

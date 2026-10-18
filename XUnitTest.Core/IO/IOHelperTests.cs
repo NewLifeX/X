@@ -202,13 +202,13 @@ public class IOHelperTests
     public void ToSingle()
     {
         var v = 1.2f;
-        var buf = BitConverter.GetBytes(v);
+        var buf = v.GetBytes();
 
         var value = buf.ToSingle();
         Assert.Equal(v, value);
 
         v = -1.2345f;
-        buf = BitConverter.GetBytes(v);
+        buf = v.GetBytes();
 
         //buf = buf.Reverse().ToArray();
         buf=Enumerable.Reverse(buf).ToArray();
@@ -230,13 +230,13 @@ public class IOHelperTests
     public void ToDouble()
     {
         var v = 1.2d;
-        var buf = BitConverter.GetBytes(v);
+        var buf = v.GetBytes();
 
         var value = buf.ToDouble();
         Assert.Equal(v, value);
 
         v = -1.2345d;
-        buf = BitConverter.GetBytes(v);
+        buf = v.GetBytes();
 
         //buf = buf.Reverse().ToArray();
         buf = Enumerable.Reverse(buf).ToArray();
