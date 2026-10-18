@@ -111,6 +111,12 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: Cache dotNET SDK + iOS workload
+        uses: actions/cache@v4
+        with:
+          # 命中时 setup-dotnet 会识别已安装版本并跳过下载，workload 也直接复用；未命中首次运行会多一次缓存上传
+          path: ~/.dotnet
+          key: dotnet-ios-${{ runner.os }}-${{ runner.arch }}-10.0.402-10.400.1
       - name: Setup dotNET
         uses: actions/setup-dotnet@v4
         with:
