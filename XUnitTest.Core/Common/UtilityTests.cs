@@ -470,10 +470,11 @@ public class UtilityTests
         var expected = 12345.6789m;
         var bits = Decimal.GetBits(expected); // lo, mid, hi, flags
         var buf = new Byte[16];
-        System.Buffer.BlockCopy(BitConverter.GetBytes(bits[0]), 0, buf, 0, 4);
-        System.Buffer.BlockCopy(BitConverter.GetBytes(bits[1]), 0, buf, 4, 4);
-        System.Buffer.BlockCopy(BitConverter.GetBytes(bits[2]), 0, buf, 8, 4);
-        System.Buffer.BlockCopy(BitConverter.GetBytes(bits[3]), 0, buf, 12, 4);
+        // 约定小端：显式写入，避免 BitConverter 的主机字节序影响
+        buf.Write((UInt32)bits[0], 0);
+        buf.Write((UInt32)bits[1], 4);
+        buf.Write((UInt32)bits[2], 8);
+        buf.Write((UInt32)bits[3], 12);
 
         var val = buf.ToDecimal();
         Assert.Equal(expected, val);

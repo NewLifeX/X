@@ -4,12 +4,11 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading;
-using Xunit;
 using Xunit.Runners;
 
 /// <summary>自宿主 xunit 执行器</summary>
-/// <remarks>QEMU 仿真架构（LA64/RISC-V/s390x/ppc64le）上 vstest 不可用或不可靠：由宿主 x64 SDK 还原构建测试程序集，
-/// 容器内以目标架构运行时直接执行本工具。用法：<c>xr &lt;testAssembly.dll&gt; [--namespace A,B] [--class C] [--list]</c>。</remarks>
+/// <remarks>QEMU 仿真架构（LA64/RISC-V/s390x）上 vstest 不可用或不可靠：由宿主 x64 SDK 还原构建测试程序集，
+/// 容器内以目标架构运行时直接执行本工具。用法：<c>xr &lt;testAssembly.dll&gt; [--namespace A,B] [--class C] [--root] [--list]</c>。</remarks>
 internal static class Program
 {
     private static Int32 Main(String[] args)
@@ -20,8 +19,10 @@ internal static class Program
         if (!File.Exists(path)) return Usage($"找不到测试程序集: {path}");
 
         var testDir = Path.GetDirectoryName(path);
-        var filters = new XunitFilters();
+        var namespaces = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+        var classes = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
         var hasFilter = false;
+        var rootOnly = false;
         var listOnly = false;
 
         for (var i = 1; i < args.Length; i++)
@@ -30,11 +31,14 @@ internal static class Program
             {
                 case "--namespace":
                     if (i + 1 >= args.Length) return Usage("--namespace 缺少参数");
-                    hasFilter |= AddItems(filters.IncludedNamespaces, args[++i]);
+                    hasFilter |= AddItems(namespaces, args[++i]);
                     break;
                 case "--class":
                     if (i + 1 >= args.Length) return Usage("--class 缺少参数");
-                    hasFilter |= AddItems(filters.IncludedClasses, args[++i]);
+                    hasFilter |= AddItems(classes, args[++i]);
+                    break;
+                case "--root":
+                    rootOnly = true;
                     break;
                 case "--list":
                     listOnly = true;
@@ -61,7 +65,20 @@ internal static class Program
         var errors = 0;
 
         using var runner = AssemblyRunner.WithoutAppDomain(path);
-        if (hasFilter) runner.TestCaseFilter = filters.Filter;
+        if (hasFilter || rootOnly)
+        {
+            // 命名空间按“精确匹配”过滤：xunit 自带的 XunitFilters 是前缀匹配，--namespace XUnitTest 会把全部用例都选进来
+            runner.TestCaseFilter = tc =>
+            {
+                var name = tc.TestMethod.TestClass.Class.Name;
+                var idx = name.LastIndexOf('.');
+                var ns = idx > 0 ? name[..idx] : String.Empty;
+
+                if (rootOnly && ns.Length == 0) return true;
+
+                return namespaces.Contains(ns) || classes.Contains(name);
+            };
+        }
         runner.OnTestPassed = _ => Interlocked.Increment(ref pass);
         runner.OnTestSkipped = _ => Interlocked.Increment(ref skip);
         runner.OnTestFailed = info =>
@@ -150,7 +167,7 @@ internal static class Program
     private static Int32 Usage(String message)
     {
         if (!String.IsNullOrEmpty(message)) Console.WriteLine(message);
-        Console.WriteLine("用法: xr <testAssembly.dll> [--namespace A,B] [--class C] [--list]");
+        Console.WriteLine("用法: xr <testAssembly.dll> [--namespace A,B] [--class C] [--root] [--list]");
 
         return 2;
     }
