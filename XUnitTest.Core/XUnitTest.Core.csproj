@@ -74,6 +74,13 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
+    <!-- 源码直连 Core 时分析器不会随项目引用传递，需显式挂载生成器；走 NuGet 包引用则自动生效 -->
+    <ProjectReference Include="..\NewLife.Core.SourceGenerator\NewLife.Core.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 下游共享回归：本测试程序集自带 Locales\ta.yml，由源生成器生成 LocalizationTable + L 并在模块初始化时注册。
+         用于验证"下游组件只需声明 yml 即可复用词表与 L.T"的完整链路，勿删 -->
+    <AdditionalFiles Include="Locales\*.yml" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Algorithms\sampled.csv">
