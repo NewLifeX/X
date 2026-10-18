@@ -98,17 +98,32 @@ if ($Smoke) {
 }
 
 $pattern = if ($Smoke) { "SUMMARY total=\d+ pass=\d+ fail=\d+ skip=\d+" } else { "=== Info end ===" }
-$deadline = (Get-Date).AddSeconds($TimeoutSec)
-$match = $null
-while ((Get-Date) -lt $deadline) {
-    Start-Sleep -Seconds 2
-    $match = & $adb -s $Device logcat -d -s "Mobile:I" | Select-String -Pattern $pattern | Select-Object -Last 1
-    if ($match) { break }
-}
-
 $artifactDir = Join-Path $root "Bin/Mobile.Android/artifacts"
 New-Item -ItemType Directory -Path $artifactDir -Force | Out-Null
 $logFile = Join-Path $artifactDir ("android-" + (Get-Date -Format "yyyyMMdd-HHmmss") + ".log")
+$deadline = (Get-Date).AddSeconds($TimeoutSec)
+$startedAt = Get-Date
+$hasPidof = [bool]((& $adb -s $Device shell pidof logd 2>$null | Out-String).Trim())
+$match = $null
+$seen = $false
+while ((Get-Date) -lt $deadline) {
+    Start-Sleep -Milliseconds 500
+    $match = & $adb -s $Device logcat -d -s "Mobile:I" | Select-String -Pattern $pattern | Select-Object -Last 1
+    if ($match) { break }
+
+    # 应用崩溃后不会再有 SUMMARY，立即失败而不是白等到超时；pidof 不可用时保持原有超时兜底
+    if (-not $hasPidof) { continue }
+    $appPid = (& $adb -s $Device shell pidof com.newlife.mobile 2>$null | Out-String).Trim()
+    if ($appPid) {
+        $seen = $true
+    } elseif ($seen -or ((Get-Date) - $startedAt).TotalSeconds -gt 10) {
+        $lines = & $adb -s $Device logcat -d -s "Mobile:I"
+        $lines | Out-File -FilePath $logFile -Encoding utf8
+        $lines | Select-Object -Last 80
+        throw "Mobile process exited before reporting smoke summary."
+    }
+}
+
 $lines = & $adb -s $Device logcat -d -s "Mobile:I"
 $lines | Out-File -FilePath $logFile -Encoding utf8
 $lines | ForEach-Object { $_ -replace '^.*?Mobile\s*:\s?', '' }

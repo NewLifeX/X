@@ -6,7 +6,7 @@ PROJECT="$ROOT/Samples/Mobile.iOS/Mobile.iOS.csproj"
 CONFIGURATION="${CONFIGURATION:-Release}"
 RUNTIME="${RUNTIME:-iossimulator-arm64}"
 BUNDLE_ID="com.newlife.mobile"
-TIMEOUT="${TIMEOUT:-180}"
+TIMEOUT="${TIMEOUT:-120}"
 ARTIFACTS="$ROOT/Bin/Mobile.iOS/artifacts"
 INCLUDE_STARDUST="${INCLUDE_STARDUST:-false}"
 
@@ -51,7 +51,7 @@ while [ "$SECONDS" -lt "$DEADLINE" ]; do
       break
     fi
   fi
-  sleep 2
+  sleep 0.5
 done
 
 if [ -z "$RESULT" ]; then
