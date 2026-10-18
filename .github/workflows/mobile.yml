@@ -1,8 +1,8 @@
 name: mobile
 
 on:
-  workflow_dispatch:
-  pull_request:
+  push:
+    branches: [ '*' ]
     paths:
       - 'Samples/Mobile.Core/**'
       - 'Samples/Mobile.Console/**'
@@ -10,8 +10,16 @@ on:
       - 'Samples/Mobile.iOS/**'
       - 'NewLife.Core/**'
       - '.github/workflows/mobile.yml'
-  schedule:
-    - cron: '0 3 * * 1'
+  pull_request:
+    branches: [ '*' ]
+    paths:
+      - 'Samples/Mobile.Core/**'
+      - 'Samples/Mobile.Console/**'
+      - 'Samples/Mobile.Android/**'
+      - 'Samples/Mobile.iOS/**'
+      - 'NewLife.Core/**'
+      - '.github/workflows/mobile.yml'
+  workflow_dispatch:
 
 jobs:
   android:
