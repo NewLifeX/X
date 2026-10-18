@@ -6,6 +6,8 @@ using Xunit;
 namespace XUnitTest.Downstream;
 
 /// <summary>下游组件共享词表的回归测试。本测试程序集自带 Locales\ta.yml，等价于一个下游 NewLife.* 组件</summary>
+/// <remarks>用例会临时改写 <see cref="Localization.Culture"/>，与其它用例串行执行</remarks>
+[Collection("GlobalState")]
 public class DownstreamLocalizationTests
 {
     private const String Key = "Downstream probe message: {0}.";

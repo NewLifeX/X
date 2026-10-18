@@ -9,7 +9,9 @@ using Xunit;
 
 namespace XUnitTest.Common;
 
-/// <summary>多语言本地化测试</summary>
+/// <summary>测试集合定义：本类用例会临时改写 <see cref="Localization.Culture"/> 等进程级状态，
+/// 与其它用例串行执行，避免并行用例读到被临时改写的语言</summary>
+[Collection("GlobalState")]
 public class LocalizationTests
 {
     private const String Key = "Reset is not supported in streaming mode.";
