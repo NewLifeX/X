@@ -11,7 +11,9 @@
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
-🌐 [English](README.en.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Русский](README.ru.md) | [Português](README.pt.md) | [العربية](README.ar.md)
+<!-- lang:start -->
+🌐 [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+<!-- lang:end -->
 
 NewLife框架是一个全面的 .NET 组件生态系统，它为构建可扩展的应用程序提供了高性能的基础设施。它提供日志、网络、序列化、缓存和多线程等基本功能，作为从 Web 服务到 IoT 设备的一系列应用程序的基础。  
 
@@ -81,6 +83,7 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 
 - [核心库目录](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md)：核心组件文章索引（按模块分类）
 - [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)：NativeAOT 支持范围、实测结论（冒烟 29/29）、多 RID 覆盖矩阵与已知边界
+- [多语言本地化](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)：异常与日志的多语言模型、语言表扩充、下游覆盖与运行时新增语言
 - [移动端技术架构](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md)：.NET 移动技术栈分层、UI 框架选型、Mobile 示例工程、APK 打包与 JIT/Mono AOT/NativeAOT 说明
 
 ### 研发过程文档
@@ -282,6 +285,7 @@ dotnet test XUnitTest.Core -c Release
 - 全量并行测试：`run-tests.ps1`（多宿主并行 + 超时兜底 + trx 汇总）
 - NativeAOT 冒烟：`AotSmoke/`，CI 见 `.github/workflows/aot.yml`
 - 性能基准：`Benchmark/`（BenchmarkDotNet）
+- 发版：推送 `v` 前缀 tag（如 `v12.0.2026.0927`）触发 `.github/workflows/publish.yml`，打包后同时发布到 NuGet.org 与 GitHub Packages，并创建同名 GitHub Release（说明取自 `ChangeLog.md` 对应段落，资产含 nupkg/snupkg）；手工触发工作流只发包，不创建 Release
 
 ## 新生命项目矩阵
 
