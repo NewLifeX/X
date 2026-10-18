@@ -285,9 +285,9 @@ public class DefaultConvert
             switch (buf.Length)
             {
                 case 1: return buf[0];
-                case 2: return BitConverter.ToInt16(buf, 0);
+                case 2: return BinaryPrimitives.ReadInt16LittleEndian(buf);
                 case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
-                case 4: return BitConverter.ToInt32(buf, 0);
+                case 4: return BinaryPrimitives.ReadInt32LittleEndian(buf);
             }
         }
 
@@ -363,10 +363,10 @@ public class DefaultConvert
             switch (buf.Length)
             {
                 case 1: return buf[0];
-                case 2: return BitConverter.ToInt16(buf, 0);
+                case 2: return BinaryPrimitives.ReadInt16LittleEndian(buf);
                 case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
-                case 4: return BitConverter.ToInt32(buf, 0);
-                case 8: return BitConverter.ToInt64(buf, 0);
+                case 4: return BinaryPrimitives.ReadInt32LittleEndian(buf);
+                case 8: return BinaryPrimitives.ReadInt64LittleEndian(buf);
             }
         }
 
@@ -422,7 +422,7 @@ public class DefaultConvert
         if (value is Byte[] buf)
         {
             if (buf.Length == 0) return defaultValue;
-            if (buf.Length >= 8) return BitConverter.ToDouble(buf, 0);
+            if (buf.Length >= 8) return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(buf));
 
             // 兼容不足 8 字节的场景（例如来自网络/存储的裁剪值），按小端补零
             Span<Byte> tmp8 = stackalloc Byte[8];
@@ -486,16 +486,16 @@ public class DefaultConvert
             switch (buf.Length)
             {
                 case 1: return buf[0];
-                case 2: return BitConverter.ToInt16(buf, 0);
+                case 2: return BinaryPrimitives.ReadInt16LittleEndian(buf);
                 case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
-                case 4: return BitConverter.ToInt32(buf, 0);
+                case 4: return BinaryPrimitives.ReadInt32LittleEndian(buf);
                 case 16:
                     {
-                        // 按 Decimal 内部 4*Int32 bits 构造（lo, mid, hi, flags）。仅在 flags 合法时采纳，否则回退。
-                        var lo = BitConverter.ToInt32(buf, 0);
-                        var mid = BitConverter.ToInt32(buf, 4);
-                        var hi = BitConverter.ToInt32(buf, 8);
-                        var flags = BitConverter.ToInt32(buf, 12);
+                        // 按 Decimal 内部 4*Int32 bits 构造（lo, mid, hi, flags），字节按小端解释。仅在 flags 合法时采纳，否则回退。
+                        var lo = BinaryPrimitives.ReadInt32LittleEndian(buf.AsSpan(0, 4));
+                        var mid = BinaryPrimitives.ReadInt32LittleEndian(buf.AsSpan(4, 4));
+                        var hi = BinaryPrimitives.ReadInt32LittleEndian(buf.AsSpan(8, 4));
+                        var flags = BinaryPrimitives.ReadInt32LittleEndian(buf.AsSpan(12, 4));
                         var scale = (flags >> 16) & 0xFF;
                         var reserved = flags & 0x7F00FFFF; // 除去符号位与比例位，其余应为0
                         if (scale <= 28 && reserved == 0)
@@ -516,7 +516,7 @@ public class DefaultConvert
 
                         return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(bts)).ToDecimal();
                     }
-                    return BitConverter.ToDouble(buf, 0).ToDecimal();
+                    return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(buf)).ToDecimal();
             }
         }
 

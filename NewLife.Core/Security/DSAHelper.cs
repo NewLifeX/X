@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+using System.Buffers.Binary;
+using System.Security.Cryptography;
 using System.Xml;
 
 namespace NewLife.Security;
@@ -122,11 +123,11 @@ public static class DSAHelper
         {
             var buf = Convert.FromBase64String(text);
             if (buf.Length == 0) return 0;
-            if (buf.Length >= 4) return BitConverter.ToInt32(buf, 0);
+            if (buf.Length >= 4) return BinaryPrimitives.ReadInt32LittleEndian(buf);
 
             var arr = new Byte[4];
             Buffer.BlockCopy(buf, 0, arr, 0, buf.Length);
-            return BitConverter.ToInt32(arr, 0);
+            return BinaryPrimitives.ReadInt32LittleEndian(arr);
         }
         catch { return 0; }
     }
