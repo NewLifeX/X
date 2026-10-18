@@ -11,7 +11,9 @@
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
-🌐 [中文](Readme.MD) | [English](README.en.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Русский](README.ru.md) | [Português](README.pt.md) | [العربية](README.ar.md)
+<!-- lang:start -->
+🌐 [中文](Readme.MD) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+<!-- lang:end -->
 
 NewLife フレームワークは、拡張可能なアプリケーションを構築するための高性能な基盤を提供する、包括的な .NET コンポーネントエコシステムです。ログ、ネットワーク、シリアライズ、キャッシュ、マルチスレッドなどの基本機能を提供し、Web サービスから IoT デバイスに至るまでの一連のアプリケーションの基盤となります。  
 

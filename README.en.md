@@ -11,7 +11,9 @@
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
-🌐 [中文](Readme.MD) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Русский](README.ru.md) | [Português](README.pt.md) | [العربية](README.ar.md)
+<!-- lang:start -->
+🌐 [中文](Readme.MD) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+<!-- lang:end -->
 
 NewLife framework is a comprehensive .NET component ecosystem that provides high-performance infrastructure for building scalable applications. It offers essential capabilities such as logging, networking, serialization, caching, and multithreading, serving as the foundation for a range of applications from web services to IoT devices.  
 

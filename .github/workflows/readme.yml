@@ -1,0 +1,37 @@
+name: readme
+
+# README 语言切换行由 sync-readme-languages.ps1 从 readme-languages.json 生成。
+# 手工改顺序、或某一份副本忘记同步，都会在这里被拦下。
+on:
+  push:
+    branches: [ '*' ]
+    paths:
+      - 'README*.md'
+      - 'Readme.MD'
+      - 'readme-languages.json'
+      - 'sync-readme-languages.ps1'
+      - '.github/workflows/readme.yml'
+  pull_request:
+    branches: [ '*' ]
+    paths:
+      - 'README*.md'
+      - 'Readme.MD'
+      - 'readme-languages.json'
+      - 'sync-readme-languages.ps1'
+      - '.github/workflows/readme.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  language-switcher:
+    name: check language switcher
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check README language switcher
+      shell: pwsh
+      run: pwsh -NoProfile -File ./sync-readme-languages.ps1 -Check
