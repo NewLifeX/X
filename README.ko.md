@@ -1,6 +1,6 @@
 # NewLife.Core - 핵심 라이브러리
 
-![GitHub License](https://img.shields.io/github/license/newlifex/x?logo=github)
+![GitHub License](https://img.shields.io/github/license/NewLifeX/X?logo=github)
 ![Nuget Downloads](https://img.shields.io/nuget/dt/newlife.core?logo=nuget)
 ![Nuget](https://img.shields.io/nuget/v/newlife.core?logo=nuget)
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
