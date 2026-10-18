@@ -248,3 +248,84 @@ jobs:
         else
           echo "未产出 linux-loongarch64 原生可执行文件（NativeAOT 当前不支持 LA64），跳过运行"
         fi
+
+  # RISC-V 64（linux-riscv64，观察期，人工触发，不阻塞）：运行时来自社区构建 filipnavara/dotnet-riscv
+  # （跟踪 dotnet VMR 全量构建，版本锁定 10.0.113）。ILCompiler 源码已有 Target_RiscV64 骨架，
+  # 但官方不发 linux-riscv64 runtime pack，NativeAOT 仅作"发布探索"（允许失败），
+  # 有产物才运行；JIT 冒烟复用 AotSmoke 的 31 个场景，验证平台行为一致性。
+  riscv64:
+    name: aot (linux-riscv64 qemu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (riscv64)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: riscv64
+    - name: Download RISC-V .NET SDK (community build)
+      run: |
+        curl -fL -o "$HOME/riscv64-sdk.tar.gz" \
+          https://github.com/filipnavara/dotnet-riscv/releases/download/10.0.113/dotnet-sdk-10.0.113-linux-riscv64.tar.gz
+        mkdir -p "$HOME/riscv64" && tar -xzf "$HOME/riscv64-sdk.tar.gz" -C "$HOME/riscv64"
+        chmod +x "$HOME/riscv64/dotnet" || true
+    - name: Restore NuGet Packages (host x64 SDK)
+      # 仿真架构下 MSBuild 链路慢且不稳，还原与构建均放宿主 x64 SDK（产出与 RID 无关的 IL）
+      run: dotnet restore AotSmoke/AotSmoke.csproj
+    - name: Build AotSmoke (host x64 SDK)
+      run: dotnet build AotSmoke/AotSmoke.csproj -c Release --no-restore
+    - name: JIT Smoke in riscv64 Container (AotSmoke 31 场景)
+      env:
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      run: |
+        docker run --rm --platform linux/riscv64 \
+          -v "$PWD:/src" -w /src \
+          -v "$HOME/riscv64:/opt/dotnet:ro" \
+          -e DOTNET_ROOT=/opt/dotnet \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
+          -e DOTNET_EnableHWIntrinsic=0 \
+          -e DOTNET_EnableWriteXorExecute=0 \
+          riscv64/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libicu74 libssl3 libstdc++6 ca-certificates >/dev/null
+            /opt/dotnet/dotnet --info
+            /opt/dotnet/dotnet /src/AotSmoke/bin/Release/net10.0/AotSmoke.dll
+          '
+    - name: NativeAOT Publish (linux-riscv64, 探索)
+      # 官方不发 linux-riscv64 runtime pack，还原阶段即可能失败；能出产物就顺带跑，失败不阻塞
+      continue-on-error: true
+      run: |
+        docker run --rm --platform linux/riscv64 \
+          -v "$PWD:/src" -w /src \
+          -v "$HOME/riscv64:/opt/dotnet:ro" \
+          -e DOTNET_ROOT=/opt/dotnet \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
+          riscv64/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libicu74 libssl3 libstdc++6 ca-certificates >/dev/null
+            /opt/dotnet/dotnet publish /src/AotSmoke/AotSmoke.csproj -c Release -r linux-riscv64 -o /src/AotSmoke/bin/aot-out-riscv64
+          '
+    - name: Run NativeAOT Smoke (linux-riscv64, 探索)
+      continue-on-error: true
+      run: |
+        if [ -x AotSmoke/bin/aot-out-riscv64/AotSmoke ]; then
+          docker run --rm --platform linux/riscv64 \
+            -v "$PWD:/src" -w /src \
+            riscv64/ubuntu:24.04 \
+            ./AotSmoke/bin/aot-out-riscv64/AotSmoke
+        else
+          echo "未产出 linux-riscv64 原生可执行文件（NativeAOT 尚无官方 riscv64 runtime pack），跳过运行"
+        fi

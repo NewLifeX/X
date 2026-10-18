@@ -114,13 +114,13 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）
 ```
 
-> CI 防回归：`.github/workflows/aot.yml` + `.github/workflows/test.yml`（push/PR + 人工手动触发，无夜间任务）—— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 / linux-x64 / linux-arm64 阻断门禁；win-arm64、osx 双架构、musl 容器观察期，稳定后逐项转阻断）；边缘 RID（win-x86 / linux-arm）与 LA64（linux-loongarch64，loong64 容器 + QEMU 仿真）已由原夜间 `edge.yml` 并入常规任务，其中 LA64 的单测与 AOT 冒烟自 2026-10-17 起均为观察期（仅人工 `workflow_dispatch` 触发、失败不阻塞）。
+> CI 防回归：`.github/workflows/aot.yml` + `.github/workflows/test.yml`（push/PR + 人工手动触发，无夜间任务）—— 分析器 0 告警硬约束（阻断）+ NativeAOT 冒烟矩阵（win-x64 / linux-x64 / linux-arm64 阻断门禁；win-arm64、osx 双架构、musl 容器观察期，稳定后逐项转阻断）；边缘 RID（win-x86 / linux-arm）与 LA64（linux-loongarch64，loong64 容器 + QEMU 仿真）已由原夜间 `edge.yml` 并入常规任务，其中 LA64 的单测与 AOT 冒烟自 2026-10-17 起均为观察期（仅人工 `workflow_dispatch` 触发、失败不阻塞）。指令集矩阵（linux-riscv64 / linux-s390x / linux-ppc64le）自 2026-10-18 起接入：push/PR 只跑 smoke 子集（`XUnitTest.Buffers/Algorithms/Collections`，字节序与位运算确定性用例），全量仅人工 `workflow_dispatch` 触发，均 `continue-on-error` 不阻塞。
 
 ---
 
 ## 7. 多 RID 支持矩阵与 CI
 
-> 目标：win-x64 / linux-x64 / linux-arm64 单测必选（阻断门禁）；linux-la64 单测与 AOT 冒烟为观察期（仅人工触发、失败不阻塞，QEMU 下整套单测以小时计），扩展 win-arm64、linux-musl、osx 双架构与边缘 RID（win-x86、linux-arm，观察期容错）；linux-riscv64 待社区构建渠道核实后按 LA64 的容器化 QEMU 配方接入。
+> 目标：win-x64 / linux-x64 / linux-arm64 单测必选（阻断门禁）；linux-la64 单测与 AOT 冒烟为观察期（仅人工触发、失败不阻塞，QEMU 下整套单测以小时计），扩展 win-arm64、linux-musl、osx 双架构与边缘 RID（win-x86、linux-arm，观察期容错）；linux-riscv64 / linux-s390x / linux-ppc64le 按 LA64 的容器化 QEMU 配方接入（观察期，push/PR 跑 smoke 子集、全量人工触发）。
 > 前提：**NativeAOT 官方不支持跨 OS 编译**（Windows→Linux 需 WSL/VM），支持同 OS 内 x64↔arm64 交叉；因此每个 RID 均使用原生 runner 发布运行。
 
 ### 7.1 覆盖分层
@@ -135,10 +135,12 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 | T1 主流 | osx-arm64 / osx-x64 | ✔ Core net8/net10 | ✔ | macos-latest / macos-15-intel（官方称可用至 2027-08） | 观察期 |
 | T2 边缘 | win-x86 | — | ✔ | windows-latest 交叉发布 | 观察期容错（aot.yml） |
 | T2 边缘 | linux-arm（32 位） | — | 探索 | QEMU 容器 JIT 冒烟 + 交叉发布尝试 | 观察期容错（aot.yml） |
-| T2 边缘 | linux-riscv64 | — | — | 待社区构建渠道核实后按 LA64 的容器化 QEMU 配方接入 | 待启动 |
+| T2 边缘 | linux-riscv64 | ✔ smoke（push/PR）+ 全量（人工） | JIT 冒烟观察期 + 发布探索 | docker + riscv64 容器（QEMU 用户态）+ 社区 SDK（test.yml / aot.yml） | 观察期（不阻塞） |
+| T2 边缘 | linux-s390x | ✔ smoke（push/PR）+ 全量（人工） | —（ILCompiler 无 s390x 后端） | docker + s390x 容器（QEMU 用户态）+ Ubuntu `dotnet-runtime-10.0` | 观察期（不阻塞） |
+| T2 边缘 | linux-ppc64le | ✔ smoke（push/PR）+ 全量（人工） | —（ILCompiler 无 ppc64le 后端） | docker + ppc64le 容器（QEMU 用户态）+ Ubuntu `dotnet-runtime-10.0` | 观察期（不阻塞） |
 | T3 LA64 | linux-loongarch64 | ✔ 全量 net10.0（观察期，人工触发） | JIT 冒烟观察期 + 发布探索 | docker + loong64 容器（QEMU 用户态）+ 龙芯 SDK（test.yml / aot.yml） | 观察期（手动触发，不阻塞） |
 
-- **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 为阻断门禁；LA64 的单测与 AOT 冒烟为观察期（`workflow_dispatch` 人工触发，push/PR 不参与、失败不阻塞）。
+- **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 为阻断门禁；LA64 的单测与 AOT 冒烟为观察期（`workflow_dispatch` 人工触发，push/PR 不参与、失败不阻塞）；linux-riscv64 / s390x / ppc64le 的 smoke 与全量同样带 `continue-on-error`，全量仅人工触发，smoke 稳定后再评估是否进 push/PR 门禁。
 - **测试并行度**：Windows/Linux CI 使用 `test.ci.runsettings`（4 线程，匹配 4 vCPU runner）；macOS 3 vCPU 使用专用 `test.ci.macos.runsettings`（3 线程）。
 - **本地 Linux 预跑**：WSL/容器内 `dotnet test XUnitTest.Core -f net8.0/net10.0`（无需任何平台开关）。
 
@@ -156,7 +158,26 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 | 目标 | 排除理由 |
 |---|---|
 | Android / iOS / tvOS / macCatalyst / WASM | 应用模型类目标，无法用 `dotnet test` 在本仓验证（Android/iOS 见 `Samples/Mobile.Android` / `Samples/Mobile.iOS` 示例） |
-| FreeBSD / linux-ppc64le / linux-s390x | 无托管 runner，官方/社区 pack 渠道未验；需要时按 LA64 的 QEMU 配方另立专项 |
+| FreeBSD / OpenBSD | 无托管 runner，无官方/社区 runtime pack 渠道；纯托管库验证价值低，需要时按 LA64 的 QEMU 配方另立专项 |
+| MIPS64 | .NET（Core/5+）从未支持、无 SDK 渠道；龙芯已从 MIPS64 迁移到 LoongArch（见 §7.4），本仓历史也从未有过 MIPS CI，不再纳入矩阵 |
 | Windows x64→Linux 交叉 NativeAOT | 官方不支持跨 OS 编译 |
+
+### 7.4 指令集取舍（为什么是这三家）
+
+| 平台 | 运行时渠道（已核实） | 独特价值 | 结论 |
+|---|---|---|---|
+| linux-riscv64 | 社区构建 [filipnavara/dotnet-riscv](https://github.com/filipnavara/dotnet-riscv) 跟踪 dotnet VMR 全量构建，已发 `10.0.113`（glibc / musl 两档）；官方不发 runtime pack | 新 JIT 后端 + 弱内存模型；国产硬件主线；版本与仓库 net10 对齐 | 已接入（观察期） |
+| linux-s390x | .NET 10 官方支持清单在 RHEL / CentOS Stream 明确列出 s390x；Ubuntu 24.04 官方源有 `dotnet-runtime-10.0` | **大端**：仓库近百处字节序判断（`SpanReader/Writer`、`BitConverter`、`BinaryPrimitives`，默认 `IsLittleEndian=true`）只有大端能验证 | 已接入（观察期），价值最高 |
+| linux-ppc64le | 同 s390x（官方清单 + Ubuntu 包） | 64 位小端 + 弱内存模型；无大端差异 | 已接入（观察期），成本低 |
+| linux-armv6 | 无官方 runtime pack / 主流渠道 | arm32 已由 `linux-arm`（QEMU JIT 冒烟）覆盖 | 不做 |
+| MIPS64 | 无（Mono 时代遗留，龙芯已转 LoongArch） | 无新增覆盖面 | **不做，不再讨论** |
+| FreeBSD / OpenBSD | runtime 有 crossrootfs，但无托管 runner、无 runtime pack | 纯托管库价值低 | 不做 |
+
+- **自宿主执行器**：`Tools/SelfHostRunner`（`--namespace A,B` / `--class X` / `--list`，过滤无匹配返回 3）由宿主构建、容器内执行；LA64 仍用 job 内联版，后续统一。
+- **为什么要测指令集**：本仓没有 `System.Runtime.Intrinsics` / `Vector128/256` 代码，也没有 Linux 侧 P/Invoke（仅 Windows/iOS/macOS）。矩阵验证的是 JIT/AOT 在新后端上的正确性、**字节序假设**（s390x 是唯一硬证据）、弱内存模型下的并发原语（RISC-V / ppc64le）以及 BCL 行为差异（`MachineInfo`、OpenSSL 加密、端序相关序列化）。
+- **运行时来源约束**：NuGet 上没有 `Microsoft.NETCore.App.Runtime.linux-{riscv64,s390x,ppc64le,loongarch64}` 包，因此只能框架依赖运行（宿主构建 RID 无关 IL + 目标架构运行时执行），不能 self-contained / 交叉发布。
+- **版本锁定与替换预案**：riscv64 固定 `dotnet-sdk-10.0.113-linux-riscv64.tar.gz`；上游断供时改用 [riscv-forks/dotnet-riscv](https://github.com/riscv-forks/dotnet-riscv)；若 Ubuntu 后续在 riscv64 端口提供 `dotnet-*` 包，则改走 apt，与 s390x/ppc64le 同配方。
+- **s390x 首轮失败分流**：大端会同时暴露"用例假设小端"与真实字节序缺陷——前者按《测试稳定性规约》§1 规则 7/8 显式跳过并留痕，后者记入《功能清单》待修复项后修产品；不得为转绿而放宽断言。
+- **README 徽章**：支持矩阵转绿后再把 `RISC-V / s390x / ppc64le` 加入 `arch` 徽章（当前仅 `Doc` 声明，避免未经验证的宣称）。
 
 > 事实依据（2026-10 联网核实）：GitHub 托管 runner 标准表（公开仓库标准 runner 免费且不限量）；NativeAOT 交叉编译文档（learn.microsoft.com/dotnet/core/deploying/native-aot/cross-compile）；社区平台清单（dotnet/runtime `docs/workflow/building/coreclr/cross-building.md`）；龙芯 SDK 发布页与 lnuget 源。

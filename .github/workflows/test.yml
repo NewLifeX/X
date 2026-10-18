@@ -401,6 +401,286 @@ jobs:
             timeout 240m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll
           '
 
+  # ================= 指令集矩阵（QEMU 仿真，观察期，不阻塞） =================
+  # RISC-V 64：官方不发 runtime pack/SDK，运行时来自社区构建 filipnavara/dotnet-riscv
+  # （跟踪 dotnet VMR 全量构建，10.0.1xx 与仓库 net10 对齐；版本已锁定，替换渠道见 Doc/AOT兼容性分析.md §7.4）。
+  # RISC-V / s390x / ppc64le 与 LA64 同配方：宿主 x64 SDK 还原构建（IL 与 RID 无关），
+  # 容器内用自宿主 xunit 执行器（vstest 在仿真架构不可靠）；裸宿主缺目标架构 loader，必须在容器内运行。
+  # 触发分层：push/PR 只跑 smoke 子集（Buffers/Algorithms/Collections：字节序、位运算等确定性用例）；
+  # 全量仅人工 workflow_dispatch。观测到稳定全绿后再逐项转阻断门禁。
+  riscv64-smoke:
+    name: test (linux-riscv64 qemu smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    if: github.event_name != 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (riscv64)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: riscv64
+    - name: Download RISC-V .NET SDK (community build)
+      run: |
+        curl -fL -o "$HOME/riscv64-sdk.tar.gz" \
+          https://github.com/filipnavara/dotnet-riscv/releases/download/10.0.113/dotnet-sdk-10.0.113-linux-riscv64.tar.gz
+        mkdir -p "$HOME/riscv64" && tar -xzf "$HOME/riscv64-sdk.tar.gz" -C "$HOME/riscv64"
+        chmod +x "$HOME/riscv64/dotnet" || true
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0 smoke) in riscv64 Container
+      env:
+        SMOKE_NAMESPACES: XUnitTest.Buffers,XUnitTest.Algorithms,XUnitTest.Collections
+      run: |
+        docker run --rm --platform linux/riscv64 \
+          -v "$PWD:/src" -w /src \
+          -v "$HOME/riscv64:/opt/dotnet:ro" \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_ROOT=/opt/dotnet \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e DOTNET_EnableHWIntrinsic=0 \
+          -e DOTNET_EnableWriteXorExecute=0 \
+          -e SMOKE_NAMESPACES="$SMOKE_NAMESPACES" \
+          riscv64/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libicu74 libssl3 libstdc++6 ca-certificates >/dev/null
+            /opt/dotnet/dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            timeout 35m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES"
+          '
+
+  riscv64:
+    name: test (linux-riscv64 qemu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (riscv64)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: riscv64
+    - name: Download RISC-V .NET SDK (community build)
+      run: |
+        curl -fL -o "$HOME/riscv64-sdk.tar.gz" \
+          https://github.com/filipnavara/dotnet-riscv/releases/download/10.0.113/dotnet-sdk-10.0.113-linux-riscv64.tar.gz
+        mkdir -p "$HOME/riscv64" && tar -xzf "$HOME/riscv64-sdk.tar.gz" -C "$HOME/riscv64"
+        chmod +x "$HOME/riscv64/dotnet" || true
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0) in riscv64 Container
+      run: |
+        docker run --rm --platform linux/riscv64 \
+          -v "$PWD:/src" -w /src \
+          -v "$HOME/riscv64:/opt/dotnet:ro" \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_ROOT=/opt/dotnet \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e DOTNET_EnableHWIntrinsic=0 \
+          -e DOTNET_EnableWriteXorExecute=0 \
+          riscv64/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libicu74 libssl3 libstdc++6 ca-certificates >/dev/null
+            /opt/dotnet/dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            timeout 290m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll
+          '
+
+  # s390x：.NET 10 官方支持清单里 RHEL/CentOS Stream 明确包含 s390x，Ubuntu 24.04 官方源提供
+  # dotnet-runtime-10.0（无 NuGet runtime pack，只能框架依赖）。**大端**是唯一能验证字节序假设的平台，
+  # 预计会暴露"用例假设小端"与真实字节序缺陷，按 Doc/测试稳定性规约.md 的分流规则处理。
+  s390x-smoke:
+    name: test (linux-s390x qemu smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    if: github.event_name != 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (s390x)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: s390x
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0 smoke) in s390x Container
+      env:
+        SMOKE_NAMESPACES: XUnitTest.Buffers,XUnitTest.Algorithms,XUnitTest.Collections
+      run: |
+        docker run --rm --platform linux/s390x \
+          -v "$PWD:/src" -w /src \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e SMOKE_NAMESPACES="$SMOKE_NAMESPACES" \
+          s390x/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends dotnet-runtime-10.0 libicu74 libssl3 ca-certificates >/dev/null
+            dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            timeout 35m dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES"
+          '
+
+  s390x:
+    name: test (linux-s390x qemu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (s390x)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: s390x
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0) in s390x Container
+      run: |
+        docker run --rm --platform linux/s390x \
+          -v "$PWD:/src" -w /src \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          s390x/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends dotnet-runtime-10.0 libicu74 libssl3 ca-certificates >/dev/null
+            dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            timeout 290m dotnet ./xr.dll ./XUnitTest.Core.dll
+          '
+
+  # ppc64le：与 s390x 同渠道（官方支持清单 + Ubuntu 包），但为小端，价值在弱内存模型与 64 位路径。
+  ppc64le-smoke:
+    name: test (linux-ppc64le qemu smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    if: github.event_name != 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (ppc64le)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: ppc64le
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0 smoke) in ppc64le Container
+      env:
+        SMOKE_NAMESPACES: XUnitTest.Buffers,XUnitTest.Algorithms,XUnitTest.Collections
+      run: |
+        docker run --rm --platform linux/ppc64le \
+          -v "$PWD:/src" -w /src \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e SMOKE_NAMESPACES="$SMOKE_NAMESPACES" \
+          ppc64le/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends dotnet-runtime-10.0 libicu74 libssl3 ca-certificates >/dev/null
+            dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            timeout 35m dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES"
+          '
+
+  ppc64le:
+    name: test (linux-ppc64le qemu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (ppc64le)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: ppc64le
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0) in ppc64le Container
+      run: |
+        docker run --rm --platform linux/ppc64le \
+          -v "$PWD:/src" -w /src \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          ppc64le/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends dotnet-runtime-10.0 libicu74 libssl3 ca-certificates >/dev/null
+            dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            timeout 290m dotnet ./xr.dll ./XUnitTest.Core.dll
+          '
+
   # 源生成器随主包分发校验
   pack:
     name: pack check
