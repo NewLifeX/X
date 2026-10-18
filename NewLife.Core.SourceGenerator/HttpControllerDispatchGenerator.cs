@@ -240,7 +240,7 @@ public sealed class HttpControllerDispatchGenerator : IIncrementalGenerator
         if (type.Name == "IServiceProvider" && type.ContainingNamespace?.ToDisplayString() == "System") return "context.ServiceProvider";
 
         if (type.IsValueType && !IsNullable(type))
-            return "throw new global::System.ArgumentException(\"缺少必填参数 [" + p.Name + "]\", \"" + p.Name + "\")";
+            return "throw new global::System.ArgumentException(global::NewLife.Localization.Translate(\"Missing required parameter [{0}].\", \"" + p.Name + "\"), \"" + p.Name + "\")";
 
         return "null";
     }

@@ -83,11 +83,11 @@ public abstract class Logger : ILog
                 }
             }
         }
-        if (args == null || args.Length <= 0) return format;
+        if (args == null || args.Length <= 0) return Localization.TranslateForLog(format);
 
         //format = format.Replace("{", "{{").Replace("}", "}}");
 
-        return String.Format(format, args);
+        return Localization.TranslateForLog(format, args);
     }
     #endregion
 

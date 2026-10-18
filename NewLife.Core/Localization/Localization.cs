@@ -1,0 +1,149 @@
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
+
+namespace NewLife;
+
+/// <summary>多语言本地化</summary>
+/// <remarks>
+/// 默认使用 <see cref="CultureInfo.CurrentUICulture"/> 作为目标语言，应用可通过 <see cref="Culture"/> 强制指定。
+/// 翻译表以英文原文为键，缺少翻译或格式化失败时回退英文原文，因此未接入本地化的组件行为不变。
+/// 语言表由 <c>Locales/*.yml</c> 在编译期生成，不依赖 ResourceManager 与卫星程序集，原生支持 AOT。
+/// </remarks>
+public static partial class Localization
+{
+    #region 属性
+    /// <summary>目标语言。默认 null，表示跟随 <see cref="CultureInfo.CurrentUICulture"/></summary>
+    public static CultureInfo? Culture { get; set; }
+
+    /// <summary>日志语言。默认 null，表示跟随 <see cref="Culture"/> 或 <see cref="CultureInfo.CurrentUICulture"/></summary>
+    /// <remarks>启用 ASP.NET Core 请求语言识别后，可把它固定为宿主语言，避免日志随请求变化。</remarks>
+    public static CultureInfo? LogCulture { get; set; }
+
+    private static readonly ConcurrentDictionary<String, IReadOnlyDictionary<String, String>> _overrides = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<String, String?> _cultureKeys = new(StringComparer.Ordinal);
+    #endregion
+
+    #region 注册
+    /// <summary>注册本地化覆盖表</summary>
+    /// <param name="culture">目标语言</param>
+    /// <param name="table">英文原文到译文的映射</param>
+    /// <param name="overwrite">是否覆盖已存在的译文。默认 false，内置译文优先</param>
+    /// <remarks>
+    /// 用于下游组件补充自己的译文，或在运行时新增语言。查找顺序：覆盖表 → 内置表 → 英文原文。
+    /// 注册是进程级全局状态，建议在启动阶段完成。
+    /// </remarks>
+    public static void Register(CultureInfo culture, IDictionary<String, String> table, Boolean overwrite = false)
+    {
+        if (culture == null) throw new ArgumentNullException(nameof(culture));
+        if (table == null || table.Count == 0) return;
+
+        var key = GetCultureKey(culture);
+        if (key == null) return;
+
+        _overrides.AddOrUpdate(
+            key,
+            _ => Merge(key, table, overwrite),
+            (_, existing) => Merge(key, table, overwrite, existing));
+    }
+
+    /// <summary>移除指定语言的覆盖表</summary>
+    /// <param name="culture">目标语言</param>
+    /// <returns>是否移除了覆盖表</returns>
+    public static Boolean Unregister(CultureInfo culture)
+    {
+        if (culture == null) return false;
+
+        var key = GetCultureKey(culture);
+        return key != null && _overrides.TryRemove(key, out _);
+    }
+
+    private static IReadOnlyDictionary<String, String> Merge(String cultureKey, IDictionary<String, String> table, Boolean overwrite, IReadOnlyDictionary<String, String>? existing = null)
+    {
+        var result = new Dictionary<String, String>(StringComparer.Ordinal);
+        if (existing != null)
+        {
+            foreach (var item in existing) result[item.Key] = item.Value;
+        }
+
+        var builtin = GetTableByKey(cultureKey);
+        foreach (var item in table)
+        {
+            if (item.Key.IsNullOrEmpty()) continue;
+
+            if (!overwrite && (result.ContainsKey(item.Key) || (builtin != null && builtin.ContainsKey(item.Key)))) continue;
+
+            result[item.Key] = item.Value ?? String.Empty;
+        }
+
+        return result;
+    }
+    #endregion
+
+    #region 方法
+    /// <summary>翻译指定文本</summary>
+    /// <param name="template">英文原文模板</param>
+    /// <returns>本地化文本；缺少翻译时返回原文</returns>
+    public static String Translate(String template) => Translate(null, template);
+
+    /// <summary>翻译并格式化指定文本</summary>
+    /// <param name="template">英文原文模板</param>
+    /// <param name="args">格式化参数</param>
+    /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>
+    public static String Translate(String template, params Object?[]? args) => Translate(null, template, args);
+
+    internal static String TranslateForLog(String template) => Translate(LogCulture ?? Culture, template);
+
+    internal static String TranslateForLog(String template, Object?[]? args) => Translate(LogCulture ?? Culture, template, args);
+
+    internal static String Translate(CultureInfo? culture, String template)
+    {
+        if (template.IsNullOrEmpty()) return template;
+
+        culture ??= Culture ?? CultureInfo.CurrentUICulture;
+        var key = GetCultureKeyCached(culture);
+        if (key == null) return template;
+
+        String? text;
+        if (!_overrides.IsEmpty && _overrides.TryGetValue(key, out var overlay) && overlay.TryGetValue(template, out text)) return text;
+
+        // 英文原文即 key，无需查表
+        if (key == "en") return template;
+
+        var table = GetTableByKey(key);
+        if (table != null && table.TryGetValue(template, out text)) return text;
+
+        return template;
+    }
+
+    private static String? GetCultureKeyCached(CultureInfo culture)
+    {
+        var name = culture.Name;
+        if (name.Length == 0) return null;
+
+        if (_cultureKeys.TryGetValue(name, out var key)) return key;
+
+        key = GetCultureKey(culture);
+        _cultureKeys.TryAdd(name, key);
+        return key;
+    }
+
+    internal static String Translate(CultureInfo? culture, String template, params Object?[]? args)
+    {
+        culture ??= Culture ?? CultureInfo.CurrentUICulture;
+        var text = Translate(culture, template);
+        if (args == null || args.Length == 0) return text;
+
+        try
+        {
+            return String.Format(culture, text, args);
+        }
+        catch (FormatException) when (!ReferenceEquals(text, template))
+        {
+            // 译文占位符不合法时回退英文，避免翻译问题演变成新的异常
+            return String.Format(culture, template, args);
+        }
+    }
+    #endregion
+}

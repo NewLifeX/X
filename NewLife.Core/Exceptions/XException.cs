@@ -16,23 +16,23 @@ public class XException : Exception
 
     /// <summary>使用指定的错误消息初始化 X 组件异常实例</summary>
     /// <param name="message">描述错误的消息</param>
-    public XException(String message) : base(message) { }
+    public XException(String message) : base(Localization.Translate(message)) { }
 
     /// <summary>使用指定的格式字符串和参数初始化 X 组件异常实例</summary>
     /// <param name="format">复合格式字符串</param>
     /// <param name="args">格式化参数数组</param>
-    public XException(String format, params Object?[] args) : base(String.Format(format, args)) { }
+    public XException(String format, params Object?[] args) : base(Localization.Translate(format, args)) { }
 
     /// <summary>使用指定的错误消息和内部异常初始化 X 组件异常实例</summary>
     /// <param name="message">描述错误的消息</param>
     /// <param name="innerException">导致当前异常的异常</param>
-    public XException(String message, Exception innerException) : base(message, innerException) { }
+    public XException(String message, Exception innerException) : base(Localization.Translate(message), innerException) { }
 
     /// <summary>使用内部异常、格式字符串和参数初始化 X 组件异常实例</summary>
     /// <param name="innerException">导致当前异常的异常</param>
     /// <param name="format">复合格式字符串</param>
     /// <param name="args">格式化参数数组</param>
-    public XException(Exception innerException, String format, params Object?[] args) : base(String.Format(format, args), innerException) { }
+    public XException(Exception innerException, String format, params Object?[] args) : base(Localization.Translate(format, args), innerException) { }
 
     /// <summary>使用内部异常初始化 X 组件异常实例，自动使用内部异常的消息</summary>
     /// <param name="innerException">导致当前异常的异常</param>
