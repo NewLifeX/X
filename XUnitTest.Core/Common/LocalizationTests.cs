@@ -29,7 +29,7 @@ public class LocalizationTests
     [Theory(DisplayName = "英文与无表语言：回退英文原文")]
     [InlineData("en-US")]
     [InlineData("en-GB")]
-    [InlineData("fr-FR")]
+    [InlineData("sw-KE")]
     public void Translate_fallback(String name) => Assert.Equal(Key, Localization.Translate(CultureInfo.GetCultureInfo(name), Key));
 
     [Fact(DisplayName = "未知键：回退英文原文")]
@@ -62,7 +62,7 @@ public class LocalizationTests
             Localization.Register(de, new Dictionary<String, String>
             {
                 [key] = "下载完成，大小 {0:n0} 字节，耗时 {1:n0} 毫秒",
-            });
+            }, true);
 
             Assert.Equal("下载完成，大小 1.234 字节，耗时 56 毫秒", Localization.Translate(de, key, 1234, 56));
         }
@@ -152,7 +152,7 @@ public class LocalizationTests
             Localization.Register(culture, new Dictionary<String, String> { [Key] = "ไม่รองรับการรีเซ็ตในโหมดสตรีมมิ่ง" });
 
             Assert.Equal("ไม่รองรับการรีเซ็ตในโหมดสตรีมมิ่ง", Localization.Translate(culture, Key));
-            Assert.Equal(Key, Localization.Translate(CultureInfo.GetCultureInfo("fr-FR"), Key));
+            Assert.Equal(Key, Localization.Translate(CultureInfo.GetCultureInfo("sw-KE"), Key));
         }
         finally
         {
@@ -165,7 +165,7 @@ public class LocalizationTests
     {
         try
         {
-            Localization.Register(CultureInfo.GetCultureInfo("zh-Hant"), new Dictionary<String, String> { [Key] = "繁體譯文" });
+            Localization.Register(CultureInfo.GetCultureInfo("zh-Hant"), new Dictionary<String, String> { [Key] = "繁體譯文" }, true);
 
             Assert.Equal("繁體譯文", Localization.Translate(CultureInfo.GetCultureInfo("zh-TW"), Key));
             Assert.Equal("繁體譯文", Localization.Translate(CultureInfo.GetCultureInfo("zh-HK"), Key));
@@ -250,3 +250,4 @@ public class LocalizationTests
         protected override void OnWrite(LogLevel level, String format, params Object?[] args) { }
     }
 }
+
