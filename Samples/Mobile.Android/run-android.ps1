@@ -12,20 +12,22 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+$root = (Resolve-Path (Join-Path $PSScriptRoot "../..")).Path
 $pack = Join-Path $PSScriptRoot "pack-android.ps1"
-$apkDir = Join-Path $root "Bin\Mobile.Android\apk"
+$apkDir = Join-Path $root "Bin/Mobile.Android/apk"
 
 function Find-Adb {
-    $sdk = $env:ANDROID_HOME
-    if (-not $sdk) { $sdk = $env:ANDROID_SDK_ROOT }
+    $sdks = @()
+    if ($env:ANDROID_HOME) { $sdks += $env:ANDROID_HOME }
+    if ($env:ANDROID_SDK_ROOT) { $sdks += $env:ANDROID_SDK_ROOT }
+    if ($IsWindows) {
+        if ($env:LOCALAPPDATA) { $sdks += (Join-Path $env:LOCALAPPDATA "Android/Sdk") }
+        $sdks += "C:/Android/Sdk"
+    }
 
-    $paths = @()
-    if ($sdk) { $paths += (Join-Path $sdk "platform-tools\adb.exe") }
-    $paths += (Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe")
-    $paths += "C:\Android\Sdk\platform-tools\adb.exe"
-
-    foreach ($path in $paths) {
+    $exe = if ($IsWindows) { "adb.exe" } else { "adb" }
+    foreach ($sdk in $sdks) {
+        $path = Join-Path $sdk "platform-tools/$exe"
         if (Test-Path $path) { return $path }
     }
 
@@ -71,7 +73,7 @@ if (-not $SkipBuild) {
 $suffix = if ($Stardust) { "-Stardust" } else { "" }
 $apk = Join-Path $apkDir ("Mobile-" + $Mode + $suffix + ".apk")
 if (-not (Test-Path $apk)) {
-    $apk = Get-ChildItem (Join-Path $root "Bin\Mobile.Android") -Filter "*.apk" -Recurse -ErrorAction SilentlyContinue |
+    $apk = Get-ChildItem (Join-Path $root "Bin/Mobile.Android") -Filter "*.apk" -Recurse -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
 }
 if (-not $apk -or -not (Test-Path $apk)) { throw "APK not found. Run pack-android.ps1 first." }
@@ -104,7 +106,7 @@ while ((Get-Date) -lt $deadline) {
     if ($match) { break }
 }
 
-$artifactDir = Join-Path $root "Bin\Mobile.Android\artifacts"
+$artifactDir = Join-Path $root "Bin/Mobile.Android/artifacts"
 New-Item -ItemType Directory -Path $artifactDir -Force | Out-Null
 $logFile = Join-Path $artifactDir ("android-" + (Get-Date -Format "yyyyMMdd-HHmmss") + ".log")
 $lines = & $adb -s $Device logcat -d -s "Mobile:I"

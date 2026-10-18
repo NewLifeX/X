@@ -12,9 +12,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+$root = (Resolve-Path (Join-Path $PSScriptRoot "../..")).Path
 $project = Join-Path $PSScriptRoot "Mobile.Android.csproj"
-if (-not $OutputDir) { $OutputDir = Join-Path $root "Bin\Mobile.Android\apk" }
+if (-not $OutputDir) { $OutputDir = Join-Path $root "Bin/Mobile.Android/apk" }
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 
 $verb = if ($Mode -eq "NativeAot") { "publish" } else { "build" }
@@ -41,9 +41,9 @@ Write-Host "Building $Mode APK ..."
 & dotnet @buildArgs
 if ($LASTEXITCODE -ne 0) { throw "$Mode build failed." }
 
-$binDir = Join-Path $root "Bin\Mobile.Android"
+$binDir = Join-Path $root "Bin/Mobile.Android"
 # 优先使用本次构建 RID 目录下的产物，避免误取其它模式（JIT/AOT）遗留的 APK
-$apkPath = Join-Path $binDir "$RuntimeIdentifier\com.newlife.mobile-Signed.apk"
+$apkPath = Join-Path $binDir "$RuntimeIdentifier/com.newlife.mobile-Signed.apk"
 if (-not (Test-Path $apkPath)) {
     $apkFile = Get-ChildItem (Join-Path $binDir $RuntimeIdentifier) -Filter "*-Signed.apk" -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
@@ -69,13 +69,20 @@ Write-Host "SHA256=$hash"
 
 if ($Install) {
     function Find-Adb {
-        $sdk = $env:ANDROID_HOME
-        if (-not $sdk) { $sdk = $env:ANDROID_SDK_ROOT }
-        $paths = @()
-        if ($sdk) { $paths += (Join-Path $sdk "platform-tools\adb.exe") }
-        $paths += (Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe")
-        $paths += "C:\Android\Sdk\platform-tools\adb.exe"
-        foreach ($path in $paths) { if (Test-Path $path) { return $path } }
+        $sdks = @()
+        if ($env:ANDROID_HOME) { $sdks += $env:ANDROID_HOME }
+        if ($env:ANDROID_SDK_ROOT) { $sdks += $env:ANDROID_SDK_ROOT }
+        if ($IsWindows) {
+            if ($env:LOCALAPPDATA) { $sdks += (Join-Path $env:LOCALAPPDATA "Android/Sdk") }
+            $sdks += "C:/Android/Sdk"
+        }
+
+        $exe = if ($IsWindows) { "adb.exe" } else { "adb" }
+        foreach ($sdk in $sdks) {
+            $path = Join-Path $sdk "platform-tools/$exe"
+            if (Test-Path $path) { return $path }
+        }
+
         $cmd = Get-Command adb -ErrorAction SilentlyContinue
         if ($cmd) { return $cmd.Source }
         throw "adb not found. Run Samples/Mobile.Android/setup-android.ps1 first."

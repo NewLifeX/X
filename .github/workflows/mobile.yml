@@ -67,9 +67,13 @@ jobs:
       - name: Setup dotNET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 10.0.402
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
       - name: Install iOS workload
-        run: dotnet workload install ios || sudo dotnet workload install ios
+        # iOS SDK 版本必须与 Xcode 主次版本严格一致：默认 workload set 的 iOS 27 需要 Xcode 27，
+        # 这里固定到 Xcode 26.6 对应的 workload set（10.400.1 → iOS 26.5.10315）
+        run: dotnet workload install ios --version 10.400.1 || sudo dotnet workload install ios --version 10.400.1
       - name: Run iOS smoke
         run: bash ./Samples/Mobile.iOS/run-ios.sh
       - name: Upload iOS artifacts
