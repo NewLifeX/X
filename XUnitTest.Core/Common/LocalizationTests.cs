@@ -118,6 +118,33 @@ public class LocalizationTests
         }
     }
 
+    [Fact(DisplayName = "全部内置语言：解压后都能查到译文")]
+    public void AllBuiltinLanguages()
+    {
+        var cultures = new[]
+        {
+            "zh-Hans", "zh-Hant", "ja", "ko", "vi", "th", "id", "ms", "hi", "bn",
+            "ar", "he", "fa", "de", "fr", "es", "pt", "it", "nl", "pl",
+            "cs", "sv", "da", "nb", "fi", "el", "ro", "hu", "ru", "uk", "tr",
+        };
+        var saved = Localization.Culture;
+        var missing = new List<String>();
+        try
+        {
+            foreach (var name in cultures)
+            {
+                Localization.Culture = CultureInfo.GetCultureInfo(name);
+                if (Localization.Translate(Key) == Key) missing.Add(name);
+            }
+        }
+        finally
+        {
+            Localization.Culture = saved;
+        }
+
+        Assert.Empty(missing);
+    }
+
     [Fact(DisplayName = "注册覆盖表：显式 overwrite 可改内置译文")]
     public void Register_overwrite()
     {
