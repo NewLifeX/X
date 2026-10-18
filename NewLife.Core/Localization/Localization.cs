@@ -93,9 +93,17 @@ public static partial class Localization
     /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>
     public static String Translate(String template, params Object?[]? args) => Translate(null, template, args);
 
-    internal static String TranslateForLog(String template) => Translate(LogCulture ?? Culture, template);
+    /// <summary>按日志语言翻译指定文本</summary>
+    /// <param name="template">英文原文模板</param>
+    /// <returns>本地化文本；缺少翻译时返回原文</returns>
+    /// <remarks>优先使用 <see cref="LogCulture"/>，其次 <see cref="Culture"/>，最后当前 UI 文化。供自定义日志实现复用。</remarks>
+    public static String TranslateForLog(String template) => Translate(LogCulture ?? Culture, template);
 
-    internal static String TranslateForLog(String template, Object?[]? args) => Translate(LogCulture ?? Culture, template, args);
+    /// <summary>按日志语言翻译并格式化指定文本</summary>
+    /// <param name="template">英文原文模板</param>
+    /// <param name="args">格式化参数</param>
+    /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>
+    public static String TranslateForLog(String template, params Object?[]? args) => Translate(LogCulture ?? Culture, template, args);
 
     internal static String Translate(CultureInfo? culture, String template)
     {
