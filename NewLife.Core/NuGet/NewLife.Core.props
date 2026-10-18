@@ -1,0 +1,7 @@
+<Project>
+  <!-- 源生成器通过 build_property.* 读取以下开关；NuGet 引用主包时自动导入 -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="NewLifeLocalizationGenerateL" />
+    <CompilerVisibleProperty Include="NewLifeLocalizationOverwrite" />
+  </ItemGroup>
+</Project>

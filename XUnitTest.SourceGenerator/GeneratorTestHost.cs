@@ -36,9 +36,10 @@ public static class GeneratorTestHost
     /// <param name="preprocessorSymbols">预处理符号</param>
     /// <param name="additionalTexts">附加文本（路径与内容）</param>
     /// <param name="buildProperties">MSBuild 全局属性（对应 build_property.*）</param>
+    /// <param name="outputKind">输出类型，用于区分应用与类库</param>
     /// <param name="additionalReferences">附加元数据引用</param>
     /// <returns>生成后的编译与驱动运行结果</returns>
-    public static (Compilation Compilation, GeneratorDriverRunResult Result) RunWithAdditionalTexts(IIncrementalGenerator generator, String source, String assemblyName, String[]? preprocessorSymbols, IEnumerable<(String Path, String Text)> additionalTexts, IReadOnlyDictionary<String, String>? buildProperties = null, params MetadataReference[] additionalReferences)
+    public static (Compilation Compilation, GeneratorDriverRunResult Result) RunWithAdditionalTexts(IIncrementalGenerator generator, String source, String assemblyName, String[]? preprocessorSymbols, IEnumerable<(String Path, String Text)> additionalTexts, IReadOnlyDictionary<String, String>? buildProperties = null, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary, params MetadataReference[] additionalReferences)
     {
         var refs = new List<MetadataReference>(_platformRefs.Value);
         foreach (var item in additionalReferences) refs.Add(item);
@@ -53,7 +54,7 @@ public static class GeneratorTestHost
             assemblyName,
             trees,
             refs,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(outputKind));
 
         var texts = additionalTexts.Select(x => (AdditionalText)new InMemoryAdditionalText(x.Path, x.Text)).ToArray();
         var provider = new TestAnalyzerConfigOptionsProvider(buildProperties);

@@ -76,6 +76,54 @@ public class LocalizationGeneratorTests
         Assert.DoesNotContain("public static String T(", text);
     }
 
+    [Fact(DisplayName = "下游类库：默认不覆盖 Core 同名译文")]
+    public void DownstreamLibraryKeepsBuiltin()
+    {
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "My.Component", null,
+            new[] { ("Locales/ja.yml", Yaml) });
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("overwrite: false", text);
+    }
+
+    [Fact(DisplayName = "下游应用：默认可覆盖 Core 同名译文")]
+    public void DownstreamApplicationOverridesBuiltin()
+    {
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "My.App", null,
+            new[] { ("Locales/ja.yml", Yaml) },
+            outputKind: OutputKind.ConsoleApplication);
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("overwrite: true", text);
+    }
+
+    [Fact(DisplayName = "下游类库：MSBuild 属性可显式开启覆盖")]
+    public void DownstreamOptInOverwrite()
+    {
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "My.Component", null,
+            new[] { ("Locales/ja.yml", Yaml) },
+            new Dictionary<String, String> { ["NewLifeLocalizationOverwrite"] = "true" });
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("overwrite: true", text);
+    }
+
+    [Fact(DisplayName = "下游应用：MSBuild 属性可显式关闭覆盖")]
+    public void DownstreamOptOutOverwrite()
+    {
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "My.App", null,
+            new[] { ("Locales/ja.yml", Yaml) },
+            new Dictionary<String, String> { ["NewLifeLocalizationOverwrite"] = "false" },
+            outputKind: OutputKind.ConsoleApplication);
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("overwrite: false", text);
+    }
+
     [Fact(DisplayName = "下游模式：注册对不变全球化做防御")]
     public void DownstreamInvariantGuard()
     {

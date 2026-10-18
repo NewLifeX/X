@@ -42,7 +42,8 @@ public static partial class Localization
     /// <param name="overwrite">是否覆盖已存在的译文。默认 false，内置译文优先</param>
     /// <remarks>
     /// 用于下游组件补充自己的译文，或在运行时新增语言。查找顺序：覆盖表 → 内置表 → 英文原文。
-    /// 注册是进程级全局状态，建议在启动阶段完成。
+    /// 源生成器产出的自动注册按程序集类型传参：应用（可执行程序集）传 true 以覆盖 Core 同名译文，类库传 false 只补充新 key。
+    /// 注册是进程级全局状态，建议在启动阶段完成；多个注册方修改同一 key 时后注册者生效。
     /// </remarks>
     public static void Register(CultureInfo culture, IDictionary<String, String> table, Boolean overwrite = false)
     {
