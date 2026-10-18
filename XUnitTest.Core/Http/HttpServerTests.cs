@@ -1256,7 +1256,7 @@ public class HttpServerTests : IDisposable
 
         var buf = new Byte[1024];
         var rs = await client.ReceiveAsync(new ArraySegment<Byte>(buf), default);
-        Assert.EndsWith("说，Hello NewLife", new ArrayPacket(buf, 0, rs.Count).ToStr());
+        Assert.EndsWith(" says: Hello NewLife", new ArrayPacket(buf, 0, rs.Count).ToStr());
 
         await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
         XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);

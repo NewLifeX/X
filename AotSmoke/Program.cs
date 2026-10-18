@@ -1,4 +1,4 @@
-// NewLife.Core NativeAOT compatibility smoke test.
+﻿// NewLife.Core NativeAOT compatibility smoke test.
 // Runs a fixed set of scenarios against the core library and reports PASS/FAIL per scenario.
 // Same binary is run under JIT (dotnet run) and NativeAOT (publish -p:PublishAot=true) to compare.
 //
@@ -86,7 +86,7 @@ Run("多语言 Localization 静态表", () =>
         var en = Localization.Translate("Reset is not supported in streaming mode.");
         if (en != "Reset is not supported in streaming mode.") throw new Exception("英文回退不正确: " + en);
 
-        var th = CultureInfo.GetCultureInfo("th-TH");
+        var th = CultureInfo.GetCultureInfo("sw-KE");
         Localization.Culture = th;
         Localization.Register(th, new Dictionary<String, String>
         {
@@ -628,14 +628,24 @@ public static class PluginGuardProbe
         }
         else
         {
+            // 消息随当前语言变化，固定 en-US 后断言，避免不同机器区域设置导致结论漂移
+            var saved = Localization.Culture;
             try
             {
-                PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
-                throw new Exception("AOT 下插件动态加载竟然可用");
+                Localization.Culture = new CultureInfo("en-US");
+                try
+                {
+                    PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
+                    throw new Exception("AOT 下插件动态加载竟然可用");
+                }
+                catch (PlatformNotSupportedException ex)
+                {
+                    if (!ex.Message.Contains("plugin dynamic loading")) throw new Exception("异常信息不明确: " + ex.Message);
+                }
             }
-            catch (PlatformNotSupportedException ex)
+            finally
             {
-                if (!ex.Message.Contains("插件动态加载")) throw new Exception("异常信息不明确: " + ex.Message);
+                Localization.Culture = saved;
             }
         }
     }

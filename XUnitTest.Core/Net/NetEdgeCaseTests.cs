@@ -427,7 +427,7 @@ public class NetEdgeCaseTests
         Assert.True(server.MaxSessionCount >= 5);
 
         var stat = server.GetStat();
-        Assert.Contains("在线", stat);
+        Assert.Contains("Online", stat);
 
         // 清理
         foreach (var client in clients)

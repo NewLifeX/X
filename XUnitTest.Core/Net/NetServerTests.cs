@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -1118,7 +1118,7 @@ public class NetServerTests
         Assert.True(TestWait.Until(() => !(stat = server.GetStat()).IsNullOrEmpty(), 10_000), "未在超时内产出统计信息");
 
         Assert.NotEmpty(stat);
-        Assert.Contains("在线", stat);
+        Assert.Contains("Online", stat);
     }
     #endregion
 
