@@ -524,6 +524,11 @@ public static class IOHelper
     #endregion
 
     #region 数据转整数
+    /// <summary>目标字节序与主机字节序是否相反</summary>
+    /// <param name="isLittleEndian">目标是否小端</param>
+    /// <returns></returns>
+    private static Boolean IsReverseEndian(Boolean isLittleEndian) => isLittleEndian != BitConverter.IsLittleEndian;
+
     /// <summary>从字节数据指定位置读取一个无符号16位整数</summary>
     /// <param name="data"></param>
     /// <param name="offset">偏移</param>
@@ -544,14 +549,10 @@ public static class IOHelper
     /// <returns></returns>
     public static UInt32 ToUInt32(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.ToUInt32(data, offset);
-
-        // BitConverter得到小端，如果不是小端字节顺序，则倒序
-        if (offset > 0) data = data.ReadBytes(offset, 4);
         if (isLittleEndian)
-            return (UInt32)(data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18);
-        else
-            return (UInt32)(data[0] << 0x18 | data[1] << 0x10 | data[2] << 8 | data[3]);
+            return (UInt32)(data[offset] | data[offset + 1] << 8 | data[offset + 2] << 0x10 | data[offset + 3] << 0x18);
+
+        return (UInt32)(data[offset] << 0x18 | data[offset + 1] << 0x10 | data[offset + 2] << 8 | data[offset + 3]);
     }
 
     /// <summary>从字节数据指定位置读取一个无符号64位整数</summary>
@@ -561,20 +562,17 @@ public static class IOHelper
     /// <returns></returns>
     public static UInt64 ToUInt64(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.ToUInt64(data, offset);
-
-        if (offset > 0) data = data.ReadBytes(offset, 8);
         if (isLittleEndian)
         {
-            var num1 = data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18;
-            var num2 = data[4] | data[5] << 8 | data[6] << 0x10 | data[7] << 0x18;
-            return (UInt32)num1 | (UInt64)num2 << 0x20;
+            var num1 = data[offset] | data[offset + 1] << 8 | data[offset + 2] << 0x10 | data[offset + 3] << 0x18;
+            var num2 = data[offset + 4] | data[offset + 5] << 8 | data[offset + 6] << 0x10 | data[offset + 7] << 0x18;
+            return (UInt32)num1 | (UInt64)(UInt32)num2 << 0x20;
         }
         else
         {
-            var num3 = data[0] << 0x18 | data[1] << 0x10 | data[2] << 8 | data[3];
-            var num4 = data[4] << 0x18 | data[5] << 0x10 | data[6] << 8 | data[7];
-            return (UInt32)num4 | (UInt64)num3 << 0x20;
+            var num3 = data[offset] << 0x18 | data[offset + 1] << 0x10 | data[offset + 2] << 8 | data[offset + 3];
+            var num4 = data[offset + 4] << 0x18 | data[offset + 5] << 0x10 | data[offset + 6] << 8 | data[offset + 7];
+            return (UInt64)(UInt32)num3 << 0x20 | (UInt32)num4;
         }
     }
 
@@ -585,15 +583,11 @@ public static class IOHelper
     /// <returns></returns>
     public static Single ToSingle(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
     {
-        // BitConverter得到小端，如果不是小端字节顺序，则倒序
-        if (offset > 0) data = data.ReadBytes(offset, 4);
-        if (!isLittleEndian)
-        {
-            (data[3], data[2], data[1], data[0]) = (data[0], data[1], data[2], data[3]);
-        }
+        var buf = new Byte[4];
+        Buffer.BlockCopy(data, offset, buf, 0, 4);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        // 切片后从 0 开始读取，避免 offset 越界
-        return BitConverter.ToSingle(data, 0);
+        return BitConverter.ToSingle(buf, 0);
     }
 
     /// <summary>从字节数据指定位置读取一个双精度浮点数</summary>
@@ -603,14 +597,11 @@ public static class IOHelper
     /// <returns></returns>
     public static Double ToDouble(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
     {
-        if (offset > 0) data = data.ReadBytes(offset, 8);
-        if (!isLittleEndian)
-        {
-            (data[7], data[6], data[5], data[4], data[3], data[2], data[1], data[0]) = (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
-        }
+        var buf = new Byte[8];
+        Buffer.BlockCopy(data, offset, buf, 0, 8);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        // 切片后从 0 开始读取，避免 offset 越界
-        return BitConverter.ToDouble(data, 0);
+        return BitConverter.ToDouble(buf, 0);
     }
 
     /// <summary>向字节数组的指定位置写入一个无符号16位整数</summary>
@@ -703,20 +694,8 @@ public static class IOHelper
     public static Byte[] Write(this Byte[] data, Single n, Int32 offset = 0, Boolean isLittleEndian = true)
     {
         var buf = BitConverter.GetBytes(n);
-        if (isLittleEndian)
-        {
-            for (var i = 0; i < 4; i++)
-            {
-                data[offset++] = buf[i];
-            }
-        }
-        else
-        {
-            for (var i = 4 - 1; i >= 0; i--)
-            {
-                data[offset + i] = buf[i];
-            }
-        }
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
+        buf.CopyTo(data, offset);
 
         return data;
     }
@@ -730,20 +709,8 @@ public static class IOHelper
     public static Byte[] Write(this Byte[] data, Double n, Int32 offset = 0, Boolean isLittleEndian = true)
     {
         var buf = BitConverter.GetBytes(n);
-        if (isLittleEndian)
-        {
-            for (var i = 0; i < 8; i++)
-            {
-                data[offset++] = buf[i];
-            }
-        }
-        else
-        {
-            for (var i = 8 - 1; i >= 0; i--)
-            {
-                data[offset + i] = buf[i];
-            }
-        }
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
+        buf.CopyTo(data, offset);
 
         return data;
     }
@@ -754,10 +721,10 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetBytes(this UInt16 value, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.GetBytes(value);
+        var buf = BitConverter.GetBytes(value);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        var buf = new Byte[2];
-        return buf.Write(value, 0, isLittleEndian);
+        return buf;
     }
 
     /// <summary>整数转为字节数组，注意大小端字节序</summary>
@@ -766,10 +733,10 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetBytes(this Int16 value, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.GetBytes(value);
+        var buf = BitConverter.GetBytes(value);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        var buf = new Byte[2];
-        return buf.Write((UInt16)value, 0, isLittleEndian);
+        return buf;
     }
 
     /// <summary>整数转为字节数组，注意大小端字节序</summary>
@@ -778,10 +745,10 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetBytes(this UInt32 value, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.GetBytes(value);
+        var buf = BitConverter.GetBytes(value);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        var buf = new Byte[4];
-        return buf.Write(value, 0, isLittleEndian);
+        return buf;
     }
 
     /// <summary>整数转为字节数组，注意大小端字节序</summary>
@@ -790,10 +757,10 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetBytes(this Int32 value, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.GetBytes(value);
+        var buf = BitConverter.GetBytes(value);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        var buf = new Byte[4];
-        return buf.Write((UInt32)value, 0, isLittleEndian);
+        return buf;
     }
 
     /// <summary>整数转为字节数组，注意大小端字节序</summary>
@@ -802,10 +769,10 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetBytes(this UInt64 value, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.GetBytes(value);
+        var buf = BitConverter.GetBytes(value);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        var buf = new Byte[8];
-        return buf.Write(value, 0, isLittleEndian);
+        return buf;
     }
 
     /// <summary>整数转为字节数组，注意大小端字节序</summary>
@@ -814,10 +781,10 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetBytes(this Int64 value, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.GetBytes(value);
+        var buf = BitConverter.GetBytes(value);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        var buf = new Byte[8];
-        return buf.Write((UInt64)value, 0, isLittleEndian);
+        return buf;
     }
 
     /// <summary>单精度浮点数转为字节数组，注意大小端字节序</summary>
@@ -826,10 +793,10 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetBytes(this Single value, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.GetBytes(value);
+        var buf = BitConverter.GetBytes(value);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        var buf = new Byte[4];
-        return buf.Write(value, 0, isLittleEndian);
+        return buf;
     }
 
     /// <summary>双精度浮点数转为字节数组，注意大小端字节序</summary>
@@ -838,10 +805,10 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetBytes(this Double value, Boolean isLittleEndian = true)
     {
-        if (isLittleEndian) return BitConverter.GetBytes(value);
+        var buf = BitConverter.GetBytes(value);
+        if (IsReverseEndian(isLittleEndian)) Array.Reverse(buf);
 
-        var buf = new Byte[8];
-        return buf.Write(value, 0, isLittleEndian);
+        return buf;
     }
 
     /// <summary>字节翻转。支持双字节和四字节多批次翻转，主要用于大小端转换</summary>
