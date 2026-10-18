@@ -179,6 +179,9 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 - **运行时来源约束**：NuGet 上没有 `Microsoft.NETCore.App.Runtime.linux-{riscv64,s390x,ppc64le,loongarch64}` 包，因此只能框架依赖运行（宿主构建 RID 无关 IL + 目标架构运行时执行），不能 self-contained / 交叉发布。
 - **版本锁定与替换预案**：riscv64 固定 `dotnet-sdk-10.0.113-linux-riscv64.tar.gz`；上游断供时改用 [riscv-forks/dotnet-riscv](https://github.com/riscv-forks/dotnet-riscv)；若 Ubuntu 后续在 riscv64 端口提供 `dotnet-*` 包，则改走 apt，与 s390x/ppc64le 同配方。
 - **s390x 首轮失败分流**：大端会同时暴露"用例假设小端"与真实字节序缺陷——前者按《测试稳定性规约》§1 规则 7/8 显式跳过并留痕，后者记入《功能清单》待修复项后修产品；不得为转绿而放宽断言。
-- **README 徽章**：支持矩阵转绿后再把 `RISC-V / s390x / ppc64le` 加入 `arch` 徽章（当前仅 `Doc` 声明，避免未经验证的宣称）。
+- **本地 WSL 复现（2026-10-18 实测）**：WSL2 已注册 `binfmt_misc`（`qemu-riscv64/s390x/ppc64le`）；下载 `ubuntu-base-24.04.3-base-<arch>.tar.gz` 解出 rootfs，`chroot` 内装目标运行时（s390x/ppc64le 用 `dotnet-runtime-10.0`，riscv64 用社区 SDK），宿主构建的 IL 挂载到 `/src` 直接执行。chroot 前必须 `mount --bind /dev` 与 `mount -t proc proc`，否则 .NET 报 `Mono requires /proc to be mounted`。
+- **s390x 实测结论**：修复 `BinaryGeneral` 的大端反转缺陷后，`Buffers/Algorithms/Collections` 子集 358 例全绿（`DOTNET_EnableHWIntrinsic=0` 非必需）；全量暴露 `IOHelper` 主机序缺陷（FIX-27）、用例小端假设（FIX-28）与 QEMU 全量并行 `SIGSEGV`（IMP-27），**全量转绿前不宣称支持**。
+- **ppc64le 实测结论**：Ubuntu 24.04 的 .NET 8/10 在 QEMU 下 `(Int32)double` 恒为错值（`3.0→0`，`Int64` 正常），`SamplingTests` 必然失败；native C 同样转换正确、切换 `-cpu power8/9/10` 无效 → 属仿真层与运行时组合限制，需真机或换 Red Hat/IBM 构建后再验证。
+- **README 徽章**：维持现状，待三平台全量转绿后统一追加 `RISC-V / s390x / ppc64le`（当前 s390x 全量红、ppc64le 仿真受限、riscv64 待验证，避免未经验证的宣称）。
 
 > 事实依据（2026-10 联网核实）：GitHub 托管 runner 标准表（公开仓库标准 runner 免费且不限量）；NativeAOT 交叉编译文档（learn.microsoft.com/dotnet/core/deploying/native-aot/cross-compile）；社区平台清单（dotnet/runtime `docs/workflow/building/coreclr/cross-building.md`）；龙芯 SDK 发布页与 lnuget 源。
