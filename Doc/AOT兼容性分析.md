@@ -157,7 +157,8 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 
 | 目标 | 排除理由 |
 |---|---|
-| Android / iOS / tvOS / macCatalyst / WASM | 应用模型类目标，无法用 `dotnet test` 在本仓验证（Android/iOS 见 `Samples/Mobile.Android` / `Samples/Mobile.iOS` 示例） |
+| Android / iOS | 不并入 `dotnet test` 矩阵（应用模型目标，测试宿主不同）；已由独立 `.github/workflows/mobile.yml` 覆盖：Android API 36 模拟器（`reactivecircus/android-emulator-runner`）+ iOS `macos-26` 模拟器，跑 `Samples/Mobile.Core` 共享冒烟（21 用例），路径触发含 `NewLife.Core/**`；详见 `Doc/移动端技术架构.md` §5.1 |
+| tvOS / macCatalyst / WASM | 应用模型类目标，本仓无对应冒烟宿主，不验证 |
 | FreeBSD / OpenBSD | 无托管 runner，无官方/社区 runtime pack 渠道；纯托管库验证价值低，需要时按 LA64 的 QEMU 配方另立专项 |
 | MIPS64 | .NET（Core/5+）从未支持、无 SDK 渠道；龙芯已从 MIPS64 迁移到 LoongArch（见 §7.4），本仓历史也从未有过 MIPS CI，不再纳入矩阵 |
 | Windows x64→Linux 交叉 NativeAOT | 官方不支持跨 OS 编译 |
