@@ -55,6 +55,28 @@
 4. 运行 `pwsh -File sync-readme-languages.ps1` 生成切换行，再运行 `-Check` 确认。
 5. 根目录新增了 README 却没登记到配置，脚本会直接报错，避免切换行静默漏掉该语种。
 
+## 徽章模板（下游复用）
+
+下游仓不要直接抄 Core 的徽章 URL，按下面的占位符替换 `{owner}`、`{repo}`、`{package}`、`{branch}`、`{workflow}`：
+
+```markdown
+![GitHub License](https://img.shields.io/github/license/{owner}/{repo}?logo=github)
+![NuGet Downloads](https://img.shields.io/nuget/dt/{package}?logo=nuget)
+![NuGet](https://img.shields.io/nuget/v/{package}?logo=nuget)
+![NuGet prerelease](https://img.shields.io/nuget/vpre/{package}?label=dev%20nuget&logo=nuget)
+[![build](https://github.com/{owner}/{repo}/actions/workflows/{workflow}.yml/badge.svg?branch={branch})](https://github.com/{owner}/{repo}/actions/workflows/{workflow}.yml)
+![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)
+[![contributors](https://img.shields.io/github/contributors/{owner}/{repo}?logo=github)](https://github.com/{owner}/{repo}/graphs/contributors)
+```
+
+规则：
+
+- **必选**：License、NuGet 下载量、NuGet 版本、预发布版本、构建/测试、平台、贡献者。
+- **可选**：TFM 数量、locales 数量、AOT 冒烟；没有对应工作流或指标来源就不要放。
+- 能用动态 GitHub Actions 徽章的，优先用动态；静态数字（如 `AOT smoke-31/31`、`locales-31`）必须配同步脚本与 CI 校验，避免再次漂移。
+- 徽章顺序建议：许可证 → NuGet → CI → 平台/指标 → 贡献者。
+- 语言数量用 `locales-{n}`，不要写"支持 31 种语言"之类正文数字；数字变化时只改配置。
+
 ## 展示约定
 
 - 语言名一律用**本族语名称**（`日本語`、`Español`），不用英文名，也不用国旗——语言 ≠ 国家。

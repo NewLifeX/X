@@ -44,11 +44,22 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
             .Select(static (f, ct) => new LocaleFile(Path.GetFileNameWithoutExtension(f.Path), f.Path, f.GetText(ct)?.ToString() ?? String.Empty));
 
         var input = files.Collect()
-            .Combine(context.CompilationProvider.Select(static (c, _) => new ProjectInfo(
-                c.AssemblyName,
-                c.GetTypeByMetadataName("System.Runtime.CompilerServices.ModuleInitializerAttribute") != null,
-                c.GetTypeByMetadataName("NewLife.L") != null,
-                c.Options.OutputKind is OutputKind.ConsoleApplication or OutputKind.WindowsApplication)))
+            .Combine(context.CompilationProvider.Select(static (c, _) =>
+            {
+                // 只跳过“当前编译可见”的 NewLife.L：源码自带、引用程序集里 public、或 internal + IVT 可见的 L。
+                // Core 程序集里的 internal L 对下游不可见，不能被误判为“下游已自带 L”
+                var ownL = c.GetTypeByMetadataName("NewLife.L");
+                var hasL = ownL != null && (
+                    SymbolEqualityComparer.Default.Equals(ownL.ContainingAssembly, c.Assembly)
+                    || ownL.DeclaredAccessibility == Accessibility.Public
+                    || (ownL.DeclaredAccessibility == Accessibility.Internal && ownL.ContainingAssembly.GivesAccessTo(c.Assembly)));
+
+                return new ProjectInfo(
+                    c.AssemblyName,
+                    c.GetTypeByMetadataName("System.Runtime.CompilerServices.ModuleInitializerAttribute") != null,
+                    hasL,
+                    c.Options.OutputKind is OutputKind.ConsoleApplication or OutputKind.WindowsApplication);
+            }))
             .Combine(context.AnalyzerConfigOptionsProvider.Select(static (p, _) => new BuildOptions(
                 p.GlobalOptions.TryGetValue("build_property.NewLifeLocalizationGenerateL", out var value)
                 && String.Equals(value, "false", StringComparison.OrdinalIgnoreCase),

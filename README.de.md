@@ -6,8 +6,11 @@
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
-[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
+<!-- metrics:start -->
+[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
 [![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
+<!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
 ![arch](https://img.shields.io/badge/arch-x64%20%7C%20x86%20%7C%20arm64%20%7C%20arm32%20%7C%20LoongArch64-orange)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
@@ -28,14 +31,14 @@ Tutorial zur Kernbibliothek: [https://newlifex.com/core](https://newlifex.com/co
 
 NewLife besteht aus mehreren Komponentenbibliotheken, deren Fundament NewLife.Core bildet. Das Framework unterstützt mehrere Zielframeworks von net45 bis net10.0 (.NET Framework 4.5 bis .NET 10.0) und erreicht damit breite Kompatibilität in unterschiedlichen Umgebungen.
 
-**NativeAOT**: Die Kernpfade werden bereits unterstützt (29 praxiserprobte Szenarien + CI-Regressionsschutz); dynamische Fähigkeiten wie Plugins und Skripte werden konstruktionsbedingt nicht unterstützt; zu den Grenzen siehe [AOT-Kompatibilitätsanalyse (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
+**NativeAOT**: Die Kernpfade werden bereits unterstützt (<!--aot-scenarios:start-->31<!--aot-scenarios:end--> praxiserprobte Szenarien + CI-Regressionsschutz); dynamische Fähigkeiten wie Plugins und Skripte werden konstruktionsbedingt nicht unterstützt; zu den Grenzen siehe [AOT-Kompatibilitätsanalyse (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 
 
 ## Warum NewLife.Core
 
 - **Eine Bibliothek für die gemeinsame Infrastruktur**: Logging, Konfiguration, Caching, Netzwerk, Serialisierung, Scheduling, Objektcontainer und DI – eine Referenz genügt.
 - **Breite Versionsabdeckung**: 11 Zielframeworks in einem Paket (net45 → net10.0, inklusive Windows-Varianten); dieselbe API für Altsysteme und neue Projekte.
-- **NativeAOT-fähig**: 29 Kernszenarien gemessen, durch eine Multi-RID-CI-Smoke-Matrix abgesichert; Grenzen in der [AOT-Kompatibilitätsanalyse](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
+- **NativeAOT-fähig**: <!--aot-scenarios:start-->31<!--aot-scenarios:end--> Kernszenarien gemessen, durch eine Multi-RID-CI-Smoke-Matrix abgesichert; Grenzen in der [AOT-Kompatibilitätsanalyse](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 - **Zurückhaltende Abhängigkeiten, freizügige Lizenz**: nur BCL und offizielle Microsoft-Kompatibilitätspakete; MIT, Änderung und Umbenennung erlaubt (siehe [Lizenz](#lizenz)).
 
 ## Schnellstart
@@ -84,7 +87,7 @@ dotnet run
 ### Nutzungsdokumentation
 
 - [Verzeichnis der Kernbibliothek (中文)](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): Artikelindex der Kernkomponenten
-- [AOT-Kompatibilitätsanalyse (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): Unterstützungsbereich von NativeAOT, Messergebnisse (Smoke-Test 29/29), Nutzungshinweise und bekannte Grenzen
+- [AOT-Kompatibilitätsanalyse (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): Unterstützungsbereich von NativeAOT, Messergebnisse (Smoke-Test <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), Nutzungshinweise und bekannte Grenzen
 
 ### Entwicklungsdokumentation
 

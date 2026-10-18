@@ -32,7 +32,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>v12 大版本：网络库重构——数据包引用计数所有权模型、MessagePump 帧泵 + 无状态 IMessageCodec 单栈（整删 PacketCodec/Handlers 族）、数据管道 Pipe/PipeReader/PipeWriter、WebSocket 分片重组、Unix 域套接字传输；以及 HTTP/WebSocket/协议栈/数据管道 40+ 处缺陷修复。详见 ChangeLog.md</PackageReleaseNotes>
+    <PackageReleaseNotes>v12 多语言版本：内置 31 种语言、269 条运行时消息，异常/日志经编译期词表按 CurrentUICulture 本地化，英文为源文与兜底；源生成器随主包分发，下游声明 Locales/*.yml 即可复用与覆盖；语言表 Deflate 压缩、按需解压，单 DLL 且 AOT 安全（冒烟 31 场景）。同时目标框架精简为 11 个（net45 ~ net10.0，含 Windows 变体），运行时消息统一英文化。升级须知与完整变更见 ChangeLog.md</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

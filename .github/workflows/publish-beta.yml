@@ -31,6 +31,10 @@ jobs:
     - name: Build
       run: |
         dotnet pack --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Core\NewLife.Core.csproj
+    - name: Package consumer smoke
+      # 下游只加 PackageReference + Locales/*.yml 的端到端验证；失败即不发包
+      shell: pwsh
+      run: ./check-package-consumer.ps1
     - name: API compatibility gate (observation mode)
       # 观察期：只报告不阻断；2~4 周无新增噪声后删除 continue-on-error 转为发布阻断。
       # 基线=本 dev 线（12.0.*）上次已发布的 beta；校验在 Publish 之前，不会被本次发布污染。

@@ -6,8 +6,11 @@
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
-[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
+<!-- metrics:start -->
+[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
 [![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
+<!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
 ![arch](https://img.shields.io/badge/arch-x64%20%7C%20x86%20%7C%20arm64%20%7C%20arm32%20%7C%20LoongArch64-orange)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
@@ -27,14 +30,14 @@ NewLife框架是一个全面的 .NET 组件生态系统，它为构建可扩展�
 
 NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持 net45~net10.0 多目标框架（.NET Framework 4.5 至 .NET 10.0），从而在不同环境中实现广泛的兼容性（NewLife.Core 单包 11 个目标框架）。
 
-**NativeAOT**：核心链路已支持（29 场景实测 + 多 RID 的 CI 冒烟矩阵；win-x64/linux-x64/linux-arm64/linux-la64 为阻断门禁——LA64 经 QEMU 必选覆盖，其余平台观察期；push/PR + 人工手动触发）；跨平台单测覆盖 win/linux/osx 的 x64/arm64、LA64 与 musl。插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
+**NativeAOT**：核心链路已支持（<!--aot-scenarios:start-->31<!--aot-scenarios:end--> 场景实测 + 多 RID 的 CI 冒烟矩阵；win-x64/linux-x64/linux-arm64/linux-la64 为阻断门禁——LA64 经 QEMU 必选覆盖，其余平台观察期；push/PR + 人工手动触发）；跨平台单测覆盖 win/linux/osx 的 x64/arm64、LA64 与 musl。插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
 
 
 ## 为什么选择 NewLife.Core
 
 - **一套组件覆盖常见基础设施**：日志、配置、缓存、网络、序列化、定时调度、对象容器与依赖注入，引用一个包即可开工。
 - **跨版本覆盖广**：单包 11 个目标框架（net45 → net10.0，含 Windows 变体），老系统与新项目共用同一套 API。
-- **NativeAOT 可用**：核心链路 29 场景实测通过，多 RID CI 冒烟矩阵把关，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
+- **NativeAOT 可用**：核心链路 <!--aot-scenarios:start-->31<!--aot-scenarios:end--> 场景实测通过，多 RID CI 冒烟矩阵把关，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
 - **依赖克制、协议宽松**：仅使用 BCL 与微软官方兼容包；MIT 协议，允许改源码、改名私有化（见[许可证](#许可证)）。
 
 ## 快速开始
@@ -83,8 +86,9 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 ### 使用文档
 
 - [核心库目录](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md)：核心组件文章索引（按模块分类）
-- [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)：NativeAOT 支持范围、实测结论（冒烟 29/29）、多 RID 覆盖矩阵与已知边界
+- [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)：NativeAOT 支持范围、实测结论（冒烟 <!--aot-smoke:start-->31/31<!--aot-smoke:end-->）、多 RID 覆盖矩阵与已知边界
 - [多语言本地化](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)：异常与日志的多语言模型、语言表扩充、下游覆盖与运行时新增语言
+- [下游多语言接入清单](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md)：下游组件接入步骤、语言口径、CI 门禁与徽章模板
 - [移动端技术架构](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md)：.NET 移动技术栈分层、UI 框架选型、Mobile 示例工程、APK 打包与 JIT/Mono AOT/NativeAOT 说明
 
 ### 研发过程文档

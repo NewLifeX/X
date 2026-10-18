@@ -6,8 +6,11 @@
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
-[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
+<!-- metrics:start -->
+[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
 [![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
+<!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
 ![arch](https://img.shields.io/badge/arch-x64%20%7C%20x86%20%7C%20arm64%20%7C%20arm32%20%7C%20LoongArch64-orange)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
@@ -29,14 +32,14 @@ Core library tutorial: [https://newlifex.com/core](https://newlifex.com/core)
 
 NewLife is composed of multiple component libraries, with NewLife.Core providing the foundation. The framework supports multiple target frameworks from net45 to net10.0 (.NET Framework 4.5 through .NET 10.0), thereby achieving broad compatibility across different environments.
 
-**NativeAOT**: The core path is supported (measured in 29 scenarios + CI regression protection); dynamic capabilities such as plugins and scripting are not supported by design, see [AOT Compatibility Analysis (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) for the boundaries.
+**NativeAOT**: The core path is supported (measured in <!--aot-scenarios:start-->31<!--aot-scenarios:end--> scenarios + CI regression protection); dynamic capabilities such as plugins and scripting are not supported by design, see [AOT Compatibility Analysis (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) for the boundaries.
 
 
 ## Why NewLife.Core
 
 - **One package for common infrastructure**: logging, configuration, caching, networking, serialization, scheduling, object container and DI — a single reference is enough.
 - **Broad version coverage**: 11 target frameworks in one package (net45 → net10.0, including Windows variants), the same API for legacy systems and new projects.
-- **NativeAOT ready**: 29 core scenarios measured and guarded by a multi-RID CI smoke matrix; boundaries in [AOT Compatibility Analysis](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
+- **NativeAOT ready**: <!--aot-scenarios:start-->31<!--aot-scenarios:end--> core scenarios measured and guarded by a multi-RID CI smoke matrix; boundaries in [AOT Compatibility Analysis](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 - **Restrained dependencies, permissive license**: BCL and Microsoft compatibility packages only; MIT, so you can modify and rebrand (see [License](#license)).
 
 ## Quick Start
@@ -85,7 +88,7 @@ dotnet run
 ### Usage docs
 
 - [Core Library Contents (中文)](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): Index of core component articles
-- [AOT Compatibility Analysis (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): NativeAOT support scope, measured conclusions (smoke test 29/29), usage guidance, and known boundaries
+- [AOT Compatibility Analysis (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): NativeAOT support scope, measured conclusions (smoke test <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), usage guidance, and known boundaries
 
 ### Development docs
 

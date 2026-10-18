@@ -9,7 +9,9 @@ on:
       - 'README*.md'
       - 'Readme.MD'
       - 'readme-languages.json'
+      - 'readme-metrics.json'
       - 'sync-readme-languages.ps1'
+      - 'sync-readme-metrics.ps1'
       - '.github/workflows/readme.yml'
   pull_request:
     branches: [ '*' ]
@@ -17,7 +19,9 @@ on:
       - 'README*.md'
       - 'Readme.MD'
       - 'readme-languages.json'
+      - 'readme-metrics.json'
       - 'sync-readme-languages.ps1'
+      - 'sync-readme-metrics.ps1'
       - '.github/workflows/readme.yml'
   workflow_dispatch:
 
@@ -35,3 +39,6 @@ jobs:
     - name: Check README language switcher
       shell: pwsh
       run: pwsh -NoProfile -File ./sync-readme-languages.ps1 -Check
+    - name: Check README metrics
+      shell: pwsh
+      run: pwsh -NoProfile -File ./sync-readme-metrics.ps1 -Check

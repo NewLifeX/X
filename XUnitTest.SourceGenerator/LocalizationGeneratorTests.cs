@@ -1,5 +1,7 @@
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using NewLife.SourceGenerator;
 using Xunit;
 
@@ -42,12 +44,47 @@ public class LocalizationGeneratorTests
         var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
         Assert.Contains("internal static class LocalizationTable", text);
         Assert.Contains("ModuleInitializer", text);
-        Assert.Contains("internal static class L", text);
+        Assert.Contains("public static String T(String template)", text);
         Assert.Contains("Localization.Register", text);
         Assert.DoesNotContain("GetCultureKey", text);
         // 下游可能补 ModuleInitializerAttribute，必须使用块级命名空间
         Assert.Contains("namespace NewLife", text);
         Assert.DoesNotContain("namespace NewLife;", text);
+    }
+
+    [Fact(DisplayName = "下游引用 Core：仍生成自己的 L 快捷入口")]
+    public void DownstreamReferencedCoreStillGeneratesL()
+    {
+        // Core 程序集里有 internal NewLife.L；引用它不应被误判为"下游已自带 L"
+        var core = MetadataReference.CreateFromFile(typeof(NewLife.Localization).Assembly.Location);
+        var (output, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "using NewLife; internal static class Program { static void Main() => L.T(\"x\"); }", "My.Component", null,
+            new[] { ("Locales/ja.yml", Yaml) }, null, OutputKind.ConsoleApplication, core);
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("public static String T(String template)", text);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+    }
+
+    [Fact(DisplayName = "下游引用 public NewLife.L：不重复生成快捷入口")]
+    public void DownstreamReferencedPublicL()
+    {
+        var lib = CSharpCompilation.Create(
+            "Lib",
+            new[] { CSharpSyntaxTree.ParseText("namespace NewLife { public static class L { } }") },
+            new[] { MetadataReference.CreateFromFile(typeof(Object).Assembly.Location) },
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        using var ms = new MemoryStream();
+        var emit = lib.Emit(ms);
+        Assert.True(emit.Success, String.Join("\n", emit.Diagnostics));
+        var reference = MetadataReference.CreateFromImage(ms.ToArray());
+
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "using NewLife; internal static class Program { static void Main() { } }", "My.Component", null,
+            new[] { ("Locales/ja.yml", Yaml) }, null, OutputKind.DynamicallyLinkedLibrary, reference);
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.DoesNotContain("public static String T(String template)", text);
     }
 
     [Fact(DisplayName = "下游自带 NewLife.L：不重复生成快捷入口")]

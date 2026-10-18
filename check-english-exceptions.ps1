@@ -1,23 +1,45 @@
 # 检查运行时消息（异常、日志、控制台、界面提示、埋点标签）是否全部为英文
 # 规则：调用点字符串中不得出现 CJK 字符；注释中的中文不受限制。
-# 用法：pwsh -File check-english-exceptions.ps1
+#
+# 用法：
+#   pwsh -File check-english-exceptions.ps1                         # Core 默认目录，失败退出码 1
+#   pwsh -File check-english-exceptions.ps1 -Dir src -List          # 下游盘点中文消息，不失败
+#   pwsh -File check-english-exceptions.ps1 -Dir src -Csv hits.csv  # 导出待翻译清单
 param(
-    [String]$Root = $PSScriptRoot
+    [String]$Root = $PSScriptRoot,
+    [String[]]$Dir,
+    [String[]]$Exclude = @(),
+    [String]$MessageCall = 'throw new|: base\(|Console\.Write|MessageBox\.Show|AppendTag\(|NewError\(|NewSpan\(|Debug\.Fail\(|WriteLog\(|OnWrite\(|XTrace\.|Log\.(Write|Error|Info|Debug|Warn|Fatal)',
+    [Switch]$List,
+    [String]$Csv
 )
 
 $ErrorActionPreference = "Stop"
 
-$dirs = @("NewLife.Core", "NewLife.Core.SourceGenerator") |
-    ForEach-Object { Join-Path $Root $_ } |
-    Where-Object { Test-Path $_ }
-
-# 消息型调用点：异常、日志、控制台、界面提示、埋点标签
-$messageCall = 'throw new|: base\(|Console\.Write|MessageBox\.Show|AppendTag\(|NewError\(|NewSpan\(|Debug\.Fail\(|WriteLog\(|OnWrite\(|XTrace\.|Log\.(Write|Error|Info|Debug|Warn|Fatal)'
+if (!$Dir -or $Dir.Count -eq 0) { $Dir = @("NewLife.Core", "NewLife.Core.SourceGenerator") }
+$dirs = @()
+foreach ($item in $Dir) {
+    $path = if ([IO.Path]::IsPathRooted($item)) { $item } else { Join-Path $Root $item }
+    if (Test-Path -LiteralPath $path) { $dirs += $path }
+}
+if ($dirs.Count -eq 0) { throw "未找到待检查目录：$($Dir -join ', ')" }
 
 $hits = @()
 
 foreach ($dir in $dirs) {
     foreach ($file in Get-ChildItem $dir -Recurse -Filter *.cs) {
+        $rel = if ($file.FullName.StartsWith($Root, [StringComparison]::OrdinalIgnoreCase)) {
+            $file.FullName.Substring($Root.Length).TrimStart("\", "/")
+        }
+        else { $file.FullName }
+
+        if ($rel -match '\\(obj|bin)\\') { continue }
+        $excluded = $false
+        foreach ($pattern in $Exclude) {
+            if ($rel -like $pattern -or $file.FullName -like $pattern) { $excluded = $true; break }
+        }
+        if ($excluded) { continue }
+
         $lines = Get-Content $file.FullName -Encoding UTF8
         $inBlock = $false
         for ($i = 0; $i -lt $lines.Count; $i++) {
@@ -34,12 +56,25 @@ foreach ($dir in $dirs) {
             $code = $line -replace "//.*$", ""
             # 特性参数（Description/DisplayName/Obsolete/RequiresXxx/Justification 等）属元数据，不在本检查范围
             if ($code -match "^\s*\[") { continue }
-            if ($code -match $messageCall -and $code -match "[\u4e00-\u9fa5]") {
-                $rel = $file.FullName.Substring($Root.Length).TrimStart("\", "/")
+            if ($code -match $MessageCall -and $code -match "[\u4e00-\u9fa5]") {
                 $hits += [pscustomobject]@{ File = $rel; Line = $i + 1; Text = $code }
             }
         }
     }
+}
+
+if ($Csv) {
+    $hits | Export-Csv -LiteralPath $Csv -NoTypeInformation -Encoding UTF8
+    Write-Host "已导出 $($hits.Count) 条中文运行时消息到 $Csv"
+    exit 0
+}
+
+if ($List) {
+    Write-Host "盘点模式：发现 $($hits.Count) 条中文运行时消息" -ForegroundColor Yellow
+    foreach ($hit in $hits) {
+        Write-Host ("  {0}:{1}: {2}" -f $hit.File, $hit.Line, $hit.Text)
+    }
+    exit 0
 }
 
 if ($hits.Count -gt 0) {

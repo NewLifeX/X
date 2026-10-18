@@ -47,6 +47,11 @@ jobs:
       shell: pwsh
       run: ./check-locales.ps1
 
+    - name: Package consumer smoke
+      # 下游只加 PackageReference + Locales/*.yml 的端到端验证，防止打包/分析器分发回归
+      shell: pwsh
+      run: ./check-package-consumer.ps1
+
   # 测试矩阵：每个目标框架独立 job，job 间并行且互不争抢宿主资源（进程/端口/CPU），
   # 每个 job 只构建自身目标框架，省去全解决方案构建的墙钟开销（编译校验由 build job 承担）。
   # 测试内并行度由各工程 xunit.runner.json 的 maxParallelThreads 控制。

@@ -1,9 +1,21 @@
 # 多语言词表一致性校验：键集合、占位符、格式说明符
-# 以 zh-Hans.yml 为基准，所有语言必须提供完全相同的键集合
+# 以基准语言文件（默认 zh-Hans.yml）为准，所有语言必须提供完全相同的键集合
+#
+# 用法：
+#   pwsh -File check-locales.ps1                                      # Core 默认目录
+#   pwsh -File check-locales.ps1 -LocaleDir src\Lib\Locales -SourceDir src\Lib
+#   pwsh -File check-locales.ps1 -LocaleDir src\Lib\Locales -SkipOrphan   # 下游只想校验词表内部一致性
+param(
+    [String]$LocaleDir = "NewLife.Core\Locales",
+    [String]$Baseline = "zh-Hans.yml",
+    [String[]]$SourceDir = @("NewLife.Core", "NewLife.Core.SourceGenerator"),
+    [Switch]$SkipOrphan
+)
+
 $ErrorActionPreference = "Stop"
 
 $root = $PSScriptRoot
-$localeDir = Join-Path $root "NewLife.Core\Locales"
+$localeDir = if ([IO.Path]::IsPathRooted($LocaleDir)) { $LocaleDir } else { Join-Path $root $LocaleDir }
 if (!(Test-Path $localeDir)) {
     Write-Host "未找到语言目录：$localeDir" -ForegroundColor Red
     exit 1
@@ -68,13 +80,17 @@ function Read-Locale([string]$path) {
     return @{ Entries = $entries; Errors = $errors }
 }
 
-$referencePath = Join-Path $localeDir "zh-Hans.yml"
+$referencePath = Join-Path $localeDir $Baseline
+if (!(Test-Path -LiteralPath $referencePath)) {
+    Write-Host "未找到基准语言文件：$referencePath" -ForegroundColor Red
+    exit 1
+}
 $reference = Read-Locale $referencePath
-$allErrors = @($reference.Errors | ForEach-Object { "zh-Hans.yml: $_" })
+$allErrors = @($reference.Errors | ForEach-Object { "$($Baseline): $_" })
 $allWarnings = @()
 
 foreach ($file in Get-ChildItem $localeDir -Filter *.yml | Sort-Object Name) {
-    if ($file.Name -eq "zh-Hans.yml") { continue }
+    if ($file.Name -eq $Baseline) { continue }
     $locale = Read-Locale $file.FullName
     foreach ($e in $locale.Errors) { $allErrors += "$($file.Name): $e" }
 
@@ -113,20 +129,25 @@ foreach ($e in $allErrors) { Write-Host $e -ForegroundColor Red }
 foreach ($w in $allWarnings) { Write-Host $w -ForegroundColor Yellow }
 
 # 孤儿键：基准表中的键在源码里完全找不到（改文案后遗留的死条目）
-$sourceDirs = @("NewLife.Core", "NewLife.Core.SourceGenerator") | ForEach-Object { Join-Path $root $_ } | Where-Object { Test-Path $_ }
-$sourceText = ($sourceDirs | ForEach-Object { Get-ChildItem $_ -Recurse -Filter *.cs } |
-    Where-Object { $_.FullName -notmatch '\\(obj|bin|Locales)\\' } |
-    ForEach-Object { [IO.File]::ReadAllText($_.FullName) }) -join "`n"
-
 $orphans = @()
-foreach ($key in $reference.Entries.Keys) {
-    # 源码中的字面量形式：制表符写作 \t，引号写作 \"
-    $escaped = $key.Replace('\', '\\').Replace('"', '\"').Replace("`t", '\t').Replace("`r", '\r').Replace("`n", '\n')
-    if (!$sourceText.Contains($key) -and !$sourceText.Contains($escaped)) {
-        $orphans += $key
+if (!$SkipOrphan) {
+    $sourceDirs = @($SourceDir | ForEach-Object {
+        if ([IO.Path]::IsPathRooted($_)) { $_ } else { Join-Path $root $_ }
+    } | Where-Object { Test-Path $_ })
+
+    $sourceText = ($sourceDirs | ForEach-Object { Get-ChildItem $_ -Recurse -Filter *.cs } |
+        Where-Object { $_.FullName -notmatch '\\(obj|bin|Locales)\\' } |
+        ForEach-Object { [IO.File]::ReadAllText($_.FullName) }) -join "`n"
+
+    foreach ($key in $reference.Entries.Keys) {
+        # 源码中的字面量形式：制表符写作 \t，引号写作 \"
+        $escaped = $key.Replace('\', '\\').Replace('"', '\"').Replace("`t", '\t').Replace("`r", '\r').Replace("`n", '\n')
+        if (!$sourceText.Contains($key) -and !$sourceText.Contains($escaped)) {
+            $orphans += $key
+        }
     }
+    foreach ($o in $orphans) { $allErrors += "孤儿键（源码中找不到）：$o" }
 }
-foreach ($o in $orphans) { $allErrors += "孤儿键（源码中找不到）：$o" }
 
 if ($allErrors.Count -gt 0) {
     foreach ($o in $orphans) { Write-Host "孤儿键（源码中找不到）：$o" -ForegroundColor Red }

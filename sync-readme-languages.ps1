@@ -7,25 +7,32 @@
 # 用法：
 #   pwsh -File sync-readme-languages.ps1           # 按配置重写各 README 的切换块
 #   pwsh -File sync-readme-languages.ps1 -Check    # 只校验不写入，不一致退出码 1（CI 使用）
-param([Switch]$Check)
+#   pwsh -File sync-readme-languages.ps1 -Root D:\src\MyLib   # 下游在自己的仓根运行
+param(
+    [Switch]$Check,
+    [String]$Root = $PSScriptRoot,
+    [String]$Config = "readme-languages.json"
+)
 
 $ErrorActionPreference = "Stop"
-Set-Location $PSScriptRoot
 
 $StartMarker = "<!-- lang:start -->"
 $EndMarker = "<!-- lang:end -->"
 
-$config = Get-Content -Path (Join-Path $PSScriptRoot "readme-languages.json") -Raw -Encoding UTF8 | ConvertFrom-Json
-$langs = @($config.languages)
-if ($langs.Count -eq 0) { throw "readme-languages.json 未配置任何语种" }
+$configPath = Join-Path $Root $Config
+if (!(Test-Path -LiteralPath $configPath)) { throw "未找到语言配置：$configPath" }
 
-$missing = @($langs | Where-Object { -not (Test-Path -Path (Join-Path $PSScriptRoot $_.file)) })
+$configData = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$langs = @($configData.languages)
+if ($langs.Count -eq 0) { throw "$Config 未配置任何语种" }
+
+$missing = @($langs | Where-Object { -not (Test-Path -Path (Join-Path $Root $_.file)) })
 if ($missing.Count -gt 0) { throw "配置的语种文件不存在：$($missing.file -join ', ')" }
 
 # 新增翻译若忘记登记，切换行会静默漏掉它，这里直接拦下
 $registered = @($langs.file)
-$unregistered = @(Get-ChildItem -Path $PSScriptRoot -File | Where-Object { $_.Name -match '^(README|Readme)(\.[A-Za-z-]+)?\.md$' -and $registered -notcontains $_.Name })
-if ($unregistered.Count -gt 0) { throw "根目录存在未登记的 README：$($unregistered.Name -join ', ')，请先加入 readme-languages.json" }
+$unregistered = @(Get-ChildItem -Path $Root -File | Where-Object { $_.Name -match '^(README|Readme)(\.[A-Za-z-]+)?\.md$' -and $registered -notcontains $_.Name })
+if ($unregistered.Count -gt 0) { throw "根目录存在未登记的 README：$($unregistered.Name -join ', ')，请先加入 $Config" }
 
 # 生成某个 README 的切换行（省略自身）
 function Get-SwitcherLine($current) {
@@ -48,7 +55,7 @@ function Get-CurrentSwitcher($text, $pattern) {
 $errors = 0
 $changed = 0
 foreach ($item in $langs) {
-    $path = Join-Path $PSScriptRoot $item.file
+    $path = Join-Path $Root $item.file
     $text = [IO.File]::ReadAllText($path)
     $line = Get-SwitcherLine $item
     $newline = if ($text.Contains("`r`n")) { "`r`n" } else { "`n" }

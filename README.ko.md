@@ -6,8 +6,11 @@
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
-[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
+<!-- metrics:start -->
+[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
 [![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
+<!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
 ![arch](https://img.shields.io/badge/arch-x64%20%7C%20x86%20%7C%20arm64%20%7C%20arm32%20%7C%20LoongArch64-orange)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
@@ -29,14 +32,14 @@ NewLife 프레임워크는 포괄적인 .NET 컴포넌트 생태계로, 확장 �
 
 NewLife는 여러 컴포넌트 라이브러리로 구성되어 있으며, NewLife.Core가 기반을 제공합니다. 이 프레임워크는 net45~net10.0 다중 대상 프레임워크(.NET Framework 4.5 ~ .NET 10.0)를 지원하여 다양한 환경에서 폭넓은 호환성을 실현합니다.
 
-**NativeAOT**: 핵심 경로는 지원 완료(29개 시나리오 실측 + CI 회귀 방지). 플러그인, 스크립트 등 동적 기능은 설계상 지원하지 않으며, 경계는 [AOT 호환성 분석](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) (中文) 문서를 참조하세요.
+**NativeAOT**: 핵심 경로는 지원 완료(<!--aot-scenarios:start-->31<!--aot-scenarios:end-->개 시나리오 실측 + CI 회귀 방지). 플러그인, 스크립트 등 동적 기능은 설계상 지원하지 않으며, 경계는 [AOT 호환성 분석](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) (中文) 문서를 참조하세요.
 
 
 ## NewLife.Core를 선택하는 이유
 
 - **공통 인프라를 하나의 패키지로**: 로그, 구성, 캐시, 네트워크, 직렬화, 스케줄링, 객체 컨테이너와 DI를 한 번의 참조로 사용할 수 있습니다.
 - **폭넓은 버전 지원**: 단일 패키지로 11개 대상 프레임워크(net45 → net10.0, Windows 변형 포함)를 지원하며, 레거시 시스템과 신규 프로젝트가 동일한 API를 공유합니다.
-- **NativeAOT 지원**: 핵심 경로 29개 시나리오를 실측하고 다중 RID CI 스모크 매트릭스로 검증합니다. 경계는 [AOT 호환성 분석](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)을 참고하세요.
+- **NativeAOT 지원**: 핵심 경로 <!--aot-scenarios:start-->31<!--aot-scenarios:end-->개 시나리오를 실측하고 다중 RID CI 스모크 매트릭스로 검증합니다. 경계는 [AOT 호환성 분석](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)을 참고하세요.
 - **절제된 의존성, 관대한 라이선스**: BCL과 Microsoft 호환 패키지만 사용하며, MIT 라이선스이므로 수정과 사명 변경이 가능합니다([라이선스](#라이선스)).
 
 ## 빠르게 시작하기
@@ -85,7 +88,7 @@ dotnet run
 ### 사용 문서
 
 - [핵심 라이브러리 목차](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md) (中文): 핵심 컴포넌트 문서 색인
-- [AOT 호환성 분석](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) (中文): NativeAOT 지원 범위, 실측 결론(스모크 29/29), 사용 지침 및 알려진 경계
+- [AOT 호환성 분석](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) (中文): NativeAOT 지원 범위, 실측 결론(스모크 <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), 사용 지침 및 알려진 경계
 
 ### 개발 문서
 

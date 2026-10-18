@@ -6,8 +6,11 @@
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
-[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
+<!-- metrics:start -->
+[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
 [![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
+<!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
 ![arch](https://img.shields.io/badge/arch-x64%20%7C%20x86%20%7C%20arm64%20%7C%20arm32%20%7C%20LoongArch64-orange)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
@@ -28,14 +31,14 @@ Tutorial de la biblioteca principal: [https://newlifex.com/core](https://newlife
 
 NewLife está compuesto por múltiples bibliotecas de componentes, y NewLife.Core proporciona la base. El framework es compatible con múltiples marcos de destino desde net45 hasta net10.0 (.NET Framework 4.5 a .NET 10.0), lo que permite una amplia compatibilidad en distintos entornos.
 
-**NativeAOT**: las rutas principales ya son compatibles (29 escenarios probados + CI contra regresiones); las capacidades dinámicas como plugins y scripts no son compatibles por diseño; consulta los límites en [Análisis de compatibilidad AOT (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
+**NativeAOT**: las rutas principales ya son compatibles (<!--aot-scenarios:start-->31<!--aot-scenarios:end--> escenarios probados + CI contra regresiones); las capacidades dinámicas como plugins y scripts no son compatibles por diseño; consulta los límites en [Análisis de compatibilidad AOT (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 
 
 ## Por qué NewLife.Core
 
 - **Una biblioteca para la infraestructura común**: registro, configuración, caché, red, serialización, programación, contenedor de objetos e inyección de dependencias, con una sola referencia.
 - **Amplia cobertura de versiones**: 11 frameworks de destino en un solo paquete (net45 → net10.0, incluidas variantes de Windows); la misma API para sistemas heredados y proyectos nuevos.
-- **Compatible con NativeAOT**: 29 escenarios del núcleo medidos y protegidos por una matriz de CI multi-RID; los límites están en el [análisis de compatibilidad AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
+- **Compatible con NativeAOT**: <!--aot-scenarios:start-->31<!--aot-scenarios:end--> escenarios del núcleo medidos y protegidos por una matriz de CI multi-RID; los límites están en el [análisis de compatibilidad AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 - **Dependencias contenidas y licencia permisiva**: solo la BCL y paquetes de compatibilidad de Microsoft; licencia MIT, se permite modificar y renombrar (ver [Licencia](#licencia)).
 
 ## Inicio rápido
@@ -84,7 +87,7 @@ dotnet run
 ### Documentación de uso
 
 - [Catálogo de la biblioteca principal (中文)](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): índice de artículos de los componentes principales
-- [Análisis de compatibilidad AOT (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): alcance de soporte de NativeAOT, conclusiones de pruebas reales (smoke 29/29), guía de uso y límites conocidos
+- [Análisis de compatibilidad AOT (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): alcance de soporte de NativeAOT, conclusiones de pruebas reales (smoke <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), guía de uso y límites conocidos
 
 ### Documentación de desarrollo
 

@@ -6,8 +6,11 @@
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
-[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
+<!-- metrics:start -->
+[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
 [![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
+<!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
 ![arch](https://img.shields.io/badge/arch-x64%20%7C%20x86%20%7C%20arm64%20%7C%20arm32%20%7C%20LoongArch64-orange)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
@@ -29,14 +32,14 @@ Tutoriel de la bibliothèque principale : [https://newlifex.com/core](https://ne
 
 NewLife est composé de plusieurs bibliothèques de composants, et NewLife.Core en fournit la base. Le framework prend en charge de multiples frameworks cibles de net45 à net10.0 (de .NET Framework 4.5 à .NET 10.0), ce qui permet une large compatibilité dans différents environnements.
 
-**NativeAOT** : la chaîne principale est prise en charge (29 scénarios testés en conditions réelles + CI anti-régression) ; les capacités dynamiques telles que les plugins et les scripts ne sont pas prises en charge par conception ; les limites sont détaillées dans [Analyse de compatibilité AOT (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
+**NativeAOT** : la chaîne principale est prise en charge (<!--aot-scenarios:start-->31<!--aot-scenarios:end--> scénarios testés en conditions réelles + CI anti-régression) ; les capacités dynamiques telles que les plugins et les scripts ne sont pas prises en charge par conception ; les limites sont détaillées dans [Analyse de compatibilité AOT (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 
 
 ## Pourquoi NewLife.Core
 
 - **Une bibliothèque pour l'infrastructure courante** : journalisation, configuration, cache, réseau, sérialisation, ordonnancement, conteneur d'objets et DI — une seule référence suffit.
 - **Large couverture de versions** : 11 frameworks cibles dans un seul paquet (net45 → net10.0, variantes Windows incluses) ; la même API pour les systèmes existants et les nouveaux projets.
-- **Compatible NativeAOT** : 29 scénarios du cœur mesurés et sécurisés par une matrice CI multi-RID ; limites dans l'[analyse de compatibilité AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
+- **Compatible NativeAOT** : <!--aot-scenarios:start-->31<!--aot-scenarios:end--> scénarios du cœur mesurés et sécurisés par une matrice CI multi-RID ; limites dans l'[analyse de compatibilité AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 - **Dépendances maîtrisées, licence permissive** : uniquement la BCL et les paquets de compatibilité Microsoft ; licence MIT, modification et changement de nom autorisés (voir [Licence](#licence)).
 
 ## Démarrage rapide
@@ -85,7 +88,7 @@ dotnet run
 ### Documentation d'utilisation
 
 - [Catalogue de la bibliothèque principale (中文)](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md) : index des articles sur les composants principaux
-- [Analyse de compatibilité AOT (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) : périmètre de prise en charge NativeAOT, conclusions des tests réels (smoke test 29/29), guide d'utilisation et limites connues
+- [Analyse de compatibilité AOT (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) : périmètre de prise en charge NativeAOT, conclusions des tests réels (smoke test <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), guide d'utilisation et limites connues
 
 ### Documentation de développement
 
