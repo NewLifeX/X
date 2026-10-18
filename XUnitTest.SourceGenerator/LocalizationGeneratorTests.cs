@@ -58,6 +58,19 @@ public class LocalizationGeneratorTests
         Assert.DoesNotContain(result.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
     }
 
+    [Fact(DisplayName = "下游可通过 MSBuild 属性关闭 L 生成")]
+    public void DownstreamOptOutL()
+    {
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "My.Component", null,
+            new[] { ("Locales/ja.yml", Yaml) },
+            new Dictionary<String, String> { ["NewLifeLocalizationGenerateL"] = "false" });
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("internal static class LocalizationTable", text);
+        Assert.DoesNotContain("public static String T(", text);
+    }
+
     [Fact(DisplayName = "非 Locales 目录的 yml 不参与生成")]
     public void IgnoreNonLocaleYaml()
     {

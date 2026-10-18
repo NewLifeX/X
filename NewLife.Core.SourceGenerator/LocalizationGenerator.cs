@@ -45,9 +45,12 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
             .Combine(context.CompilationProvider.Select(static (c, _) => new ProjectInfo(
                 c.AssemblyName,
                 c.GetTypeByMetadataName("System.Runtime.CompilerServices.ModuleInitializerAttribute") != null,
-                c.GetTypeByMetadataName("NewLife.L") != null)));
+                c.GetTypeByMetadataName("NewLife.L") != null)))
+            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (p, _) =>
+                p.GlobalOptions.TryGetValue("build_property.NewLifeLocalizationGenerateL", out var value)
+                && String.Equals(value, "false", StringComparison.OrdinalIgnoreCase)));
 
-        context.RegisterSourceOutput(input, static (spc, source) => Emit(spc, source.Left, source.Right));
+        context.RegisterSourceOutput(input, static (spc, source) => Emit(spc, source.Left.Left, source.Left.Right, source.Right));
     }
 
     private static Boolean IsLocalePath(String path)
@@ -56,7 +59,7 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         return normalized.Contains("/Locales/", StringComparison.OrdinalIgnoreCase) || normalized.StartsWith("Locales/", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void Emit(SourceProductionContext context, System.Collections.Immutable.ImmutableArray<LocaleFile> files, ProjectInfo project)
+    private static void Emit(SourceProductionContext context, System.Collections.Immutable.ImmutableArray<LocaleFile> files, ProjectInfo project, Boolean skipL)
     {
         if (files.IsEmpty) return;
         var tables = new SortedDictionary<String, Dictionary<String, String>>(StringComparer.Ordinal);
@@ -110,7 +113,7 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
 
         var source = String.Equals(project.AssemblyName, "NewLife.Core", StringComparison.Ordinal)
             ? BuildCoreSource(tables)
-            : BuildDownstreamSource(tables, project.HasModuleInitializer, project.HasL);
+            : BuildDownstreamSource(tables, project.HasModuleInitializer, project.HasL || skipL);
         context.AddSource("Localization.g.cs", SourceText.From(source, Encoding.UTF8));
     }
 

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace XUnitTest.SourceGenerator;
@@ -34,9 +35,10 @@ public static class GeneratorTestHost
     /// <param name="assemblyName">程序集名，用于区分 Core 与下游模式</param>
     /// <param name="preprocessorSymbols">预处理符号</param>
     /// <param name="additionalTexts">附加文本（路径与内容）</param>
+    /// <param name="buildProperties">MSBuild 全局属性（对应 build_property.*）</param>
     /// <param name="additionalReferences">附加元数据引用</param>
     /// <returns>生成后的编译与驱动运行结果</returns>
-    public static (Compilation Compilation, GeneratorDriverRunResult Result) RunWithAdditionalTexts(IIncrementalGenerator generator, String source, String assemblyName, String[]? preprocessorSymbols, IEnumerable<(String Path, String Text)> additionalTexts, params MetadataReference[] additionalReferences)
+    public static (Compilation Compilation, GeneratorDriverRunResult Result) RunWithAdditionalTexts(IIncrementalGenerator generator, String source, String assemblyName, String[]? preprocessorSymbols, IEnumerable<(String Path, String Text)> additionalTexts, IReadOnlyDictionary<String, String>? buildProperties = null, params MetadataReference[] additionalReferences)
     {
         var refs = new List<MetadataReference>(_platformRefs.Value);
         foreach (var item in additionalReferences) refs.Add(item);
@@ -54,10 +56,44 @@ public static class GeneratorTestHost
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         var texts = additionalTexts.Select(x => (AdditionalText)new InMemoryAdditionalText(x.Path, x.Text)).ToArray();
-        var driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, texts, options);
+        var provider = new TestAnalyzerConfigOptionsProvider(buildProperties);
+        var driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, texts, options, provider);
         var updated = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
 
         return (output, updated.GetRunResult());
+    }
+
+    private sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    {
+        private readonly TestAnalyzerConfigOptions _options;
+
+        public TestAnalyzerConfigOptionsProvider(IReadOnlyDictionary<String, String>? buildProperties)
+            => _options = new TestAnalyzerConfigOptions(buildProperties);
+
+        public override AnalyzerConfigOptions GlobalOptions => _options;
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => _options;
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => _options;
+    }
+
+    private sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    {
+        private readonly IReadOnlyDictionary<String, String>? _buildProperties;
+
+        public TestAnalyzerConfigOptions(IReadOnlyDictionary<String, String>? buildProperties) => _buildProperties = buildProperties;
+
+        public override Boolean TryGetValue(String key, out String value)
+        {
+            if (_buildProperties != null && key.StartsWith("build_property.") && _buildProperties.TryGetValue(key.Substring("build_property.".Length), out var found))
+            {
+                value = found;
+                return true;
+            }
+
+            value = "";
+            return false;
+        }
     }
 
     private sealed class InMemoryAdditionalText : AdditionalText
