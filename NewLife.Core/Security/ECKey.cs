@@ -79,8 +79,8 @@ public class ECKey : IAccessor, ISpanSerializable
     {
         var writer = context as BinaryWriter ?? new BinaryWriter(stream);
 
-        var x = X ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标X");
-        var y = Y ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标Y");
+        var x = X ?? throw new InvalidOperationException(L.T("Public key coordinate X is not set."));
+        var y = Y ?? throw new InvalidOperationException(L.T("Public key coordinate Y is not set."));
 
         // 幻数(4) + 长度len(4) + X(len) + Y(len) + D(len)
         writer.Write((Int32)_Algorithm);
@@ -98,8 +98,8 @@ public class ECKey : IAccessor, ISpanSerializable
     /// <returns></returns>
     public ECParameters ExportParameters()
     {
-        var x = X ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标X");
-        var y = Y ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标Y");
+        var x = X ?? throw new InvalidOperationException(L.T("Public key coordinate X is not set."));
+        var y = Y ?? throw new InvalidOperationException(L.T("Public key coordinate Y is not set."));
 
         var name = Algorithm.Replace("_PRIVATE_", "_").Replace("_PUBLIC_", "_");
 
@@ -133,8 +133,8 @@ public class ECKey : IAccessor, ISpanSerializable
     /// <param name="writer">Span写入器</param>
     public void Write(ref SpanWriter writer)
     {
-        var x = X ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标X");
-        var y = Y ?? throw new InvalidOperationException("未设置椭圆曲线公钥坐标Y");
+        var x = X ?? throw new InvalidOperationException(L.T("Public key coordinate X is not set."));
+        var y = Y ?? throw new InvalidOperationException(L.T("Public key coordinate Y is not set."));
 
         // 幻数(4) + 长度len(4) + X(len) + Y(len) + D(len)
         writer.Write((Int32)_Algorithm);

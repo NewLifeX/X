@@ -37,7 +37,7 @@ namespace NewLife.Security
                 256 => ECCurve.NamedCurves.nistP256,
                 384 => ECCurve.NamedCurves.nistP384,
                 521 => ECCurve.NamedCurves.nistP521,
-                _ => throw new ArgumentOutOfRangeException(nameof(keySize), $"不支持的密钥长度 {keySize}"),
+                _ => throw new ArgumentOutOfRangeException(nameof(keySize), L.T("Unsupported key size {0}.", keySize)),
             };
 
             // 生成 EC 参数后写成 CNG KeyBlob（幻数+长度+X+Y+D），产物与历史 Windows CNG 导出格式一致，全平台通用
@@ -57,8 +57,8 @@ namespace NewLife.Security
         /// <returns></returns>
         private static Byte[] ToKeyBlob(ECParameters prm, Boolean privateKey)
         {
-            var x = prm.Q.X ?? throw new InvalidOperationException("椭圆曲线参数缺少公钥坐标X");
-            var y = prm.Q.Y ?? throw new InvalidOperationException("椭圆曲线参数缺少公钥坐标Y");
+            var x = prm.Q.X ?? throw new InvalidOperationException(L.T("Elliptic curve parameters are missing public key coordinate X."));
+            var y = prm.Q.Y ?? throw new InvalidOperationException(L.T("Elliptic curve parameters are missing public key coordinate Y."));
 
             // 不用 Curve.Oid.FriendlyName：现代 .NET 的命名曲线友好名为 nistPxxx，与幻数枚举命名不一致，按坐标长度显式映射
             var keySize = x.Length switch
@@ -66,7 +66,7 @@ namespace NewLife.Security
                 32 => 256,
                 48 => 384,
                 66 => 521,
-                _ => throw new NotSupportedException($"不支持的椭圆曲线坐标长度 {x.Length}"),
+                _ => throw new NotSupportedException(L.T("Unsupported elliptic curve coordinate length {0}.", x.Length)),
             };
 
             var ek = new ECKey
