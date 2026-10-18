@@ -22,7 +22,7 @@ namespace NewLife.Net;
 /// <code>
 /// var client = new NetClient("tcp://127.0.0.1:8080");
 /// client.Protocol = new SrmpCodec();
-/// client.Received += (s, e) =&gt; XTrace.WriteLine("收到：{0}", e.Packet?.ToStr());
+/// client.Received += (s, e) =&gt; XTrace.WriteLine("Received: {0}", e.Packet?.ToStr());
 /// client.Open();
 /// client.SendMessage(payload);
 /// </code>

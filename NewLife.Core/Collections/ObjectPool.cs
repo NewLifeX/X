@@ -462,7 +462,7 @@ public class ObjectPool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
 /// <param name="poolName">池名称</param>
 /// <param name="busyCount">当前繁忙数</param>
 /// <param name="max">最大容量</param>
-public class PoolFullException(String poolName, Int32 busyCount, Int32 max) : InvalidOperationException($"{poolName} 申请失败，已有 {busyCount:n0} 达到或超过最大值 {max:n0}")
+public class PoolFullException(String poolName, Int32 busyCount, Int32 max) : InvalidOperationException(L.T("Failed to acquire from pool '{0}': {1:n0} busy items reached or exceeded the maximum of {2:n0}.", poolName, busyCount, max))
 {
     /// <summary>当前繁忙数</summary>
     public Int32 BusyCount { get; } = busyCount;

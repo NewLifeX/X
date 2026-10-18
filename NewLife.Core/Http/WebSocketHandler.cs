@@ -39,7 +39,7 @@ public class WebSocketHandler : IHttpHandler
                 var msg = payload?.ToStr();
                 WriteLog(socket.Context, "WebSocket received [{0}] {1}", remote, msg);
                 // 群发所有客户端。处理器为同步委托无法等待，弃置任务即可（群发内部已隔离各会话异常）
-                _ = socket.SendAllAsync($"[{remote}]说，{msg}");
+                _ = socket.SendAllAsync($"[{remote}] says: {msg}");
                 break;
             case WebSocketMessageType.Binary:
                 WriteLog(socket.Context, "WebSocket received [{0}] {1} bytes", remote, payload?.Total ?? 0);

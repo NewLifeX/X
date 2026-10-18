@@ -221,7 +221,7 @@ public class DeferredQueue : DisposeBase
     {
         if (_count < MaxEntity) return;
 
-        using var span = Tracer?.NewError("MaxQueueOverflow", $"延迟队列[{Name}]超过上限{MaxEntity:n0}");
+        using var span = Tracer?.NewError("MaxQueueOverflow", $"Deferred queue [{Name}] exceeded the limit of {MaxEntity:n0}");
 
         // 通知外部发生溢出
         try { Overflow?.Invoke(_count); } catch { /* 忽略业务侧异常 */ }

@@ -572,7 +572,7 @@ public static class PathHelper
             // 跳过当前目录
             if (item.GetFullPath().EqualIgnoreCase(cur)) continue;
 
-            Console.WriteLine("复制 {0} => {1}", item, cur);
+            Console.WriteLine("Copy {0} => {1}", item, cur);
 
             try
             {

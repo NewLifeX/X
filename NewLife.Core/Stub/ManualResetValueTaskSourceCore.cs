@@ -216,7 +216,7 @@ internal static class ManualResetValueTaskSourceCoreShared
 
     private static void CompletionSentinel(Object? _)
     {
-        Debug.Fail("哨兵委托不应被调用");
+        Debug.Fail("The sentinel delegate must not be invoked.");
         throw new InvalidOperationException();
     }
 }

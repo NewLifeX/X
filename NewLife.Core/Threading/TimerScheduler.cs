@@ -335,7 +335,7 @@ public class TimerScheduler : IDisposable, ILogFeature
             var target = timer.Target.Target;
             if (target == null && !timer.Method.IsStatic)
             {
-                Remove(timer, "委托已不存在（GC回收委托所在对象）");
+                Remove(timer, "The delegate target has been collected by GC");
                 timer.Dispose();
                 return;
             }
@@ -381,7 +381,7 @@ public class TimerScheduler : IDisposable, ILogFeature
             var target = timer.Target.Target;
             if (target == null && !timer.Method.IsStatic)
             {
-                Remove(timer, "委托已不存在（GC回收委托所在对象）");
+                Remove(timer, "The delegate target has been collected by GC");
                 timer.Dispose();
                 return;
             }

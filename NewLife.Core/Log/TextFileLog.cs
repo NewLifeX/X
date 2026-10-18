@@ -130,7 +130,7 @@ public class TextFileLog : Logger, IDisposable
         catch (Exception ex)
         {
             _logFileError++;
-            Console.WriteLine("创建日志文件失败：{0}", ex.Message);
+            Console.WriteLine("Failed to create log file: {0}", ex.Message);
             return null;
         }
     }
@@ -250,7 +250,7 @@ public class TextFileLog : Logger, IDisposable
                     fis = fis.OrderBy(e => e.CreationTime).Take(retain).ToArray();
                     foreach (var item in fis)
                     {
-                        OnWrite(LogLevel.Info, "日志文件达到上限 {0}，删除 {1}，大小 {2:n0}Byte", Backups, item.Name, item.Length);
+                        OnWrite(LogLevel.Info, "Log file backup limit {0} reached; deleting {1} ({2:n0} bytes).", Backups, item.Name, item.Length);
                         try
                         {
                             item.Delete();

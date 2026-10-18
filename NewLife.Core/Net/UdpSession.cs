@@ -512,7 +512,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     }
 
     /// <summary>拉取拒绝提示。UDP 会话共享服务器 Socket，按会话过滤拉取会丢弃其他会话的数据报</summary>
-    private String NoPullMessage => $"[{Name}] UDP 会话共享服务器 Socket，不支持会话级拉取（按会话过滤会丢弃其他会话的数据报）；接收请订阅 Received 事件，拉取请在服务器打开前设置 AutoReceive=false 后使用 UdpServer.Receive/ReceiveAsync，客户端场景请使用 NetClient";
+    private String NoPullMessage => L.T("[{0}] A UDP session shares the server socket, so per-session pull is not supported (filtering per session would drop datagrams of other sessions). Subscribe to the Received event, or set AutoReceive=false before opening the server and use UdpServer.Receive/ReceiveAsync; on the client side use NetClient.", Name);
     #endregion
 
     #region ITransport接口

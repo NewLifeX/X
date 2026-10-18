@@ -450,7 +450,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>拉取模式提示。接收环已启动时拉取数据将被拒绝</summary>
-    private String NoPullMessage => $"[{Name}] 接收环已启动（AutoReceive=true），不允许拉取数据；请在打开前设置 AutoReceive=false 使用拉取模式，或改用 Received 事件/管道接收数据";
+    private String NoPullMessage => L.T("[{0}] The receive loop is running (AutoReceive=true), pulling data is not allowed. Set AutoReceive=false before opening to use pull mode, or consume the Received event or pipe instead.", Name);
 
     /// <summary>直读数据。子类可重写以适配特殊链路（如SSL流）</summary>
     /// <returns></returns>

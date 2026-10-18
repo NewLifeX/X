@@ -331,7 +331,7 @@ public static class XTrace
     {
         var show = _ShowErrorMessage && Application.MessageLoop;
         var ex = e.ExceptionObject as Exception;
-        var title = e.IsTerminating ? "异常退出" : "出错";
+        var title = e.IsTerminating ? L.T("Fatal error") : L.T("Error");
         if (show) MessageBox.Show(ex?.Message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
@@ -340,7 +340,7 @@ public static class XTrace
         WriteException(e.Exception);
 
         var show = _ShowErrorMessage && Application.MessageLoop;
-        if (show) MessageBox.Show(e.Exception == null ? "" : e.Exception.Message, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        if (show) MessageBox.Show(e.Exception == null ? "" : e.Exception.Message, L.T("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
     /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>

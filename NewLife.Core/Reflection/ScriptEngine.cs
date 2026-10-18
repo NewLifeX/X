@@ -122,7 +122,7 @@ public class ScriptEngine
         if (String.IsNullOrEmpty(code)) throw new ArgumentNullException(nameof(code));
 
         // NativeAOT 等环境明确报错，避免后续晦涩的编译/加载失败
-        DynamicCodeHelper.ThrowIfNotSupported("脚本引擎");
+        DynamicCodeHelper.ThrowIfNotSupported("script engine");
 
         var key = code + isExpression;
         return _cache.GetOrAdd(key, k => new ScriptEngine(code, isExpression));

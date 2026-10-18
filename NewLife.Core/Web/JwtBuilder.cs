@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using NewLife.Data;
 using NewLife.Security;
@@ -211,7 +211,7 @@ public class JwtBuilder : IExtend
     /// <returns></returns>
     public Boolean TryDecode(String token, [NotNullWhen(false)] out String? message)
     {
-        message = "JWT格式不正确";
+        message = L.T("Invalid JWT format.");
 
         //if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
 
@@ -222,17 +222,17 @@ public class JwtBuilder : IExtend
         var now = Runtime.UtcNow.ToLocalTime().DateTime;
         if (Expire.Year > 2000 && Expire < now)
         {
-            message = "令牌已过期";
+            message = L.T("Token has expired.");
             return false;
         }
         if (NotBefore.Year > 2000 && now < NotBefore)
         {
-            message = "令牌未生效";
+            message = L.T("Token is not yet valid.");
             return false;
         }
         if (Secret.IsNullOrEmpty())
         {
-            message = "未设置密钥";
+            message = L.T("Secret is not configured.");
             return false;
         }
 
@@ -240,14 +240,14 @@ public class JwtBuilder : IExtend
         var tokenAlg = TokenAlgorithm ?? Algorithm;
         if (_algorithmByUser && !tokenAlg.EqualIgnoreCase(Algorithm))
         {
-            message = $"算法不匹配：令牌算法[{tokenAlg}]，期望算法[{Algorithm}]";
+            message = L.T("Algorithm mismatch: the token uses [{0}] but [{1}] is expected.", tokenAlg, Algorithm);
             return false;
         }
 
         // 防算法混淆：对称算法以非对称密钥材料（PEM/XML/JWK/紧凑Base64形式的公钥）作 HMAC 密钥时，公开的公钥即可伪造签名（RS256→HS256 降级攻击）
         if (tokenAlg.StartsWithIgnoreCase("HS") && IsAsymmetricKey(Secret))
         {
-            message = "算法混淆：对称算法不得使用非对称密钥作为密钥";
+            message = L.T("Algorithm confusion: a symmetric algorithm must not use an asymmetric key as the secret.");
             return false;
         }
 
@@ -287,13 +287,13 @@ public class JwtBuilder : IExtend
                 }
                 catch (FormatException)
                 {
-                    message = "JWT格式不正确";
+                    message = L.T("Invalid JWT format.");
                     return false;
                 }
 
                 // 失败时给出具体消息，成功时保持 null（调用方约定）
                 var ok = dec(data, Secret, sig);
-                if (!ok) message = "签名验证失败";
+                if (!ok) message = L.T("Signature verification failed.");
 
                 return ok;
             }
@@ -302,14 +302,14 @@ public class JwtBuilder : IExtend
             if (_encodes.TryGetValue(Algorithm, out var enc) && enc != null)
             {
                 var ok = enc(data, Secret).ToUrlBase64() == ts[2];
-                if (!ok) message = "签名验证失败";
+                if (!ok) message = L.T("Signature verification failed.");
 
                 return ok;
             }
         }
 
         // 未知算法按验证失败处理：令牌头部由攻击者可控，不能抛异常（Try 语义 + 避免未处理异常放大为 500）
-        message = $"不支持的算法[{Algorithm}]";
+        message = L.T("Unsupported algorithm [{0}].", Algorithm);
         return false;
     }
     #endregion

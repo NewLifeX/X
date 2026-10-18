@@ -76,7 +76,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
                     config.OnLoaded();
 
                     // 创建或覆盖
-                    var act = File.Exists(dcf) ? "加载出错" : "不存在";
+                    var act = File.Exists(dcf) ? "failed to load" : "missing";
                     XTrace.WriteLine("The configuration file {1} of {0} is {2}; overwriting with the default configuration.", typeof(TConfig).Name, dcf, act);
                     try
                     {

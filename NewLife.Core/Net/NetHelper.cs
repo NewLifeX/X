@@ -801,9 +801,9 @@ public static class NetHelper
     /// <returns></returns>
     public static String? GetAddress(this IPAddress addr)
     {
-        if (addr.IsAny()) return "任意地址";
-        if (IPAddress.IsLoopback(addr)) return "本地环回";
-        if (addr.IsLocal()) return "本机地址";
+        if (addr.IsAny()) return L.T("Any address");
+        if (IPAddress.IsLoopback(addr)) return L.T("Loopback address");
+        if (addr.IsLocal()) return L.T("Local address");
 
         //if (IpProvider == null) IpProvider = new MyIpProvider();
 

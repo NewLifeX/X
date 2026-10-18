@@ -278,7 +278,7 @@ public static class ProcessHelper
 
         var span = DefaultSpan.Current;
         //XTrace.WriteLine("安全，温柔一刀！PID={0}/{1}", process.Id, process.ProcessName);
-        span?.AppendTag($"SafetyKill，温柔一刀！PID={process.Id}/{process.ProcessName}");
+        span?.AppendTag($"SafetyKill, graceful signal to PID={process.Id}/{process.ProcessName}");
 
         // 杀进程，如果命令未成功则马上退出（后续强杀），否则循环检测并等待
         try
@@ -324,7 +324,7 @@ public static class ProcessHelper
 
         var span = DefaultSpan.Current;
         //XTrace.WriteLine("强杀，大力出奇迹！PID={0}/{1}", process.Id, process.ProcessName);
-        span?.AppendTag($"ForceKill，大力出奇迹！PID={process.Id}/{process.ProcessName}");
+        span?.AppendTag($"ForceKill, terminating PID={process.Id}/{process.ProcessName}");
 
         // 终止指定的进程及启动的子进程,如nginx等
         // 在Core 3.0, Core 3.1, 5, 6, 7, 8, 9 中支持此重载
