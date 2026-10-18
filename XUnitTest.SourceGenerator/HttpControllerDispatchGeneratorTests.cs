@@ -140,7 +140,7 @@ public class Client
         Assert.Contains("Reflect.ChangeType<global::System.Int32>(raw", text);
         Assert.Contains("= 7;", text);
         Assert.Contains("= context;", text);
-        Assert.Contains("缺少必填参数 [a]", text);
+        Assert.Contains("Missing required parameter [{0}]", text);
 
         // 异步返回值强类型等待后写回
         Assert.Contains("await instance.AsyncInfo().ConfigureAwait(false)", text);
@@ -158,7 +158,8 @@ public class Client
     [Fact(DisplayName = "生成产物参与编译无错误")]
     public void GeneratedSourceCompiles()
     {
-        var (compilation, _) = GeneratorTestHost.RunWithSymbols(new HttpControllerDispatchGenerator(), FullSource, ["NET5_0_OR_GREATER"]);
+        var coreRef = MetadataReference.CreateFromFile(typeof(NewLife.Localization).Assembly.Location);
+        var (compilation, _) = GeneratorTestHost.RunWithSymbols(new HttpControllerDispatchGenerator(), FullSource, ["NET5_0_OR_GREATER"], coreRef);
         var errors = compilation.GetDiagnostics().Where(e => e.Severity == DiagnosticSeverity.Error).ToList();
 
         Assert.True(errors.Count == 0, String.Join(Environment.NewLine, errors.Select(e => e.ToString())));
