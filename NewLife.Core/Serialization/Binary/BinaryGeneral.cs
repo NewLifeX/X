@@ -343,8 +343,8 @@ public class BinaryGeneral : BinaryHandlerBase
     {
         if (buffer == null || buffer.Length <= 0) return;
 
-        // 如果不是小端字节顺序，则倒序
-        if (!Host.IsLittleEndian) Array.Reverse(buffer);
+        // 目标字节序与主机字节序不一致时才倒序（大端主机上原先按小端假设取反，会得到相反结果）
+        if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer);
 
         Write(buffer, 0, buffer.Length);
     }
@@ -381,7 +381,7 @@ public class BinaryGeneral : BinaryHandlerBase
         Host.Write(buffer);
 #else
         var buffer = BitConverter.GetBytes(value);
-        if (!Host.IsLittleEndian) Array.Reverse(buffer);
+        if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer);
         Host.Write(buffer, 0, buffer.Length);
 #endif
     }
@@ -399,7 +399,7 @@ public class BinaryGeneral : BinaryHandlerBase
         Host.Write(buffer);
 #else
         var buffer = BitConverter.GetBytes(value);
-        if (!Host.IsLittleEndian) Array.Reverse(buffer);
+        if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer);
         Host.Write(buffer, 0, buffer.Length);
 #endif
     }
@@ -490,7 +490,7 @@ public class BinaryGeneral : BinaryHandlerBase
         using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
-        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+        if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToInt16(buffer, 0);
 #endif
@@ -520,7 +520,7 @@ public class BinaryGeneral : BinaryHandlerBase
         using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
-        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+        if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToInt32(buffer, 0);
 #endif
@@ -550,7 +550,7 @@ public class BinaryGeneral : BinaryHandlerBase
         using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
-        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+        if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToInt64(buffer, 0);
 #endif
@@ -579,7 +579,7 @@ public class BinaryGeneral : BinaryHandlerBase
         using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
-        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+        if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToSingle(buffer, 0);
 #endif
@@ -606,7 +606,7 @@ public class BinaryGeneral : BinaryHandlerBase
         using var buffer = Pool.Rent(SIZE);
         if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
 
-        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+        if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
         value = BitConverter.ToDouble(buffer, 0);
 #endif
