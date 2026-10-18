@@ -846,7 +846,7 @@ public static class PacketHelper
         if (pk is OwnerPacket owner) return owner.ExpandHeader(size);
         if (pk is ArrayPacket ap) return ap.ExpandHeader(size);
 
-        throw new InvalidOperationException($"类型 [{pk.GetType().Name}] 不支持头部借位扩展；头部写入需要预留空间的数据包（OwnerPacket/ArrayPacket）");
+        throw new InvalidOperationException(L.T("Type [{0}] does not support header extension by borrowing space; header writes require a packet with reserved space (OwnerPacket/ArrayPacket).", pk.GetType().Name));
     }
 
     /// <summary>为负载准备帧头空间。已预留的拥有句柄零拷贝借位，其余新头节点挂接负载链；原负载句柄始终有效</summary>

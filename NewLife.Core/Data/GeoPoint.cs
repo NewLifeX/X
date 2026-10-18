@@ -20,7 +20,7 @@ public readonly record struct GeoPoint(Double Longitude, Double Latitude)
     public static GeoPoint Parse(String? location)
     {
         if (!TryParse(location, out var point))
-            throw new FormatException($"无效经纬度字符串：{location}");
+            throw new FormatException(L.T("Invalid latitude/longitude string: {0}", location));
 
         return point;
     }

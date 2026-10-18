@@ -68,7 +68,7 @@ public class Snowflake
         set
         {
             if (value is < 0 or > MaxWorkerId)
-                throw new ArgumentOutOfRangeException(nameof(value), $"WorkerId必须在0-{MaxWorkerId}范围内");
+                throw new ArgumentOutOfRangeException(nameof(value), L.T("WorkerId must be in the range 0-{0}.", MaxWorkerId));
             _workerId = value;
         }
     }
@@ -177,7 +177,7 @@ public class Snowflake
             // 检测时间回拨
             var clockBack = lastTime - currentTimestamp;
             if (clockBack > MaxClockBack)
-                throw new InvalidOperationException($"时间回拨过大 ({clockBack}ms)。为保证唯一性，雪花算法拒绝生成新Id");
+                throw new InvalidOperationException(L.T("Clock moved backwards too far ({0} ms). To preserve uniqueness, the snowflake algorithm refuses to generate new IDs.", clockBack));
 
             // 使用上次时间戳，等待时间追上
             timestamp = lastTime;

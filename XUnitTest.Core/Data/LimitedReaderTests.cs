@@ -223,7 +223,7 @@ public class LimitedReaderTests
         var body = pipe.Reader.Limit(5);
         var ex = await Assert.ThrowsAsync<EndOfStreamException>(() => body.ReadAllAsync().AsTask());
 
-        Assert.Contains("未读满", ex.Message);
+        Assert.Contains("incomplete", ex.Message);
         Assert.Equal(2, body.Remaining);
     }
 
@@ -286,3 +286,4 @@ public class LimitedReaderTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new LimitedReader(packet, 0, -1));
     }
 }
+

@@ -87,7 +87,7 @@ public sealed class LimitedReader
     /// <exception cref="InvalidOperationException">流式模式不可复位</exception>
     internal void Reset()
     {
-        if (_reader != null) throw new InvalidOperationException("流式模式不支持复位");
+        if (_reader != null) throw new InvalidOperationException(L.T("Reset is not supported in streaming mode."));
 
         _offset = _start;
         _remaining = _initial;
@@ -218,7 +218,7 @@ public sealed class LimitedReader
     /// <exception cref="InvalidOperationException">流式模式不允许直接取包</exception>
     public IPacket? AsPacket()
     {
-        if (_reader != null) throw new InvalidOperationException("流式模式不允许直接取包，请使用 ReadAllAsync 读取或 DrainAsync 丢弃");
+        if (_reader != null) throw new InvalidOperationException(L.T("Direct packet access is not allowed in streaming mode. Use ReadAllAsync to read or DrainAsync to discard."));
         if (_remaining <= 0) return null;
 
         return _packet!.Slice((Int32)_offset, (Int32)_remaining);
@@ -244,7 +244,7 @@ public sealed class LimitedReader
         }
 
         // 流式模式：预算已知，一次分配读满
-        if (_remaining > Int32.MaxValue) throw new NotSupportedException($"消息体过大（{_remaining} 字节），无法一次性物化");
+        if (_remaining > Int32.MaxValue) throw new NotSupportedException(L.T("Message body is too large ({0} bytes) to materialize at once.", _remaining));
 
         var buffer = new OwnerPacket((Int32)_remaining);
         try
@@ -276,12 +276,12 @@ public sealed class LimitedReader
             // 未读满就退出：半截消息体比异常危险得多（上层只能从长度对不上猜出问题），按原因抛给调用方
             if (_remaining > 0)
             {
-                if (canceled) throw new OperationCanceledException($"消息体读取被取消，期望 {total} 字节，实读 {offset} 字节");
+                if (canceled) throw new OperationCanceledException(L.T("Message body read was canceled; expected {0} bytes, read {1} bytes.", total, offset));
 
                 // 管道带异常结束时透传原始故障（与帧泵的口径一致），否则说明对端提前关闭
                 if (_reader.Error is { } error) throw error;
 
-                throw new EndOfStreamException($"消息体未读满：期望 {total} 字节，实读 {offset} 字节");
+                throw new EndOfStreamException(L.T("Message body is incomplete; expected {0} bytes, read {1} bytes.", total, offset));
             }
 
             return buffer.Resize(offset);

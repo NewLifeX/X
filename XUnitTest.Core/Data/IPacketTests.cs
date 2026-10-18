@@ -1,4 +1,4 @@
-﻿using NewLife;
+using NewLife;
 using NewLife.Data;
 using NewLife.Reflection;
 using NewLife.Security;
@@ -178,7 +178,7 @@ public class IPacketTests
         op.GetSpan().Fill(0x51);
 
         var ex = Assert.Throws<InvalidOperationException>(() => op.ExpandHeader(8));
-        Assert.Contains("预留", ex.Message);
+        Assert.Contains("reserved", ex.Message);
     }
 
     [Fact(DisplayName = "ExpandHeader：带链句柄切片后前移链头，源句柄与源链均不受影响")]
@@ -369,3 +369,4 @@ public class IPacketTests
         Assert.Equal(-1, f4.IndexOf(ReadOnlySpan<Byte>.Empty));
     }
 }
+

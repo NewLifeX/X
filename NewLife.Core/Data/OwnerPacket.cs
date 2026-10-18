@@ -329,7 +329,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
             // 走到这里说明存在漏释放：开发期直接告警，便于定位与修复；终结器线程内日志异常不得外抛
             try
             {
-                XTrace.WriteLine("[OwnerPacket] 漏释放句柄（Offset={0}，Length={1}），已由析构兜底归还缓冲区引用；请检查调用方是否遗漏 Dispose。", _offset, _length);
+                XTrace.WriteLine("[OwnerPacket] Leaked handle (Offset={0}, Length={1}). The finalizer returned the buffer reference as a fallback; check whether the caller missed Dispose.", _offset, _length);
             }
             catch { }
 #endif
@@ -555,7 +555,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     public OwnerPacket ExpandHeader(Int32 size)
     {
         if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
-        if (_offset < size) throw new InvalidOperationException($"未预留 {size} 字节头部空间（当前 {_offset}）；请在分配时预留，例如 new OwnerPacket(size, reserve)");
+        if (_offset < size) throw new InvalidOperationException(L.T("No {0} bytes of header space reserved (current offset {1}). Reserve space at allocation, for example new OwnerPacket(size, reserve).", size, _offset));
 
         // 带链：先切片成独占的共享节点链（引用计数各自持有），链头随即可安全前移；源句柄不受影响
         if (Next != null)

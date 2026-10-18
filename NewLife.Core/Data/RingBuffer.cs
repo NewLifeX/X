@@ -156,7 +156,7 @@ public class RingBuffer
             if (count > availableSpace)
             {
                 // 理论上不应该到达这里，因为 CheckCapacity 已经确保了足够空间
-                throw new InvalidOperationException("缓冲区空间不足，容量检查失败");
+                throw new InvalidOperationException(L.T("Insufficient buffer space; capacity check failed."));
             }
 
             // 直接写入 Head 到 Tail 之间的连续空间
