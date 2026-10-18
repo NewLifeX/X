@@ -29,6 +29,10 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         "LOC003", "Localization placeholder mismatch", "占位符与英文原文不一致：{0}（{1}:{2}）", "Localization",
         DiagnosticSeverity.Error, true);
 
+    private static readonly DiagnosticDescriptor PlaceholderSpecMismatch = new(
+        "LOC004", "Localization format specifier mismatch", "格式说明符与英文原文不一致：{0}（{1}:{2}）", "Localization",
+        DiagnosticSeverity.Warning, true);
+
     /// <summary>初始化生成器</summary>
     /// <param name="context">增量生成上下文</param>
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -76,6 +80,17 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
                     continue;
                 }
 
+                var enSpecs = GetPlaceholderSpecs(key);
+                var trSpecs = GetPlaceholderSpecs(value);
+                foreach (var spec in enSpecs)
+                {
+                    if (trSpecs.TryGetValue(spec.Key, out var text) && text != spec.Value)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(PlaceholderSpecMismatch, CreateLocation(file.Path, i), key, file.Culture, i + 1));
+                        break;
+                    }
+                }
+
                 table[key] = value;
             }
 
@@ -97,7 +112,7 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("namespace NewLife;");
         sb.AppendLine();
-        sb.AppendLine("partial class Localization");
+        sb.AppendLine("public static partial class Localization");
         sb.AppendLine("{");
         sb.AppendLine("    private static readonly Dictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal)");
         sb.AppendLine("    {");
@@ -255,6 +270,36 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
             i = j;
         }
         return set;
+    }
+
+    private static Dictionary<Int32, String> GetPlaceholderSpecs(String text)
+    {
+        var map = new Dictionary<Int32, String>();
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] != '{') continue;
+            if (i + 1 < text.Length && text[i + 1] == '{')
+            {
+                i++;
+                continue;
+            }
+
+            var j = i + 1;
+            while (j < text.Length && Char.IsDigit(text[j])) j++;
+            if (j > i + 1 && j < text.Length && (text[j] == '}' || text[j] == ':' || text[j] == ','))
+            {
+                var end = text.IndexOf('}', j);
+                if (end > j && Int32.TryParse(text.Substring(i + 1, j - i - 1), out var number))
+                    map[number] = text.Substring(j, end - j);
+                if (end > 0)
+                {
+                    i = end;
+                    continue;
+                }
+            }
+            i = j;
+        }
+        return map;
     }
 
     private static Location CreateLocation(String path, Int32 line)
