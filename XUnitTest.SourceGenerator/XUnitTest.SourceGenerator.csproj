@@ -21,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core.SourceGenerator\NewLife.Core.SourceGenerator.csproj" />
+    <ProjectReference Include="..\NewLife.Core.Localization.Generator\NewLife.Core.Localization.Generator.csproj" />
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>
 </Project>

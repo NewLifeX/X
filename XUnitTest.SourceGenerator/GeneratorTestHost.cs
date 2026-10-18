@@ -1,6 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 namespace XUnitTest.SourceGenerator;
 
@@ -23,6 +27,53 @@ public static class GeneratorTestHost
     /// <returns>生成后的编译与驱动运行结果</returns>
     public static (Compilation Compilation, GeneratorDriverRunResult Result) RunWithSymbols(IIncrementalGenerator generator, String source, String[] preprocessorSymbols, params MetadataReference[] additionalReferences)
         => RunCore(generator, source, preprocessorSymbols, additionalReferences);
+
+    /// <summary>编译源码并运行生成器（指定程序集名、预处理符号与附加文本）</summary>
+    /// <param name="generator">目标生成器</param>
+    /// <param name="source">待编译源码</param>
+    /// <param name="assemblyName">程序集名，用于区分 Core 与下游模式</param>
+    /// <param name="preprocessorSymbols">预处理符号</param>
+    /// <param name="additionalTexts">附加文本（路径与内容）</param>
+    /// <param name="additionalReferences">附加元数据引用</param>
+    /// <returns>生成后的编译与驱动运行结果</returns>
+    public static (Compilation Compilation, GeneratorDriverRunResult Result) RunWithAdditionalTexts(IIncrementalGenerator generator, String source, String assemblyName, String[]? preprocessorSymbols, IEnumerable<(String Path, String Text)> additionalTexts, params MetadataReference[] additionalReferences)
+    {
+        var refs = new List<MetadataReference>(_platformRefs.Value);
+        foreach (var item in additionalReferences) refs.Add(item);
+
+        var options = new CSharpParseOptions(LanguageVersion.Latest, preprocessorSymbols: preprocessorSymbols);
+        var trees = new[]
+        {
+            CSharpSyntaxTree.ParseText("global using System;", options),
+            CSharpSyntaxTree.ParseText(source, options),
+        };
+        var compilation = CSharpCompilation.Create(
+            assemblyName,
+            trees,
+            refs,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var texts = additionalTexts.Select(x => (AdditionalText)new InMemoryAdditionalText(x.Path, x.Text)).ToArray();
+        var driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, texts, options);
+        var updated = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
+
+        return (output, updated.GetRunResult());
+    }
+
+    private sealed class InMemoryAdditionalText : AdditionalText
+    {
+        private readonly String _text;
+
+        public InMemoryAdditionalText(String path, String text)
+        {
+            Path = path;
+            _text = text;
+        }
+
+        public override String Path { get; }
+
+        public override SourceText GetText(CancellationToken cancellationToken = default) => SourceText.From(_text, Encoding.UTF8);
+    }
 
     private static readonly Lazy<MetadataReference[]> _platformRefs = new(() =>
     {
