@@ -166,4 +166,15 @@ public class LocalizationGeneratorTests
 
         Assert.Contains(result.Results[0].Diagnostics, d => d.Id == "LOC004" && d.Severity == DiagnosticSeverity.Warning);
     }
+
+    [Fact(DisplayName = "对齐宽度占位符：译文丢失占位符时报编译错误")]
+    public void AlignmentPlaceholderMissing()
+    {
+        var yaml = "\"Read: {0,7:n0} ms.\": \"读取毫秒。\"";
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "NewLife.Core", null,
+            new[] { ("Locales/zh-Hans.yml", yaml) });
+
+        Assert.Contains(result.Results[0].Diagnostics, d => d.Id == "LOC003" && d.Severity == DiagnosticSeverity.Error);
+    }
 }

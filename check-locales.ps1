@@ -10,7 +10,7 @@ if (!(Test-Path $localeDir)) {
 }
 
 $pattern = '^\s*"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"\s*$'
-$placeholder = '\{(\d+)(:[^}]*)?\}'
+$placeholder = '\{(\d+)(?:,-?\d+)?(:[^}]*)?\}'
 
 function Unescape-Yaml([string]$text) {
     # 与源生成器保持一致：还原 \\ \" \n \r \t \uXXXX

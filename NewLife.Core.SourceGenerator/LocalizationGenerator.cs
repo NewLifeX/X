@@ -472,7 +472,8 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
 
             var j = i + 1;
             while (j < text.Length && Char.IsDigit(text[j])) j++;
-            if (j > i + 1 && j < text.Length && (text[j] == '}' || text[j] == ':'))
+            // 逗号后是对齐宽度（如 {0,7:n0}），也属于该占位符，不能当作普通文本跳过
+            if (j > i + 1 && j < text.Length && (text[j] == '}' || text[j] == ':' || text[j] == ','))
             {
                 if (Int32.TryParse(text.Substring(i + 1, j - i - 1), out var number)) set.Add(number);
             }
