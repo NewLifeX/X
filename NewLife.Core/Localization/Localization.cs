@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 
 namespace NewLife;
 
@@ -23,6 +24,11 @@ public static partial class Localization
 
     private static readonly ConcurrentDictionary<String, IReadOnlyDictionary<String, String>> _overrides = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<String, String?> _cultureKeys = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal);
+    private static readonly Dictionary<String, String> _emptyTable = new(StringComparer.Ordinal);
+
+    /// <summary>非空覆盖表数量。为 0 时热路径可跳过一次字典查找</summary>
+    private static Int32 _overrideCount;
     #endregion
 
     #region 注册
@@ -46,6 +52,7 @@ public static partial class Localization
             key,
             _ => Merge(key, table, overwrite),
             (_, existing) => Merge(key, table, overwrite, existing));
+        Volatile.Write(ref _overrideCount, _overrides.Count);
     }
 
     /// <summary>移除指定语言的覆盖表</summary>
@@ -56,7 +63,10 @@ public static partial class Localization
         if (culture == null) return false;
 
         var key = GetCultureKey(culture);
-        return key != null && _overrides.TryRemove(key, out _);
+        if (key == null || !_overrides.TryRemove(key, out _)) return false;
+
+        Volatile.Write(ref _overrideCount, _overrides.Count);
+        return true;
     }
 
     private static IReadOnlyDictionary<String, String> Merge(String cultureKey, IDictionary<String, String> table, Boolean overwrite, IReadOnlyDictionary<String, String>? existing = null)
@@ -67,7 +77,7 @@ public static partial class Localization
             foreach (var item in existing) result[item.Key] = item.Value;
         }
 
-        var builtin = GetTableByKey(cultureKey);
+        var builtin = GetTable(cultureKey);
         foreach (var item in table)
         {
             if (item.Key.IsNullOrEmpty()) continue;
@@ -113,16 +123,33 @@ public static partial class Localization
         var key = GetCultureKeyCached(culture);
         if (key == null) return template;
 
-        String? text;
-        if (!_overrides.IsEmpty && _overrides.TryGetValue(key, out var overlay) && overlay.TryGetValue(template, out text)) return text;
+        // 无覆盖表时跳过覆盖查找；英文原文即 key，直接返回
+        if (Volatile.Read(ref _overrideCount) != 0 && _overrides.TryGetValue(key, out var overlay) && overlay.TryGetValue(template, out var text)) return text;
 
-        // 英文原文即 key，无需查表
         if (key == "en") return template;
 
-        var table = GetTableByKey(key);
+        var table = GetTable(key);
         if (table != null && table.TryGetValue(template, out text)) return text;
 
         return template;
+    }
+
+    /// <summary>获取指定语言的编译期语言表。首次访问时按需构建并缓存，未提供的语言返回 null</summary>
+    /// <param name="key">语言键</param>
+    /// <returns>语言表；该语言无内置表时返回 null</returns>
+    private static Dictionary<String, String>? GetTable(String key)
+    {
+        if (_tables.TryGetValue(key, out var table)) return table.Count == 0 ? null : table;
+
+        table = CreateTable(key);
+        if (table == null)
+        {
+            _tables.TryAdd(key, _emptyTable);
+            return null;
+        }
+
+        _tables.TryAdd(key, table);
+        return table;
     }
 
     private static String? GetCultureKeyCached(CultureInfo culture)

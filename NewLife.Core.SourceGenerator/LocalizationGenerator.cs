@@ -130,12 +130,25 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("public static partial class Localization");
         sb.AppendLine("{");
-        sb.AppendLine("    private static readonly Dictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal)");
+        // 语言表按需构建：只有真正用到的语言才占用内存，英文/未本地化场景零开销
+        sb.AppendLine("    private static Dictionary<String, String>? CreateTable(String key)");
         sb.AppendLine("    {");
-
-        AppendTables(sb, tables, "        ");
-
-        sb.AppendLine("    };");
+        sb.AppendLine("        switch (key)");
+        sb.AppendLine("        {");
+        foreach (var item in tables)
+        {
+            sb.Append("            case \"").Append(Escape(item.Key)).AppendLine("\":");
+            sb.AppendLine("                return new Dictionary<String, String>(StringComparer.Ordinal)");
+            sb.AppendLine("                {");
+            foreach (var pair in item.Value)
+            {
+                sb.Append("                    [\"").Append(Escape(pair.Key)).Append("\"] = \"").Append(Escape(pair.Value)).AppendLine("\",");
+            }
+            sb.AppendLine("                };");
+        }
+        sb.AppendLine("            default: return null;");
+        sb.AppendLine("        }");
+        sb.AppendLine("    }");
         sb.AppendLine();
         sb.AppendLine("    private static String? GetCultureKey(CultureInfo culture)");
         sb.AppendLine("    {");
@@ -156,8 +169,6 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine("        if (index > 0) lang = lang.Substring(0, index);");
         sb.AppendLine("        return lang.ToLowerInvariant();");
         sb.AppendLine("    }");
-        sb.AppendLine();
-        sb.AppendLine("    private static Dictionary<String, String>? GetTableByKey(String key) => _tables.TryGetValue(key, out var table) ? table : null;");
         sb.AppendLine("}");
         return sb.ToString();
     }
@@ -211,7 +222,12 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine("        [ModuleInitializer]");
         sb.AppendLine("        internal static void RegisterTables()");
         sb.AppendLine("        {");
-        sb.AppendLine("            foreach (var item in _tables) Localization.Register(new CultureInfo(item.Key), item.Value);");
+        sb.AppendLine("            foreach (var item in _tables)");
+        sb.AppendLine("            {");
+        sb.AppendLine("                // 不变全球化（InvariantGlobalization=true）下具名区域性不可用，跳过注册即可，运行时按英文回退");
+        sb.AppendLine("                try { Localization.Register(new CultureInfo(item.Key), item.Value); }");
+        sb.AppendLine("                catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException) { }");
+        sb.AppendLine("            }");
         sb.AppendLine("        }");
         sb.AppendLine("    }");
 
