@@ -459,7 +459,14 @@ jobs:
             cd /src/Bin/UnitTest/net10.0
             cp /opt/selfhost/* .
             sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
-            timeout 35m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES"
+            timeout 35m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES" > /tmp/xr.log 2>&1 || RC=$?
+            if [ ${RC:-0} -ne 0 ] && ! grep -q '^TOTAL' /tmp/xr.log; then
+              echo "仿真层崩溃，重试一次"
+              RC=0
+              timeout 35m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES" > /tmp/xr.log 2>&1 || RC=$?
+            fi
+            cat /tmp/xr.log
+            exit ${RC:-0}
           '
 
   riscv64:
@@ -510,7 +517,14 @@ jobs:
             cd /src/Bin/UnitTest/net10.0
             cp /opt/selfhost/* .
             sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
-            timeout 290m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll
+            timeout 290m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll > /tmp/xr.log 2>&1 || RC=$?
+            if [ ${RC:-0} -ne 0 ] && ! grep -q '^TOTAL' /tmp/xr.log; then
+              echo "仿真层崩溃，重试一次"
+              RC=0
+              timeout 290m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll > /tmp/xr.log 2>&1 || RC=$?
+            fi
+            cat /tmp/xr.log
+            exit ${RC:-0}
           '
 
   # s390x：.NET 10 官方支持清单里 RHEL/CentOS Stream 明确包含 s390x，Ubuntu 24.04 官方源提供
@@ -557,7 +571,14 @@ jobs:
             cd /src/Bin/UnitTest/net10.0
             cp /opt/selfhost/* .
             sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
-            timeout 35m dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES"
+            timeout 35m dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES" > /tmp/xr.log 2>&1 || RC=$?
+            if [ ${RC:-0} -ne 0 ] && ! grep -q '^TOTAL' /tmp/xr.log; then
+              echo "仿真层崩溃，重试一次"
+              RC=0
+              timeout 35m dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES" > /tmp/xr.log 2>&1 || RC=$?
+            fi
+            cat /tmp/xr.log
+            exit ${RC:-0}
           '
 
   s390x:
@@ -598,7 +619,14 @@ jobs:
             cd /src/Bin/UnitTest/net10.0
             cp /opt/selfhost/* .
             sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
-            timeout 290m dotnet ./xr.dll ./XUnitTest.Core.dll
+            timeout 290m dotnet ./xr.dll ./XUnitTest.Core.dll > /tmp/xr.log 2>&1 || RC=$?
+            if [ ${RC:-0} -ne 0 ] && ! grep -q '^TOTAL' /tmp/xr.log; then
+              echo "仿真层崩溃，重试一次"
+              RC=0
+              timeout 290m dotnet ./xr.dll ./XUnitTest.Core.dll > /tmp/xr.log 2>&1 || RC=$?
+            fi
+            cat /tmp/xr.log
+            exit ${RC:-0}
           '
 
   # 源生成器随主包分发校验
