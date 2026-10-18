@@ -446,6 +446,7 @@ jobs:
           -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e NEWLIFE_TEST_QEMU=1 \
           -e DOTNET_EnableHWIntrinsic=0 \
           -e DOTNET_EnableWriteXorExecute=0 \
           -e SMOKE_NAMESPACES="$SMOKE_NAMESPACES" \
@@ -457,7 +458,7 @@ jobs:
             /opt/dotnet/dotnet --info
             cd /src/Bin/UnitTest/net10.0
             cp /opt/selfhost/* .
-            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
             timeout 35m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES"
           '
 
@@ -497,6 +498,7 @@ jobs:
           -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
           -e DOTNET_ROOT=/opt/dotnet \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e NEWLIFE_TEST_QEMU=1 \
           -e DOTNET_EnableHWIntrinsic=0 \
           -e DOTNET_EnableWriteXorExecute=0 \
           riscv64/ubuntu:24.04 \
@@ -507,7 +509,7 @@ jobs:
             /opt/dotnet/dotnet --info
             cd /src/Bin/UnitTest/net10.0
             cp /opt/selfhost/* .
-            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
             timeout 290m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll
           '
 
@@ -544,6 +546,7 @@ jobs:
           -v "$PWD:/src" -w /src \
           -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e NEWLIFE_TEST_QEMU=1 \
           -e SMOKE_NAMESPACES="$SMOKE_NAMESPACES" \
           s390x/ubuntu:24.04 \
           sh -c '
@@ -553,7 +556,7 @@ jobs:
             dotnet --info
             cd /src/Bin/UnitTest/net10.0
             cp /opt/selfhost/* .
-            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
             timeout 35m dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES"
           '
 
@@ -585,6 +588,7 @@ jobs:
           -v "$PWD:/src" -w /src \
           -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
           -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e NEWLIFE_TEST_QEMU=1 \
           s390x/ubuntu:24.04 \
           sh -c '
             set -e
@@ -593,7 +597,7 @@ jobs:
             dotnet --info
             cd /src/Bin/UnitTest/net10.0
             cp /opt/selfhost/* .
-            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
             timeout 290m dotnet ./xr.dll ./XUnitTest.Core.dll
           '
 
