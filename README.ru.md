@@ -7,7 +7,7 @@
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-18%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
@@ -33,7 +33,7 @@ NewLife состоит из множества библиотек компоне
 ## Почему NewLife.Core
 
 - **Одна библиотека для базовой инфраструктуры**: логирование, конфигурация, кэш, сеть, сериализация, планировщик, контейнер объектов и DI — достаточно одной ссылки.
-- **Широкий охват версий**: 18 целевых платформ в одном пакете (net45 → net10.0, включая варианты Windows); один и тот же API для старых систем и новых проектов.
+- **Широкий охват версий**: 11 целевых платформ в одном пакете (net45 → net10.0, включая варианты Windows); один и тот же API для старых систем и новых проектов.
 - **Поддержка NativeAOT**: 29 сценариев ядра проверены, контроль — матрица CI-смоук-тестов по нескольким RID; границы в [анализе совместимости с AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 - **Сдержанные зависимости, свободная лицензия**: только BCL и официальные пакеты совместимости Microsoft; MIT — можно изменять код и переименовывать (см. [Лицензия](#лицензия)).
 
@@ -187,7 +187,7 @@ dotnet run
 | [Читатель Span SpanReader](https://newlifex.com/core/span_reader) | Высокопроизводительный парсер бинарных потоков без выделений памяти с поддержкой порядка байтов. |
 | [Писатель Span SpanWriter](https://newlifex.com/core/span_writer) | Высокопроизводительный писатель бинарных данных без выделений памяти с поддержкой порядка байтов. |
 | [Помощник Span SpanHelper](https://newlifex.com/core/span_helper) | Набор методов расширения Span/ReadOnlySpan, упрощающий операции с памятью. |
-| [Последовательный читатель SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Читатель последовательности через сегменты (в старых фреймворках добавлен через шимы, доступен во всех 18 TFM). |
+| [Последовательный читатель SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Читатель последовательности через сегменты (в старых фреймворках добавлен через шимы, доступен во всех 11 TFM). |
 
 </details>
 

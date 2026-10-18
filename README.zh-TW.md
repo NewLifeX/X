@@ -7,7 +7,7 @@
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-18%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
@@ -26,7 +26,7 @@ NewLife 框架是一套完整的 .NET 元件生態系，為建置可擴充的應
 
 ## 框架概覽
 
-NewLife 由多個元件庫組成，NewLife.Core 提供基礎。此框架支援 net45~net10.0 多目標框架（.NET Framework 4.5 至 .NET 10.0），可在不同環境中達到廣泛的相容性（NewLife.Core 單一套件涵蓋 18 個目標框架）。
+NewLife 由多個元件庫組成，NewLife.Core 提供基礎。此框架支援 net45~net10.0 多目標框架（.NET Framework 4.5 至 .NET 10.0），可在不同環境中達到廣泛的相容性（NewLife.Core 單一套件涵蓋 11 個目標框架）。
 
 **NativeAOT**：核心鏈路已支援（29 個場景實測 + 多 RID 的 CI 冒煙矩陣；win-x64/linux-x64/linux-arm64/linux-la64 為阻斷門檻——LA64 經 QEMU 必選覆蓋，其餘平台觀察期；push/PR + 人工手動觸發）；跨平台單元測試涵蓋 win/linux/osx 的 x64/arm64、LA64 與 musl。外掛、指令碼等動態能力依設計不支援，邊界見 [AOT相容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
 
@@ -34,7 +34,7 @@ NewLife 由多個元件庫組成，NewLife.Core 提供基礎。此框架支援 n
 ## 為什麼選擇 NewLife.Core
 
 - **一套元件涵蓋常見基礎設施**：日誌、設定、快取、網路、序列化、排程、物件容器與相依性注入，引用一個套件即可開工。
-- **跨版本涵蓋廣**：單一套件 18 個目標框架（net45 → net10.0，含 Windows 變體），舊系統與新專案共用同一套 API。
+- **跨版本涵蓋廣**：單一套件 11 個目標框架（net45 → net10.0，含 Windows 變體），舊系統與新專案共用同一套 API。
 - **NativeAOT 可用**：核心鏈路 29 個場景實測通過，多 RID CI 冒煙矩陣把關，邊界見 [AOT相容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
 - **相依克制、授權寬鬆**：僅使用 BCL 與微軟官方相容套件；MIT 授權，允許修改原始碼、改名私有化（見[授權條款](#授權條款)）。
 
@@ -190,7 +190,7 @@ NewLife 元件由社群共創 20 多年，採用 MIT 開源授權，**任何人�
 | [Span 讀取器SpanReader](https://newlifex.com/core/span_reader) | 零記憶體配置的高效能二進位資料流解析器，支援大小端。 |
 | [Span 寫入器SpanWriter](https://newlifex.com/core/span_writer) | 零記憶體配置的高效能二進位資料寫入器，支援大小端。 |
 | [Span 輔助SpanHelper](https://newlifex.com/core/span_helper) | Span/ReadOnlySpan 擴充方法集，簡化記憶體操作。 |
-| [序列讀取器SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | 跨區段順序讀取器（舊框架經墊片補齊，全 18 個 TFM 可用）。 |
+| [序列讀取器SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | 跨區段順序讀取器（舊框架經墊片補齊，全 11 個 TFM 可用）。 |
 
 </details>
 

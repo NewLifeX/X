@@ -7,7 +7,7 @@
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-18%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
@@ -34,7 +34,7 @@ NewLife est composé de plusieurs bibliothèques de composants, et NewLife.Core 
 ## Pourquoi NewLife.Core
 
 - **Une bibliothèque pour l'infrastructure courante** : journalisation, configuration, cache, réseau, sérialisation, ordonnancement, conteneur d'objets et DI — une seule référence suffit.
-- **Large couverture de versions** : 18 frameworks cibles dans un seul paquet (net45 → net10.0, variantes Windows incluses) ; la même API pour les systèmes existants et les nouveaux projets.
+- **Large couverture de versions** : 11 frameworks cibles dans un seul paquet (net45 → net10.0, variantes Windows incluses) ; la même API pour les systèmes existants et les nouveaux projets.
 - **Compatible NativeAOT** : 29 scénarios du cœur mesurés et sécurisés par une matrice CI multi-RID ; limites dans l'[analyse de compatibilité AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 - **Dépendances maîtrisées, licence permissive** : uniquement la BCL et les paquets de compatibilité Microsoft ; licence MIT, modification et changement de nom autorisés (voir [Licence](#licence)).
 
@@ -188,7 +188,7 @@ Le répertoire `Doc/` du dépôt maintient le système de documentation des capa
 | [Lecteur Span SpanReader](https://newlifex.com/core/span_reader) | Analyseur de flux binaire hautes performances sans allocation, avec prise en charge des formats petit-boutiste et gros-boutiste. |
 | [Écrivain Span SpanWriter](https://newlifex.com/core/span_writer) | Écrivain de données binaires hautes performances sans allocation, avec prise en charge des formats petit-boutiste et gros-boutiste. |
 | [Assistant Span SpanHelper](https://newlifex.com/core/span_helper) | Ensemble de méthodes d'extension Span/ReadOnlySpan, simplifiant les opérations sur la mémoire. |
-| [Lecteur séquentiel SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Lecteur séquentiel multi-segments (anciens frameworks complétés par des shims, disponible sur les 18 TFM). |
+| [Lecteur séquentiel SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Lecteur séquentiel multi-segments (anciens frameworks complétés par des shims, disponible sur les 11 TFM). |
 
 </details>
 

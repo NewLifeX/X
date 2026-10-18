@@ -7,7 +7,7 @@
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-18%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
@@ -33,7 +33,7 @@ NewLife は複数のコンポーネントライブラリで構成されており
 ## NewLife.Core を選ぶ理由
 
 - **共通インフラを 1 パッケージで**：ログ、構成、キャッシュ、ネットワーク、シリアライズ、スケジューリング、オブジェクトコンテナと DI を 1 つの参照で利用できます。
-- **幅広いバージョン対応**：単一パッケージで 18 個のターゲットフレームワーク（net45 → net10.0、Windows 変種を含む）。レガシーシステムと新規プロジェクトで同じ API を共有できます。
+- **幅広いバージョン対応**：単一パッケージで 11 個のターゲットフレームワーク（net45 → net10.0、Windows 変種を含む）。レガシーシステムと新規プロジェクトで同じ API を共有できます。
 - **NativeAOT 対応**：コア経路の 29 シナリオを実測し、複数 RID の CI スモークマトリクスで検証。境界は [AOT 互換性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) を参照。
 - **依存は控えめ、ライセンスは寛容**：BCL と Microsoft の互換パッケージのみ。MIT ライセンスのため、改変や自社名への変更も可能です（[ライセンス](#ライセンス)）。
 
@@ -187,7 +187,7 @@ dotnet run
 | [SpanリーダーSpanReader](https://newlifex.com/core/span_reader) | ゼロアロケーションの高性能バイナリストリームパーサーで、ビッグエンディアン/リトルエンディアンをサポートします。 |
 | [SpanライターSpanWriter](https://newlifex.com/core/span_writer) | ゼロアロケーションの高性能バイナリデータライターで、ビッグエンディアン/リトルエンディアンをサポートします。 |
 | [SpanヘルパーSpanHelper](https://newlifex.com/core/span_helper) | Span/ReadOnlySpan の拡張メソッド集で、メモリ操作を簡素化します。 |
-| [シーケンスリーダーSequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | セグメントをまたいで順次読み取るリーダー（旧フレームワークではシムで補完、全 18 TFM で利用可能）。 |
+| [シーケンスリーダーSequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | セグメントをまたいで順次読み取るリーダー（旧フレームワークではシムで補完、全 11 TFM で利用可能）。 |
 
 </details>
 

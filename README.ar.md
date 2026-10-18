@@ -7,7 +7,7 @@
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-18%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
@@ -34,7 +34,7 @@
 ## لماذا NewLife.Core
 
 - **حزمة واحدة للبنية التحتية الشائعة**: التسجيل، التهيئة، التخزين المؤقت، الشبكة، التسلسل، الجدولة، حاوية الكائنات وحقن التبعيات — مرجع واحد يكفي.
-- **تغطية واسعة للإصدارات**: 18 إطار عمل مستهدفًا في حزمة واحدة (net45 → net10.0، بما في ذلك إصدارات Windows)؛ نفس الواجهة البرمجية للأنظمة القديمة والمشاريع الجديدة.
+- **تغطية واسعة للإصدارات**: 11 إطار عمل مستهدفًا في حزمة واحدة (net45 → net10.0، بما في ذلك إصدارات Windows)؛ نفس الواجهة البرمجية للأنظمة القديمة والمشاريع الجديدة.
 - **جاهز لـ NativeAOT**: تم قياس 29 سيناريو أساسيًا وحمايتها بمصفوفة اختبار CI متعددة RID؛ الحدود في [تحليل توافق AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
 - **تبعيات محدودة وترخيص متسامح**: تعتمد على BCL وحزم التوافق من Microsoft فقط؛ ترخيص MIT يسمح بالتعديل وإعادة التسمية (انظر [الترخيص](#الترخيص)).
 
@@ -188,7 +188,7 @@ dotnet run
 | [قارئ Span SpanReader](https://newlifex.com/core/span_reader) | محلّل تدفّق ثنائي عالي الأداء بدون تخصيص، يدعم ترتيب البايتات الكبير والصغير. |
 | [كاتب Span SpanWriter](https://newlifex.com/core/span_writer) | كاتب بيانات ثنائية عالي الأداء بدون تخصيص، يدعم ترتيب البايتات الكبير والصغير. |
 | [مساعد Span SpanHelper](https://newlifex.com/core/span_helper) | مجموعة طرق إضافية لـ Span/ReadOnlySpan، تبسّط عمليات الذاكرة. |
-| [قارئ التسلسل SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | قارئ متسلسل عبر المقاطع (الإطارات القديمة مكتملة عبر حشوات، ومتاح في جميع 18 TFM). |
+| [قارئ التسلسل SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | قارئ متسلسل عبر المقاطع (الإطارات القديمة مكتملة عبر حشوات، ومتاح في جميع 11 TFM). |
 
 </details>
 

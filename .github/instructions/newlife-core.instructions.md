@@ -41,7 +41,7 @@ applyTo: '**'
 
 - 本库用 `NewLife.Core/Stub/` 为低版本**直接定义**缺失的 BCL 类型，高版本用 `*Forwards.cs` 的 `TypeForwardedTo` **转发到 BCL**（消除类型标识冲突——否则 ns2.0 编译的库在 net10 运行会 `TypeLoadException`）。已补齐 `SequenceReader`(+Extensions)、`IAsyncDisposable`、`IAsyncEnumerable` 系列、可空性注解族、`IsExternalInit` 等。
 - 另散落垫片：`Common/TimeProvider.cs`、`Common/Index.cs`、`Common/Range.cs`、`Extension/ConcurrentDictionaryExtensions.cs`、`Threading/ITimer.cs`、`Threading/TaskEx.cs`、`Buffers/SequenceReaderHelper.cs`（清单为示意，新增垫片后同步更新本文件）。
-- 本库**自研** `NewLife.Data.Pipe` / `PipeReader` / `PipeWriter`，命名形态对齐 `System.IO.Pipelines`（同名不同命名空间），**全 18 个 TFM 可用（含 net45）**——因为 BCL 的 `System.IO.Pipelines` 最低 netstandard2.0、net45 用不了。
+- 本库**自研** `NewLife.Data.Pipe` / `PipeReader` / `PipeWriter`，命名形态对齐 `System.IO.Pipelines`（同名不同命名空间），**全部目标框架可用（含 net45）**——因为 BCL 的 `System.IO.Pipelines` 最低 netstandard2.0、net45 用不了。
 - **禁止轻易断言"低版本不支持 X"**。做架构方案 / 评审前，先查 `Stub/`（含 `*Forwards.cs`）、`Common`/`Extension`/`Threading` 垫片与 `Data/Pipe*.cs`——本库大概率已补齐或用等价自有类型覆盖。
 - 需要跨版本能力时，**优先复用既有 Stub 补齐 / 自有等价类型**；确需按框架差异处理时，再遵循全局的条件编译降级规范。
 - **能力边界**：Stub 只能补齐**缺失的类型**（及高版本转发），**补不了** BCL 既有类型上**新增的成员 / 静态方法**（如 `ArgumentNullException.ThrowIfNull()`、`Enumerable.Chunk()`、`string.Split(Char, StringSplitOptions)`）——这些仍需条件编译降级或改用自有等价实现。

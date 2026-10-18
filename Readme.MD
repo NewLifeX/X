@@ -7,7 +7,7 @@
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-18%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
@@ -24,7 +24,7 @@ NewLife框架是一个全面的 .NET 组件生态系统，它为构建可扩展�
 
 ## 框架概述
 
-NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持 net45~net10.0 多目标框架（.NET Framework 4.5 至 .NET 10.0），从而在不同环境中实现广泛的兼容性（NewLife.Core 单包 18 个目标框架）。
+NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持 net45~net10.0 多目标框架（.NET Framework 4.5 至 .NET 10.0），从而在不同环境中实现广泛的兼容性（NewLife.Core 单包 11 个目标框架）。
 
 **NativeAOT**：核心链路已支持（29 场景实测 + 多 RID 的 CI 冒烟矩阵；win-x64/linux-x64/linux-arm64/linux-la64 为阻断门禁——LA64 经 QEMU 必选覆盖，其余平台观察期；push/PR + 人工手动触发）；跨平台单测覆盖 win/linux/osx 的 x64/arm64、LA64 与 musl。插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
 
@@ -32,7 +32,7 @@ NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支�
 ## 为什么选择 NewLife.Core
 
 - **一套组件覆盖常见基础设施**：日志、配置、缓存、网络、序列化、定时调度、对象容器与依赖注入，引用一个包即可开工。
-- **跨版本覆盖广**：单包 18 个目标框架（net45 → net10.0，含 Windows 变体），老系统与新项目共用同一套 API。
+- **跨版本覆盖广**：单包 11 个目标框架（net45 → net10.0，含 Windows 变体），老系统与新项目共用同一套 API。
 - **NativeAOT 可用**：核心链路 29 场景实测通过，多 RID CI 冒烟矩阵把关，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
 - **依赖克制、协议宽松**：仅使用 BCL 与微软官方兼容包；MIT 协议，允许改源码、改名私有化（见[许可证](#许可证)）。
 
@@ -188,7 +188,7 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 | [Span读取器SpanReader](https://newlifex.com/core/span_reader) | 零分配高性能二进制流解析器，支持大小端。 |
 | [Span写入器SpanWriter](https://newlifex.com/core/span_writer) | 零分配高性能二进制数据写入器，支持大小端。 |
 | [Span辅助SpanHelper](https://newlifex.com/core/span_helper) | Span/ReadOnlySpan扩展方法集，简化内存操作。 |
-| [序列读取器SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | 跨段顺序读取器（旧框架经垫片补齐，全18 TFM可用）。 |
+| [序列读取器SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | 跨段顺序读取器（旧框架经垫片补齐，全11 TFM可用）。 |
 
 </details>
 

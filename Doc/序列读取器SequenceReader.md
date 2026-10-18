@@ -1,6 +1,6 @@
 # 序列读取器SequenceReader
 
-本文档介绍 `SequenceReader<T>` 在 NewLife.Core 中的可用性、实现组成与用法。它来自 BCL（`System.Buffers`），但**在 net45 等旧框架原本缺失**——本库通过垫片补齐，使全部 18 个目标框架获得统一的跨段顺序读取能力。
+本文档介绍 `SequenceReader<T>` 在 NewLife.Core 中的可用性、实现组成与用法。它来自 BCL（`System.Buffers`），但**在 net45 等旧框架原本缺失**——本库通过垫片补齐，使全部 11 个目标框架获得统一的跨段顺序读取能力。
 
 ## 概述
 

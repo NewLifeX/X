@@ -7,7 +7,7 @@
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-29%2F29-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-18%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20LoongArch64-blue)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
@@ -34,7 +34,7 @@ NewLife는 여러 컴포넌트 라이브러리로 구성되어 있으며, NewLif
 ## NewLife.Core를 선택하는 이유
 
 - **공통 인프라를 하나의 패키지로**: 로그, 구성, 캐시, 네트워크, 직렬화, 스케줄링, 객체 컨테이너와 DI를 한 번의 참조로 사용할 수 있습니다.
-- **폭넓은 버전 지원**: 단일 패키지로 18개 대상 프레임워크(net45 → net10.0, Windows 변형 포함)를 지원하며, 레거시 시스템과 신규 프로젝트가 동일한 API를 공유합니다.
+- **폭넓은 버전 지원**: 단일 패키지로 11개 대상 프레임워크(net45 → net10.0, Windows 변형 포함)를 지원하며, 레거시 시스템과 신규 프로젝트가 동일한 API를 공유합니다.
 - **NativeAOT 지원**: 핵심 경로 29개 시나리오를 실측하고 다중 RID CI 스모크 매트릭스로 검증합니다. 경계는 [AOT 호환성 분석](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)을 참고하세요.
 - **절제된 의존성, 관대한 라이선스**: BCL과 Microsoft 호환 패키지만 사용하며, MIT 라이선스이므로 수정과 사명 변경이 가능합니다([라이선스](#라이선스)).
 
@@ -188,7 +188,7 @@ dotnet run
 | [Span 판독기SpanReader](https://newlifex.com/core/span_reader) | 무할당 고성능 이진 스트림 파서로 빅/리틀 엔디언을 지원합니다. |
 | [Span 작성기SpanWriter](https://newlifex.com/core/span_writer) | 무할당 고성능 이진 데이터 작성기로 빅/리틀 엔디언을 지원합니다. |
 | [Span 도우미SpanHelper](https://newlifex.com/core/span_helper) | Span/ReadOnlySpan 확장 메서드 모음으로 메모리 작업을 단순화합니다. |
-| [시퀀스 판독기SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | 세그먼트 간 순차 판독기(구버전 프레임워크는 심으로 보완, 전체 18개 TFM 사용 가능). |
+| [시퀀스 판독기SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | 세그먼트 간 순차 판독기(구버전 프레임워크는 심으로 보완, 전체 11개 TFM 사용 가능). |
 
 </details>
 
