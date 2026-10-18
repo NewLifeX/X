@@ -114,7 +114,7 @@ public class EventBus<TEvent> : DisposeBase, IEventBus, IEventBus<TEvent>, ILogF
                 }
                 catch (Exception ex)
                 {
-                    Log?.Error("事件处理器 [{0}] 处理事件时发生异常: {1}", item.Key, ex.Message);
+                    Log?.Error("Event handler [{0}] threw while processing an event: {1}", item.Key, ex.Message);
                     if (ThrowOnHandlerError) throw;
                 }
             }

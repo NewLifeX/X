@@ -98,7 +98,7 @@ public class MessagePump
             if (rs == null) return false;
 
             // 损坏帧：立即报错（由会话层关闭连接），不进入等待——否则会僵死到残余上限才断开
-            if (rs.Value.Invalid) throw new InvalidOperationException($"协议帧损坏：头部已完整但帧长度字段非法（协议 {codec.GetType().Name}）");
+            if (rs.Value.Invalid) throw new InvalidOperationException(L.T("Corrupted protocol frame: the header is complete but the frame length field is invalid (codec {0}).", codec.GetType().Name));
 
             var headerSize = rs.Value.HeaderSize;
             var bodyLength = rs.Value.BodyLength;
@@ -213,7 +213,7 @@ public class MessagePump
             // 协议错误防护：残余无法定界且持续增长，达到上限即快速失败，避免连接僵死。
             // 已定界但整帧未到齐（frameLength > 0）不属于“无法定界的残余”，其上限由 MaxFrameSize 把关
             if (frameLength <= 0 && MaxCache > 0 && buffer.Length >= MaxCache)
-                throw new InvalidOperationException($"无法定界的残余数据 {buffer.Length} 字节达到上限 {MaxCache}，对端数据与协议不匹配或已损坏");
+                throw new InvalidOperationException(L.T("Undelimitable residual data reached the limit: {0} bytes (limit {1}). The peer data does not match the protocol or is corrupted.", buffer.Length, MaxCache));
 
             reader.AdvanceTo(0, buffer.Length);
         }

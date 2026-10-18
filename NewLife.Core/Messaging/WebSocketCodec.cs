@@ -57,7 +57,7 @@ public class WebSocketCodec : IMessageCodec
     public IOwnerPacket? Build(IMessage message)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
-        if (message.Body is { IsStreaming: true }) throw new InvalidOperationException("流式消息体无法整帧构建，请使用 BuildHeader + 流式发送");
+        if (message.Body is { IsStreaming: true }) throw new InvalidOperationException(L.T("A streaming message body cannot be built as a whole frame; use BuildHeader with streaming send."));
 
         var ws = message as WsMessage;
 
@@ -126,7 +126,7 @@ public class WebSocketCodec : IMessageCodec
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Payload length must be non-negative.");
         if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Payload length exceeds the 32-bit protocol limit.");
-        if (!IsServer) throw new NotSupportedException("带掩码的帧不支持流式发送，请使用整帧构建");
+        if (!IsServer) throw new NotSupportedException(L.T("Masked frames do not support streaming send; use whole-frame Build instead."));
 
         var size = bodyLength switch
         {
@@ -220,7 +220,7 @@ public class WebSocketCodec : IMessageCodec
     {
         if (!IsSendableCloseStatus(closeStatus))
         {
-            NewLife.Log.XTrace.WriteLine("WebSocket 关闭状态码 {0} 不允许出现在线路上，改为发送无状态码关闭帧", closeStatus);
+            NewLife.Log.XTrace.WriteLine("WebSocket close status code {0} must not appear on the wire; sending a close frame without a status code instead.", closeStatus);
 
             return new ArrayPacket(new Byte[0]);
         }

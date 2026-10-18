@@ -57,9 +57,9 @@ public class SrmpCodec : IMessageCodec, IMessageMatcher
     public IOwnerPacket? Build(IMessage message)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
-        if (message is not DefaultMessage msg) throw new ArgumentException($"消息类型 [{message.GetType().FullName}] 不支持标准消息帧格式", nameof(message));
+        if (message is not DefaultMessage msg) throw new ArgumentException(L.T("Message type [{0}] does not support the standard message frame format.", message.GetType().FullName), nameof(message));
 
-        if (msg.Body is { IsStreaming: true }) throw new InvalidOperationException("流式消息体无法整帧构建，请使用 BuildHeader + 流式发送");
+        if (msg.Body is { IsStreaming: true }) throw new InvalidOperationException(L.T("A streaming message body cannot be built as a whole frame; use BuildHeader with streaming send."));
 
         var body = msg.Payload;
         var len = 0;
@@ -84,7 +84,7 @@ public class SrmpCodec : IMessageCodec, IMessageMatcher
     public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
-        if (message is not DefaultMessage msg) throw new ArgumentException($"消息类型 [{message.GetType().FullName}] 不支持标准消息帧格式", nameof(message));
+        if (message is not DefaultMessage msg) throw new ArgumentException(L.T("Message type [{0}] does not support the standard message frame format.", message.GetType().FullName), nameof(message));
 
         if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length must be non-negative.");
         if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length exceeds the 32-bit protocol limit.");

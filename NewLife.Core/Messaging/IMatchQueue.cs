@@ -212,7 +212,7 @@ public class DefaultMatchQueue : IMatchQueue
         }
 
         if (XTrace.Debug)
-            XTrace.WriteLine("MatchQueue.Match 失败 [{0}] result={1} Items={2}", response, result, _Count);
+            XTrace.WriteLine("MatchQueue.Match failed [{0}] result={1} Items={2}", response, result, _Count);
 
         return false;
     }

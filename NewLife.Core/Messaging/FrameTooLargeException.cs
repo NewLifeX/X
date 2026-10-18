@@ -17,7 +17,7 @@ public class FrameTooLargeException : InvalidOperationException
     /// <param name="frameLength">帧长度</param>
     /// <param name="maxSize">长度上限</param>
     public FrameTooLargeException(Int64 frameLength, Int32 maxSize)
-        : base($"帧长度 {frameLength} 超过上限 {maxSize}，拒绝为超大帧无限缓冲")
+        : base(L.T("Frame length {0} exceeds the limit of {1}; refusing to buffer an oversized frame indefinitely.", frameLength, maxSize))
     {
         FrameLength = frameLength;
         MaxSize = maxSize;

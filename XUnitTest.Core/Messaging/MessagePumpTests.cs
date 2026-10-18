@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.ComponentModel;
 using System.IO;
 using NewLife;
@@ -603,7 +603,7 @@ public class MessagePumpTests
         pipe.Writer.Append(new ArrayPacket(garbage));
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => pump.ReadAsync(pipe.Reader).AsTask());
-        Assert.Contains("协议帧损坏", ex.Message);
+        Assert.Contains("Corrupted protocol frame", ex.Message);
     }
 
     /// <summary>永不定界的协议：用于验证残余上限防护（不依赖具体协议的损坏特例）</summary>
@@ -627,7 +627,7 @@ public class MessagePumpTests
         pipe.Writer.Append(new ArrayPacket(new Byte[64]));
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => pump.ReadAsync(pipe.Reader).AsTask());
-        Assert.Contains("无法定界", ex.Message);
+        Assert.Contains("Undelimitable", ex.Message);
     }
 
     [Fact]
@@ -707,7 +707,7 @@ public class MessagePumpTests
         pipe.Writer.Append(new ArrayPacket(frame[..4]));
 
         var ex = Assert.Throws<FrameTooLargeException>(() => pump.TryRead(pipe.Reader, out _));
-        Assert.Contains("超过上限", ex.Message);
+        Assert.Contains("exceeds the limit", ex.Message);
         Assert.Equal(4, pipe.UnconsumedLength);
 
         // 上限之内的未完整帧仍按“等待后续分片”处理
@@ -817,7 +817,7 @@ public class MessagePumpTests
         pipe.Writer.Append(new ArrayPacket(frame, 0, 4));
 
         var ex = Assert.Throws<FrameTooLargeException>(() => pump.TryRead(pipe.Reader, out _));
-        Assert.Contains("超过上限", ex.Message);
+        Assert.Contains("exceeds the limit", ex.Message);
         Assert.Equal(4, pipe.UnconsumedLength);
 
         // 上限之内的未完整帧仍按“等待后续分片”处理
@@ -826,3 +826,6 @@ public class MessagePumpTests
     }
     #endregion
 }
+
+
+

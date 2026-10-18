@@ -62,7 +62,7 @@ public class SplitDataCodec : IMessageCodec
     public IOwnerPacket? Build(IMessage message)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
-        if (message.Body is { IsStreaming: true }) throw new InvalidOperationException("分隔符协议不支持流式消息体，请提供内存负载");
+        if (message.Body is { IsStreaming: true }) throw new InvalidOperationException(L.T("The delimiter protocol does not support streaming message bodies; provide an in-memory payload."));
 
         // 分隔符包（尾部追加）
         var sep = SplitData;
@@ -95,7 +95,7 @@ public class SplitDataCodec : IMessageCodec
     /// <param name="bodyLength">消息体字节数</param>
     /// <returns>头部数据包</returns>
     /// <exception cref="NotSupportedException">分隔符协议不支持头部构建（请使用整帧构建）</exception>
-    public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("分隔符协议无法预声明长度，请使用整帧构建（Build）");
+    public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException(L.T("The delimiter protocol cannot predeclare length; use whole-frame Build instead."));
     #endregion
 
     #region 辅助

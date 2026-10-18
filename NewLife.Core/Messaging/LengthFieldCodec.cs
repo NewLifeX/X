@@ -85,7 +85,7 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
                 fieldLen = 4;
                 break;
             default:
-                throw new NotSupportedException($"不支持的 Size 值：{Size}");
+                throw new NotSupportedException(L.T("Unsupported Size value: {0}", Size));
         }
 
         // 变长编码可以编码出负数（如 FF FF FF FF 0F → -1）：帧长度必须非负，负值按损坏帧上报，
@@ -109,7 +109,7 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
     public IOwnerPacket? Build(IMessage message)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
-        if (message.Body is { IsStreaming: true }) throw new InvalidOperationException("流式消息体无法整帧构建，请使用 BuildHeader + 流式发送");
+        if (message.Body is { IsStreaming: true }) throw new InvalidOperationException(L.T("A streaming message body cannot be built as a whole frame; use BuildHeader with streaming send."));
 
         var body = message.Payload;
         var len = body?.Total ?? 0;
@@ -173,26 +173,26 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
         switch (Size)
         {
             case 0:
-                if (length > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), $"负载长度 {length} 超出变长长度字段的 32 位表示范围");
+                if (length > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), L.T("Payload length {0} exceeds the 32-bit range of the variable-length field.", length));
                 writer.WriteEncodedInt((Int32)length);
                 break;
             case 1:
             case -1:
-                if (length > Byte.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), $"负载长度 {length} 超出 1 字节长度字段上限 255");
+                if (length > Byte.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), L.T("Payload length {0} exceeds the 1-byte length field limit of 255.", length));
                 writer.WriteByte((Byte)length);
                 break;
             case 2:
             case -2:
-                if (length > UInt16.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), $"负载长度 {length} 超出 2 字节长度字段上限 65535");
+                if (length > UInt16.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), L.T("Payload length {0} exceeds the 2-byte length field limit of 65535.", length));
                 writer.Write((UInt16)length);
                 break;
             case 4:
             case -4:
-                if (length > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), $"负载长度 {length} 超出 4 字节长度字段上限 2147483647");
+                if (length > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(length), L.T("Payload length {0} exceeds the 4-byte length field limit of 2147483647.", length));
                 writer.Write((UInt32)length);
                 break;
             default:
-                throw new NotSupportedException($"不支持的 Size 值：{Size}");
+                throw new NotSupportedException(L.T("Unsupported Size value: {0}", Size));
         }
     }
 

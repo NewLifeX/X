@@ -87,7 +87,7 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec, IMessageCodec
                 if (n <= 0) break;
 
                 total += n;
-                if (maxSize > 0 && total > maxSize) throw new InvalidDataException($"解压后长度超过上限 {maxSize}，拒绝继续解压（疑似压缩炸弹）");
+                if (maxSize > 0 && total > maxSize) throw new InvalidDataException(L.T("Decompressed length exceeds the limit of {0}; refusing to continue (possible decompression bomb).", maxSize));
 
                 destination.Write(buf, 0, n);
             }
@@ -131,5 +131,5 @@ public class CompressedCodec(IMessageCodec inner) : IMessageCodec, IMessageCodec
     /// <param name="bodyLength">消息体字节数</param>
     /// <returns>头部数据包</returns>
     /// <exception cref="NotSupportedException">压缩协议无法预声明压缩后长度</exception>
-    public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException("压缩协议无法预声明压缩后长度，请使用整帧构建（Build）");
+    public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength) => throw new NotSupportedException(L.T("The compression protocol cannot predeclare the compressed length; use whole-frame Build instead."));
 }
