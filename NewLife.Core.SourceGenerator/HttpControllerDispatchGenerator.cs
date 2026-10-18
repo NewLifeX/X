@@ -178,7 +178,8 @@ public sealed class HttpControllerDispatchGenerator : IIncrementalGenerator
         // 镜像 ParameterBinder：单参数且取值为空时按整份参数字典反序列化（值类型缺失时上面已抛必填异常，无需回退）
         if (method.Parameters.Length == 1 && singleNullable && singleTypeName != null)
         {
-            bindings.Append("            if (p0 is null) p0 = (").Append(singleTypeName).Append(")global::NewLife.Serialization.JsonHelper.Default.Convert(context.Parameters, typeof(").Append(singleTypeName).AppendLine("));");
+            // Convert 可能返回 null，加 null 包容运算符，避免下游在 nullable 上下文中收到 CS8600
+            bindings.Append("            if (p0 is null) p0 = (").Append(singleTypeName).Append(")global::NewLife.Serialization.JsonHelper.Default.Convert(context.Parameters, typeof(").Append(singleTypeName).AppendLine("))!;");
         }
 
         var form = AnalyzeReturn(method.ReturnType, compilation);
