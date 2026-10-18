@@ -112,6 +112,26 @@ foreach ($file in Get-ChildItem $localeDir -Filter *.yml | Sort-Object Name) {
 foreach ($e in $allErrors) { Write-Host $e -ForegroundColor Red }
 foreach ($w in $allWarnings) { Write-Host $w -ForegroundColor Yellow }
 
+# 孤儿键：基准表中的键在源码里完全找不到（改文案后遗留的死条目）
+$sourceDirs = @("NewLife.Core", "NewLife.Core.SourceGenerator") | ForEach-Object { Join-Path $root $_ } | Where-Object { Test-Path $_ }
+$sourceText = ($sourceDirs | ForEach-Object { Get-ChildItem $_ -Recurse -Filter *.cs } |
+    Where-Object { $_.FullName -notmatch '\\(obj|bin|Locales)\\' } |
+    ForEach-Object { [IO.File]::ReadAllText($_.FullName) }) -join "`n"
+
+$orphans = @()
+foreach ($key in $reference.Entries.Keys) {
+    # 源码中的字面量形式：制表符写作 \t，引号写作 \"
+    $escaped = $key.Replace('\', '\\').Replace('"', '\"').Replace("`t", '\t').Replace("`r", '\r').Replace("`n", '\n')
+    if (!$sourceText.Contains($key) -and !$sourceText.Contains($escaped)) {
+        $orphans += $key
+    }
+}
+foreach ($o in $orphans) { $allErrors += "孤儿键（源码中找不到）：$o" }
+
+if ($allErrors.Count -gt 0) {
+    foreach ($o in $orphans) { Write-Host "孤儿键（源码中找不到）：$o" -ForegroundColor Red }
+}
+
 $count = (Get-ChildItem $localeDir -Filter *.yml).Count
 if ($allErrors.Count -gt 0) {
     Write-Host "多语言词表校验未通过：$count 个语言，$($allErrors.Count) 个错误" -ForegroundColor Red
