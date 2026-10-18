@@ -49,11 +49,10 @@
   <!-- 源生成器：作为构建依赖（ReferenceOutputAssembly=false 不引用输出、不注入分析器），
        SetTargetFramework 避免跨 TFM 协商；分析器程序集在主包打包时嵌入 analyzers/dotnet/cs，下游引用主包即自动获得 -->
   <ItemGroup>
-    <ProjectReference Include="..\NewLife.Core.SourceGenerator\NewLife.Core.SourceGenerator.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" Private="false" />
+    <ProjectReference Include="..\NewLife.Core.SourceGenerator\NewLife.Core.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" Private="false" />
     <None Include="..\NewLife.Core.SourceGenerator\bin\$(Configuration)\netstandard2.0\NewLife.Core.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NewLife.Core.Localization.Generator\NewLife.Core.Localization.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" Private="false" />
     <AdditionalFiles Include="Locales\*.yml" />
   </ItemGroup>
 
