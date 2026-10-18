@@ -73,7 +73,7 @@ jobs:
       if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
     - name: JIT Baseline
-      # 同一冒烟工程以 JIT 运行（29 场景），为 AOT 结果提供对照；JIT 不支持的 RID 也能留下行为数据
+      # 同一冒烟工程以 JIT 运行（31 场景），为 AOT 结果提供对照；JIT 不支持的 RID 也能留下行为数据
       run: dotnet run -c Release --project AotSmoke/AotSmoke.csproj
     - name: Publish NativeAOT Smoke
       run: dotnet publish AotSmoke/AotSmoke.csproj -c Release -r ${{ matrix.rid }} -o AotSmoke/bin/aot-out
@@ -135,7 +135,7 @@ jobs:
       run: AotSmoke\bin\aot-out\AotSmoke.exe
 
   # Linux arm32（linux-arm）：x64 宿主无原生 runner（观察期容错）。
-  # 主信号：QEMU 容器内用 arm32 .NET 运行时跑 JIT 冒烟（29 场景）；
+  # 主信号：QEMU 容器内用 arm32 .NET 运行时跑 JIT 冒烟（31 场景）；
   # 探索：宿主交叉发布 NativeAOT（官方文档未给出 x64→arm32 交叉配方，失败不阻断）
   linux-arm:
     name: smoke (linux-arm qemu)
@@ -209,7 +209,7 @@ jobs:
       run: dotnet restore AotSmoke/AotSmoke.csproj
     - name: Build AotSmoke (host x64 SDK)
       run: dotnet build AotSmoke/AotSmoke.csproj -c Release --no-restore
-    - name: JIT Smoke in loong64 Container (AotSmoke 29 场景)
+    - name: JIT Smoke in loong64 Container (AotSmoke 31 场景)
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
       run: |

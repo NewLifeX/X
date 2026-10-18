@@ -6,7 +6,7 @@
 
 ## 1. 现状摘要
 
-- **核心链路实测全通**：29 场景冒烟 JIT/AOT 双通（§2.1），覆盖日志、网络（TCP/HTTP/WebSocket）、序列化（JSON/Binary/Span/STJ 源生成上下文）、配置、IoC、Http 控制器、CsvDb/DbTable、反射泛型入口保留、平台探测（Runtime/MachineInfo/PathHelper/ProcessHelper）。
+- **核心链路实测全通**：31 场景冒烟 JIT/AOT 双通（§2.1），覆盖日志、网络（TCP/HTTP/WebSocket）、序列化（JSON/Binary/Span/STJ 源生成上下文）、配置、IoC、Http 控制器、CsvDb/DbTable、反射泛型入口保留、平台探测（Runtime/MachineInfo/PathHelper/ProcessHelper）、多语言词表查表与全部内置语言。
 - **支持方式**：主链路以「泛型/Type 入口的保留注解 + 源生成器静态表」达成——生成器承接 DI 注册、Json 成员访问、配置绑定、Http 分发四条通道；生成物未覆盖的场景自动回退原反射路径，运行语义不变（§4）。
 - **已知边界**：动态能力（脚本/插件/DLR/表达式编译）设计性不支持；部分只能经 `Object`/运行时类型进入的成员枚举路径无法静态表达保留要求（§5 收口记录）。
 - **告警面已收敛**：编译期分析器与发布期 ILC 均 **0 条**告警（§2.2）。动态能力以声明与守卫承接，能静态表达的一律传导。
@@ -15,7 +15,7 @@
 
 ## 2. 实测数据
 
-### 2.1 运行期：29 场景冒烟（JIT/AOT 双通）
+### 2.1 运行期：31 场景冒烟（JIT/AOT 双通）
 
 | # | 场景 | # | 场景 |
 |---|------|---|------|
@@ -34,6 +34,7 @@
 | | | 25 | Reflect 泛型入口保留（`GetPropertyEx<T>`） |
 | 26 | 运行时平台探测 Runtime | 27 | 机器信息 MachineInfo 平台分支 |
 | 28 | 临时路径与文件IO PathHelper | 29 | 进程信息 ProcessHelper |
+| 30 | 多语言 Localization 静态表（含 XException / 运行时注册） | 31 | 多语言全部内置语言表在 AOT 下可用（31 种） |
 
 > AOT 判真：原生发布件入口 `Assembly.Location` 为空，而 JIT 基线为磁盘路径；因冒烟工程固定“严格 AOT 姿态”，两种运行的 `IsDynamicCodeSupported` 均为 False，该值不作判别依据。
 
@@ -107,7 +108,7 @@
 # 1) 分析器全量警告（库自身编译，期望 0 条；IsAotCompatible 已随 csproj 对 net8.0+ 常驻启用）
 dotnet build NewLife.Core\NewLife.Core.csproj -f net10.0 -c Release
 
-# 2) 冒烟实测（29 场景工程；PublishAot 写在工程文件内）
+# 2) 冒烟实测（31 场景工程；PublishAot 写在工程文件内）
 dotnet run -c Release --project AotSmoke\AotSmoke.csproj                # JIT 基线
 dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # NativeAOT 真编译（期望 0 条 ILC 告警）
 .\out\AotSmoke.exe                                                      # AOT 运行，逐场景 PASS/FAIL（非 0 退出码即失败）

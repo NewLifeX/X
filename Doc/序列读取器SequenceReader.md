@@ -17,10 +17,10 @@
 | 目标框架 | `SequenceReader<T>` 来源 | 端序扩展 |
 |----------|--------------------------|----------|
 | net45 / net461 / net462 / netstandard2.0 | `Stub/SequenceReader.cs` 垫片（3.1 面，MIT 来源） | 有符号：垫片；无符号：`SequenceReaderHelper` |
-| netstandard2.1 / netcoreapp3.1 | BCL 内置 | 有符号；无符号：`SequenceReaderHelper` |
-| net5.0 ~ net10.0（含 windows 变体） | BCL 内置 | 有符号；无符号：`SequenceReaderHelper` |
+| netstandard2.1 | BCL 内置 | 有符号；无符号：`SequenceReaderHelper` |
+| net6.0 / net8.0 / net10.0（含 windows 变体） | BCL 内置 | 有符号；无符号：`SequenceReaderHelper` |
 
-> 统一面不含 `TryPeek(offset)` 与 `UnreadSequence`（ns2.1/3.1 与垫片没有，net5+ 才有）；无符号端序重载 BCL 从未提供，由本库补充。**跨 TFM 共享的库代码请使用下表交集面。**
+> 统一面不含 `TryPeek(offset)` 与 `UnreadSequence`（ns2.1 与垫片没有，net6+ 才有）；无符号端序重载 BCL 从未提供，由本库补充。**跨 TFM 共享的库代码请使用下表交集面。**
 
 ## 实现组成
 
