@@ -9,6 +9,8 @@ on:
       - 'Samples/Mobile.Android/**'
       - 'Samples/Mobile.iOS/**'
       - 'NewLife.Core/**'
+      - 'NewLife.Core.SourceGenerator/**'
+      - 'Directory.Build.props'
       - '.github/workflows/mobile.yml'
   pull_request:
     branches: [ '*' ]
@@ -18,6 +20,8 @@ on:
       - 'Samples/Mobile.Android/**'
       - 'Samples/Mobile.iOS/**'
       - 'NewLife.Core/**'
+      - 'NewLife.Core.SourceGenerator/**'
+      - 'Directory.Build.props'
       - '.github/workflows/mobile.yml'
   workflow_dispatch:
 
@@ -25,6 +29,7 @@ jobs:
   android:
     name: android emulator
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Setup dotNET
@@ -56,6 +61,7 @@ jobs:
   ios:
     name: ios simulator
     runs-on: macos-26
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: Setup dotNET
