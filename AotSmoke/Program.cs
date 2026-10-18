@@ -57,6 +57,13 @@ void Run(String name, Action action)
 var temp = Path.Combine(Path.GetTempPath(), "aot-smoke-" + Guid.NewGuid().ToString("N")[..8]);
 Directory.CreateDirectory(temp);
 
+// 不变全球化模式下具名区域性不可用（GetCultureInfo 抛 CultureNotFoundException），据此判定
+static Boolean IsInvariantGlobalization()
+{
+    try { return CultureInfo.GetCultureInfo("zh-Hans").Name.Length == 0; }
+    catch (CultureNotFoundException) { return true; }
+}
+
 var logdir = Path.Combine(temp, "logs");
 Directory.CreateDirectory(logdir);
 XTrace.Log = new TextFileLog { LogPath = logdir };
@@ -75,6 +82,14 @@ Run("多语言 Localization 静态表", () =>
     var saved = Localization.Culture;
     try
     {
+        // 不变全球化（InvariantGlobalization=true）下具名区域性不可用，只应回退英文，不得抛异常
+        if (IsInvariantGlobalization())
+        {
+            var fallback = Localization.Translate("Reset is not supported in streaming mode.");
+            if (fallback != "Reset is not supported in streaming mode.") throw new Exception("不变全球化下未回退英文: " + fallback);
+            return;
+        }
+
         Localization.Culture = CultureInfo.GetCultureInfo("zh-Hans");
         var zh = Localization.Translate("Reset is not supported in streaming mode.");
         if (zh != "流式模式不支持复位") throw new Exception("zh-Hans 译文不正确: " + zh);
@@ -99,6 +114,37 @@ Run("多语言 Localization 静态表", () =>
     {
         Localization.Culture = saved;
     }
+});
+
+Run("多语言 全部内置语言表在 AOT 下可用", () =>
+{
+    // 逐个语种触发按需构建，验证 31 张表都被裁剪器保留、构建过程无反射
+    var cultures = new[]
+    {
+        "zh-Hans", "zh-Hant", "ja", "ko", "vi", "th", "id", "ms", "hi", "bn",
+        "ar", "he", "fa", "de", "fr", "es", "pt", "it", "nl", "pl",
+        "cs", "sv", "da", "nb", "fi", "el", "ro", "hu", "ru", "uk", "tr",
+    };
+    if (IsInvariantGlobalization()) return;
+
+    const String key = "Reset is not supported in streaming mode.";
+    var saved = Localization.Culture;
+    var missing = new List<String>();
+    try
+    {
+        foreach (var name in cultures)
+        {
+            Localization.Culture = CultureInfo.GetCultureInfo(name);
+            var text = Localization.Translate(key);
+            if (text == key || text.Length == 0) missing.Add(name);
+        }
+    }
+    finally
+    {
+        Localization.Culture = saved;
+    }
+
+    if (missing.Count > 0) throw new Exception("以下语言缺少译文: " + String.Join(", ", missing));
 });
 
 Run("反射 Type.GetTypeEx", () =>
@@ -632,7 +678,7 @@ public static class PluginGuardProbe
             var saved = Localization.Culture;
             try
             {
-                Localization.Culture = new CultureInfo("en-US");
+                Localization.Culture = CultureInfo.InvariantCulture;
                 try
                 {
                     PluginHelper.LoadPlugin("NewLife.XXX.NotExist", null, null, null);
