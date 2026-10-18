@@ -2,6 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
 using System.Threading;
 
 namespace NewLife;
@@ -10,7 +13,8 @@ namespace NewLife;
 /// <remarks>
 /// 默认使用 <see cref="CultureInfo.CurrentUICulture"/> 作为目标语言，应用可通过 <see cref="Culture"/> 强制指定。
 /// 翻译表以英文原文为键，缺少翻译或格式化失败时回退英文原文，因此未接入本地化的组件行为不变。
-/// 语言表由 <c>Locales/*.yml</c> 在编译期生成，不依赖 ResourceManager 与卫星程序集，原生支持 AOT。
+/// 语言表由 <c>Locales/*.yml</c> 在编译期生成：Core 内置表共享一份键表，译文以 Deflate 压缩的字节数组内嵌，
+/// 首次使用时解压建表；下游组件生成的表在模块初始化时注册。不依赖 ResourceManager 与卫星程序集，原生支持 AOT。
 /// </remarks>
 public static partial class Localization
 {
@@ -149,6 +153,35 @@ public static partial class Localization
         }
 
         _tables.TryAdd(key, table);
+        return table;
+    }
+
+    /// <summary>解压并构建编译期语言表</summary>
+    /// <param name="keys">全部语言共享的键表，译文按该顺序排列</param>
+    /// <param name="data">Deflate 压缩的译文数据，前面是每个键的 Int32 小端长度（-1 表示缺失）</param>
+    /// <returns>语言表；数据无效时返回 null</returns>
+    private static Dictionary<String, String>? DecodeTable(String[] keys, Byte[] data)
+    {
+        if (keys == null || keys.Length == 0 || data == null || data.Length == 0) return null;
+
+        using var input = new MemoryStream(data);
+        using var deflate = new DeflateStream(input, CompressionMode.Decompress);
+        using var output = new MemoryStream();
+        deflate.CopyTo(output);
+        var buffer = output.ToArray();
+        if (buffer.Length < keys.Length * 4) return null;
+
+        var table = new Dictionary<String, String>(keys.Length, StringComparer.Ordinal);
+        var offset = keys.Length * 4;
+        for (var i = 0; i < keys.Length; i++)
+        {
+            var length = buffer[i * 4] | buffer[i * 4 + 1] << 8 | buffer[i * 4 + 2] << 16 | buffer[i * 4 + 3] << 24;
+            if (length < 0) continue;
+            if (length > buffer.Length - offset) return null;
+
+            table[keys[i]] = Encoding.UTF8.GetString(buffer, offset, length);
+            offset += length;
+        }
         return table;
     }
 

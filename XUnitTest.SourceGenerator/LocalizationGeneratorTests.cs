@@ -14,7 +14,7 @@ public class LocalizationGeneratorTests
 "Ready.": "准备就绪。"
 """;
 
-    [Fact(DisplayName = "Core 模式：生成静态表与查表方法")]
+    [Fact(DisplayName = "Core 模式：生成共享键表与压缩译文")]
     public void CoreMode()
     {
         var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
@@ -24,6 +24,11 @@ public class LocalizationGeneratorTests
         var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
         Assert.Contains("public static partial class Localization", text);
         Assert.Contains("GetCultureKey", text);
+        Assert.Contains("private static readonly String[] _keys", text);
+        Assert.Contains("private static readonly Byte[] _t_zh_Hans", text);
+        Assert.Contains("DecodeTable(_keys, _t_zh_Hans)", text);
+        // 译文以压缩字节数组内嵌，不再作为明文字符串常量出现在生成代码中
+        Assert.DoesNotContain("会话 {0} 已关闭。", text);
         Assert.DoesNotContain("LocalizationTable", text);
     }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -130,21 +131,20 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("public static partial class Localization");
         sb.AppendLine("{");
-        // 语言表按需构建：只有真正用到的语言才占用内存，英文/未本地化场景零开销
+        // 键表全语言共享，译文按“长度数组 + 连续译文”Deflate 压缩存储；只有真正用到的语言才解压建表
+        var keys = GetKeyOrder(tables);
+        AppendKeyArray(sb, keys);
+        foreach (var item in tables)
+        {
+            AppendByteArray(sb, GetTableField(item.Key), CompressTable(item.Value, keys));
+        }
         sb.AppendLine("    private static Dictionary<String, String>? CreateTable(String key)");
         sb.AppendLine("    {");
         sb.AppendLine("        switch (key)");
         sb.AppendLine("        {");
         foreach (var item in tables)
         {
-            sb.Append("            case \"").Append(Escape(item.Key)).AppendLine("\":");
-            sb.AppendLine("                return new Dictionary<String, String>(StringComparer.Ordinal)");
-            sb.AppendLine("                {");
-            foreach (var pair in item.Value)
-            {
-                sb.Append("                    [\"").Append(Escape(pair.Key)).Append("\"] = \"").Append(Escape(pair.Value)).AppendLine("\",");
-            }
-            sb.AppendLine("                };");
+            sb.Append("            case \"").Append(Escape(item.Key)).Append("\": return DecodeTable(_keys, ").Append(GetTableField(item.Key)).AppendLine(");");
         }
         sb.AppendLine("            default: return null;");
         sb.AppendLine("        }");
@@ -171,6 +171,99 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine("    }");
         sb.AppendLine("}");
         return sb.ToString();
+    }
+
+    /// <summary>收集全部语言共享的键顺序</summary>
+    /// <param name="tables">语言表集合</param>
+    /// <returns>按首次出现顺序排列的键表</returns>
+    private static List<String> GetKeyOrder(IDictionary<String, Dictionary<String, String>> tables)
+    {
+        var keys = new List<String>();
+        var seen = new HashSet<String>(StringComparer.Ordinal);
+        foreach (var table in tables.Values)
+        {
+            foreach (var key in table.Keys)
+            {
+                if (seen.Add(key)) keys.Add(key);
+            }
+        }
+        return keys;
+    }
+
+    /// <summary>语言表字段名，语言键中的连字符替换为下划线</summary>
+    /// <param name="culture">语言键</param>
+    /// <returns>合法的 C# 标识符</returns>
+    private static String GetTableField(String culture) => "_t_" + culture.Replace('-', '_');
+
+    /// <summary>把语言表序列化为“长度数组 + 连续译文”，再 Deflate 压缩</summary>
+    /// <param name="table">语言表</param>
+    /// <param name="keys">全语言共享的键顺序</param>
+    /// <returns>压缩后的译文数据</returns>
+    /// <remarks>键表全语言共享，因此只压缩译文；缺失键的长度记为 -1，运行时按英文原文回退。</remarks>
+    private static Byte[] CompressTable(IDictionary<String, String> table, IList<String> keys)
+    {
+        var values = new List<Byte[]>(keys.Count);
+        var lengths = new Byte[keys.Count * 4];
+        var size = 0;
+        for (var i = 0; i < keys.Count; i++)
+        {
+            var length = -1;
+            if (table.TryGetValue(keys[i], out var value))
+            {
+                var data = Encoding.UTF8.GetBytes(value ?? String.Empty);
+                values.Add(data);
+                length = data.Length;
+                size += data.Length;
+            }
+
+            lengths[i * 4] = (Byte)length;
+            lengths[i * 4 + 1] = (Byte)(length >> 8);
+            lengths[i * 4 + 2] = (Byte)(length >> 16);
+            lengths[i * 4 + 3] = (Byte)(length >> 24);
+        }
+
+        using var ms = new MemoryStream(lengths.Length + size);
+        using (var deflate = new DeflateStream(ms, CompressionLevel.Optimal, true))
+        {
+            deflate.Write(lengths, 0, lengths.Length);
+            foreach (var item in values) deflate.Write(item, 0, item.Length);
+        }
+        return ms.ToArray();
+    }
+
+    /// <summary>输出全语言共享的键表</summary>
+    /// <param name="sb">输出缓冲区</param>
+    /// <param name="keys">键表</param>
+    private static void AppendKeyArray(StringBuilder sb, IList<String> keys)
+    {
+        sb.AppendLine("    private static readonly String[] _keys =");
+        sb.AppendLine("    {");
+        foreach (var key in keys)
+        {
+            sb.Append("        \"").Append(Escape(key)).AppendLine("\",");
+        }
+        sb.AppendLine("    };");
+        sb.AppendLine();
+    }
+
+    /// <summary>输出压缩后的字节数组</summary>
+    /// <param name="sb">输出缓冲区</param>
+    /// <param name="name">字段名</param>
+    /// <param name="data">压缩数据</param>
+    /// <remarks>逐元素初始化的 Byte[] 由编译器落成 RVA 数据段，体积约等于原始字节数，不会按 IL 指令膨胀。</remarks>
+    private static void AppendByteArray(StringBuilder sb, String name, Byte[] data)
+    {
+        sb.Append("    private static readonly Byte[] ").Append(name).AppendLine(" = new Byte[]");
+        sb.AppendLine("    {");
+        for (var i = 0; i < data.Length; i++)
+        {
+            if (i > 0) sb.Append(',');
+            if (i % 32 == 0) sb.AppendLine().Append("        ");
+            sb.Append(data[i]);
+        }
+        sb.AppendLine();
+        sb.AppendLine("    };");
+        sb.AppendLine();
     }
 
     private static void AppendTables(StringBuilder sb, IDictionary<String, Dictionary<String, String>> tables, String indent)
