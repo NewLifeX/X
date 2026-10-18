@@ -53,6 +53,30 @@ public class LocalizationTests
         Assert.Contains("保存", text);
         Assert.Contains("\t", text);
     }
+
+    [Theory(DisplayName = "整句词条：状态句整体本地化，不残留英文状态词")]
+    [InlineData("The configuration file {1} of {0} failed to load; overwriting with the default configuration.", "加载失败")]
+    [InlineData("The configuration file {1} of {0} is missing; overwriting with the default configuration.", "不存在")]
+    public void Translate_status_sentence(String key, String expected)
+    {
+        var text = Localization.Translate(_zh, key, "AppConfig", "app.config");
+
+        Assert.Contains(expected, text);
+        Assert.DoesNotContain("failed to load", text);
+        Assert.DoesNotContain("missing", text);
+    }
+
+    [Theory(DisplayName = "整句词条：动态能力守卫消息整体本地化")]
+    [InlineData("NativeAOT/trimmed environments do not support the script engine. Use static registration or an alternative implementation.", "脚本引擎")]
+    [InlineData("NativeAOT/trimmed environments do not support plugin dynamic loading. Use static registration or an alternative implementation.", "插件动态加载")]
+    public void Translate_dynamic_code_sentence(String key, String expected)
+    {
+        var text = Localization.Translate(_zh, key);
+
+        Assert.Contains(expected, text);
+        Assert.DoesNotContain("script engine", text);
+        Assert.DoesNotContain("plugin dynamic loading", text);
+    }
     #endregion
 
     #region 格式化

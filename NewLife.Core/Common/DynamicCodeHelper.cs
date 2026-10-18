@@ -16,9 +16,9 @@ internal static class DynamicCodeHelper
     }
 
     /// <summary>在不支持动态代码的环境抛出明确异常</summary>
-    /// <param name="feature">功能名称</param>
-    public static void ThrowIfNotSupported(String feature)
+    /// <param name="message">英文原文消息。由调用方提供完整句子，避免把英文短语插入已翻译的模板</param>
+    public static void ThrowIfNotSupported(String message)
     {
-        if (!IsSupported) throw new PlatformNotSupportedException(L.T("NativeAOT/trimmed environments do not support {0}. Use static registration or an alternative implementation.", feature));
+        if (!IsSupported) throw new PlatformNotSupportedException(L.T(message));
     }
 }

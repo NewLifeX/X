@@ -15,7 +15,10 @@
     <IsTestProject>true</IsTestProject>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
-    <NoWarn>1701;1702;CA1416;CS8632</NoWarn>
+    <NoWarn>1701;1702;CA1416;CS8632;CS0436</NoWarn>
+    <!-- CS0436：本工程通过 InternalsVisibleTo 能看到 NewLife.Core 的 internal L，而源生成器又按
+         "只认源码内自带 L" 的规则生成了一个同名 internal L；源码优先，告警无实际影响。
+         DownstreamLocalizationTests 正是要验证生成的 L 快捷入口，故保留生成并在此抑制。 -->
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Applications\**" />

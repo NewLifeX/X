@@ -25,7 +25,7 @@ public static class PluginHelper
         if (typeName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(typeName));
 
         // NativeAOT 等环境明确报错，避免下载/加载后类型不可用
-        DynamicCodeHelper.ThrowIfNotSupported("plugin dynamic loading");
+        DynamicCodeHelper.ThrowIfNotSupported("NativeAOT/trimmed environments do not support plugin dynamic loading. Use static registration or an alternative implementation.");
 
         //var type = typeName.GetTypeEx(true);
         var type = Type.GetType(typeName);
