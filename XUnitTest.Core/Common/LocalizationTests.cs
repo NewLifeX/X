@@ -41,6 +41,16 @@ public class LocalizationTests
         Assert.Null(Localization.Translate((String)null!));
         Assert.Equal("", Localization.Translate(""));
     }
+
+    [Fact(DisplayName = "含制表符的模板：键与译文正常查表")]
+    public void Translate_tab_template()
+    {
+        var key = "Saved {0:n0} items\telapsed {1:n0} ms\tspeed {2:n0} tps\trounds {3:n0}\tspeed {4:n0} tps\tsucceeded {5:n0}";
+        var text = Localization.Translate(_zh, key, 1, 2, 3, 4, 5, 6);
+
+        Assert.Contains("保存", text);
+        Assert.Contains("\t", text);
+    }
     #endregion
 
     #region 格式化
@@ -127,7 +137,7 @@ public class LocalizationTests
     public void Register_multiple_times()
     {
         var key = "Localization test {0}.";
-        var culture = CultureInfo.GetCultureInfo("th-TH");
+        var culture = CultureInfo.GetCultureInfo("sw-KE");
         try
         {
             Localization.Register(culture, new Dictionary<String, String> { [key] = "第一次" });
@@ -143,16 +153,41 @@ public class LocalizationTests
         }
     }
 
+    [Fact(DisplayName = "多次注册不同键：累加合并而非清空已有内容")]
+    public void Register_accumulates()
+    {
+        var culture = CultureInfo.GetCultureInfo("sw-KE");
+        var first = "Localization accumulate first {0}.";
+        var second = "Localization accumulate second {0}.";
+        try
+        {
+            Localization.Register(culture, new Dictionary<String, String> { [first] = "第一 {0}" });
+            Localization.Register(culture, new Dictionary<String, String> { [second] = "第二 {0}" });
+
+            Assert.Equal("第一 1", Localization.Translate(culture, first, 1));
+            Assert.Equal("第二 2", Localization.Translate(culture, second, 2));
+
+            // 覆盖注册同样只影响表中出现的键，未出现的键保持不变
+            Localization.Register(culture, new Dictionary<String, String> { [first] = "覆盖 {0}" }, true);
+            Assert.Equal("覆盖 1", Localization.Translate(culture, first, 1));
+            Assert.Equal("第二 2", Localization.Translate(culture, second, 2));
+        }
+        finally
+        {
+            Localization.Unregister(culture);
+        }
+    }
+
     [Fact(DisplayName = "注册新语言：无需编译即可新增译文")]
     public void Register_new_language()
     {
-        var culture = CultureInfo.GetCultureInfo("th-TH");
+        var culture = CultureInfo.GetCultureInfo("sw-KE");
         try
         {
-            Localization.Register(culture, new Dictionary<String, String> { [Key] = "ไม่รองรับการรีเซ็ตในโหมดสตรีมมิ่ง" });
+            Localization.Register(culture, new Dictionary<String, String> { [Key] = "Maudhui ya jaribio" });
 
-            Assert.Equal("ไม่รองรับการรีเซ็ตในโหมดสตรีมมิ่ง", Localization.Translate(culture, Key));
-            Assert.Equal(Key, Localization.Translate(CultureInfo.GetCultureInfo("sw-KE"), Key));
+            Assert.Equal("Maudhui ya jaribio", Localization.Translate(culture, Key));
+            Assert.Equal(Key, Localization.Translate(CultureInfo.GetCultureInfo("sq-AL"), Key));
         }
         finally
         {

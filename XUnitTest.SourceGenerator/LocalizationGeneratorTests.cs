@@ -1,6 +1,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using NewLife.SourceGenerator.Localization;
+using NewLife.SourceGenerator;
 using Xunit;
 
 namespace XUnitTest.SourceGenerator;
@@ -43,6 +43,19 @@ public class LocalizationGeneratorTests
         // 下游可能补 ModuleInitializerAttribute，必须使用块级命名空间
         Assert.Contains("namespace NewLife", text);
         Assert.DoesNotContain("namespace NewLife;", text);
+    }
+
+    [Fact(DisplayName = "下游自带 NewLife.L：不重复生成快捷入口")]
+    public void DownstreamOwnL()
+    {
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "namespace NewLife { internal static class L { } }", "My.Component", null,
+            new[] { ("Locales/ja.yml", Yaml) });
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("internal static class LocalizationTable", text);
+        Assert.DoesNotContain("public static String T(", text);
+        Assert.DoesNotContain(result.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
     }
 
     [Fact(DisplayName = "非 Locales 目录的 yml 不参与生成")]
