@@ -80,7 +80,7 @@ public static class PluginHelper
             // 如果本地没有数据库，则从网络下载
             if (!File.Exists(file))
             {
-                XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", !disname.IsNullOrEmpty() ? disname : dll, urls);
+                XTrace.WriteLine("{0} does not exist or has an incompatible platform version; downloading {1}", !disname.IsNullOrEmpty() ? disname : dll, urls);
 
                 //var client = new WebClientX()
                 //{
@@ -93,7 +93,7 @@ public static class PluginHelper
             }
             if (!File.Exists(file))
             {
-                XTrace.WriteLine("未找到 {0} {1}", disname, dll);
+                XTrace.WriteLine("{0} {1} not found", disname, dll);
                 return null;
             }
 

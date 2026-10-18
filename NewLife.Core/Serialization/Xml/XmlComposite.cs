@@ -26,7 +26,7 @@ public class XmlComposite : XmlHandlerBase
         if (type.IsBaseType()) return false;
 
         var ms = GetMembers(type);
-        WriteLog("XmlWrite {0} 成员{1}个", type.Name, ms.Count);
+        WriteLog("XmlWrite {0}: {1} members", type.Name, ms.Count);
 
         Host.Hosts.Push(value);
 
@@ -84,7 +84,7 @@ public class XmlComposite : XmlHandlerBase
         if (!CheckName(name, type)) return false;
 
         var ms = GetMembers(type);
-        WriteLog("XmlRead {0} 成员{1}个", type.Name, ms.Count);
+        WriteLog("XmlRead {0}: {1} members", type.Name, ms.Count);
         var dic = ms.ToDictionary(e => SerialHelper.GetName(e), e => e);
 
         value ??= type.CreateInstance();

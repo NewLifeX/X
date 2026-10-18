@@ -285,7 +285,7 @@ public class DeferredQueue : DisposeBase
         if (list.Count >= TraceCount)
         {
             var sp = ms == 0 ? 0 : (Int32)(times * 1000 / ms);
-            WriteLog($"保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {Speed:n0}tps\t次数 {times:n0}\t速度 {sp:n0}tps\t成功 {total:n0}");
+            WriteLog("Saved {0:n0} items\telapsed {1:n0} ms\tspeed {2:n0} tps\trounds {3:n0}\tspeed {4:n0} tps\tsucceeded {5:n0}", list.Count, ms, Speed, times, sp, total);
         }
 
         // 更新定时器周期
@@ -350,6 +350,6 @@ public class DeferredQueue : DisposeBase
     /// <summary>写日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    protected void WriteLog(String format, params Object?[] args) => Log?.Info($"延迟队列[{Name}]\t{format}", args);
+    protected void WriteLog(String format, params Object?[] args) => Log?.Info($"DeferredQueue[{Name}]\t" + Localization.Translate(format), args);
     #endregion
 }

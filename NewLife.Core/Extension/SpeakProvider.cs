@@ -43,7 +43,7 @@ class SpeakProvider
             XTrace.WriteException(ex);
         }
 
-        if (_type == null) XTrace.WriteLine("找不到语音库System.Speech，需要从nuget引用");
+        if (_type == null) XTrace.WriteLine("The System.Speech speech library was not found; reference it from NuGet.");
     }
 
     private Object? synth;

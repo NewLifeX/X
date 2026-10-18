@@ -37,7 +37,7 @@ public class FailoverLoadBalancer : LoadBalancerBase
         if (idx > 0 && services[0].IsAvailable())
         {
             idx = _currentIndex = 0;
-            Log?.Debug("主节点[{0}]恢复可用，切回主节点", services[0].Name);
+            Log?.Debug("Primary node [{0}] is available again; switching back to the primary node.", services[0].Name);
         }
 
         // 获取当前索引对应的服务
@@ -65,7 +65,7 @@ public class FailoverLoadBalancer : LoadBalancerBase
             if (nextIndex < services.Count)
             {
                 _currentIndex = nextIndex;
-                Log?.Debug("服务节点[{0}]网络异常，切换到节点[{1}]，使用地址：{2}", service.Name, services[nextIndex].Name, services[nextIndex].Address);
+                Log?.Debug("Service node [{0}] has a network error; switching to node [{1}] at address {2}.", service.Name, services[nextIndex].Name, services[nextIndex].Address);
             }
         }
     }

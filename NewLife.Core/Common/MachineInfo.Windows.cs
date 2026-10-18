@@ -361,7 +361,7 @@ public partial class MachineInfo
             }
             else
             {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature information is unavailable.");
                 _excludes.Add(nameof(Temperature));
                 Temperature = 0;
             }
@@ -378,7 +378,7 @@ public partial class MachineInfo
             }
             else
             {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery information is unavailable.");
                 _excludes.Add(nameof(Battery));
                 Battery = 0;
             }
@@ -409,7 +409,7 @@ public partial class MachineInfo
 
             // 两种 WMI 路径均失败（如 WMI 服务异常），降级到 wmic 进程兜底
             if (XTrace.Log.Level <= LogLevel.Debug)
-                XTrace.WriteLine("WMI 均失败，回退 wmic: {0}.{1}", path, property);
+                XTrace.WriteLine("All WMI attempts failed; falling back to wmic: {0}.{1}", path, property);
         }
 #else
         // 其它运行时（netstandard/net*非windows）：WMI 仅 Windows 主机支持，其它平台直接返回空
@@ -504,7 +504,7 @@ public partial class MachineInfo
             if (throwOnError) throw;
             if (XTrace.Log.Level <= LogLevel.Debug)
             {
-                XTrace.WriteLine("QueryWmiSystemManagement 失败: {0}.{1} @ {2}", wmiClass, property, nameSpace);
+                XTrace.WriteLine("QueryWmiSystemManagement failed: {0}.{1} @ {2}", wmiClass, property, nameSpace);
                 XTrace.WriteException(ex is TargetInvocationException tie ? tie.InnerException! : ex);
             }
         }
@@ -572,7 +572,7 @@ public partial class MachineInfo
             if (throwOnError) throw;
             if (XTrace.Log.Level <= LogLevel.Debug)
             {
-                XTrace.WriteLine("QueryWmiCom 失败: {0}.{1} @ {2}", wmiClass, property, nameSpace);
+                XTrace.WriteLine("QueryWmiCom failed: {0}.{1} @ {2}", wmiClass, property, nameSpace);
                 XTrace.WriteException(ex is TargetInvocationException tie ? tie.InnerException! : ex);
             }
         }

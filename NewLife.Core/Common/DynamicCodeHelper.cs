@@ -19,6 +19,6 @@ internal static class DynamicCodeHelper
     /// <param name="feature">功能名称</param>
     public static void ThrowIfNotSupported(String feature)
     {
-        if (!IsSupported) throw new PlatformNotSupportedException($"NativeAOT 等裁剪环境不支持{feature}，请改用静态注册或替代实现");
+        if (!IsSupported) throw new PlatformNotSupportedException(L.T("NativeAOT/trimmed environments do not support {0}. Use static registration or an alternative implementation.", feature));
     }
 }

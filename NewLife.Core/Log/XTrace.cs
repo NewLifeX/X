@@ -115,7 +115,7 @@ public static class XTrace
         }
         if (e.IsTerminating)
         {
-            Log.Fatal("异常退出！");
+            Log.Fatal("Unhandled fatal error; exiting.");
 
             OnProcessExit(null, EventArgs.Empty);
         }

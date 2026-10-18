@@ -39,7 +39,7 @@ public class IDictionarySourceConverter : JsonConverter<Object>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
     public override Object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        => throw new NotSupportedException($"IDictionarySource 接口不支持反序列化。目标类型：{typeToConvert.FullName}");
+        => throw new NotSupportedException(L.T("Deserialization is not supported for IDictionarySource. Target type: {0}", typeToConvert.FullName));
 
     /// <summary>写入。调用 ToDictionary() 获取字典后序列化</summary>
     /// <param name="writer"></param>

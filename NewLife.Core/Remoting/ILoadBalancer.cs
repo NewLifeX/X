@@ -85,7 +85,7 @@ public abstract class LoadBalancerBase : ILoadBalancer
         {
             service.MarkFailure(ShieldingTime);
 
-            Log?.Debug("服务节点[{0}]发生错误，屏蔽{1}秒", service.Name, ShieldingTime);
+            Log?.Debug("Service node [{0}] failed; shielding it for {1} seconds.", service.Name, ShieldingTime);
         }
     }
 
@@ -100,7 +100,7 @@ public abstract class LoadBalancerBase : ILoadBalancer
             {
                 item.Reset();
             }
-            Log?.Debug("所有服务节点已屏蔽，重置全部节点");
+            Log?.Debug("All service nodes are shielded; resetting all nodes.");
         }
     }
     #endregion

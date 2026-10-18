@@ -414,7 +414,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
     public virtual Int64 Bench(Boolean rand = false, Int32 batch = 0)
     {
         var cpu = Environment.ProcessorCount;
-        XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，批大小[{batch}]，逻辑处理器 {cpu:n0} 个");
+        XTrace.WriteLine("{0} performance test [{1}], batch size [{2}], logical processors {3:n0}", Name, rand ? L.T("random") : L.T("sequential"), batch, cpu);
 
         var rs = 0L;
         var times = GetTimesPerThread(rand, batch);
@@ -475,7 +475,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         if (threads <= 0) threads = Environment.ProcessorCount;
         if (times <= 0) times = threads * 1_000;
 
-        XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
+        XTrace.WriteLine("Testing {0:n0} items with {1,3:n0} threads", times, threads);
 
         var rs = 3L;
 
@@ -563,7 +563,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         var ms = sw.ElapsedMilliseconds;
         // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
         var speed = times * 1000 / (ms > 0 ? ms : 1);
-        XTrace.WriteLine($"读取 耗时 {ms,7:n0}ms 速度 {speed,11:n0} ops");
+        XTrace.WriteLine("Read: {0,7:n0} ms, {1,11:n0} ops", ms, speed);
 
         return times + 1;
     }
@@ -640,7 +640,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         var ms = sw.ElapsedMilliseconds;
         // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
         var speed = times * 1000 / (ms > 0 ? ms : 1);
-        XTrace.WriteLine($"赋值 耗时 {ms,7:n0}ms 速度 {speed,11:n0} ops");
+        XTrace.WriteLine("Set: {0,7:n0} ms, {1,11:n0} ops", ms, speed);
 
         return times + 1;
     }
@@ -714,7 +714,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         var ms = sw.ElapsedMilliseconds;
         // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
         var speed = times * 1000 / (ms > 0 ? ms : 1);
-        XTrace.WriteLine($"删除 耗时 {ms,7:n0}ms 速度 {speed,11:n0} ops");
+        XTrace.WriteLine("Delete: {0,7:n0} ms, {1,11:n0} ops", ms, speed);
 
         return times + 1;
     }
@@ -768,7 +768,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         var ms = sw.ElapsedMilliseconds;
         // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
         var speed = times * 1000 / (ms > 0 ? ms : 1);
-        XTrace.WriteLine($"累加 耗时 {ms,7:n0}ms 速度 {speed,11:n0} ops");
+        XTrace.WriteLine("Increment: {0,7:n0} ms, {1,11:n0} ops", ms, speed);
 
         return times + 1;
     }

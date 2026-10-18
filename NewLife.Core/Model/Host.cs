@@ -224,7 +224,7 @@ public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
                 }
             }
 
-            throw new AggregateException("启动主机服务失败", errors);
+            throw new AggregateException(L.T("Failed to start host service."), errors);
         }
     }
 

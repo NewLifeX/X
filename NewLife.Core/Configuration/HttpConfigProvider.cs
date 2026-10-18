@@ -129,7 +129,7 @@ public class HttpConfigProvider : ConfigProvider
         {
             // 远端拉取失败：保留不抛异常语义，由调用方按返回值判断；同时输出警告，避免故障被静默掩盖
             if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
-            XTrace.Log.Warn("[{0}]配置中心拉取失败，地址：{1}，{2}", AppId, Server, ex.Message);
+            XTrace.Log.Warn("[{0}] Failed to pull configuration from the configuration center at {1}: {2}", AppId, Server, ex.Message);
 
             return null;
         }
@@ -357,7 +357,7 @@ public class HttpConfigProvider : ConfigProvider
 
         if (changed.Count > 0)
         {
-            XTrace.WriteLine("[{0}]配置改变，重新加载如下键：{1}", AppId, changed.ToJson());
+            XTrace.WriteLine("[{0}] Configuration changed; reloading keys: {1}", AppId, changed.ToJson());
 
             Root = Build(dic);
 

@@ -120,7 +120,7 @@ public class TarFile : DisposeBase
         else
         {
             if (!isWrite)
-                throw new FileNotFoundException("文件不存在", fileName);
+                throw new FileNotFoundException(L.T("File not found."), fileName);
 
             var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
             if (isGz)

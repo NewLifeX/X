@@ -83,7 +83,7 @@ public partial class MachineInfo
                     Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
                 else
                 {
-                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature information is unavailable.");
                     _excludes.Add(nameof(Temperature));
                     Temperature = 0;
                 }
@@ -100,7 +100,7 @@ public partial class MachineInfo
                 Battery = str.SplitAsInt().Average() / 100.0;
             else
             {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery information is unavailable.");
                 _excludes.Add(nameof(Battery));
                 Battery = 0;
             }
@@ -138,7 +138,7 @@ public partial class MachineInfo
         }
         catch (Exception ex)
         {
-            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0}) failed: {1}", path, ex.Message);
             return "";
         }
 

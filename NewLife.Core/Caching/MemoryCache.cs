@@ -802,7 +802,7 @@ public class MemoryCache : Cache
                 }
             }
 
-            XTrace.WriteLine("[{0}]满，{1:n0}>{2:n0}，删除[{3:n0}]个", Name, _count, Capacity, toDels.Count);
+            XTrace.WriteLine("[{0}] is full: {1:n0}>{2:n0}; removing [{3:n0}] items", Name, _count, Capacity, toDels.Count);
         }
 
         // 确认删除。若 OnExpire 取消删除，需要补回计数

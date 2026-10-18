@@ -168,7 +168,7 @@ public abstract class FileConfigProvider : ConfigProvider
 
         if (old.IsNullOrEmpty())
         {
-            XTrace.WriteLine("新建配置：{0}", fileName);
+            XTrace.WriteLine("Creating configuration: {0}", fileName);
         }
         else
         {
@@ -182,7 +182,7 @@ public abstract class FileConfigProvider : ConfigProvider
             var e2 = i + 32 < str.Length ? i + 32 : str.Length;
             var diff = str[s..e2].Replace("\r", "\\r").Replace("\n", "\\n");
 
-            XTrace.WriteLine("更新配置：{0}，原：\"{1}\"，新：\"{2}\"", fileName, ori, diff);
+            XTrace.WriteLine("Updating configuration: {0}, old: \"{1}\", new: \"{2}\"", fileName, ori, diff);
         }
 
         // 原子写入：先写临时文件，再原子替换。任何中途崩溃都不会让目标文件出现空白或半截内容
@@ -286,7 +286,7 @@ public abstract class FileConfigProvider : ConfigProvider
             catch (Exception ex)
             {
                 // FileSystemWatcher 在某些 Linux/Android 系统上可能不支持或不可靠
-                XTrace.WriteLine("FileSystemWatcher 创建失败：{0}", ex.Message);
+                XTrace.WriteLine("Failed to create FileSystemWatcher: {0}", ex.Message);
             }
 
             // 同时启动定时器轮询，事件驱动可用时周期较长作为兜底
@@ -336,7 +336,7 @@ public abstract class FileConfigProvider : ConfigProvider
         if (_lastTime.Year > 2000 && fi.LastWriteTime <= _lastTime) return;
         _lastTime = fi.LastWriteTime;
 
-        XTrace.WriteLine("配置文件改变，重新加载 {0}", fileName);
+        XTrace.WriteLine("Configuration file changed; reloading {0}", fileName);
 
         _reading = true;
         try

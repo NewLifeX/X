@@ -25,7 +25,7 @@ public class BinaryComposite : BinaryHandlerBase
         var ims = Host.IgnoreMembers;
 
         var ms = GetMembers(type).Where(e => !ims.Contains(e.Name)).ToList();
-        WriteLog("BinaryWrite类{0} 共有成员{1}个", type.Name, ms.Count);
+        WriteLog("BinaryWrite type {0} has {1} members", type.Name, ms.Count);
 
         if (Host is Binary b && b.UseFieldSize && value != null)
         {
@@ -135,7 +135,7 @@ public class BinaryComposite : BinaryHandlerBase
         var ims = Host.IgnoreMembers;
 
         var ms = GetMembers(type).Where(e => !ims.Contains(e.Name)).ToList();
-        WriteLog("BinaryRead类{0} 共有成员{1}个", type.Name, ms.Count);
+        WriteLog("BinaryRead type {0} has {1} members", type.Name, ms.Count);
 
         // 读取对象引用
         if (ReadRef(ref value)) return true;

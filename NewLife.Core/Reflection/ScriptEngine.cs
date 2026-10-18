@@ -324,7 +324,7 @@ public class ScriptEngine
                         //Assembly.LoadFrom(item);
                         // 先加载到内存，再加载程序集，避免文件被锁定
                         Assembly.Load(File.ReadAllBytes(item));
-                        WriteLog("加载外部程序集：{0}", item);
+                        WriteLog("Loading external assembly: {0}", item);
                     }
                     catch { }
                 }
@@ -453,7 +453,7 @@ public class ScriptEngine
     public Object? Invoke(params Object?[] parameters)
     {
         if (Method == null) Compile();
-        if (Method == null) throw new XException("脚本引擎未编译表达式！");
+        if (Method == null) throw new XException("The script engine has not compiled the expression.");
         // Main函数可能含有参数string[] args
         if (parameters == null || parameters.Length == 0)
         {

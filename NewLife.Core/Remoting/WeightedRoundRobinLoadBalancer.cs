@@ -86,7 +86,7 @@ public class WeightedRoundRobinLoadBalancer : LoadBalancerBase
         if (ex is HttpRequestException or TaskCanceledException)
         {
             _serverIndex++;
-            Log?.Debug("服务节点[{0}]网络异常，跳过该节点", service.Name);
+            Log?.Debug("Service node [{0}] has a network error; skipping it.", service.Name);
         }
     }
     #endregion

@@ -190,7 +190,7 @@ public class AssemblyX
             {
                 if (ex.LoaderExceptions != null && XTrace.Log.Level == LogLevel.Debug)
                 {
-                    XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
+                    XTrace.WriteLine("Failed to load types from [{0}]{1} with {2} error(s).", this, Location, ex.LoaderExceptions.Length);
                     foreach (var le in ex.LoaderExceptions)
                     {
                         if (le != null) XTrace.WriteException(le);
@@ -875,3 +875,4 @@ public class AssemblyX
     }
     #endregion
 }
+

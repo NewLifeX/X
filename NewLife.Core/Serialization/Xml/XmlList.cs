@@ -25,7 +25,7 @@ public class XmlList : XmlHandlerBase
 
         if (value is not IList list || list.Count == 0) return true;
 
-        WriteLog("XmlWrite {0} 元素{1}项", type.Name, list.Count);
+        WriteLog("XmlWrite {0}: {1} elements", type.Name, list.Count);
 
         Host.Hosts.Push(value);
 

@@ -78,7 +78,7 @@ public class JsonComposite : JsonHandlerBase
         if (type.IsBaseType()) return false;
 
         var ms = GetMembers(type);
-        WriteLog("JsonWrite类{0} 共有成员{1}个", type.Name, ms.Count);
+        WriteLog("JsonWrite type {0} has {1} members", type.Name, ms.Count);
 
         Host.Hosts.Push(value);
 
@@ -128,7 +128,7 @@ public class JsonComposite : JsonHandlerBase
         if (!type.As<Object>()) return false;
 
         var ms = GetMembers(type);
-        WriteLog("JsonRead类{0} 共有成员{1}个", type.Name, ms.Count);
+        WriteLog("JsonRead type {0} has {1} members", type.Name, ms.Count);
 
         value ??= type.CreateInstance();
         if (value == null) return true;

@@ -554,7 +554,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             if (st != null)
             {
                 var msCost = st.StopCount(sw) / 1000;
-                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri?.AbsoluteUri}]，耗时{msCost:n0}ms");
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog("Slow call [{0}], elapsed {1:n0} ms", request.RequestUri?.AbsoluteUri, msCost);
             }
 
             // 归还服务
@@ -598,7 +598,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         var client = service.Client;
         if (client == null)
         {
-            if (service.CreateTime.Year < 2000) Log?.Debug("使用[{0}]：{1}", service.Name, service.Address);
+            if (service.CreateTime.Year < 2000) Log?.Debug("Using [{0}]: {1}", service.Name, service.Address);
 
             // 原子创建，避免并发首次调用时重复创建导致连接池泄漏
             client = service.TryGetClient(() =>

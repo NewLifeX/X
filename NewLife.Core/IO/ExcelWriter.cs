@@ -378,7 +378,7 @@ public class ExcelWriter : DisposeBase
         var target = Stream;
         if (target == null)
         {
-            if (FileName.IsNullOrEmpty()) throw new InvalidOperationException("未指定输出位置");
+            if (FileName.IsNullOrEmpty()) throw new InvalidOperationException(L.T("Output location was not specified."));
 
             var file = FileName.EnsureDirectory(true).GetFullPath();
             target = new FileStream(file, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);

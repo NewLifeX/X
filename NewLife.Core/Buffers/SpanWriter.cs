@@ -816,10 +816,10 @@ public ref struct SpanWriter
                     Write((ReadOnlySpan<Byte>)guid.ToByteArray());
                 }
                 else
-                    throw new NotSupportedException($"WriteValue 不支持类型 {type.FullName}");
+                    throw new NotSupportedException(L.T("WriteValue does not support type {0}.", type.FullName));
                 break;
             default:
-                throw new NotSupportedException($"WriteValue 不支持 TypeCode.{code}");
+                throw new NotSupportedException(L.T("WriteValue does not support TypeCode.{0}.", code));
         }
     }
     #endregion

@@ -691,9 +691,9 @@ public ref struct SpanReader
                     return new Guid(buf);
                 }
 
-                throw new NotSupportedException($"ReadValue 不支持类型 {type.FullName}");
+                throw new NotSupportedException(L.T("ReadValue does not support type {0}.", type.FullName));
 
-            default: throw new NotSupportedException($"ReadValue 不支持 TypeCode.{code}");
+            default: throw new NotSupportedException(L.T("ReadValue does not support TypeCode.{0}.", code));
         }
     }
 
