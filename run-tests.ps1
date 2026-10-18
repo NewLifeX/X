@@ -30,6 +30,10 @@ $ErrorActionPreference = "Stop"
 
 $root = $PSScriptRoot
 
+# 异常消息必须为英文（全球化约束）
+& (Join-Path $root "check-english-exceptions.ps1")
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 # 宿主表：名称与 .github/workflows/test.yml 的矩阵项一致，便于与 CI 结果对照
 $hosts = @(
     [pscustomobject]@{ Name = "Core-net8.0";          Project = "XUnitTest.Core\XUnitTest.Core.csproj";                       Framework = "net8.0";          OutDir = "Bin\UnitTest\net8.0" }
