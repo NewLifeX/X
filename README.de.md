@@ -12,7 +12,7 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [English](README.en.md) | [Español](README.es.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Español](README.es.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
 Das NewLife-Framework ist ein umfassendes .NET-Komponentenökosystem, das hochperformante Infrastruktur für den Aufbau skalierbarer Anwendungen bereitstellt. Es bietet grundlegende Funktionen wie Protokollierung, Netzwerk, Serialisierung, Caching und Multithreading und bildet die Grundlage für eine breite Palette von Anwendungen – von Webdiensten bis hin zu IoT-Geräten.  

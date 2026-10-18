@@ -4,24 +4,27 @@
 
 ## 定序规则
 
-1. **固定前二**：中文（`Readme.MD`，权威版与 GitHub 默认落地页）→ English（通用语，非中文读者的第一选择）。
+1. **固定前三**：中文（`Readme.MD`，权威版与 GitHub 默认落地页）→ 繁體中文（`README.zh-TW.md`，与简体同源，紧邻便于对照）→ English（通用语，非中文读者的第一选择）。
 2. **其余按技术内容语种规模排序**：以 W3Techs「内容语种占比」（全球 top 1000 万站点首页）为依据，一次定序后**冻结**。
-3. **新语种一律追加到末尾**，不做全局重排；只有拿到更可靠的读者分布数据时，才允许做一次整体校正。
+3. **新语种一律追加到末尾**，不做全局重排（同一语言的不同书写系统例外：紧跟其主语言，如 `繁體中文` 紧随简体）；只有拿到更可靠的读者分布数据时，才允许做一次整体校正。
 
 ### 当前顺序
 
 | # | 语种 | 文件 | 依据（W3Techs，2025-12-03） |
 |---|------|------|------|
-| 1 | 中文 | `Readme.MD` | 权威版与默认落地页，固定第一位 |
-| 2 | English | `README.en.md` | 通用语，固定第二位 |
-| 3 | Español | `README.es.md` | 6.0% |
-| 4 | Deutsch | `README.de.md` | 5.9% |
-| 5 | 日本語 | `README.ja.md` | 5.1% |
-| 6 | Français | `README.fr.md` | 4.5% |
-| 7 | Português | `README.pt.md` | 4.1% |
-| 8 | Русский | `README.ru.md` | 3.7% |
-| 9 | 한국어 | `README.ko.md` | 0.8% |
-| 10 | العربية | `README.ar.md` | 0.5% |
+| 1 | 中文（简体） | `Readme.MD` | 权威版与默认落地页，固定第一位 |
+| 2 | 繁體中文 | `README.zh-TW.md` | 与简体同源，紧随简体便于对照 |
+| 3 | English | `README.en.md` | 通用语，固定第三位 |
+| 4 | Español | `README.es.md` | 6.0% |
+| 5 | Deutsch | `README.de.md` | 5.9% |
+| 6 | 日本語 | `README.ja.md` | 5.1% |
+| 7 | Français | `README.fr.md` | 4.5% |
+| 8 | Português | `README.pt.md` | 4.1% |
+| 9 | Русский | `README.ru.md` | 3.7% |
+| 10 | 한국어 | `README.ko.md` | 0.8% |
+| 11 | العربية | `README.ar.md` | 0.5% |
+
+> 运行时本地化用 `zh-Hant` 统一承接 `zh-TW` / `zh-HK` / `zh-MO`；README 目前只有一份以台湾用语撰写的 `README.zh-TW.md`，若日后需要港式用语再单列。
 
 ## 为什么不按语言人口排序
 
@@ -46,7 +49,7 @@
 
 ## 新增一种语言
 
-1. 翻译整篇 README，文件名用 `README.{ISO 639-1}.md`（中文版固定为 `Readme.MD`）。
+1. 翻译整篇 README，文件名用 `README.{BCP 47 语言标签}.md`（如 `README.zh-TW.md`；中文版固定为 `Readme.MD`）。
 2. 在 `readme-languages.json` 的 `languages` 数组**末尾**追加 `{ "code", "name", "file" }`，`name` 用本族语名称。
 3. 在正文开头补上与其它版本一致的说明：「本翻译可能滞后，以中文版为准」。
 4. 运行 `pwsh -File sync-readme-languages.ps1` 生成切换行，再运行 `-Check` 确认。

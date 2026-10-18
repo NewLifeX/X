@@ -12,7 +12,7 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md)
+🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md)
 <!-- lang:end -->
 
 إطار NewLife منظومة مكوّنات .NET شاملة، يوفّر بنية أساسية عالية الأداء لبناء تطبيقات قابلة للتوسّع. يقدّم وظائف أساسية مثل التسجيل والشبكات والتسلسل والتخزين المؤقت وتعدّد الخيوط، ليكون أساسًا لسلسلة من التطبيقات تمتدّ من خدمات Web إلى أجهزة IoT.  

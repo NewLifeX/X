@@ -12,7 +12,7 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
+🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
 NewLife 프레임워크는 포괄적인 .NET 컴포넌트 생태계로, 확장 가능한 애플리케이션을 구축하기 위한 고성능 기반 인프라를 제공합니다. 로깅, 네트워크, 직렬화, 캐시, 멀티스레딩 등의 기본 기능을 제공하며, 웹 서비스부터 IoT 장치에 이르기까지 다양한 애플리케이션의 기반이 됩니다.  

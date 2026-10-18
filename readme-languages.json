@@ -4,6 +4,7 @@
   "doc": "Doc/README多语言规范.md",
   "languages": [
     { "code": "zh", "name": "中文", "file": "Readme.MD" },
+    { "code": "zh-TW", "name": "繁體中文", "file": "README.zh-TW.md" },
     { "code": "en", "name": "English", "file": "README.en.md" },
     { "code": "es", "name": "Español", "file": "README.es.md" },
     { "code": "de", "name": "Deutsch", "file": "README.de.md" },
