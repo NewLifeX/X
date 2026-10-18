@@ -349,15 +349,25 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
 
     private static IPAddress ParseIPv4HexString(String hexAddress)
     {
-        return !Int64.TryParse(hexAddress, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result)
-            ? throw new NetworkInformationException()
-            : new IPAddress(result);
+        if (!Int64.TryParse(hexAddress, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result))
+            throw new NetworkInformationException();
+
+        // /proc/net/tcp 的 IPv4 为小端十六进制（0100007F = 127.0.0.1）。
+        // IPAddress(Int64) 按主机字节序解释，大端主机会得到 1.0.0.127，这里显式还原字节序
+        var bytes = new Byte[4];
+        for (var i = 0; i < 4; i++)
+        {
+            bytes[i] = (Byte)(result >> (i * 8));
+        }
+
+        return new IPAddress(bytes);
     }
 
     private static IPAddress ParseIPv6HexString(String hexAddress, Boolean isNetworkOrder = false)
     {
         var span = hexAddress.ToHex();
-        if (!isNetworkOrder && BitConverter.IsLittleEndian)
+        // /proc/net/tcp6 每个 32 位字按主机（小端）序存放，与主机字节序无关，非网络序一律按字反转
+        if (!isNetworkOrder)
         {
             for (var j = 0; j < 4; j++)
             {

@@ -366,7 +366,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         Columns = cs;
         Types = ts;
 
-        Total = binary.ReadBytes(4).ToInt();
+        // 行数按小端写入（历史格式），显式按小端读取，避免大端主机把 3 读成 0x03000000
+        var totalBytes = binary.ReadBytes(4);
+        Total = totalBytes[0] | totalBytes[1] << 8 | totalBytes[2] << 16 | totalBytes[3] << 24;
 
         return binary.Total - pStart;
     }
