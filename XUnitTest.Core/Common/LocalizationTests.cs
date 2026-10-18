@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
+using NewLife.Log;
 using Xunit;
 
 namespace XUnitTest.Common;
@@ -208,5 +209,44 @@ public class LocalizationTests
 
         Assert.Equal(0, errors);
     }
+
+    [Fact(DisplayName = "XException：强制 Culture 后输出对应语言")]
+    public void XException_uses_culture()
+    {
+        var saved = Localization.Culture;
+        try
+        {
+            Localization.Culture = _zh;
+            Assert.Equal(Zh, new XException(Key).Message);
+        }
+        finally
+        {
+            Localization.Culture = saved;
+        }
+    }
+
+    [Fact(DisplayName = "Logger.Format：日志按 LogCulture 渲染")]
+    public void Logger_format_uses_log_culture()
+    {
+        var saved = Localization.LogCulture;
+        try
+        {
+            Localization.LogCulture = _zh;
+            var log = new ProbeLogger();
+            Assert.Equal(Zh, log.Probe(Key));
+            Assert.Equal("消息体未读满：期望 5 字节，实读 3 字节", log.Probe("Message body is incomplete; expected {0} bytes, read {1} bytes.", 5, 3));
+        }
+        finally
+        {
+            Localization.LogCulture = saved;
+        }
+    }
     #endregion
+
+    private sealed class ProbeLogger : Logger
+    {
+        public String Probe(String format, params Object?[] args) => Format(format, args);
+
+        protected override void OnWrite(LogLevel level, String format, params Object?[] args) { }
+    }
 }
