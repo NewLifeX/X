@@ -1,4 +1,6 @@
-﻿using System.Text;
+using System.Buffers.Binary;
+using System.Runtime.InteropServices;
+using System.Text;
 using NewLife.Buffers;
 using NewLife.Data;
 using Xunit;
@@ -95,7 +97,7 @@ public class SpanWriterTests
         var writer = new SpanWriter(buffer);
         writer.Write((Int16)1);
         Assert.Equal(2, writer.Position);
-        Assert.Equal(1, BitConverter.ToInt16(buffer, 0));
+        Assert.Equal(1, BinaryPrimitives.ReadInt16LittleEndian(buffer));
     }
 
     [Fact]
@@ -105,7 +107,7 @@ public class SpanWriterTests
         var writer = new SpanWriter(buffer);
         writer.Write((UInt16)1);
         Assert.Equal(2, writer.Position);
-        Assert.Equal(1, BitConverter.ToUInt16(buffer, 0));
+        Assert.Equal(1, BinaryPrimitives.ReadUInt16LittleEndian(buffer));
     }
 
     [Fact]
@@ -115,7 +117,7 @@ public class SpanWriterTests
         var writer = new SpanWriter(buffer);
         writer.Write(1);
         Assert.Equal(4, writer.Position);
-        Assert.Equal(1, BitConverter.ToInt32(buffer, 0));
+        Assert.Equal(1, BinaryPrimitives.ReadInt32LittleEndian(buffer));
     }
 
     [Fact]
@@ -125,7 +127,7 @@ public class SpanWriterTests
         var writer = new SpanWriter(buffer);
         writer.Write((UInt32)1);
         Assert.Equal(4, writer.Position);
-        Assert.Equal(1u, BitConverter.ToUInt32(buffer, 0));
+        Assert.Equal(1u, BinaryPrimitives.ReadUInt32LittleEndian(buffer));
     }
 
     [Fact]
@@ -147,7 +149,7 @@ public class SpanWriterTests
         var writer = new SpanWriter(buffer);
         writer.Write((Int64)1);
         Assert.Equal(8, writer.Position);
-        Assert.Equal(1, BitConverter.ToInt64(buffer, 0));
+        Assert.Equal(1, BinaryPrimitives.ReadInt64LittleEndian(buffer));
     }
 
     [Fact]
@@ -157,7 +159,7 @@ public class SpanWriterTests
         var writer = new SpanWriter(buffer);
         writer.Write((UInt64)1);
         Assert.Equal(8, writer.Position);
-        Assert.Equal(1u, BitConverter.ToUInt64(buffer, 0));
+        Assert.Equal(1u, BinaryPrimitives.ReadUInt64LittleEndian(buffer));
     }
 
     [Fact]
@@ -167,7 +169,7 @@ public class SpanWriterTests
         var writer = new SpanWriter(buffer);
         writer.Write((Single)1.0);
         Assert.Equal(4, writer.Position);
-        Assert.Equal(1.0f, BitConverter.ToSingle(buffer, 0));
+        Assert.Equal(1.0f, BinaryPrimitives.ReadSingleLittleEndian(buffer));
     }
 
     [Fact]
@@ -177,7 +179,7 @@ public class SpanWriterTests
         var writer = new SpanWriter(buffer);
         writer.Write((Double)1.0);
         Assert.Equal(8, writer.Position);
-        Assert.Equal(1.0, BitConverter.ToDouble(buffer, 0));
+        Assert.Equal(1.0, BinaryPrimitives.ReadDoubleLittleEndian(buffer));
     }
 
     [Fact]
@@ -240,7 +242,7 @@ public class SpanWriterTests
 
         Assert.Equal(memory, GC.GetAllocatedBytesForCurrentThread());
         Assert.Equal(4, writer.Position);
-        Assert.Equal(1, BitConverter.ToInt32(buffer, 0));
+        Assert.Equal(1, MemoryMarshal.Read<TestStruct>(buffer).Value);
     }
 
     [Fact]
