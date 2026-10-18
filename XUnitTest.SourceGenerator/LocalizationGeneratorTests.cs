@@ -40,6 +40,9 @@ public class LocalizationGeneratorTests
         Assert.Contains("internal static class L", text);
         Assert.Contains("Localization.Register", text);
         Assert.DoesNotContain("GetCultureKey", text);
+        // 下游可能补 ModuleInitializerAttribute，必须使用块级命名空间
+        Assert.Contains("namespace NewLife", text);
+        Assert.DoesNotContain("namespace NewLife;", text);
     }
 
     [Fact(DisplayName = "非 Locales 目录的 yml 不参与生成")]

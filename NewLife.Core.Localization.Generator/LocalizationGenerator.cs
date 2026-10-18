@@ -129,7 +129,7 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine("    private static readonly Dictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal)");
         sb.AppendLine("    {");
 
-        AppendTables(sb, tables);
+        AppendTables(sb, tables, "        ");
 
         sb.AppendLine("    };");
         sb.AppendLine();
@@ -158,17 +158,18 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static void AppendTables(StringBuilder sb, IDictionary<String, Dictionary<String, String>> tables)
+    private static void AppendTables(StringBuilder sb, IDictionary<String, Dictionary<String, String>> tables, String indent)
     {
+        var valueIndent = indent + "    ";
         foreach (var item in tables)
         {
-            sb.Append("        [\"").Append(Escape(item.Key)).AppendLine("\"] = new(StringComparer.Ordinal)");
-            sb.AppendLine("        {");
+            sb.Append(indent).Append("[\"").Append(Escape(item.Key)).AppendLine("\"] = new(StringComparer.Ordinal)");
+            sb.Append(indent).AppendLine("{");
             foreach (var pair in item.Value)
             {
-                sb.Append("            [\"").Append(Escape(pair.Key)).Append("\"] = \"").Append(Escape(pair.Value)).AppendLine("\",");
+                sb.Append(valueIndent).Append("[\"").Append(Escape(pair.Key)).Append("\"] = \"").Append(Escape(pair.Value)).AppendLine("\",");
             }
-            sb.AppendLine("        },");
+            sb.Append(indent).AppendLine("},");
         }
     }
 
@@ -193,40 +194,40 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        sb.AppendLine("namespace NewLife;");
-        sb.AppendLine();
-        sb.AppendLine("/// <summary>当前程序集的多语言表，由源生成器自动注册</summary>");
-        sb.AppendLine("internal static class LocalizationTable");
+        sb.AppendLine("namespace NewLife");
         sb.AppendLine("{");
-        sb.AppendLine("    private static readonly Dictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal)");
+        sb.AppendLine("    /// <summary>当前程序集的多语言表，由源生成器自动注册</summary>");
+        sb.AppendLine("    internal static class LocalizationTable");
         sb.AppendLine("    {");
-        AppendTables(sb, tables);
-        sb.AppendLine("    };");
+        sb.AppendLine("        private static readonly Dictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal)");
+        sb.AppendLine("        {");
+        AppendTables(sb, tables, "            ");
+        sb.AppendLine("        };");
         sb.AppendLine();
-        sb.AppendLine("    [ModuleInitializer]");
-        sb.AppendLine("    internal static void RegisterTables()");
-        sb.AppendLine("    {");
-        sb.AppendLine("        foreach (var item in _tables) Localization.Register(new CultureInfo(item.Key), item.Value);");
+        sb.AppendLine("        [ModuleInitializer]");
+        sb.AppendLine("        internal static void RegisterTables()");
+        sb.AppendLine("        {");
+        sb.AppendLine("            foreach (var item in _tables) Localization.Register(new CultureInfo(item.Key), item.Value);");
+        sb.AppendLine("        }");
         sb.AppendLine("    }");
-        sb.AppendLine("}");
         sb.AppendLine();
-        sb.AppendLine("/// <summary>本地化翻译快捷入口</summary>");
-        sb.AppendLine("internal static class L");
-        sb.AppendLine("{");
-        sb.AppendLine("    /// <summary>翻译指定文本</summary>");
-        sb.AppendLine("    /// <param name=\"template\">英文原文模板</param>");
-        sb.AppendLine("    /// <returns>本地化文本；缺少翻译时返回原文</returns>");
-        sb.AppendLine("    public static String T(String template) => Localization.Translate(template);");
+        sb.AppendLine("    /// <summary>本地化翻译快捷入口</summary>");
+        sb.AppendLine("    internal static class L");
+        sb.AppendLine("    {");
+        sb.AppendLine("        /// <summary>翻译指定文本</summary>");
+        sb.AppendLine("        /// <param name=\"template\">英文原文模板</param>");
+        sb.AppendLine("        /// <returns>本地化文本；缺少翻译时返回原文</returns>");
+        sb.AppendLine("        public static String T(String template) => Localization.Translate(template);");
         sb.AppendLine();
-        sb.AppendLine("    /// <summary>翻译并格式化指定文本</summary>");
-        sb.AppendLine("    /// <param name=\"template\">英文原文模板</param>");
-        sb.AppendLine("    /// <param name=\"args\">格式化参数</param>");
-        sb.AppendLine("    /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>");
-        sb.AppendLine("    public static String T(String template, params Object?[]? args) => Localization.Translate(template, args);");
+        sb.AppendLine("        /// <summary>翻译并格式化指定文本</summary>");
+        sb.AppendLine("        /// <param name=\"template\">英文原文模板</param>");
+        sb.AppendLine("        /// <param name=\"args\">格式化参数</param>");
+        sb.AppendLine("        /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>");
+        sb.AppendLine("        public static String T(String template, params Object?[]? args) => Localization.Translate(template, args);");
+        sb.AppendLine("    }");
         sb.AppendLine("}");
         return sb.ToString();
     }
-
     private static Boolean TryParseEntry(String line, out String key, out String value, out String error)
     {
         key = String.Empty;
@@ -413,3 +414,4 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         }
     }
 }
+
