@@ -1,4 +1,4 @@
-﻿#if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1
+﻿#if NETFRAMEWORK || NETSTANDARD
 using System.ComponentModel;
 
 namespace System.Runtime.CompilerServices;

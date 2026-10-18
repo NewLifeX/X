@@ -54,10 +54,7 @@ namespace NewLife.Reflection;
 /// </code>
 /// </example>
 [RequiresDynamicCode("脚本引擎依赖运行时代码编译，NativeAOT 下不可用")]
-// net5 的 BCL RequiresUnreferencedCode 仅允许方法/构造函数级标注，该目标不附加类级裁剪声明
-#if !NET5_0
 [RequiresUnreferencedCode("脚本引擎依赖动态程序集加载与运行时成员查找，裁剪后不可用")]
-#endif
 public class ScriptEngine
 {
     #region 属性

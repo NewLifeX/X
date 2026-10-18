@@ -1,4 +1,4 @@
-﻿#if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1
+﻿#if NETFRAMEWORK || NETSTANDARD
 namespace System.Diagnostics.CodeAnalysis;
 
 /// <summary>执行方法后指定成员不为空</summary>

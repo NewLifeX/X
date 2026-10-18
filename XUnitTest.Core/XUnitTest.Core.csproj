@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
+    <!-- net9.0 已无对应 lib 资产：本工程的 net9 job 因此走 net8.0 资产的回退路径，
+         等于一条免费的回退兼容回归测试，勿因"看起来不匹配"而删除 -->
     <TargetFrameworks>net8.0;net9.0;net10.0;net8.0-windows;net10.0-windows</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <RootNamespace>XUnitTest</RootNamespace>

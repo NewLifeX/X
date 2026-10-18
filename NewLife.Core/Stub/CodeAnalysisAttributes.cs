@@ -6,7 +6,7 @@ namespace System.Diagnostics.CodeAnalysis;
 // 时使用点自动不进入元数据，源码使用点零改动；高版本 TFM 不编译本文件（经 CodeAnalysisForwards 转发 BCL），
 // 注解原样保留供裁剪/AOT 使用。与 BCL 的 SuppressMessageAttribute（[Conditional("CODE_ANALYSIS")]）同源；
 // 若未来低版本需要保留这些注解，删除对应 Conditional 行即可恢复。
-#if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1
+#if NETFRAMEWORK || NETSTANDARD
 /// <summary>指定反射访问所需的成员类型，供裁剪器/AOT 编译器保留对应元数据。BCL 从 net5 起提供，低版本在此补齐</summary>
 [Flags]
 public enum DynamicallyAccessedMemberTypes
@@ -170,9 +170,9 @@ public sealed class DynamicDependencyAttribute : Attribute
 }
 #endif
 
-// RequiresDynamicCode 从 net7 起才进入 BCL，net5/net6 也需补齐；
+// RequiresDynamicCode 从 net7 起才进入 BCL，net6 也需补齐；
 // DAM/RUC/USM 从 net5 起为 BCL 自带，不可在 net5+ 重复定义
-#if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1 || NET5_0 || NET6_0
+#if NETFRAMEWORK || NETSTANDARD || NET6_0
 /// <summary>指示该方法依赖运行时代码生成，NativeAOT 下不可用</summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Class, Inherited = false)]
 [System.Diagnostics.Conditional("NET7_0_OR_GREATER")]

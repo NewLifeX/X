@@ -19,7 +19,7 @@ using System.Runtime.CompilerServices;
 
 #if NET8_0_OR_GREATER
 // 同背景：Common/TimeProvider.cs 与 Threading/ITimer.cs 的垫片守卫为
-//   #if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1 || NET5_0 || NET6_0 || NET7_0
+//   #if NETFRAMEWORK || NETSTANDARD || NET6_0
 // BCL 自 net8.0 起自带 TimeProvider / ITimer，在本项目 TFM 集合（net45~net10.0，含 *-windows）下，
 // 该守卫的补集恰为 NET8_0_OR_GREATER（与垫片守卫逐一对应，不多不少）。
 [assembly: TypeForwardedTo(typeof(System.TimeProvider))]

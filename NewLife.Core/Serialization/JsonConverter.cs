@@ -17,11 +17,7 @@ public class JsonConverter<TService, TImplementation> : JsonConverter<TService> 
     /// <returns></returns>
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "TImplementation 为编译期已知实现类型，其元数据由调用方泛型参数保留或 SystemJson 上下文提供")]
     [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "TImplementation 为编译期已知实现类型，其元数据由调用方泛型参数保留或 SystemJson 上下文提供")]
-#if NETCOREAPP3_1
-    public override TService Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => JsonSerializer.Deserialize<TImplementation>(ref reader, options);
-#else
     public override TService? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => JsonSerializer.Deserialize<TImplementation>(ref reader, options);
-#endif
 
     /// <summary>写入</summary>
     /// <param name="writer"></param>

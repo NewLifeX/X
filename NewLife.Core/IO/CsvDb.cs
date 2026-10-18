@@ -417,7 +417,7 @@ public class CsvDb<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Pu
     }
     #endregion
 
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
     #region 异步方法
     /// <summary>异步获取满足条件的数据行</summary>
     /// <param name="predicate">过滤条件</param>

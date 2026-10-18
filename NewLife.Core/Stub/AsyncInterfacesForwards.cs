@@ -37,7 +37,7 @@ using System.Threading.Tasks.Sources;
 
 #if NET5_0_OR_GREATER
 // MemberNotNull / MemberNotNullWhen / IsExternalInit 从 .NET 5 起才进入 BCL，
-// 对应 Stub 守卫为 NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1
+// 对应 Stub 守卫为 NETFRAMEWORK || NETSTANDARD
 [assembly: TypeForwardedTo(typeof(System.Diagnostics.CodeAnalysis.MemberNotNullAttribute))]
 [assembly: TypeForwardedTo(typeof(System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute))]
 [assembly: TypeForwardedTo(typeof(System.Runtime.CompilerServices.IsExternalInit))]
