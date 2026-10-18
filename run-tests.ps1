@@ -34,6 +34,10 @@ $root = $PSScriptRoot
 & (Join-Path $root "check-english-exceptions.ps1")
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+# 多语言词表必须键集与占位符一致
+& (Join-Path $root "check-locales.ps1")
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 # 宿主表：名称与 .github/workflows/test.yml 的矩阵项一致，便于与 CI 结果对照
 $hosts = @(
     [pscustomobject]@{ Name = "Core-net8.0";          Project = "XUnitTest.Core\XUnitTest.Core.csproj";                       Framework = "net8.0";          OutDir = "Bin\UnitTest\net8.0" }
