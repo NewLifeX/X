@@ -563,7 +563,7 @@ public partial class TcpSession
         // 长度未知：从可定位流推导（协议头须先声明长度）
         if (bodyLength < 0)
         {
-            if (!body.CanSeek) throw new ArgumentException("无法预知流长度：请提供 bodyLength 或使用可定位流", nameof(bodyLength));
+            if (!body.CanSeek) throw new ArgumentException(L.T("Cannot determine the stream length. Provide bodyLength or use a seekable stream."), nameof(bodyLength));
             bodyLength = body.Length - body.Position;
         }
 

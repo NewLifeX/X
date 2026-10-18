@@ -85,7 +85,7 @@ public class Upgrade
         {
             if (url.IsNullOrEmpty()) continue;
 
-            WriteLog("检查资源包 {0}", url);
+            WriteLog("Checking resource package {0}", url);
             try
             {
                 var web = CreateClient();
@@ -93,7 +93,7 @@ public class Upgrade
                 var links = Link.Parse(html, url, item => !item.Name.IsNullOrEmpty() && item.Name.ToLower().Contains(Name.ToLower()));
                 if (links == null || links.Length == 0)
                 {
-                    WriteLog("找不到资源包");
+                    WriteLog("Resource package not found");
                     continue;
                 }
 
@@ -104,12 +104,12 @@ public class Upgrade
                     if (link.Version > Version)
                     {
                         Link = link;
-                        WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Version, Version);
+                        WriteLog("Online version [{0}] is newer: {1}>{2}", link.FullName, link.Version, Version);
 
                         return true;
                     }
                     else
-                        WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Version, Version);
+                        WriteLog("Online version [{0}] is older: {1}<={2}", link.FullName, link.Version, Version);
                 }
                 // 再比较时间
                 else
@@ -119,12 +119,12 @@ public class Upgrade
                     if (link.Time > Time.AddMinutes(10))
                     {
                         Link = link;
-                        WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Time, Time);
+                        WriteLog("Online version [{0}] is newer: {1}>{2}", link.FullName, link.Time, Time);
 
                         return true;
                     }
                     else
-                        WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Time, Time);
+                        WriteLog("Online version [{0}] is older: {1}<={2}", link.FullName, link.Time, Time);
                 }
 
                 // 本地址没有较新版本，继续检查下一个地址，多镜像之间互为备份
@@ -136,7 +136,7 @@ public class Upgrade
         }
 
         // 所有地址都失败时至少留下一条日志，避免升级检查静默失效、无从排查
-        if (lastError != null) WriteLog("检查更新失败：{0}", lastError.Message);
+        if (lastError != null) WriteLog("Update check failed: {0}", lastError.Message);
 
         return false;
     }
@@ -185,7 +185,7 @@ public class Upgrade
         if (!CacheFile && File.Exists(file)) File.Delete(file); ;
         if (!File.Exists(file))
         {
-            WriteLog("准备下载 {0} 到 {1}", url, file);
+            WriteLog("Preparing to download {0} to {1}", url, file);
 
             var sw = Stopwatch.StartNew();
 
@@ -193,7 +193,7 @@ public class Upgrade
             WaitDownload(ct => web.DownloadFileAsync(url, file, ct), url);
 
             sw.Stop();
-            WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
+            WriteLog("Download completed. Size: {0:n0} bytes, elapsed: {1:n0} ms", file.AsFile().Length, sw.ElapsedMilliseconds);
         }
 
         SourceFile = file;
@@ -213,7 +213,7 @@ public class Upgrade
         if (!CacheFile && File.Exists(file)) File.Delete(file); ;
         if (!File.Exists(file))
         {
-            WriteLog("准备下载 {0} 到 {1}", url, file);
+            WriteLog("Preparing to download {0} to {1}", url, file);
 
             var sw = Stopwatch.StartNew();
 
@@ -221,7 +221,7 @@ public class Upgrade
             await web.DownloadFileAsync(url, file, expectedHash, cancellationToken).ConfigureAwait(false);
 
             sw.Stop();
-            WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
+            WriteLog("Download completed. Size: {0:n0} bytes, elapsed: {1:n0} ms", file.AsFile().Length, sw.ElapsedMilliseconds);
         }
 
         SourceFile = file;
@@ -237,13 +237,13 @@ public class Upgrade
 
         if (file.IsNullOrEmpty() || !File.Exists(file)) return false;
 
-        WriteLog("发现更新包 {0}", file);
+        WriteLog("Update package found: {0}", file);
 
         // 解压更新程序包
         if (!file.EndsWithIgnoreCase(".zip", ".7z")) return false;
 
         var tmp = Path.GetTempPath().CombinePath(Path.GetFileNameWithoutExtension(file));
-        WriteLog("解压缩更新包到临时目录 {0}", tmp);
+        WriteLog("Extracting update package to temporary directory {0}", tmp);
         file.AsFile().Extract(tmp, true);
 
         // 拷贝替换更新
@@ -253,7 +253,7 @@ public class Upgrade
         //DeleteBackup(DestinationPath);
         //!!! 先别急着删除，在Linux上，删除正在使用的文件可能导致进程崩溃
 
-        WriteLog("更新成功！");
+        WriteLog("Update succeeded.");
 
         return true;
     }
@@ -273,16 +273,16 @@ public class Upgrade
 
         if (args.IsNullOrEmpty())
         {
-            WriteLog("启动进程 {0}", exe);
+            WriteLog("Starting process {0}", exe);
             Process.Start(exe);
         }
         else
         {
-            WriteLog("启动进程 {0} {1}", exe, args);
+            WriteLog("Starting process {0} {1}", exe, args);
             Process.Start(exe, args);
         }
 
-        WriteLog("退出当前进程");
+        WriteLog("Exiting current process");
         if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
         Environment.Exit(0);
         Process.GetCurrentProcess().Kill();
@@ -345,7 +345,7 @@ public class Upgrade
         WriteLog("Extract {0}", fileName);
 
         var source = Path.GetTempPath().CombinePath(Path.GetFileNameWithoutExtension(fileName));
-        WriteLog("解压缩更新包到临时目录 {0}", source);
+        WriteLog("Extracting update package to temporary directory {0}", source);
         fileName.AsFile().Extract(source, true);
 
         //var source = fileName.TrimEnd(".zip");

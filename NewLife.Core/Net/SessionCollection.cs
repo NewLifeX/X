@@ -185,7 +185,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         // 已经离开了锁，慢慢释放各个会话
         foreach (var item in values)
         {
-            item.WriteLog("超过{0}秒不活跃销毁 {1}", timeout, item);
+            item.WriteLog("Destroying {1} after {0} seconds of inactivity", timeout, item);
 
             if (item is ISocketClient ss) ss.Close(nameof(RemoveNotAlive));
             item.TryDispose();
@@ -224,8 +224,8 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     {
         // 显式 Add 语义要求键与会话端点一致且不得重复；旧实现忽略 key，传错键会静默按会话端点入集合
         var actual = value.Remote.EndPoint + "";
-        if (key != null && key != actual) throw new ArgumentException($"键 [{key}] 与会话端点 [{actual}] 不一致", nameof(key));
-        if (!Add(value)) throw new ArgumentException($"已存在键 [{key}] 的会话", nameof(key));
+        if (key != null && key != actual) throw new ArgumentException(L.T("Key [{0}] does not match session endpoint [{1}].", key, actual), nameof(key));
+        if (!Add(value)) throw new ArgumentException(L.T("A session with key [{0}] already exists.", key), nameof(key));
     }
 
     Boolean IDictionary<String, ISocketSession>.ContainsKey(String key) => _dic.ContainsKey(key);
@@ -266,14 +266,14 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     #region ICollection<KeyValuePair<String,ISocketSession>> 成员
 
-    void ICollection<KeyValuePair<String, ISocketSession>>.Add(KeyValuePair<String, ISocketSession> item) => throw new XException("不支持！请使用Add(ISocketSession session)方法！");
+    void ICollection<KeyValuePair<String, ISocketSession>>.Add(KeyValuePair<String, ISocketSession> item) => throw new XException("Not supported. Use the Add(ISocketSession session) method.");
 
     Boolean ICollection<KeyValuePair<String, ISocketSession>>.Contains(KeyValuePair<String, ISocketSession> item) => _dic.ContainsKey(item.Key);
 
     void ICollection<KeyValuePair<String, ISocketSession>>.CopyTo(KeyValuePair<String, ISocketSession>[] array, Int32 arrayIndex) =>
         ((ICollection<KeyValuePair<String, ISocketSession>>)_dic).CopyTo(array, arrayIndex);
 
-    Boolean ICollection<KeyValuePair<String, ISocketSession>>.Remove(KeyValuePair<String, ISocketSession> item) => throw new XException("不支持！请直接销毁会话对象！");
+    Boolean ICollection<KeyValuePair<String, ISocketSession>>.Remove(KeyValuePair<String, ISocketSession> item) => throw new XException("Not supported. Dispose the session object directly.");
 
     #endregion
 

@@ -161,7 +161,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             var sp = SslProtocol;
             if (sp == SslProtocols.None) sp = SslProtocols.Tls12;
 
-            WriteLog("服务端SSL认证，SslProtocol={0}，Issuer: {1}", sp, cert.Issuer);
+            WriteLog("Server SSL authentication, SslProtocol={0}, Issuer: {1}", sp, cert.Issuer);
 
             await AuthenticateAsServerAsync(sslStream, sock, cert, sp, timeout).ConfigureAwait(false);
 
@@ -179,7 +179,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
 
         if (error != null)
         {
-            WriteLog("服务端SSL认证失败，释放会话 {0}", error.Message);
+            WriteLog("Server SSL authentication failed; releasing session {0}", error.Message);
             if (!Disposed && !error.IsDisposed()) OnError("SslAuthenticate", error);
 
             sslStream?.TryDispose();
@@ -196,7 +196,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         {
             // 启动接收环失败。同步路径由受理流程捕获后释放会话，异步路径必须自行兜底，
             // 否则会话留在集合里既不收数据也不断开
-            WriteLog("服务端会话启动失败，释放会话 {0}", ex.Message);
+            WriteLog("Failed to start the server session; releasing session {0}", ex.Message);
             if (!Disposed && !ex.IsDisposed()) OnError("Start", ex);
 
             Dispose();
@@ -319,7 +319,7 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
             if (sp != SslProtocols.None)
             {
                 var host = uri.Host ?? uri.Address + "";
-                WriteLog("客户端SSL认证，SslProtocol={0}，Host={1}", sp, host);
+                WriteLog("Client SSL authentication, SslProtocol={0}, Host={1}", sp, host);
 
                 // 服务端请求客户端证书时，需要传入证书
                 var certs = new X509CertificateCollection();

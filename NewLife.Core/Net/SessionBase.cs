@@ -189,7 +189,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (Active) return true;
-        if (_everActive) throw new InvalidOperationException("会话对象一次性：关闭后不可重新打开，重连请新建会话对象（NetClient 等宿主会自动重建）");
+        if (_everActive) throw new InvalidOperationException(L.T("Session objects are single-use: after closing they cannot be reopened. Create a new session to reconnect (hosts such as NetClient recreate them automatically)."));
         if (cancellationToken.IsCancellationRequested) return false;
 
         using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote?.ToString());
@@ -218,7 +218,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             Active = true;
 
             // 协议模式：每次打开输出一次所挂载的协议编码器；服务端接入会话不经过本路径，不会逐会话输出
-            if (Protocol != null) WriteLog("协议编码器：{0}", Protocol);
+            if (Protocol != null) WriteLog("Protocol codec: {0}", Protocol);
 
             // 触发打开完成的事件（状态已变更）
             Opened?.Invoke(this, EventArgs.Empty);
@@ -581,7 +581,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             se.Completed += (s, e) => ProcessEvent(e, -1, _IntoThreadCount);
             se.UserToken = new RecvSlot(count, pk);
 
-            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
+            if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("Creating RecvSA {0}", count);
 
             StartReceive(se, 0);
         }
@@ -595,16 +595,16 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     protected void ReleaseRecv(SocketAsyncEventArgs se, String reason)
     {
         // 接收槽是接收环的固有契约：事件参数一律由 StartReceive 创建并挂槽，槽或槽中句柄缺失即契约被破坏，直接抛错
-        var slot = se.UserToken as RecvSlot ?? throw new InvalidOperationException($"接收事件参数缺少接收槽：[{Name}] {reason}");
+        var slot = se.UserToken as RecvSlot ?? throw new InvalidOperationException(L.T("Receive event arguments are missing a receive slot: [{0}] {1}", Name, reason));
 
         // 幂等：同一个事件参数只释放一次。重复释放会少计 _RecvCount（IsReceiving 失真，拉取直读的互斥判定失效），
         // 并对同一个 se 二次 Dispose。StartReceive 发现会话已销毁时会先释放再抛，异常冒泡回 ProcessEvent
         // 自己的 catch 会再次调本方法，这是已知会重复进入的路径
         if (slot.Released) return;
 
-        var cached = slot.Packet ?? throw new InvalidOperationException($"接收槽句柄缺失：[{Name}] {reason}");
+        var cached = slot.Packet ?? throw new InvalidOperationException(L.T("Receive slot handle is missing: [{0}] {1}", Name, reason));
 
-        if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", slot.Index, reason);
+        if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("Releasing RecvSA {0} {1}", slot.Index, reason);
 
         slot.Released = true;
         slot.Packet = null;
@@ -757,8 +757,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 // 槽句柄非空 ⇒ 它的缓冲就是本槽的 se.Buffer，因此只需重设长度，不需要也不可能换缓冲（换缓冲必须换新句柄）。
                 // 代价：不再校验 RefCount——本槽句柄由本槽独占，凡跨轮带出都会先 Slice（轮末即走换新分支、不回挂），
                 // 唯一失守点是下游违规留存原句柄（不经 Slice）时会被静默重设窗口而不是报错。
-                var slot = se.UserToken as RecvSlot ?? throw new InvalidOperationException($"接收事件参数缺少接收槽：[{Name}]");
-                var pk = slot.Packet ?? throw new InvalidOperationException($"接收槽句柄缺失：[{Name}]");
+                var slot = se.UserToken as RecvSlot ?? throw new InvalidOperationException(L.T("Receive event arguments are missing a receive slot: [{0}]", Name));
+                var pk = slot.Packet ?? throw new InvalidOperationException(L.T("Receive slot handle is missing: [{0}]", Name));
                 slot.Packet = null;
                 pk.Resize(bytes);
 
@@ -993,8 +993,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (request == null) throw new ArgumentNullException(nameof(request));
 
         var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
-        if (ResponseMatcher.Resolve(codec) == null) throw new NotSupportedException($"协议 [{codec.GetType().Name}] 未实现请求-响应配对（IMessageMatcher），无法等待响应");
-        if (this is not IStreamSession) throw new NotSupportedException($"会话类型 [{GetType().Name}] 未接入响应匹配交付，不支持请求-响应等待（数据报会话请用 UdpServer/UdpSession）");
+        if (ResponseMatcher.Resolve(codec) == null) throw new NotSupportedException(L.T("Protocol [{0}] does not implement request/response matching (IMessageMatcher); cannot wait for a response.", codec.GetType().Name));
+        if (this is not IStreamSession) throw new NotSupportedException(L.T("Session type [{0}] does not support response-matched delivery and cannot wait for a response (use UdpServer/UdpSession for datagram sessions).", GetType().Name));
 
         var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", request);
         var source = Matcher.Register(this, request, span);

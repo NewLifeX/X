@@ -48,7 +48,7 @@ public partial class TcpSession
         if (Protocol == null) return;
 
         if (AutoReceive) StartMessagePump();
-        else WriteLog("协议模式需要自动接收（AutoReceive），拉取模式下消息泵未启动，收到的是原始字节");
+        else WriteLog("Protocol mode requires automatic receive (AutoReceive). The message pump is not started in pull mode, so raw bytes are received.");
     }
 
     /// <summary>停止接收处理。关闭流程开头先停消息泵（取消挂起读取），随后关闭处理器链与会话</summary>

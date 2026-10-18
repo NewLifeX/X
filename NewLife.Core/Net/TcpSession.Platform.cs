@@ -43,7 +43,7 @@ public partial class TcpSession
     private static EndPoint CreateUnixEndPoint(String path)
     {
 #if NETFRAMEWORK || NETSTANDARD2_0
-        throw new PlatformNotSupportedException("Unix Domain Socket 需要 .NET Standard 2.1 或更高版本的目标框架");
+        throw new PlatformNotSupportedException(L.T("Unix domain sockets require a target framework of .NET Standard 2.1 or later."));
 #else
         return new UnixDomainSocketEndPoint(path);
 #endif
@@ -147,7 +147,7 @@ public partial class TcpSession
                 sock.Close();
                 try { await task.ConfigureAwait(false); } catch { }
 
-                throw new TimeoutException($"服务端SSL认证超时！[{timeout}ms]");
+                throw new TimeoutException(L.T("Server SSL authentication timed out after {0} ms.", timeout));
             }
         }
 
@@ -193,7 +193,7 @@ public partial class TcpSession
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                throw new TimeoutException($"客户端SSL认证超时！[{timeout}ms]");
+                throw new TimeoutException(L.T("Client SSL authentication timed out after {0} ms.", timeout));
             }
         }
 
@@ -407,7 +407,7 @@ public partial class TcpSession
             {
                 // 只有「根本没发出任何数据」的失败才能安全降级：平台/套接字类型不支持零拷贝、或路径在存在性检查后被删除。
                 // 网络中断、对端复位一类失败可能已送出部分文件，重发会让对端收到重复内容，必须交由外层按发送失败处理
-                WriteLog("内核零拷贝不可用，降级为分块发送 {0}：{1}", filePath, ex.Message);
+                WriteLog("Kernel zero-copy is unavailable; falling back to chunked send for {0}: {1}", filePath, ex.Message);
             }
         }
 #endif

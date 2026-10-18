@@ -247,7 +247,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     /// <returns>初始化完成的 Socket 客户端</returns>
     protected virtual ISocketClient CreateClient()
     {
-        var remote = Remote ?? throw new InvalidOperationException("未设置远程地址，请先设置 Server 或 Remote 属性");
+        var remote = Remote ?? throw new InvalidOperationException(L.T("Remote address is not set. Set the Server or Remote property first."));
 
         var client = remote.CreateRemote();
         client.Name = Name;
@@ -338,12 +338,12 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
             // 注意：此处不清零计数，确保后续 Error/Closed 事件再次触发 ScheduleReconnect 时仍被拦住
             if (MaxReconnect > 0 && _reconnectCount >= MaxReconnect)
             {
-                WriteLog("已达最大重连次数 {0}，停止重连", MaxReconnect);
+                WriteLog("Maximum reconnect attempts ({0}) reached; stopping reconnects.", MaxReconnect);
                 return;
             }
 
             var delay = ReconnectDelay > 0 ? ReconnectDelay : 5_000;
-            WriteLog("连接断开，{0}ms 后发起第 {1} 次重连 {2}", delay, _reconnectCount + 1, Remote);
+            WriteLog("Connection lost; reconnect attempt {1} will start in {0} ms to {2}.", delay, _reconnectCount + 1, Remote);
 
             // Period = 0 表示一次性定时器，触发后不再重复
             _reconnectTimer = new TimerX(DoReconnect, null, delay, 0) { Async = true };
@@ -360,7 +360,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
             if (Disposed || _userClosed || (_client != null && _client.Active)) return;
 
             _reconnectCount++;
-            WriteLog("正在重连 [{0}] {1}", _reconnectCount, Remote);
+            WriteLog("Reconnecting [{0}] {1}", _reconnectCount, Remote);
 
             var client = CreateClient();
             if (await client.OpenAsync().ConfigureAwait(false))
@@ -390,7 +390,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
 
                 // 锁外释放被替换的旧客户端，避免在持锁期间触发其关闭回调
                 RetireClient(old, client);
-                WriteLog("重连成功 {0}", Remote);
+                WriteLog("Reconnected successfully: {0}", Remote);
             }
             else
             {
@@ -401,7 +401,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
         }
         catch (Exception ex)
         {
-            WriteLog("重连失败：{0}", ex.Message);
+            WriteLog("Reconnect failed: {0}", ex.Message);
             // 重连失败：计数保留，由 ScheduleReconnect 决定是否继续
             ScheduleReconnect();
         }
@@ -459,7 +459,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     {
         if (EnsureClient() is SessionBase session) return session.SendMessageAsync(message, cancellationToken);
 
-        throw new NotSupportedException($"内部客户端不支持协议模式请求响应 [{_client?.GetType().Name}]");
+        throw new NotSupportedException(L.T("The inner client does not support protocol-mode request/response [{0}].", _client?.GetType().Name));
     }
 
     /// <summary>发送流式消息（协议模式）：先发协议头部（声明体长），再把数据流内容读一块写一块地送出</summary>
@@ -473,7 +473,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     {
         if (EnsureClient() is TcpSession tcp) return tcp.SendMessageAsync(message, body, bodyLength, cancellationToken);
 
-        throw new NotSupportedException($"内部客户端不支持协议模式流式发送 [{_client?.GetType().Name}]");
+        throw new NotSupportedException(L.T("The inner client does not support protocol-mode streaming send [{0}].", _client?.GetType().Name));
     }
 
     private ISocketClient EnsureClient()
@@ -483,11 +483,11 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
 
         // AutoReconnect=false 时不自动尝试，直接抛出上层错误
         if (!AutoReconnect)
-            throw new InvalidOperationException($"网络客户端 [{Name}] 未连接，请先调用 Open()");
+            throw new InvalidOperationException(L.T("Network client [{0}] is not connected. Call Open() first.", Name));
 
         // 尝试建立连接
         Open();
-        return _client ?? throw new InvalidOperationException($"网络客户端 [{Name}] 未连接，且连接尝试失败");
+        return _client ?? throw new InvalidOperationException(L.T("Network client [{0}] is not connected, and the connection attempt failed.", Name));
     }
 
     #endregion

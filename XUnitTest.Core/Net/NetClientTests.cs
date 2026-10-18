@@ -705,7 +705,7 @@ public class NetClientTests
         var limited = false;
         for (var i = 0; i < 100 && !limited; i++)
         {
-            lock (logs) limited = logs.Any(m => m.Contains("已达最大重连次数"));
+            lock (logs) limited = logs.Any(m => m.Contains("Maximum reconnect attempts"));
             if (!limited) await Task.Delay(50);
         }
         lock (logs) detail = String.Join(" | ", logs);
@@ -718,7 +718,7 @@ public class NetClientTests
 
     private static Int32 CountReconnect(List<String> logs)
     {
-        lock (logs) return logs.Count(m => m.Contains("正在重连"));
+        lock (logs) return logs.Count(m => m.Contains("Reconnecting"));
     }
 
     [Fact(DisplayName = "重连_与用户关闭竞争_不得接管迟到的连接")]
@@ -880,3 +880,4 @@ public class NetClientTests
 
     #endregion
 }
+

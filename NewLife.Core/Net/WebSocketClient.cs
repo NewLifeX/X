@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
@@ -422,7 +422,7 @@ public class WebSocketClient : TcpSession
         catch (Exception ex)
         {
             // 回写失败不打断接收链：连接故障由发送链路按既有口径上报并关闭会话
-            WriteLog("发送 Pong 失败：" + ex.Message);
+            WriteLog("Failed to send Pong: {0}", ex.Message);
         }
     }
 
@@ -535,7 +535,7 @@ public class WebSocketClient : TcpSession
             }
             catch (Exception ex)
             {
-                WriteLog("发送 WebSocket 关闭帧失败：" + ex.Message);
+                WriteLog("Failed to send WebSocket close frame: {0}", ex.Message);
             }
             finally
             {
@@ -576,7 +576,7 @@ public class WebSocketClient : TcpSession
     /// <summary>Pong 超时时触发。默认输出警告日志，可重写实现自动重连等策略</summary>
     protected virtual void OnPongTimeout()
     {
-        WriteLog("WebSocket心跳超时，{0:HH:mm:ss} 发送 Ping 后未收到 Pong", _lastPingTime);
+        WriteLog("WebSocket heartbeat timed out: no Pong received after sending Ping at {0:HH:mm:ss}", _lastPingTime);
     }
 
     private void OnReceivedPong(Object? sender, ReceivedEventArgs e)
@@ -641,19 +641,19 @@ public class WebSocketClient : TcpSession
             if (!res.Parse(response)) return false;
 
             //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
-            if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception("WebSocket握手失败！" + res.StatusDescription);
+            if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception(L.T("WebSocket handshake failed: {0}", res.StatusDescription));
 
             // 检查响应头。Upgrade/Connection 允许携多个令牌（如 keep-alive, Upgrade），按逗号拆分逐项比较
             if (!res.Headers.TryGetValue("Upgrade", out var upgrade) || !HasToken(upgrade, "websocket"))
-                throw new Exception("WebSocket握手失败！响应缺少 Upgrade: websocket");
+                throw new Exception(L.T("WebSocket handshake failed: the response is missing 'Upgrade: websocket'."));
 
             if (!res.Headers.TryGetValue("Connection", out var connection) || !HasToken(connection, "Upgrade"))
-                throw new Exception("WebSocket握手失败！响应缺少 Connection: Upgrade");
+                throw new Exception(L.T("WebSocket handshake failed: the response is missing 'Connection: Upgrade'."));
 
             // RFC 6455 §4.1：Accept = base64(SHA1(客户端密钥 + 固定魔法串))，不匹配则拒绝
             if (!res.Headers.TryGetValue("Sec-WebSocket-Accept", out var accept) ||
                 accept != SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes()).ToBase64())
-                throw new Exception("WebSocket握手失败！");
+                throw new Exception(L.T("WebSocket handshake failed."));
 
             // 响应头之后的字节可能是服务器握手后立即推送的首帧：转移所有权给调用方，
             // 否则会随响应对象一起释放（首帧静默丢失，表现为连上了但第一条消息没到）
@@ -728,7 +728,7 @@ public class WebSocketClient : TcpSession
                 {
                     remainder.TryDispose();
                     span?.SetError(ex, null);
-                    WriteLog("WebSocket 握手残片投递失败！" + ex.Message);
+                    WriteLog("Failed to deliver WebSocket handshake leftovers: {0}", ex.Message);
 
                     return false;
                 }
@@ -739,7 +739,7 @@ public class WebSocketClient : TcpSession
         catch (Exception ex)
         {
             span?.SetError(ex, null);
-            WriteLog("WebSocket握手失败！" + ex.Message);
+            WriteLog("WebSocket handshake failed: {0}", ex.Message);
 
             return false;
         }
@@ -777,7 +777,7 @@ public class WebSocketClient : TcpSession
         catch (Exception ex)
         {
             span?.SetError(ex, null);
-            client.WriteLog("WebSocket握手失败！" + ex.Message);
+            client.WriteLog("WebSocket handshake failed: {0}", ex.Message);
 
             client.Close("WebSocket");
             client.Dispose();
@@ -787,3 +787,4 @@ public class WebSocketClient : TcpSession
     }
     #endregion
 }
+

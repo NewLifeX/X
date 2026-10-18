@@ -898,7 +898,7 @@ public static class NetHelper
     internal static Socket CreateUnix()
     {
 #if NETFRAMEWORK || NETSTANDARD2_0
-        throw new PlatformNotSupportedException("Unix Domain Socket 需要 .NET Standard 2.1 或更高版本的目标框架");
+        throw new PlatformNotSupportedException(L.T("Unix domain sockets require a target framework of .NET Standard 2.1 or later."));
 #else
         return new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
 #endif

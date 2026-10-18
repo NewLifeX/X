@@ -185,7 +185,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         catch (Exception ex)
         {
             // 少数平台不支持连接（如未开广播的子网地址），回退 SendTo 发送路径即可
-            WriteLog("Connect {0} 失败：{1}", remote, ex.Message);
+            WriteLog("Connect to {0} failed: {1}", remote, ex.Message);
         }
     }
 
@@ -435,7 +435,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <returns>响应消息</returns>
     public override ValueTask<IMessage> SendMessageAsync(IMessage message, CancellationToken cancellationToken = default)
     {
-        if (CreateSession(null, Remote.EndPoint) is not UdpSession session) throw new NotSupportedException($"会话类型不支持数据报请求-响应等待 [{Remote.EndPoint}]");
+        if (CreateSession(null, Remote.EndPoint) is not UdpSession session) throw new NotSupportedException(L.T("The session type does not support datagram request/response waiting [{0}].", Remote.EndPoint));
 
         return session.SendMessageAsync(message, cancellationToken);
     }
@@ -475,7 +475,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 // StartReceive 的 catch 会释放本接收槽，而槽只在启动时创建、销毁后不重建，耗尽即整台服务器静默失聪
                 _usePacketInfo = false;
 
-                WriteLog("ReceiveMessageFromAsync 不受支持，降级为 ReceiveFromAsync：{0}", ex.Message);
+                WriteLog("ReceiveMessageFromAsync is not supported; falling back to ReceiveFromAsync: {0}", ex.Message);
             }
         }
 
@@ -559,7 +559,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             {
                 _messageSizeLogged = true;
 
-                WriteLog("报文超出接收缓冲 {0} 字节，已丢弃；需要接收大报文请在打开前设置 BufferSize=65536（UDP 数据报上限 65507/65527 字节）", BufferSize);
+                WriteLog("Datagram exceeded the receive buffer of {0} bytes and was discarded. To receive large datagrams, set BufferSize=65536 before opening (UDP datagram limit: 65507/65527 bytes).", BufferSize);
             }
         }
         // 关闭出问题的会话（Reset/Aborted 一般来自 ICMP 端口不可达），服务器本身不关闭
@@ -746,7 +746,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         {
             if (sessions.Count > 0)
             {
-                WriteLog("准备释放会话{0}个！", sessions.Count);
+                WriteLog("Releasing {0} sessions.", sessions.Count);
                 sessions.CloseAll(nameof(CloseAllSession));
                 sessions.Dispose();
                 sessions.Clear();

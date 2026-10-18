@@ -375,14 +375,14 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         if (Server == null)
         {
-            WriteLog("没有可用Socket服务器！");
+            WriteLog("No available socket server.");
 
             return;
         }
 
         Local.Type = Server.Local.Type;
 
-        WriteLog("准备就绪！");
+        WriteLog("Ready.");
     }
 
     /// <summary>开始时调用的方法</summary>
@@ -404,7 +404,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         if (Servers.Count == 0) throw new Exception($"Failed to listen to all ports! Port=[{Port}]");
 
         var snapshot = Servers.ToArray();
-        WriteLog("准备开始监听{0}个服务器", snapshot.Length);
+        WriteLog("Preparing to listen on {0} servers", snapshot.Length);
 
         foreach (var item in snapshot)
         {
@@ -420,11 +420,11 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                     if (elm != item && elm.Port == 0) elm.Port = Port;
                 }
             }
-            WriteLog("开始监听 {0}", item);
+            WriteLog("Started listening on {0}", item);
         }
 
         // 协议模式下输出一次协议编码器，便于启动时确认配置；会话创建时不再重复输出
-        if (Protocol != null) WriteLog("协议编码器：{0}", Protocol);
+        if (Protocol != null) WriteLog("Protocol codec: {0}", Protocol);
 
         if (StatPeriod > 0) _Timer = new TimerX(ShowStat, null, 10_000, StatPeriod * 1000);
     }
@@ -442,7 +442,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         OnStop(reason);
 
-        WriteLog("已停止！");
+        WriteLog("Stopped.");
     }
 
     /// <summary>停止时调用的方法</summary>
@@ -459,19 +459,19 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     protected virtual void OnStop(String? reason)
     {
         var ss = Servers.Where(e => e.Active).ToArray();
-        WriteLog("准备停止监听{0}个服务器 {1}", ss.Length, reason);
+        WriteLog("Preparing to stop listening on {0} servers: {1}", ss.Length, reason);
 
         if (reason.IsNullOrEmpty()) reason = GetType().Name + "Stop";
         foreach (var item in ss)
         {
-            WriteLog("停止监听 {0}", item);
+            WriteLog("Stopped listening on {0}", item);
             item.Stop(reason);
         }
 
         var sessions = _Sessions;
         if (sessions != null && sessions.Count > 0)
         {
-            WriteLog("准备释放网络会话{0}个！", sessions.Count);
+            WriteLog("Releasing {0} network sessions.", sessions.Count);
             foreach (var item in sessions.Values.ToArray())
             {
                 item.TryDispose();
@@ -482,7 +482,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         var severs = Servers;
         if (severs != null && severs.Count > 0)
         {
-            WriteLog("准备释放服务{0}个！", severs.Count);
+            WriteLog("Releasing {0} services.", severs.Count);
             foreach (var item in severs)
             {
                 item.TryDispose();
@@ -655,7 +655,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         else
         {
             // 并发或重复添加时仅记录日志，避免抛异常打断连接流程
-            if (Log.Enable) Log.Warn("会话已存在，忽略重复添加。ID={0}", session.ID);
+            if (Log.Enable) Log.Warn("Session already exists; duplicate add ignored. ID={0}", session.ID);
         }
     }
 

@@ -246,18 +246,18 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     private static void BindUnix(Socket sock, String? path)
     {
 #if NETFRAMEWORK || NETSTANDARD2_0
-        throw new PlatformNotSupportedException("Unix Domain Socket 需要 .NET Standard 2.1 或更高版本的目标框架");
+        throw new PlatformNotSupportedException(L.T("Unix domain sockets require a target framework of .NET Standard 2.1 or later."));
 #else
-        if (path.IsNullOrEmpty()) throw new ArgumentNullException(nameof(path), "Unix域套接字路径不能为空");
+        if (path.IsNullOrEmpty()) throw new ArgumentNullException(nameof(path), L.T("The Unix domain socket path cannot be empty."));
 
         // 已有服务在监听时拒绝启动，避免两套服务各自服务一部分连接
         if (File.Exists(path) && UnixSocketAlive(path!))
-            throw new InvalidOperationException($"Unix域套接字[{path}]已被其它服务监听");
+            throw new InvalidOperationException(L.T("Unix domain socket [{0}] is already being listened on by another service.", path));
 
         // 清理进程异常退出后残留的套接字文件
         if (File.Exists(path))
         {
-            XTrace.WriteLine("清理残留的Unix域套接字文件 {0}", path);
+            XTrace.WriteLine("Cleaning up leftover Unix domain socket file {0}", path);
             File.Delete(path!);
         }
 
@@ -417,7 +417,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
                 // 会话已入集合却无人接管：必须立即释放，否则它会一直留在集合里、Disconnected 永不触发、
                 // 连接一直悬挂到会话超时（默认20分钟）。释放由 Dispose 触发 OnDisposed，集合与端点缓存随之清理。
                 // 异常继续上抛，由 ProcessAccept 统一记账
-                session.WriteLog("新会话处理失败，释放会话 {0}", ex.Message);
+                session.WriteLog("Failed to handle the new session; releasing session {0}", ex.Message);
                 session.TryDispose();
 
                 throw;
@@ -487,7 +487,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         {
             if (sessions.Count > 0)
             {
-                WriteLog("准备释放会话{0}个！", sessions.Count);
+                WriteLog("Releasing {0} sessions.", sessions.Count);
                 sessions.CloseAll(nameof(CloseAllSession));
                 sessions.Dispose();
                 sessions.Clear();

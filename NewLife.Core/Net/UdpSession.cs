@@ -243,7 +243,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         if (request == null) throw new ArgumentNullException(nameof(request));
 
         var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
-        if (ResponseMatcher.Resolve(codec) == null) throw new NotSupportedException($"协议 [{codec.GetType().Name}] 未实现请求-响应配对（IMessageMatcher），无法等待响应");
+        if (ResponseMatcher.Resolve(codec) == null) throw new NotSupportedException(L.T("Protocol [{0}] does not implement request/response matching (IMessageMatcher); cannot wait for a response.", codec.GetType().Name));
 
         var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", request);
         var source = _matcher.Register(this, request, span);

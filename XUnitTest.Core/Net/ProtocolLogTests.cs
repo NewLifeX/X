@@ -28,9 +28,9 @@ public class ProtocolLogTests
         };
 
         Assert.True(client.Open());
-        Assert.True(log.Contains("协议编码器"));
+        Assert.True(log.Contains("Protocol codec"));
         Assert.True(log.Contains(nameof(SrmpCodec)));
-        Assert.Equal(1, log.Count("协议编码器"));
+        Assert.Equal(1, log.Count("Protocol codec"));
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class ProtocolLogTests
         };
 
         Assert.True(client.Open());
-        Assert.Equal(0, log.Count("协议编码器"));
+        Assert.Equal(0, log.Count("Protocol codec"));
     }
 
     [Fact]
@@ -64,8 +64,8 @@ public class ProtocolLogTests
         };
 
         Assert.True(client.Open());
-        Assert.True(log.Contains("协议编码器"));
-        Assert.Equal(1, log.Count("协议编码器"));
+        Assert.True(log.Contains("Protocol codec"));
+        Assert.Equal(1, log.Count("Protocol codec"));
     }
     #endregion
 
@@ -85,7 +85,7 @@ public class ProtocolLogTests
         };
 
         server.Start();
-        Assert.Equal(1, log.Count("协议编码器"));
+        Assert.Equal(1, log.Count("Protocol codec"));
 
         // 未配置协议时不输出
         var log2 = new TestLog();
@@ -98,7 +98,7 @@ public class ProtocolLogTests
         };
 
         server2.Start();
-        Assert.Equal(0, log2.Count("协议编码器"));
+        Assert.Equal(0, log2.Count("Protocol codec"));
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class ProtocolLogTests
         };
 
         server.Start();
-        Assert.Equal(1, log.Count("协议编码器"));
+        Assert.Equal(1, log.Count("Protocol codec"));
 
         // 客户端接入并保持连接，触发服务端会话启动
         using var client = new TcpSession
@@ -135,8 +135,9 @@ public class ProtocolLogTests
         Assert.True(log.Contains("]New "));
 
         // 接入会话不输出协议编码器，也不再输出每会话的消息泵日志
-        Assert.Equal(1, log.Count("协议编码器"));
+        Assert.Equal(1, log.Count("Protocol codec"));
         Assert.Equal(0, log.Count("启动消息泵"));
     }
     #endregion
 }
+
