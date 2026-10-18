@@ -71,6 +71,17 @@ public class LocalizationGeneratorTests
         Assert.DoesNotContain("public static String T(", text);
     }
 
+    [Fact(DisplayName = "下游模式：注册对不变全球化做防御")]
+    public void DownstreamInvariantGuard()
+    {
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "My.Component", null,
+            new[] { ("Locales/ja.yml", Yaml) });
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException)", text);
+    }
+
     [Fact(DisplayName = "非 Locales 目录的 yml 不参与生成")]
     public void IgnoreNonLocaleYaml()
     {
