@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- https://learn.microsoft.com/dotnet/fundamentals/package-validation/diagnostic-ids -->
 <!--
-  当前无抑制条目。
-  2026-10-18 目标框架精简（删除 netcoreapp3.1/net5.0/net7.0/net9.0）后，原三条跨 TFM 抑制
-  指向的资产已不再产出，保留只会被门禁判为"不必要的抑制"，故删除。
-  精简后的 TFM 集合内，垫片与 BCL 的差异不再跨资产对比；后续新增抑制前先读
-  Doc/架构设计.md §7 收口记录。
+  跨 TFM 抑制只保留"垫片与 BCL 成员形状差异"，其余差异应通过补齐低版本成员消除。
+  2026-10-18 目标框架精简（删除 netcoreapp3.1/net5.0/net7.0/net9.0）后，资产对比边界随之变化，
+  以下两条按新资产组合重新登记；后续新增抑制前先读 Doc/架构设计.md §7 收口记录。
 -->
 <Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <!-- TimeProvider.System 垫片带 setter（低版本自定义时间注入钩子），net8+ BCL 为只读属性；
+       转发后跨资产对比暴露该成员差，保留抑制（理由见 Doc/架构设计.md §7 收口记录） -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.TimeProvider.set_System(System.TimeProvider)</Target>
+    <Left>lib/net6.0/NewLife.Core.dll</Left>
+    <Right>lib/net8.0/NewLife.Core.dll</Right>
+  </Suppression>
+  <!-- DynamicDependencyAttribute 垫片带 AssemblyName setter，net6+ BCL 版本为只读属性 -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute.set_AssemblyName(System.String)</Target>
+    <Left>lib/netstandard2.1/NewLife.Core.dll</Left>
+    <Right>lib/net6.0/NewLife.Core.dll</Right>
+  </Suppression>
 </Suppressions>

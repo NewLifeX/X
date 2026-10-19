@@ -1,7 +1,7 @@
 ﻿# 二进制兼容门禁本地检查（Microsoft Package Validation）
 # 以「同一 dev 线（12.0.*）最新已发布版本」为基线，对当前源码打出的包做 API 兼容校验；
 # 与 CI（publish-beta.yml 观察期步骤）使用同一机制。跨 TFM 存量差异走抑制白名单：
-# NewLife.Core\CompatibilitySuppressions.xml（治理规则见 Doc\功能清单.md 待修复项 FIX-133~136）。
+# NewLife.Core\CompatibilitySuppressions.xml（治理规则见 Doc\架构设计.md §7 收口记录）。
 #
 # 用法：
 #   pwsh -File check-api-compat.ps1                        # 基线自动取最新 12.0.* 已发布版本

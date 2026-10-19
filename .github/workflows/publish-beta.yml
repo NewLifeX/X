@@ -38,7 +38,7 @@ jobs:
     - name: API compatibility gate (observation mode)
       # 观察期：只报告不阻断；2~4 周无新增噪声后删除 continue-on-error 转为发布阻断。
       # 基线=本 dev 线（12.0.*）上次已发布的 beta；校验在 Publish 之前，不会被本次发布污染。
-      # 跨 TFM 存量 11 条走 NewLife.Core\CompatibilitySuppressions.xml；本地复现用 check-api-compat.ps1。
+      # 跨 TFM 存量 2 条走 NewLife.Core\CompatibilitySuppressions.xml；本地复现用 check-api-compat.ps1。
       continue-on-error: true
       shell: pwsh
       run: |
