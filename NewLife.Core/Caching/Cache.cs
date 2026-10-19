@@ -414,7 +414,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
     public virtual Int64 Bench(Boolean rand = false, Int32 batch = 0)
     {
         var cpu = Environment.ProcessorCount;
-        XTrace.WriteLine("{0} performance test [{1}], batch size [{2}], logical processors {3:n0}", Name, rand ? L.T("random") : L.T("sequential"), batch, cpu);
+        XTrace.WriteLine("{0} performance test [{1}], batch size [{2}], logical processors {3:n0}", Name, rand ? Localization.TranslateForLog("random") : Localization.TranslateForLog("sequential"), batch, cpu);
 
         var rs = 0L;
         var times = GetTimesPerThread(rand, batch);
