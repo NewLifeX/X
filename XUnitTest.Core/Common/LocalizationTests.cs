@@ -15,6 +15,7 @@ namespace XUnitTest.Common;
 public class LocalizationTests
 {
     private const String Key = "Reset is not supported in streaming mode.";
+    private const String NewKey = "Count cannot be negative.";
     private const String Zh = "流式模式不支持复位";
     private static readonly CultureInfo _zh = CultureInfo.GetCultureInfo("zh-Hans");
 
@@ -160,7 +161,7 @@ public class LocalizationTests
             foreach (var name in cultures)
             {
                 Localization.Culture = CultureInfo.GetCultureInfo(name);
-                if (Localization.Translate(Key) == Key) missing.Add(name);
+                if (Localization.Translate(Key) == Key || Localization.Translate(NewKey) == NewKey) missing.Add(name);
             }
         }
         finally
