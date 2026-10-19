@@ -354,6 +354,11 @@ public static class ConfigHelper
         }
     }
 
+    /// <summary>本地化配置注释</summary>
+    /// <param name="comment">英文源文注释</param>
+    /// <returns>本地化注释；缺少翻译时返回原文</returns>
+    public static String? LocalizeComment(this String? comment) => comment.IsNullOrEmpty() ? comment : Localization.Translate(comment);
+
     /// <summary>从实例公有属性映射到配置树</summary>
     /// <param name="section">目标配置节</param>
     /// <param name="model">模型实例</param>
