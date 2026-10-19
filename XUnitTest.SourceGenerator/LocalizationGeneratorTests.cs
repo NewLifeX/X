@@ -45,6 +45,7 @@ public class LocalizationGeneratorTests
         Assert.Contains("internal static class LocalizationTable", text);
         Assert.Contains("ModuleInitializer", text);
         Assert.Contains("public static String T(String template)", text);
+        Assert.Contains("public static String TLog(String template)", text);
         Assert.Contains("Localization.Register", text);
         Assert.DoesNotContain("GetCultureKey", text);
         // 下游可能补 ModuleInitializerAttribute，必须使用块级命名空间
@@ -63,6 +64,7 @@ public class LocalizationGeneratorTests
 
         var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
         Assert.Contains("public static String T(String template)", text);
+        Assert.Contains("public static String TLog(String template)", text);
         Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
     }
 

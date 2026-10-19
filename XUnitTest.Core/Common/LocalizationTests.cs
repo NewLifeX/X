@@ -478,6 +478,31 @@ public class LocalizationTests
         }
     }
 
+    [Fact(DisplayName = "L.TLog：按日志语言翻译，与 L.T 的界面语言相互独立")]
+    public void L_TLog_uses_log_culture()
+    {
+        var savedCulture = Localization.Culture;
+        var savedLogCulture = Localization.LogCulture;
+        try
+        {
+            Localization.Culture = _zh;
+            Localization.LogCulture = CultureInfo.GetCultureInfo("en-US");
+            Assert.Equal(Zh, L.T(Key));
+            Assert.Equal(Key, L.TLog(Key));
+
+            Localization.Culture = CultureInfo.GetCultureInfo("en-US");
+            Localization.LogCulture = _zh;
+            Assert.Equal(Key, L.T(Key));
+            Assert.Equal(Zh, L.TLog(Key));
+            Assert.Equal("消息体未读满：期望 5 字节，实读 3 字节", L.TLog("Message body is incomplete; expected {0} bytes, read {1} bytes.", 5, 3));
+        }
+        finally
+        {
+            Localization.Culture = savedCulture;
+            Localization.LogCulture = savedLogCulture;
+        }
+    }
+
     #endregion
 
     private sealed class ProbeLogger : Logger

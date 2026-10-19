@@ -45,6 +45,26 @@ public class DownstreamLocalizationTests
         }
     }
 
+    [Fact(DisplayName = "下游程序集：L.TLog 按日志语言翻译，与界面语言相互独立")]
+    public void ShortcutLogCulture()
+    {
+        var savedCulture = Localization.Culture;
+        var savedLogCulture = Localization.LogCulture;
+        try
+        {
+            Localization.Culture = CultureInfo.GetCultureInfo("ta-IN");
+            Localization.LogCulture = CultureInfo.GetCultureInfo("zh-Hans");
+
+            Assert.Equal(Tamil, L.T(Key));
+            Assert.Equal("流式模式不支持复位", L.TLog("Reset is not supported in streaming mode."));
+        }
+        finally
+        {
+            Localization.Culture = savedCulture;
+            Localization.LogCulture = savedLogCulture;
+        }
+    }
+
     [Fact(DisplayName = "下游程序集：未注册语言仍回退英文原文")]
     public void Fallback()
     {
