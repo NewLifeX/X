@@ -28,7 +28,31 @@ switch ($Mode) {
         $buildArgs += "-p:RunAOTCompilation=true"
     }
     "NativeAot" {
+        # NativeAOT 需要 Android NDK 的 clang/LLVM；优先使用 ANDROID_NDK_HOME，其次 Android SDK 下的 ndk/<version>
+        $ndk = $env:ANDROID_NDK_HOME
+        if (-not $ndk -and $env:ANDROID_HOME) {
+            $ndkRoot = Join-Path $env:ANDROID_HOME "ndk"
+            if (Test-Path $ndkRoot) {
+                $ndk = Get-ChildItem $ndkRoot -Directory |
+                    Sort-Object { [version]($_.Name -replace '[^0-9.].*$','') } -Descending |
+                    Select-Object -First 1 -ExpandProperty FullName
+            }
+        }
+        if (-not $ndk -or -not (Test-Path $ndk)) {
+            throw "NativeAot 需要 Android NDK。请先执行: sdkmanager ""ndk;26.3.11579264""，或设置 ANDROID_NDK_HOME。"
+        }
+
+        $hostTag = if ($IsWindows) { "windows-x86_64" } elseif ($IsMacOS) { "darwin-x86_64" } else { "linux-x86_64" }
+        $clangBin = Join-Path $ndk "toolchains/llvm/prebuilt/$hostTag/bin"
+        if (-not (Test-Path $clangBin)) { throw "Android NDK 缺少 LLVM 工具链: $clangBin" }
+        $env:PATH = "$clangBin$([IO.Path]::PathSeparator)$env:PATH"
+        $clang = Join-Path $clangBin $(if ($IsWindows) { "clang.exe" } else { "clang" })
+        $clangxx = Join-Path $clangBin $(if ($IsWindows) { "clang++.exe" } else { "clang++" })
+        if (Test-Path $clang) { $env:CC = $clang }
+        if (Test-Path $clangxx) { $env:CXX = $clangxx }
+
         $buildArgs += "-p:NativeAot=true"
+        $buildArgs += "-p:AndroidNdkDirectory=$ndk"
     }
 }
 if ($env:ANDROID_HOME) { $buildArgs += "-p:AndroidSdkDirectory=$env:ANDROID_HOME" }
