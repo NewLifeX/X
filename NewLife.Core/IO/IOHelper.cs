@@ -852,7 +852,7 @@ public static class IOHelper
         while (true)
         {
             var bt = stream.ReadByte();
-            if (bt < 0) throw new Exception(L.T("The data stream is out of range! The integer read is {0: n0}", rs));
+            if (bt < 0) throw new Exception(L.T("The data stream is out of range! The integer read is {0:n0}", rs));
             b = (Byte)bt;
 
             // 必须转为Int32，否则可能溢出
