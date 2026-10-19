@@ -16,14 +16,14 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
 NewLife フレームワークは、拡張可能なアプリケーションを構築するための高性能な基盤を提供する、包括的な .NET コンポーネントエコシステムです。ログ、ネットワーク、シリアライズ、キャッシュ、マルチスレッドなどの基本機能を提供し、Web サービスから IoT デバイスに至るまでの一連のアプリケーションの基盤となります。  
 
 コアライブラリのチュートリアル：[https://newlifex.com/core](https://newlifex.com/core)  
 
-> ⚠️ 本翻訳は更新が遅れる場合があります。正式な内容は[中文 README](Readme.MD)を参照してください。
+> ⚠️ 本翻訳は更新が遅れる場合があります。正式な内容は[英語 README](README.md)を参照してください。
 
 **目次**: [フレームワーク概要](#フレームワーク概要) · [NewLife.Core を選ぶ理由](#newlifecore-を選ぶ理由) · [クイックスタート](#クイックスタート) · [主な機能](#主な機能) · [ドキュメント索引](#ドキュメント索引) · [リポジトリ構成](#リポジトリ構成) · [ビルドとテスト](#ビルドとテスト) · [新生命プロジェクトマトリックス](#新生命プロジェクトマトリックス) · [貢献とフィードバック](#貢献とフィードバック) · [ライセンス](#ライセンス)
 

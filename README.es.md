@@ -16,14 +16,14 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
 NewLife es un ecosistema integral de componentes .NET que ofrece una infraestructura de alto rendimiento para construir aplicaciones escalables. Proporciona funcionalidades básicas como registro de logs, redes, serialización, caché y multihilo, y sirve como base para una amplia gama de aplicaciones, desde servicios web hasta dispositivos IoT.
 
 Tutorial de la biblioteca principal: [https://newlifex.com/core](https://newlifex.com/core)
 
-> ⚠️ Esta traducción puede quedar desactualizada; la versión autorizada es el [README en chino](Readme.MD).
+> ⚠️ Esta traducción puede quedar desactualizada; la versión autorizada es el [README en inglés](README.md).
 
 **Índice**: [Descripción general del framework](#descripción-general-del-framework) · [Por qué NewLife.Core](#por-qué-newlifecore) · [Inicio rápido](#inicio-rápido) · [Funcionalidades principales](#funcionalidades-principales) · [Índice de documentación](#índice-de-documentación) · [Estructura del repositorio](#estructura-del-repositorio) · [Compilar y probar](#compilar-y-probar) · [Matriz de proyectos de NewLife](#matriz-de-proyectos-de-newlife) · [Contribución y comentarios](#contribución-y-comentarios) · [Licencia](#licencia)
 

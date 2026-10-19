@@ -16,14 +16,14 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
+🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
 NewLife 프레임워크는 포괄적인 .NET 컴포넌트 생태계로, 확장 가능한 애플리케이션을 구축하기 위한 고성능 기반 인프라를 제공합니다. 로깅, 네트워크, 직렬화, 캐시, 멀티스레딩 등의 기본 기능을 제공하며, 웹 서비스부터 IoT 장치에 이르기까지 다양한 애플리케이션의 기반이 됩니다.  
 
 핵심 라이브러리 튜토리얼: [https://newlifex.com/core](https://newlifex.com/core)  
 
-> ⚠️ 이 번역은 업데이트가 늦어질 수 있습니다. 정식 내용은 [중국어 README](Readme.MD)를 기준으로 합니다.
+> ⚠️ 이 번역은 업데이트가 늦어질 수 있습니다. 정식 내용은 [영어 README](README.md)를 기준으로 합니다.
 
 
 **목차**: [프레임워크 개요](#프레임워크-개요) · [NewLife.Core를 선택하는 이유](#newlifecore를-선택하는-이유) · [빠르게 시작하기](#빠르게-시작하기) · [주요 기능](#주요-기능) · [문서 색인](#문서-색인) · [리포지토리 구조](#리포지토리-구조) · [빌드 및 테스트](#빌드-및-테스트) · [뉴라이프 프로젝트 매트릭스](#뉴라이프-프로젝트-매트릭스) · [기여 및 피드백](#기여-및-피드백) · [라이선스](#라이선스)

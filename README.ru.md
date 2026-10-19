@@ -16,14 +16,14 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
 Фреймворк NewLife — это всеобъемлющая экосистема компонентов .NET, предоставляющая высокопроизводительную инфраструктуру для создания масштабируемых приложений. Он обеспечивает базовые функции, такие как логирование, сеть, сериализация, кэширование и многопоточность, и служит основой для целого ряда приложений — от веб-сервисов до IoT-устройств.
 
 Учебник по базовой библиотеке: [https://newlifex.com/core](https://newlifex.com/core)
 
-> ⚠️ Этот перевод может отставать от оригинала; актуальная версия — [китайский README](Readme.MD).
+> ⚠️ Этот перевод может отставать от оригинала; актуальная версия — [английский README](README.md).
 
 **Содержание**: [Обзор фреймворка](#обзор-фреймворка) · [Почему NewLife.Core](#почему-newlifecore) · [Быстрый старт](#быстрый-старт) · [Основные возможности](#основные-возможности) · [Индекс документации](#индекс-документации) · [Структура репозитория](#структура-репозитория) · [Сборка и тестирование](#сборка-и-тестирование) · [Матрица проектов NewLife](#матрица-проектов-newlife) · [Участие и обратная связь](#участие-и-обратная-связь) · [Лицензия](#лицензия)
 

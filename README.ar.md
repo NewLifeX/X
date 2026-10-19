@@ -16,14 +16,14 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md)
+🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md)
 <!-- lang:end -->
 
 إطار NewLife منظومة مكوّنات .NET شاملة، يوفّر بنية أساسية عالية الأداء لبناء تطبيقات قابلة للتوسّع. يقدّم وظائف أساسية مثل التسجيل والشبكات والتسلسل والتخزين المؤقت وتعدّد الخيوط، ليكون أساسًا لسلسلة من التطبيقات تمتدّ من خدمات Web إلى أجهزة IoT.  
 
 دليل المكتبة الأساسية: [https://newlifex.com/core](https://newlifex.com/core)  
 
-> ⚠️ قد تتأخر هذه الترجمة عن أحدث نسخة؛ المحتوى المعتمد هو [README الصيني](Readme.MD).
+> ⚠️ قد تتأخر هذه الترجمة عن أحدث نسخة؛ المحتوى المعتمد هو [README الإنجليزي](README.md).
 
 
 **المحتويات**: [نظرة عامة على الإطار](#نظرة-عامة-على-الإطار) · [لماذا NewLife.Core](#لماذا-newlifecore) · [البدء السريع](#البدء-السريع) · [الميزات الرئيسية](#الميزات-الرئيسية) · [فهرس الوثائق](#فهرس-الوثائق) · [هيكل المستودع](#هيكل-المستودع) · [البناء والاختبار](#البناء-والاختبار) · [مصفوفة مشاريع NewLife](#مصفوفة-مشاريع-newlife) · [المساهمة والملاحظات](#المساهمة-والملاحظات) · [الترخيص](#الترخيص)

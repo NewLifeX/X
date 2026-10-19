@@ -44,7 +44,7 @@ try {
     $required = @(
         "analyzers/dotnet/cs/NewLife.Core.SourceGenerator.dll",
         "lib/$Framework/NewLife.Core.dll",
-        "Readme.MD",
+        "README.nuget.md",
         "leaf.png"
     )
     foreach ($item in $required) {

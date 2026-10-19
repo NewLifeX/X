@@ -1,0 +1,8 @@
+{
+  "updated": "2026-10-19",
+  "repository": "https://github.com/NewLifeX/X",
+  "branch": "master",
+  "items": [
+    { "source": "README.md", "output": "README.nuget.md" }
+  ]
+}

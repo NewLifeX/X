@@ -29,7 +29,7 @@ $values = @{
 }
 
 $files = @(Get-ChildItem -Path $Root -File | Where-Object {
-    $_.Name -match '^(README|Readme)(\.[A-Za-z-]+)?\.md$' -and $_.Name -notmatch '\.template\.'
+    $_.Name -match '^(README|Readme)(\.[A-Za-z-]+)?\.md$' -and $_.Name -notmatch '\.(template|nuget)\.'
 } | Sort-Object Name)
 if ($files.Count -eq 0) { throw "根目录未找到 README 文件" }
 

@@ -16,14 +16,14 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [English](README.en.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
 NewLife 框架是一套完整的 .NET 元件生態系，為建置可擴充的應用程式提供高效能基礎設施。它提供日誌、網路、序列化、快取與多執行緒等基本功能，作為從 Web 服務到 IoT 裝置等一系列應用程式的基礎。  
 
 核心函式庫教學：[https://newlifex.com/core](https://newlifex.com/core)  
 
-> ⚠️ 本翻譯可能落後於[簡體中文 README](Readme.MD)，內容以簡體中文版為準。
+> ⚠️ 本翻譯可能落後於[英文 README](README.md)，內容以英文版為準。
 
 **目錄**：[框架概覽](#框架概覽) · [為什麼選擇](#為什麼選擇-newlifecore) · [快速開始](#快速開始) · [主要功能](#主要功能) · [文件索引](#文件索引) · [儲存庫結構](#儲存庫結構) · [建置與測試](#建置與測試) · [專案矩陣](#新生命專案矩陣) · [貢獻與回饋](#貢獻與回饋) · [授權條款](#授權條款)
 

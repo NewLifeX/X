@@ -1,3 +1,5 @@
+<!-- generated from README.md by sync-readme-package.ps1; do not edit -->
+
 # NewLife.Core - Core Library
 
 ![GitHub License](https://img.shields.io/github/license/NewLifeX/X?logo=github)
@@ -7,24 +9,21 @@
 [![NativeAOT](https://github.com/NewLifeX/X/actions/workflows/aot.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/aot.yml)
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 <!-- metrics:start -->
-[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
+[![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)
 [![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
-[![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
+[![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)
 <!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
 ![arch](https://img.shields.io/badge/arch-x64%20%7C%20x86%20%7C%20arm64%20%7C%20arm%20%7C%20loongarch64%20%7C%20riscv64%20%7C%20s390x-orange)
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+🌐 [简体中文](https://github.com/NewLifeX/X/blob/master/README.zh-CN.md) | [繁體中文](https://github.com/NewLifeX/X/blob/master/README.zh-TW.md) | [Español](https://github.com/NewLifeX/X/blob/master/README.es.md) | [Deutsch](https://github.com/NewLifeX/X/blob/master/README.de.md) | [日本語](https://github.com/NewLifeX/X/blob/master/README.ja.md) | [Français](https://github.com/NewLifeX/X/blob/master/README.fr.md) | [Português](https://github.com/NewLifeX/X/blob/master/README.pt.md) | [Русский](https://github.com/NewLifeX/X/blob/master/README.ru.md) | [한국어](https://github.com/NewLifeX/X/blob/master/README.ko.md) | [العربية](https://github.com/NewLifeX/X/blob/master/README.ar.md)
 <!-- lang:end -->
 
 NewLife framework is a comprehensive .NET component ecosystem that provides high-performance infrastructure for building scalable applications. It offers essential capabilities such as logging, networking, serialization, caching, and multithreading, serving as the foundation for a range of applications from web services to IoT devices.  
 
 Core library tutorial: [https://newlifex.com/core](https://newlifex.com/core)  
-
-> ⚠️ This translation may lag behind the [Chinese README](Readme.MD), which is the authoritative source.
-
 
 **Contents**: [Framework Overview](#framework-overview) · [Why NewLife.Core](#why-newlifecore) · [Quick Start](#quick-start) · [Main Features](#main-features) · [Documentation Index](#documentation-index) · [Repository layout](#repository-layout) · [Build and test](#build-and-test) · [NewLife Project Matrix](#newlife-project-matrix) · [Contributing and feedback](#contributing-and-feedback) · [License](#license)
 
@@ -64,14 +63,6 @@ cache.Set("key", "value", 60);          // expires in 60 seconds
 var value = cache.Get<String>("key");   // read back
 ```
 
-### Build and customize
-
-NewLife components have been co-created by the community for more than 20 years and use the MIT open source license. **Anyone can modify and redistribute them at will** (no need to indicate the source)! Many enterprises build internal development frameworks based on this, and can even achieve private customization by batch-replacing all `NewLife` strings in the source code with their company name.
-
-The team has always maintained an open attitude: it not only supports opening the solution and compiling in VisualStudio (latest release), but is also compatible with `dotnet build` command-line compilation. The project files abandon complex features in pursuit of simplicity and ease of use, truly ready to use out of the box.
-
-We publish the strong-name certificate `newlife.snk` to support compiling and replacing assemblies on your own.
-
 ### Template scaffolding
 
 Run the following commands in a command line to quickly experience NewLife components:
@@ -82,6 +73,14 @@ dotnet new nconsole --name test
 cd test
 dotnet run
 ```
+
+### Build and customize
+
+The team has always maintained an open attitude: it not only supports opening the solution and compiling in VisualStudio (latest release), but is also compatible with `dotnet build` command-line compilation. The project files abandon complex features in pursuit of simplicity and ease of use, truly ready to use out of the box.
+
+We publish the strong-name certificate `newlife.snk` to support compiling and replacing assemblies on your own.
+
+NewLife components have been co-created by the community for more than 20 years and use the MIT open source license. **Anyone can modify and redistribute them at will** (no need to indicate the source)! Many enterprises build internal development frameworks based on this, and can even achieve private customization by batch-replacing all `NewLife` strings in the source code with their company name.
 
 ## Documentation Index
 

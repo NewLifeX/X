@@ -16,14 +16,14 @@
 [![contributors](https://img.shields.io/github/contributors/NewLifeX/X?logo=github)](https://github.com/NewLifeX/X/graphs/contributors)
 
 <!-- lang:start -->
-🌐 [中文](Readme.MD) | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [Español](README.es.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
+🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
 Das NewLife-Framework ist ein umfassendes .NET-Komponentenökosystem, das hochperformante Infrastruktur für den Aufbau skalierbarer Anwendungen bereitstellt. Es bietet grundlegende Funktionen wie Protokollierung, Netzwerk, Serialisierung, Caching und Multithreading und bildet die Grundlage für eine breite Palette von Anwendungen – von Webdiensten bis hin zu IoT-Geräten.  
 
 Tutorial zur Kernbibliothek: [https://newlifex.com/core](https://newlifex.com/core)  
 
-> ⚠️ Diese Übersetzung kann veraltet sein; maßgeblich ist das [chinesische README](Readme.MD).
+> ⚠️ Diese Übersetzung kann veraltet sein; maßgeblich ist das [englische README](README.md).
 
 **Inhalt**: [Framework-Überblick](#framework-überblick) · [Warum NewLife.Core](#warum-newlifecore) · [Schnellstart](#schnellstart) · [Hauptfunktionen](#hauptfunktionen) · [Dokumentationsindex](#dokumentationsindex) · [Repository-Struktur](#repository-struktur) · [Erstellen und testen](#erstellen-und-testen) · [NewLife-Projektmatrix](#newlife-projektmatrix) · [Beitragen und Feedback](#beitragen-und-feedback) · [Lizenz](#lizenz)
 

@@ -1,6 +1,6 @@
 # README 多语言切换行同步与校验
 #
-# 单一事实源：readme-languages.json。数组顺序即展示顺序，前两位固定为中文（权威版）与 English。
+# 单一事实源：readme-languages.json。数组顺序即展示顺序，前三位固定为 English（默认落地页）、简体中文（双权威）与繁體中文。
 # 各 README 只有 <!-- lang:start --> 与 <!-- lang:end --> 之间的内容由本脚本生成，
 # 并省略当前语种自身，与新语种追加到末尾的约定配套。
 #
@@ -31,7 +31,7 @@ if ($missing.Count -gt 0) { throw "配置的语种文件不存在：$($missing.f
 
 # 新增翻译若忘记登记，切换行会静默漏掉它，这里直接拦下
 $registered = @($langs.file)
-$unregistered = @(Get-ChildItem -Path $Root -File | Where-Object { $_.Name -match '^(README|Readme)(\.[A-Za-z-]+)?\.md$' -and $registered -notcontains $_.Name })
+$unregistered = @(Get-ChildItem -Path $Root -File | Where-Object { $_.Name -match '^(README|Readme)(\.[A-Za-z-]+)?\.md$' -and $_.Name -notmatch '\.nuget\.md$' -and $registered -notcontains $_.Name })
 if ($unregistered.Count -gt 0) { throw "根目录存在未登记的 README：$($unregistered.Name -join ', ')，请先加入 $Config" }
 
 # 生成某个 README 的切换行（省略自身）
