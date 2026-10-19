@@ -13,65 +13,65 @@ namespace NewLife;
 /// <remarks>
 /// 文档 https://newlifex.com/core/setting
 /// </remarks>
-[DisplayName("核心设置")]
+[DisplayName("Core settings")]
 [Config("Core")]
 public class Setting : Config<Setting>
 {
     #region 属性
     /// <summary>是否启用全局调试。默认启用</summary>
-    [Description("启用全局调试。XTrace.Debug")]
+    [Description("Global debugging. Enables XTrace.Debug.")]
     public Boolean Debug { get; set; } = true;
 
     /// <summary>日志等级，只输出大于等于该级别的日志，All/Debug/Info/Warn/Error/Fatal，默认Info</summary>
-    [Description("日志等级。只输出大于等于该级别的日志，All/Debug/Info/Warn/Error/Fatal，默认Info")]
+    [Description("Log level. Only logs at or above this level are output: All/Debug/Info/Warn/Error/Fatal. Default Info.")]
     public LogLevel LogLevel { get; set; } = LogLevel.Info;
 
     /// <summary>文件日志目录。默认Log子目录</summary>
-    [Description("文件日志目录。默认Log子目录")]
+    [Description("File log directory. Defaults to the Log subdirectory.")]
     public String LogPath { get; set; } = "";
 
     /// <summary>日志文件上限。超过上限后拆分新日志文件，默认10MB，0表示不限制大小</summary>
-    [Description("日志文件上限（MB）。超过上限后拆分新日志文件，默认10MB，0表示不限制大小")]
+    [Description("Log file size limit (MB). Splits a new log file when exceeded. Default 10 MB; 0 means unlimited.")]
     public Int32 LogFileMaxBytes { get; set; } = 10;
 
     /// <summary>日志文件备份。超过备份数后，最旧的文件将被删除，网络安全法要求至少保存6个月日志，默认200，0表示不限制个数</summary>
-    [Description("日志文件备份。超过备份数后，最旧的文件将被删除，网络安全法要求至少保存6个月日志，默认200，0表示不限制个数")]
+    [Description("Log file backups. The oldest files are deleted when the count is exceeded. Cybersecurity law requires at least 6 months of logs. Default 200; 0 means unlimited.")]
     public Int32 LogFileBackups { get; set; } = 200;
 
     /// <summary>日志文件格式。默认{0:yyyy_MM_dd}.log，支持日志等级如 {1}_{0:yyyy_MM_dd}.log</summary>
-    [Description("日志文件格式。默认{0:yyyy_MM_dd}.log，支持日志等级如 {1}_{0:yyyy_MM_dd}.log")]
+    [Description("Log file format. Default {0:yyyy_MM_dd}.log; supports level placeholders such as {1}_{0:yyyy_MM_dd}.log.")]
     public String LogFileFormat { get; set; } = "{0:yyyy_MM_dd}.log";
 
     /// <summary>日志行格式。默认Time|ThreadId|Kind|Name|Message，还支持Level</summary>
-    [Description("日志行格式。默认Time|ThreadId|Kind|Name|Message，还支持Level")]
+    [Description("Log line format. Default Time|ThreadId|Kind|Name|Message; Level is also supported.")]
     public String LogLineFormat { get; set; } = "Time|ThreadId|Kind|Name|Message";
 
     /// <summary>网络日志。本地子网日志广播udp://255.255.255.255:514，或者http://xxx:80/log</summary>
-    [Description("网络日志。本地子网日志广播udp://255.255.255.255:514，或者http://xxx:80/log")]
+    [Description("Network log. Broadcasts local subnet logs to udp://255.255.255.255:514, or http://xxx:80/log.")]
     public String NetworkLog { get; set; } = "";
 
     /// <summary>数据目录。本地数据库目录，默认Data子目录</summary>
-    [Description("数据目录。本地数据库目录，默认Data子目录")]
+    [Description("Data directory. Local database directory; defaults to the Data subdirectory.")]
     public String DataPath { get; set; } = "";
 
     /// <summary>备份目录。备份数据库时存放的目录，默认Backup子目录</summary>
-    [Description("备份目录。备份数据库时存放的目录，默认Backup子目录")]
+    [Description("Backup directory. Directory for database backups; defaults to the Backup subdirectory.")]
     public String BackupPath { get; set; } = "";
 
     /// <summary>插件目录</summary>
-    [Description("插件目录。本地插件存放目录，默认Plugins子目录")]
+    [Description("Plugin directory. Local plugin directory; defaults to the Plugins subdirectory.")]
     public String PluginPath { get; set; } = "";
 
     /// <summary>插件服务器。将从该网页上根据关键字分析链接并下载插件，部分嵌入式设备不支持https</summary>
-    [Description("插件服务器。将从该网页上根据关键字分析链接并下载插件，部分嵌入式设备不支持https")]
+    [Description("Plugin server. Analyzes links by keyword and downloads plugins from this page. Some embedded devices do not support HTTPS.")]
     public String PluginServer { get; set; } = "http://x.newlifex.com/";
 
     /// <summary>辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false</summary>
-    [Description("辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false")]
+    [Description("Assembly resolve assistance. Whether to help resolve missing dependency assemblies during assembly loading. Default false.")]
     public Boolean AssemblyResolve { get; set; }
 
     /// <summary>服务地址。用户访问的外网地址，反向代理之外，用于内部构造其它Url（如SSO），或者向注册中心登记，多地址逗号隔开</summary>
-    [Description("服务地址。用户访问的外网地址，反向代理之外，用于内部构造其它Url（如SSO），或者向注册中心登记，多地址逗号隔开")]
+    [Description("Service address. Public address visited by users, outside the reverse proxy, used to construct other URLs (such as SSO) or register with the registry. Separate multiple addresses with commas.")]
     public String ServiceAddress { get; set; } = "";
     #endregion
 

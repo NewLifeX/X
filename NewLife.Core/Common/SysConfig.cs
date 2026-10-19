@@ -10,48 +10,48 @@ namespace NewLife.Common;
 /// <remarks>
 /// 文档 https://newlifex.com/core/sysconfig
 /// </remarks>
-[DisplayName("系统设置")]
+[DisplayName("System settings")]
 public class SysConfig : Config<SysConfig>
 {
     #region 属性
     /// <summary>系统名称</summary>
-    [DisplayName("系统名称")]
-    [Description("用于标识系统的英文名，不能有空格")]
+    [DisplayName("System name")]
+    [Description("English name used to identify the system; must not contain spaces.")]
     public String Name { get; set; } = "";
 
     /// <summary>系统版本</summary>
-    [DisplayName("系统版本")]
-    [Description("程序集版本号，用于界面展示")]
+    [DisplayName("System version")]
+    [Description("Assembly version number, used for UI display.")]
     public String Version { get; set; } = "";
 
     /// <summary>显示名称</summary>
-    [DisplayName("显示名称")]
-    [Description("用户可见的名称")]
+    [DisplayName("System display name")]
+    [Description("User-visible name.")]
     public String DisplayName { get; set; } = "";
 
     /// <summary>公司</summary>
-    [DisplayName("公司")]
-    [Description("公司名称，来自程序集信息")]
+    [DisplayName("Company")]
+    [Description("Company name, from assembly information.")]
     public String Company { get; set; } = "";
 
     /// <summary>应用实例。单应用多实例部署时用于唯一标识实例节点</summary>
-    [DisplayName("应用实例")]
-    [Description("单应用多实例部署时用于唯一标识实例节点")]
+    [DisplayName("Application instance")]
+    [Description("Uniquely identifies the instance node when a single application is deployed with multiple instances.")]
     public Int32 Instance { get; set; }
 
     /// <summary>开发者模式</summary>
-    [DisplayName("开发者模式")]
-    [Description("启用后开放开发调试功能（SQL收集、备份、开发操作）")]
+    [DisplayName("Developer mode")]
+    [Description("Enables development and debugging features (SQL collection, backup, development operations).")]
     public Boolean Develop { get; set; } = true;
 
     /// <summary>启用</summary>
-    [DisplayName("启用")]
-    [Description("是否启用该系统")]
+    [DisplayName("Enabled")]
+    [Description("Whether the system is enabled.")]
     public Boolean Enable { get; set; } = true;
 
     /// <summary>安装时间</summary>
-    [DisplayName("安装时间")]
-    [Description("系统首次安装时间，用作Cookie加密密钥")]
+    [DisplayName("Install time")]
+    [Description("First installation time of the system, used as the Cookie encryption key.")]
     public DateTime InstallTime { get; set; } = DateTime.Now;
     #endregion
 

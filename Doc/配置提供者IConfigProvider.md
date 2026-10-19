@@ -89,7 +89,7 @@ var name = composite["Sys:Name"]; // 读取时按顺序查找
 - 键路径语法：`A:B:C` 表示树形下钻。
 - `Keys` 默认只返回根下第一层键；具体实现可覆盖返回深层键集合。
 - `IsNew` 用于指示配置源是否首次创建，`Config<T>.Current` 会据此决定是否持久化默认值。
-- 注释：模型属性上的 `DescriptionAttribute/DisplayNameAttribute` 会写入配置项注释。
+- 注释：模型属性上的 `DescriptionAttribute/DisplayNameAttribute` 会写入配置项注释；Xml/Ini 保存时按 `LogCulture ?? Culture` 翻译，两者为空时保持原文（默认英文源文），不跟随 `CurrentUICulture`。
 - 列表与数组：`ConfigHelper` 支持 `T[]` 与 `IList<T>`；基元类型元素会进行类型转换。
 
 ## 5. 本仓库优化点（已处理）

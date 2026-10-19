@@ -355,9 +355,20 @@ public static class ConfigHelper
     }
 
     /// <summary>本地化配置注释</summary>
-    /// <param name="comment">英文源文注释</param>
-    /// <returns>本地化注释；缺少翻译时返回原文</returns>
-    public static String? LocalizeComment(this String? comment) => comment.IsNullOrEmpty() ? comment : Localization.Translate(comment);
+    /// <param name="comment">源文注释</param>
+    /// <returns>本地化注释；未显式设置开发者语言时返回原文</returns>
+    /// <remarks>
+    /// 配置文件是持久化产物，只跟随 <see cref="Localization.LogCulture"/> 或显式设置的
+    /// <see cref="Localization.Culture"/>，不跟随 <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>，
+    /// 避免请求语言导致注释漂移。
+    /// </remarks>
+    public static String? LocalizeComment(this String? comment)
+    {
+        if (comment.IsNullOrEmpty()) return comment;
+
+        var culture = Localization.LogCulture ?? Localization.Culture;
+        return culture == null ? comment : Localization.Translate(culture, comment);
+    }
 
     /// <summary>从实例公有属性映射到配置树</summary>
     /// <param name="section">目标配置节</param>

@@ -38,6 +38,14 @@ public class LocalizationTests
     [Fact(DisplayName = "未知键：回退英文原文")]
     public void Translate_unknown_key() => Assert.Equal("Not a translated message.", Localization.Translate(_zh, "Not a translated message."));
 
+    [Fact(DisplayName = "配置元数据：英文源文按语言翻译")]
+    public void Translate_config_metadata()
+    {
+        Assert.Equal("系统设置", Localization.Translate(_zh, "System settings"));
+        Assert.Equal("日志等级。只输出大于等于该级别的日志，All/Debug/Info/Warn/Error/Fatal，默认Info", Localization.Translate(_zh, "Log level. Only logs at or above this level are output: All/Debug/Info/Warn/Error/Fatal. Default Info."));
+        Assert.Equal("Paramètres système", Localization.Translate(CultureInfo.GetCultureInfo("fr"), "System settings"));
+    }
+
     [Fact(DisplayName = "空值：原样返回")]
     public void Translate_null_or_empty()
     {

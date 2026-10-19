@@ -22,8 +22,13 @@ public static partial class Localization
     /// <summary>目标语言。默认 null，表示跟随 <see cref="CultureInfo.CurrentUICulture"/></summary>
     public static CultureInfo? Culture { get; set; }
 
-    /// <summary>日志语言。默认 null，表示跟随 <see cref="Culture"/> 或 <see cref="CultureInfo.CurrentUICulture"/></summary>
-    /// <remarks>启用 ASP.NET Core 请求语言识别后，可把它固定为宿主语言，避免日志随请求变化。</remarks>
+    /// <summary>开发者可见文本的语言：日志与配置文件注释。默认 null，表示跟随 <see cref="Culture"/></summary>
+    /// <remarks>
+    /// 只影响开发者/运维可见的持久化文本，不影响异常和界面消息。
+    /// 启用 ASP.NET Core 请求语言识别后，可把它固定为宿主语言，避免日志与配置注释随请求变化。
+    /// 日志在 <see cref="LogCulture"/> 与 <see cref="Culture"/> 都为空时仍按 <see cref="CultureInfo.CurrentUICulture"/> 回退；
+    /// 配置注释在两者都为空时输出原文（默认英文源文），不跟随请求语言。
+    /// </remarks>
     public static CultureInfo? LogCulture { get; set; }
 
     private static readonly ConcurrentDictionary<String, IReadOnlyDictionary<String, String>> _overrides = new(StringComparer.Ordinal);
