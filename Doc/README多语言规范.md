@@ -45,6 +45,7 @@
 - **单一事实源**：`readme-languages.json`（`code` / `name` / `file`，数组顺序即展示顺序）。
 - **生成与校验**：`sync-readme-languages.ps1` 按配置重写各 README 的切换块；加 `-Check` 只校验不写入，不一致时退出码 1。
 - **NuGet 包版**：`sync-readme-package.ps1` 按 `readme-package.json` 从 `README.md` 生成 `README.nuget.md`，把所有相对链接改写为 GitHub 绝对地址；加 `-Check` 校验生成物与 `PackageReadmeFile` 目标。
+- **指标**：`readme-metrics.json` 集中维护 AOT 冒烟场景数、TFM 数、内置语言数与全生态 NuGet 累计下载量（`nugetTotal`）；`sync-readme-metrics.ps1` 写入各 README 的 `<!--名称:start-->值<!--名称:end-->` 标记，`-Check` 校验 11 份副本一致。
 - **CI 门禁**：`.github/workflows/readme.yml` 在 README、配置或脚本变动时执行 `-Check`，顺序不一致或多份副本漂移会直接失败。
 - 各 README 只有下面标记块之间的内容由脚本生成，其余内容不受影响：
 
