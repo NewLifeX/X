@@ -144,8 +144,8 @@ public class Upgrade
     /// <summary>开始更新</summary>
     public void Download()
     {
-        var link = Link ?? throw new Exception("No new version available!");
-        if (link.Url.IsNullOrEmpty()) throw new Exception("The upgrade package address is invalid!");
+        var link = Link ?? throw new Exception(L.T("No new version available!"));
+        if (link.Url.IsNullOrEmpty()) throw new Exception(L.T("The upgrade package address is invalid!"));
 
         //Download(link.Url, link.FullName);
 
@@ -169,7 +169,7 @@ public class Upgrade
             // 后台任务将因取消而异常结束，挂观察器避免未观测任务异常
             _ = task.ContinueWith(t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
 
-            throw new TimeoutException($"Download timeout [{timeout}ms]: {url}");
+            throw new TimeoutException(L.T("Download timeout [{0}ms]: {1}", timeout, url));
         }
     }
 

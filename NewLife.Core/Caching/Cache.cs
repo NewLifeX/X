@@ -331,7 +331,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
     public virtual IDisposable? AcquireLock(String key, Int32 msTimeout)
     {
         var rlock = new CacheLock(this, key);
-        if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
+        if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException(L.T("Lock [{0}] failed! msTimeout={1}", key, msTimeout));
 
         return rlock;
     }
@@ -360,7 +360,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         var rlock = new CacheLock(this, key);
         if (!rlock.Acquire(msTimeout, msExpire))
         {
-            if (throwOnFailure) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
+            if (throwOnFailure) throw new InvalidOperationException(L.T("Lock [{0}] failed! msTimeout={1}", key, msTimeout));
 
             return null;
         }

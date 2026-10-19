@@ -230,7 +230,7 @@ public class TimerX : ITimer, IDisposable
         foreach (var item in cronExpression.Split(";"))
         {
             var cron = new Cron();
-            if (!cron.Parse(item)) throw new ArgumentException($"Invalid Cron expression[{item}]", nameof(cronExpression));
+            if (!cron.Parse(item)) throw new ArgumentException(L.T("Invalid Cron expression[{0}]", item), nameof(cronExpression));
 
             list.Add(cron);
         }
@@ -261,7 +261,7 @@ public class TimerX : ITimer, IDisposable
         foreach (var item in cronExpression.Split(";"))
         {
             var cron = new Cron();
-            if (!cron.Parse(item)) throw new ArgumentException($"Invalid Cron expression[{item}]", nameof(cronExpression));
+            if (!cron.Parse(item)) throw new ArgumentException(L.T("Invalid Cron expression[{0}]", item), nameof(cronExpression));
 
             list.Add(cron);
         }

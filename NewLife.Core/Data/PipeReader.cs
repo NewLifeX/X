@@ -92,7 +92,7 @@ public sealed class PipeReader
             if (waiting != null)
             {
                 // 挂起已被取消令牌定案（TrySetCanceled）但尚未取走：清理残留挂起，允许读取器继续使用
-                if (!waiting.Task.IsCompleted) throw new InvalidOperationException("Existing pending read; Pipe supports single reader only.");
+                if (!waiting.Task.IsCompleted) throw new InvalidOperationException(L.T("Existing pending read; Pipe supports single reader only."));
 
                 _waitingReg.Dispose();
                 _waitingReg = default;
@@ -206,10 +206,10 @@ public sealed class PipeReader
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("The position does not belong to the current read buffer. Use a position from the latest read result.", ex);
+            throw new InvalidOperationException(L.T("The position does not belong to the current read buffer. Use a position from the latest read result."), ex);
         }
 
-        if (offset < 0 || offset > buffer.Length) throw new InvalidOperationException("The position does not belong to the current read buffer. Use a position from the latest read result.");
+        if (offset < 0 || offset > buffer.Length) throw new InvalidOperationException(L.T("The position does not belong to the current read buffer. Use a position from the latest read result."));
 
         return offset;
     }
@@ -228,7 +228,7 @@ public sealed class PipeReader
         lock (_pipe.SyncRoot)
         {
             if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
-            if (count > _length) throw new ArgumentOutOfRangeException(nameof(count), $"Frame length {count} exceeds buffered length {_length}");
+            if (count > _length) throw new ArgumentOutOfRangeException(nameof(count), L.T("Frame length {0} exceeds buffered length {1}", count, _length));
 
             frame = SliceLocked(count);
             resumed = AdvanceLocked(count, count);
@@ -468,7 +468,7 @@ public sealed class PipeReader
 
         // 结束读取后再读属误用（BCL 同样抛异常）：静默返回“已结束”会把复用已结束读取器、
         // 并发读这类误用掩盖成流结束，排障时极难区分
-        if (_readerCompleted) throw new InvalidOperationException("The PipeReader has been completed; no further reads are allowed.");
+        if (_readerCompleted) throw new InvalidOperationException(L.T("The PipeReader has been completed; no further reads are allowed."));
 
         // 已完成：返回残余窗口，让消费方处理收尾
         if (_pipe.WriterCompleted)
@@ -531,7 +531,7 @@ public sealed class PipeReader
     private Boolean AdvanceLocked(Int64 consumedBytes, Int64 examinedBytes)
     {
         if (consumedBytes < 0) throw new ArgumentOutOfRangeException(nameof(consumedBytes));
-        if (consumedBytes > _length) throw new ArgumentOutOfRangeException(nameof(consumedBytes), $"Consumed {consumedBytes} exceeds buffered length {_length}");
+        if (consumedBytes > _length) throw new ArgumentOutOfRangeException(nameof(consumedBytes), L.T("Consumed {0} exceeds buffered length {1}", consumedBytes, _length));
         if (examinedBytes < consumedBytes) examinedBytes = consumedBytes;
 
         var n = consumedBytes;

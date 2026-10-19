@@ -44,7 +44,7 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
             throw new NotSupportedException();
 
         if (transform.InputBlockSize > Byte.MaxValue || transform.OutputBlockSize > Byte.MaxValue || transform.InputBlockSize == 0 || transform.OutputBlockSize == 0)
-            throw new CryptographicException("Padding can only be used with block ciphers with block size of [2,255]");
+            throw new CryptographicException(L.T("Padding can only be used with block ciphers with block size of [2,255]"));
 
         _lastBlock = new Byte[encryptMode ? OutputBlockSize : InputBlockSize];
     }
@@ -180,7 +180,7 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
             }
 
             if (workLen < 1)
-                throw new CryptographicException("Invalid padding");
+                throw new CryptographicException(L.T("Invalid padding"));
 
             var paddingLength = work[workLen - 1];
             var paddingValue = _mode == PaddingMode.ANSIX923 ? 0 : paddingLength;
@@ -199,7 +199,7 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
             }
 
             if (paddingError != 0 || paddingLength == 0 || paddingLength > OutputBlockSize)
-                throw new CryptographicException("Invalid padding");
+                throw new CryptographicException(L.T("Invalid padding"));
 
             var result = new Byte[workLen - paddingLength];
             work.AsSpan(0, result.Length).CopyTo(result);

@@ -76,7 +76,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
             // 只在“写侧自己已结束且读侧仍在”时拒绝：读侧结束（对端关闭／接收侧收尾）后按 BCL 习惯仍允许取窗口，
             // 数据在提交时直接释放，调用方据 FlushAsync 返回的 IsCompleted 停止写入。
             // 读侧结束后 ReaderCompleted 为真（它同时把 WriterCompleted 也置真），故不能用 WriterCompleted 单独判读侧状态
-            if (_pipe.WriterCompleted && !_pipe.ReaderCompleted) throw new InvalidOperationException("Pipe has been completed.");
+            if (_pipe.WriterCompleted && !_pipe.ReaderCompleted) throw new InvalidOperationException(L.T("Pipe has been completed."));
 
             EnsureWriteSpaceLocked(sizeHint);
 
@@ -102,7 +102,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
         lock (_pipe.SyncRoot)
         {
             if (_writeBuffer == null || count > _writeAllowance || _writeLength + count > _writeBuffer.Length)
-                throw new ArgumentOutOfRangeException(nameof(count), "Advance exceeds the memory returned by the last GetMemory/GetSpan call.");
+                throw new ArgumentOutOfRangeException(nameof(count), L.T("Advance exceeds the memory returned by the last GetMemory/GetSpan call."));
 
             _writeLength += count;
             _writeAllowance -= count;
@@ -183,7 +183,7 @@ public sealed class PipeWriter : IBufferWriter<Byte>
             if (waiting != null)
             {
                 // 挂起已被取消定案（TrySetCanceled）但尚未取走：清理残留挂起，允许继续使用
-                if (!waiting.Task.IsCompleted) throw new InvalidOperationException("Existing pending flush; Pipe supports single writer only.");
+                if (!waiting.Task.IsCompleted) throw new InvalidOperationException(L.T("Existing pending flush; Pipe supports single writer only."));
 
                 _flushReg.Dispose();
                 _flushReg = default;

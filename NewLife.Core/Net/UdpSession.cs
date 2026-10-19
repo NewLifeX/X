@@ -224,7 +224,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             return Send(data);
         }
 
-        throw new InvalidOperationException($"Protocol not set or message is not IMessage for session [{Name}]");
+        throw new InvalidOperationException(L.T("Protocol not set or message is not IMessage for session [{0}]", Name));
     }
 
     /// <summary>发送消息并等待匹配的响应（协议模式）。请求入匹配队列，响应数据报到达时完成</summary>
@@ -242,7 +242,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
 
-        var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
+        var codec = Protocol ?? throw new InvalidOperationException(L.T("Protocol not set for session [{0}]", Name));
         if (ResponseMatcher.Resolve(codec) == null) throw new NotSupportedException(L.T("Protocol [{0}] does not implement request/response matching (IMessageMatcher); cannot wait for a response.", codec.GetType().Name));
 
         var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", request);
@@ -271,7 +271,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     {
         if (Protocol != null && message is IMessage msg) return SendMessageAsyncForObject(msg, cancellationToken);
 
-        throw new InvalidOperationException($"Protocol not set or message is not IMessage for session [{Name}]");
+        throw new InvalidOperationException(L.T("Protocol not set or message is not IMessage for session [{0}]", Name));
     }
 
     /// <summary>协议模式的响应等待包装（Object 版返回）</summary>

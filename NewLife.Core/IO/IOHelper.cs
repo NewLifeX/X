@@ -365,7 +365,7 @@ public static class IOHelper
             if (bytesRead == 0)
             {
                 // 到达 EOF，若未满足 minimumBytes 并要求抛异常，则抛出（与 .NET ReadAtLeast 一致）。
-                if (throwOnEndOfStream) throw new EndOfStreamException($"Unable to read the required minimum number of bytes. Expected {minimumBytes}, actual {totalRead}.");
+                if (throwOnEndOfStream) throw new EndOfStreamException(L.T("Unable to read the required minimum number of bytes. Expected {0}, actual {1}.", minimumBytes, totalRead));
                 break;
             }
             totalRead += bytesRead;
@@ -424,7 +424,7 @@ public static class IOHelper
             if (bytesRead == 0)
             {
                 // 到达 EOF，若未满足 minimumBytes 并要求抛异常，则抛出（与 .NET ReadAtLeast 一致）。
-                if (throwOnEndOfStream) throw new EndOfStreamException($"Unable to read the required minimum number of bytes. Expected {minimumBytes}, actual {totalRead}.");
+                if (throwOnEndOfStream) throw new EndOfStreamException(L.T("Unable to read the required minimum number of bytes. Expected {0}, actual {1}.", minimumBytes, totalRead));
                 break;
             }
             totalRead += bytesRead;
@@ -852,7 +852,7 @@ public static class IOHelper
         while (true)
         {
             var bt = stream.ReadByte();
-            if (bt < 0) throw new Exception($"The data stream is out of range! The integer read is {rs: n0}");
+            if (bt < 0) throw new Exception(L.T("The data stream is out of range! The integer read is {0: n0}", rs));
             b = (Byte)bt;
 
             // 必须转为Int32，否则可能溢出
@@ -860,7 +860,7 @@ public static class IOHelper
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 32) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return (Int32)rs;
     }
@@ -876,7 +876,7 @@ public static class IOHelper
         while (true)
         {
             var bt = stream.ReadByte();
-            if (bt < 0) throw new Exception("The data stream is out of range!");
+            if (bt < 0) throw new Exception(L.T("The data stream is out of range!"));
             b = (Byte)bt;
 
             // 必须转为Int32，否则可能溢出
@@ -884,7 +884,7 @@ public static class IOHelper
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 64) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return rs;
     }
@@ -909,7 +909,7 @@ public static class IOHelper
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 32) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return true;
     }

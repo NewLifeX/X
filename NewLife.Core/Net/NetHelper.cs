@@ -845,7 +845,7 @@ public static class NetHelper
                 NetType.Tcp => new TcpSession { Local = local },
                 NetType.Udp => new UdpServer { Local = local },
                 NetType.Unix => new TcpSession { Local = local },
-                _ => throw new NotSupportedException($"The {local.Type} protocol is not supported"),
+                _ => throw new NotSupportedException(L.T("The {0} protocol is not supported", local.Type)),
             };
     }
 
@@ -864,7 +864,7 @@ public static class NetHelper
                 NetType.Unix => new TcpSession { Remote = remote },
                 NetType.Http or NetType.Https => new TcpSession { Remote = remote, SslProtocol = remote.IsSecure || remote.Type == NetType.Https ? DefaultSslProtocols : SslProtocols.None },
                 NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.IsSecure ? DefaultSslProtocols : SslProtocols.None },
-                _ => throw new NotSupportedException($"The {remote.Type} protocol is not supported"),
+                _ => throw new NotSupportedException(L.T("The {0} protocol is not supported", remote.Type)),
             };
     }
 
@@ -877,7 +877,7 @@ public static class NetHelper
     {
         return uri.Scheme is "ws" or "wss"
             ? new WebSocketClient(uri)
-            : throw new NotSupportedException($"The {uri.Scheme} protocol is not supported");
+            : throw new NotSupportedException(L.T("The {0} protocol is not supported", uri.Scheme));
     }
 
     /// <summary>启用 TLS 时使用的协议集合。固定 Tls12 会丢失 TLS1.3 与后续版本，现代框架交给运行时协商，旧框架仅 Tls12</summary>

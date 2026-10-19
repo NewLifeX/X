@@ -15,7 +15,7 @@ public static class EnumHelper
     /// <exception cref="ArgumentException">当两个枚举类型不匹配时</exception>
     public static Boolean Has(this Enum value, Enum flag)
     {
-        if (value.GetType() != flag.GetType()) throw new ArgumentException("Enumeration identification judgment must be of the same type", nameof(flag));
+        if (value.GetType() != flag.GetType()) throw new ArgumentException(L.T("Enumeration identification judgment must be of the same type"), nameof(flag));
 
         var num = Convert.ToUInt64(flag);
         // 特殊处理：当flag为0时，只有当value也为0时才返回true
@@ -33,7 +33,7 @@ public static class EnumHelper
     /// <exception cref="ArgumentException">当枚举类型不匹配时</exception>
     public static T Set<T>(this Enum source, T flag, Boolean value)
     {
-        if (source is not T) throw new ArgumentException("Enumeration identification judgment must be of the same type", nameof(source));
+        if (source is not T) throw new ArgumentException(L.T("Enumeration identification judgment must be of the same type"), nameof(source));
 
         var s = Convert.ToUInt64(source);
         var f = Convert.ToUInt64(flag);

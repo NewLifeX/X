@@ -174,7 +174,7 @@ public record struct ArrayPacket : IPacket
     /// <exception cref="ArgumentOutOfRangeException">前置空间不足</exception>
     public readonly ArrayPacket ExpandHeader(Int32 size)
     {
-        if (_offset < size) throw new ArgumentOutOfRangeException(nameof(size), $"Expand size {size} exceeds available front space {_offset}");
+        if (_offset < size) throw new ArgumentOutOfRangeException(nameof(size), L.T("Expand size {0} exceeds available front space {1}", size, _offset));
 
         return new ArrayPacket(_buffer, _offset - size, _length + size) { Next = Next };
     }
@@ -190,7 +190,7 @@ public record struct ArrayPacket : IPacket
         if (count == 0) return Empty;
 
         // 负偏移会向前多取字节（越窗读到本包之前的活数据）且不报错，必须显式拒绝；向前借位请用 ExpandHeader
-        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be negative.");
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), L.T("Offset cannot be negative."));
 
         var start = Offset + offset;
         var remain = _length - offset;

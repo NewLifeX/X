@@ -142,7 +142,7 @@ public class LengthFieldCodec : IMessageCodec, IMessageMatcher
     public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
-        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length must be non-negative.");
+        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), L.T("Body length must be non-negative."));
 
         var fieldLen = Size == 0 ? GetVarintLength(bodyLength) : Math.Abs(Size);
         var pk = new OwnerPacket(Offset + fieldLen);

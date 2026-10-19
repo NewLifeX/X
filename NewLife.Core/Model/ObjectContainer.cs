@@ -291,7 +291,7 @@ public class ObjectContainer : IObjectContainer
         }
 
         if (throwOnError)
-            throw new InvalidOperationException($"No suitable constructor was found for '{type}'. Please confirm that all required parameters for the type constructor are registered. Unable to parse parameter '{errorParameter}'");
+            throw new InvalidOperationException(L.T("No suitable constructor was found for '{0}'. Please confirm that all required parameters for the type constructor are registered. Unable to parse parameter '{1}'", type, errorParameter));
 
         return null;
     }

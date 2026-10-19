@@ -393,7 +393,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         var p = name.LastIndexOf('.');
         var ext = p >= 0 ? name[(p + 1)..] : name;
         if (!_providers.TryGetValue(ext, out _)) ext = DefaultProvider;
-        if (!_providers.TryGetValue(ext, out var type)) throw new Exception($"Unable to find an appropriate configuration provider for [{name}]");
+        if (!_providers.TryGetValue(ext, out var type)) throw new Exception(L.T("Unable to find an appropriate configuration provider for [{0}]", name));
 
         var config = type.CreateInstance() as IConfigProvider;
 

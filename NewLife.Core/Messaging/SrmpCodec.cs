@@ -86,8 +86,8 @@ public class SrmpCodec : IMessageCodec, IMessageMatcher
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (message is not DefaultMessage msg) throw new ArgumentException(L.T("Message type [{0}] does not support the standard message frame format.", message.GetType().FullName), nameof(message));
 
-        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length must be non-negative.");
-        if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length exceeds the 32-bit protocol limit.");
+        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), L.T("Body length must be non-negative."));
+        if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), L.T("Body length exceeds the 32-bit protocol limit."));
 
         var size = bodyLength < 0xFFFF ? 4 : 8;
         var pk = new OwnerPacket(size);

@@ -336,7 +336,7 @@ public static class ApiHelper
         }
 
         //if (dic == null) return default;
-        if (dic == null) throw new InvalidCastException($"Unable to convert to type [{typeof(TResult)}]! {response.Cut(64)}");
+        if (dic == null) throw new InvalidCastException(L.T("Unable to convert to type [{0}]! {1}", typeof(TResult), response.Cut(64)));
 
         var nodata = dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName);
 
@@ -358,7 +358,7 @@ public static class ApiHelper
         if (data == null) return default;
 
         if (data is not IDictionary<String, Object> and not IList<Object>)
-            throw new InvalidDataException($"Unrecognized response data [{(data as String)?.Cut(64)}] for [{typeof(TResult).Name}]");
+            throw new InvalidDataException(L.T("Unrecognized response data [{0}] for [{1}]", (data as String)?.Cut(64), typeof(TResult).Name));
 
         return jsonHost.Convert<TResult>(data);
     }

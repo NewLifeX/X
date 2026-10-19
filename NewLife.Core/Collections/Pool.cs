@@ -111,7 +111,7 @@ public class Pool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Pub
 
         // 未命中，按策略创建新实例
         var rs = OnCreate();
-        if (rs == null) throw new InvalidOperationException($"[Pool] Unable to create an instance of [{typeof(T).FullName}]");
+        if (rs == null) throw new InvalidOperationException(L.T("[Pool] Unable to create an instance of [{0}]", typeof(T).FullName));
 
         return rs;
     }

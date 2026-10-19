@@ -554,7 +554,7 @@ public static class HttpHelper
                         if (File.Exists(tmp)) File.Delete(tmp);
                     }
                     catch { }
-                    throw new IOException("Save file hash verification failed.");
+                    throw new IOException(L.T("Save file hash verification failed."));
                 }
             }
 

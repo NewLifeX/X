@@ -78,7 +78,7 @@ public partial class TcpSession
     {
         if (data == null) throw new ArgumentNullException(nameof(data));
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
+        if (!Open()) throw new InvalidOperationException(L.T("Session [{0}] is not open.", GetType().Name));
 
         var queue = SendQueue;
         queue.Writer.Append(data);

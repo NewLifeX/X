@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -401,7 +401,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     {
         EnsureCreateServer();
 
-        if (Servers.Count == 0) throw new Exception($"Failed to listen to all ports! Port=[{Port}]");
+        if (Servers.Count == 0) throw new Exception(L.T("Failed to listen to all ports! Port=[{0}]", Port));
 
         var snapshot = Servers.ToArray();
         WriteLog("Preparing to listen on {0} servers", snapshot.Length);
@@ -708,7 +708,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <returns>已群发客户端总数</returns>
     public virtual async Task<Int32> SendAllAsync(IPacket data, Func<INetSession, Boolean>? predicate = null)
     {
-        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
+        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, L.T("Mass posting requires the use of session collections"));
 
         var count = 0;
         var tasks = new List<Task>();
@@ -741,7 +741,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <returns>已群发客户端总数</returns>
     public virtual Int32 SendAllMessage(Object message, Func<INetSession, Boolean>? predicate = null)
     {
-        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
+        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, L.T("Mass posting requires the use of session collections"));
 
         var count = 0;
         // 直接遍历Values，避免KeyValuePair的额外开销

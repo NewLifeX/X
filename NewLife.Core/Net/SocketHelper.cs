@@ -106,7 +106,7 @@ public static class SocketHelper
         if (/*socket != null &&*/ socket.LocalEndPoint != null)
         {
             if (socket.LocalEndPoint is IPEndPoint ip && !ip.Address.IsIPv4())
-                throw new NotSupportedException("IPv6 does not support broadcasting!");
+                throw new NotSupportedException(L.T("IPv6 does not support broadcasting!"));
         }
 
         if (!socket.EnableBroadcast) socket.EnableBroadcast = true;

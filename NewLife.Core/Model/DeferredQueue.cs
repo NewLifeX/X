@@ -236,7 +236,7 @@ public class DeferredQueue : DisposeBase
             t -= 100;
         }
 
-        throw new InvalidOperationException($"The existing data amount [{_count:n0}] exceeds the maximum data amount [{MaxEntity:n0}]");
+        throw new InvalidOperationException(L.T("The existing data amount [{0:n0}] exceeds the maximum data amount [{1:n0}]", _count, MaxEntity));
     }
 
     /// <summary>提交对象的修改，外部不再使用该对象</summary>

@@ -114,7 +114,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
             TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL,
             0);
         if (ret is not 0 and not 122) // 122 insufficient buffer size
-            throw new Exception("bad ret on check " + ret);
+            throw new Exception(L.T("bad ret on check {0}", ret));
 
         // 取长度与读表之间连接表可能增长（并发建连时尤其明显），此时返回 122 并回填所需长度，按新长度重试
         for (var attempt = 0; ; attempt++)
@@ -131,7 +131,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
                 if (ret == 122 && attempt < 3) continue;    // 长度已回填，重试
 
                 if (ret != 0)
-                    throw new Exception("bad ret " + ret);
+                    throw new Exception(L.T("bad ret {0}", ret));
 
                 var list = new List<TcpConnectionInformation2>();
 

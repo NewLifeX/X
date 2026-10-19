@@ -18,7 +18,7 @@ public class StaticFilesHandler : IHttpHandler
     /// <param name="context">Http上下文</param>
     public virtual Task ProcessRequestAsync(IHttpContext context)
     {
-        if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
+        if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(ApiCode.NotFound, L.T("File {0} not found", context.Path));
 
         var file = context.Path[Path.Length..];
         file = ContentPath.CombinePath(file);
@@ -27,10 +27,10 @@ public class StaticFilesHandler : IHttpHandler
         // 否则内容目录 D:\www\js 会放行 D:\www\js2 这类同前缀的兄弟目录
         var baseDir = ContentPath.GetFullPath().EnsureEnd(System.IO.Path.DirectorySeparatorChar + "");
         if (!file.GetFullPath().StartsWithIgnoreCase(baseDir))
-            throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
+            throw new ApiException(ApiCode.NotFound, L.T("File {0} not found", context.Path));
 
         var fi = file.AsFile();
-        if (!fi.Exists) throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
+        if (!fi.Exists) throw new ApiException(ApiCode.NotFound, L.T("File {0} not found", context.Path));
 
         var contentType = GetContentType(fi.Extension) ?? "application/octet-stream";
 

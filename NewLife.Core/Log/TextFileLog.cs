@@ -130,7 +130,7 @@ public class TextFileLog : Logger, IDisposable
         catch (Exception ex)
         {
             _logFileError++;
-            Console.WriteLine("Failed to create log file: {0}", ex.Message);
+            Console.WriteLine(L.T("Failed to create log file: {0}", ex.Message));
             return null;
         }
     }

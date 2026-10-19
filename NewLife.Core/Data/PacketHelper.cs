@@ -135,12 +135,12 @@ public static class PacketHelper
     public static ReadOnlySequence<Byte> AsReadOnlySequence(this IPacket pk, Int32 offset, Int32 count = -1)
     {
         if (pk == null) throw new ArgumentNullException(nameof(pk));
-        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be negative.");
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), L.T("Offset cannot be negative."));
 
         var total = pk.Total;
         if (count < 0) count = total - offset;
         if (offset > total || count > total - offset)
-            throw new ArgumentOutOfRangeException(nameof(count), $"Offset {offset} with count {count} exceeds total length {total}");
+            throw new ArgumentOutOfRangeException(nameof(count), L.T("Offset {0} with count {1} exceeds total length {2}", offset, count, total));
 
         if (count == 0) return ReadOnlySequence<Byte>.Empty;
 

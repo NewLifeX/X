@@ -29,7 +29,7 @@ public static class ModelExtension
         if (provider == null) throw new ArgumentNullException(nameof(provider));
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
-        return provider.GetService(serviceType) ?? throw new InvalidOperationException($"Unregistered type {serviceType.FullName}");
+        return provider.GetService(serviceType) ?? throw new InvalidOperationException(L.T("Unregistered type {0}", serviceType.FullName));
     }
 
     /// <summary>获取必要的服务，不存在时抛出异常</summary>

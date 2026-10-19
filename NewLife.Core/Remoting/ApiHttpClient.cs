@@ -340,7 +340,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     {
         var returnType = typeof(TResult);
         var svrs = Services;
-        if (svrs.Count == 0) throw new InvalidOperationException("No service address configured!");
+        if (svrs.Count == 0) throw new InvalidOperationException(L.T("No service address configured!"));
 
         // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
         using var span = Tracer?.NewSpan(action, args);
@@ -419,7 +419,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     public virtual async Task DownloadFileAsync(String requestUri, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
     {
         var svrs = Services;
-        if (svrs.Count == 0) throw new InvalidOperationException("No service address configured!");
+        if (svrs.Count == 0) throw new InvalidOperationException(L.T("No service address configured!"));
 
         // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
         var action = requestUri;
@@ -510,10 +510,10 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <returns></returns>
     protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (Services.Count == 0) throw new InvalidOperationException("Service address not added!");
+        if (Services.Count == 0) throw new InvalidOperationException(L.T("Service address not added!"));
 
         // 获取一个处理当前请求的服务，使用负载均衡器
-        var service = LoadBalancer.GetService(Services) ?? throw new InvalidOperationException("No available service nodes!");
+        var service = LoadBalancer.GetService(Services) ?? throw new InvalidOperationException(L.T("No available service nodes!"));
         Source = service.Name;
         _currentService = service;
 

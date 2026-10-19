@@ -140,8 +140,8 @@ public class DefaultMessage : Message
     {
         // 长度字段只有 32 位：负数会写成 4 字节头里的 FF FF（被解析侧当成需要 8 字节扩展头），
         // 超过 32 位上限会在 (Int32) 转换时静默截断，两者都写出与实际体长不符的帧，必须在源头拦住
-        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length must be non-negative.");
-        if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Body length exceeds the 32-bit protocol limit.");
+        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), L.T("Body length must be non-negative."));
+        if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), L.T("Body length exceeds the 32-bit protocol limit."));
 
         var size = bodyLength < 0xFFFF ? 4 : 8;
 

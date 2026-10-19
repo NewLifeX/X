@@ -62,7 +62,7 @@ public class BinaryGeneral : BinaryHandlerBase
                     if (value is DateTime dt && dt > DateTime.MinValue)
                     {
                         var seconds = (dt - _dt1970).TotalSeconds;
-                        if (seconds >= UInt32.MaxValue) throw new InvalidDataException("Cannot serialize time less than 1970, please use FullTime");
+                        if (seconds >= UInt32.MaxValue) throw new InvalidDataException(L.T("Cannot serialize time less than 1970, please use FullTime"));
 
                         Write((UInt32)seconds);
                     }

@@ -1,5 +1,6 @@
 ﻿#if NETFRAMEWORK || NETSTANDARD2_0
 using System.Runtime.CompilerServices;
+using NewLife;
 
 namespace System;
 
@@ -34,7 +35,7 @@ public readonly struct Index : IEquatable<Index>
     {
         if (value < 0)
         {
-            throw new ArgumentOutOfRangeException("value", "value must be non-negative");
+            throw new ArgumentOutOfRangeException(nameof(value), L.T("value must be non-negative"));
         }
         _value = fromEnd ? ~value : value;
     }
@@ -50,7 +51,7 @@ public readonly struct Index : IEquatable<Index>
     {
         if (value < 0)
         {
-            throw new ArgumentOutOfRangeException("value", "value must be non-negative");
+            throw new ArgumentOutOfRangeException(nameof(value), L.T("value must be non-negative"));
         }
         return new Index(value);
     }
@@ -64,7 +65,7 @@ public readonly struct Index : IEquatable<Index>
     {
         if (value < 0)
         {
-            throw new ArgumentOutOfRangeException("value", "value must be non-negative");
+            throw new ArgumentOutOfRangeException(nameof(value), L.T("value must be non-negative"));
         }
         return new Index(~value);
     }

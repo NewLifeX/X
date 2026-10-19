@@ -68,7 +68,7 @@ public class RaceLoadBalancer : LoadBalancerBase, ITracerFeature
     public override ServiceEndpoint GetService(IList<ServiceEndpoint> services)
     {
         if (services == null || services.Count == 0)
-            throw new InvalidOperationException("No available service nodes!");
+            throw new InvalidOperationException(L.T("No available service nodes!"));
 
         EnsureAvailable(services);
 

@@ -107,7 +107,7 @@ public partial class TcpSession
         if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
         {
             sock.Close();
-            throw new TimeoutException($"The connection to server [{remote}] timed out! [{timeout}ms]");
+            throw new TimeoutException(L.T("The connection to server [{0}] timed out! [{1}ms]", remote, timeout));
         }
 
         //sock.EndConnect(ar);
@@ -217,12 +217,12 @@ public partial class TcpSession
         while (total < data.Length)
         {
             var sent = sock.Send(data[total..]);
-            if (sent <= 0) throw new IOException($"Send failed (result={sent}), {total}/{data.Length} bytes sent");
+            if (sent <= 0) throw new IOException(L.T("Send failed (result={0}), {1}/{2} bytes sent", sent, total, data.Length));
 
             total += sent;
 
             if (deadline > 0 && total < data.Length && Runtime.TickCount64 > deadline)
-                throw new TimeoutException($"Send timeout, {total}/{data.Length} bytes sent");
+                throw new TimeoutException(L.T("Send timeout, {0}/{1} bytes sent", total, data.Length));
         }
 
         return total;
@@ -339,7 +339,7 @@ public partial class TcpSession
                 else
                     sent = await sock.SendAsync(data[total..], SocketFlags.None, cts.Token).ConfigureAwait(false);
 
-                if (sent <= 0) throw new IOException($"Send failed (result={sent}), {total}/{count} bytes sent");
+                if (sent <= 0) throw new IOException(L.T("Send failed (result={0}), {1}/{2} bytes sent", sent, total, count));
 
                 total += sent;
             }
@@ -347,7 +347,7 @@ public partial class TcpSession
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
             // 预算超时：与同步发送超时一致，按发送失败处理（由调用方在锁外上报）
-            throw new TimeoutException($"Send timeout, {total}/{count} bytes sent");
+            throw new TimeoutException(L.T("Send timeout, {0}/{1} bytes sent", total, count));
         }
         finally
         {

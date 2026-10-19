@@ -134,10 +134,10 @@ public ref struct SpanReader
     public void Advance(Int32 count)
     {
         if (count < 0)
-            throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+            throw new ArgumentOutOfRangeException(nameof(count), L.T("Count cannot be negative."));
         if (count > 0) EnsureSpace(count);
         if (_index + count > _span.Length)
-            throw new ArgumentOutOfRangeException(nameof(count), "Exceeds available data.");
+            throw new ArgumentOutOfRangeException(nameof(count), L.T("Exceeds available data."));
         _index += count;
     }
 
@@ -148,7 +148,7 @@ public ref struct SpanReader
     public readonly ReadOnlySpan<Byte> GetSpan(Int32 sizeHint = 0)
     {
         if (_index + sizeHint > _span.Length)
-            throw new ArgumentOutOfRangeException(nameof(sizeHint), "Size hint exceeds free capacity.");
+            throw new ArgumentOutOfRangeException(nameof(sizeHint), L.T("Size hint exceeds free capacity."));
         return _span[_index..];
     }
     #endregion
@@ -185,7 +185,7 @@ public ref struct SpanReader
             var old = _data;
             var oldData = default(ArraySegment<Byte>);
             if (old != null && remain > 0 && !old.TryGetArray(out oldData))
-                throw new NotSupportedException("Data packet does not support array access.");
+                throw new NotSupportedException(L.T("Data packet does not support array access."));
 
             var pk = new OwnerPacket(bsize);
 
@@ -206,7 +206,7 @@ public ref struct SpanReader
             //_stream.ReadExactly(pk.Buffer, pk.Offset + available, pk.Length - available);
             available = _stream.ReadAtLeast(pk.Buffer, pk.Offset + available, pk.Length - available, size - remain, false);
             if (remain + available < size)
-                throw new InvalidOperationException($"Not enough data to read. Required: {size}, Available: {available}");
+                throw new InvalidOperationException(L.T("Not enough data to read. Required: {0}, Available: {1}", size, available));
             pk.Resize(remain + available);
 
             _span = pk.GetSpan();
@@ -214,7 +214,7 @@ public ref struct SpanReader
         }
 
         if (_index + size > _span.Length)
-            throw new InvalidOperationException($"Not enough data to read. Required: {size}, Available: {Available}");
+            throw new InvalidOperationException(L.T("Not enough data to read. Required: {0}, Available: {1}", size, Available));
     }
 
     /// <summary>读取单个字节</summary>
@@ -378,7 +378,7 @@ public ref struct SpanReader
         // 随后 Slice 抛出与该数据无关的 ArgumentOutOfRangeException，排障时容易误判成代码缺陷；
         // 这里显式按“数据非法”报错
         if (actualLength < 0)
-            throw new InvalidDataException($"Invalid string length [{actualLength}].");
+            throw new InvalidDataException(L.T("Invalid string length [{0}].", actualLength));
 
         if (actualLength == 0) return String.Empty;
 
@@ -397,7 +397,7 @@ public ref struct SpanReader
     public ReadOnlySpan<Byte> ReadBytes(Int32 length)
     {
         if (length < 0)
-            throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative.");
+            throw new ArgumentOutOfRangeException(nameof(length), L.T("Length cannot be negative."));
         EnsureSpace(length);
 
         var result = _span.Slice(_index, length);
@@ -432,7 +432,7 @@ public ref struct SpanReader
     public IPacket ReadPacket(Int32 length)
     {
         if (length < 0)
-            throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative.");
+            throw new ArgumentOutOfRangeException(nameof(length), L.T("Length cannot be negative."));
 
         EnsureSpace(length);
 
@@ -481,7 +481,7 @@ public ref struct SpanReader
 
             // 第 5 个字节（28+4=32 位）只剩高 4 位可用：值位溢出即超出 Int32 表示范围，
             // 静默丢弃会解出一个完全不同的值，按格式错误拒绝（与下方字节数上限同口径）
-            if (n == 28 && (b & 0x7f) > 0x0F) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n == 28 && (b & 0x7f) > 0x0F) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
 
             // 必须转为 UInt32，否则可能溢出
             rs |= (UInt32)((b & 0x7f) << n);
@@ -489,7 +489,7 @@ public ref struct SpanReader
 
             n += 7;
             if (n >= 32)
-                throw new FormatException("The number value is too large to read in compressed format!");
+                throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return (Int32)rs;
     }
@@ -508,14 +508,14 @@ public ref struct SpanReader
 
             // 第 10 个字节（63+1=64 位）只剩最高位可用：值位溢出即超出 Int64 表示范围，
             // 静默丢弃会解出一个完全不同的值，按格式错误拒绝（与下方字节数上限同口径）
-            if (n == 63 && (b & 0x7f) > 1) throw new FormatException("The number value is too large to read in compressed 64-bit format!");
+            if (n == 63 && (b & 0x7f) > 1) throw new FormatException(L.T("The number value is too large to read in compressed 64-bit format!"));
 
             rs |= (UInt64)((UInt64)(b & 0x7f) << n);
             if ((b & 0x80) == 0) break;
 
             n += 7;
             if (n >= 64)
-                throw new FormatException("The number value is too large to read in compressed 64-bit format!");
+                throw new FormatException(L.T("The number value is too large to read in compressed 64-bit format!"));
         }
         return (Int64)rs;
     }
@@ -529,7 +529,7 @@ public ref struct SpanReader
         1 => ReadByte(),
         2 => ReadUInt16(),
         4 => ReadInt32(),
-        _ => throw new ArgumentOutOfRangeException(nameof(sizeOf), $"Unsupported length size: {sizeOf}. Use 0/1/2/4.")
+        _ => throw new ArgumentOutOfRangeException(nameof(sizeOf), L.T("Unsupported length size: {0}. Use 0/1/2/4.", sizeOf))
     };
 
     /// <summary>读取长度前缀的二进制数据</summary>
@@ -575,7 +575,7 @@ public ref struct SpanReader
     public readonly Byte PeekByte()
     {
         if (_index >= _span.Length)
-            throw new InvalidOperationException("No data available to peek.");
+            throw new InvalidOperationException(L.T("No data available to peek."));
         return _span[_index];
     }
 
@@ -600,7 +600,7 @@ public ref struct SpanReader
     public readonly ReadOnlySpan<Byte> Peek(Int32 length)
     {
         if (_index + length > _span.Length)
-            throw new InvalidOperationException($"Not enough data to peek. Required: {length}, Available: {Available}");
+            throw new InvalidOperationException(L.T("Not enough data to peek. Required: {0}, Available: {1}", length, Available));
         return _span.Slice(_index, length);
     }
 

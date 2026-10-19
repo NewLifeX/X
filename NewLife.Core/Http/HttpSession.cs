@@ -629,7 +629,7 @@ public class HttpSession : INetHandler, IDisposable
                     // 没有这层兜底，优化会把「读已打开的流一定成功」变成「路径失效即整条响应失败」
                     try
                     {
-                        if (tcp.SendFileAsync(fs.Name).GetAwaiter().GetResult() < 0) throw new IOException($"Send file failed: {fs.Name}");
+                        if (tcp.SendFileAsync(fs.Name).GetAwaiter().GetResult() < 0) throw new IOException(L.T("Send file failed: {0}", fs.Name));
 
                         return;
                     }
@@ -718,7 +718,7 @@ public class HttpSession : INetHandler, IDisposable
         }
 
         // 返回 false 表示队列已结束：数据已由管道释放，这里不得再释放（否则重复归还池缓冲）
-        if (!ok) throw new IOException("Send queue is closed.");
+        if (!ok) throw new IOException(L.T("Send queue is closed."));
     }
 
     /// <summary>组装分块传输数据块（十六进制长度 CRLF + 数据 CRLF）</summary>

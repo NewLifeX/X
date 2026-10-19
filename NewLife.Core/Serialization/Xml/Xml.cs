@@ -233,7 +233,7 @@ public class Xml : FormatterBase, IXml
     public Object? Read(Type type)
     {
         var value = type.As<Array>() ? null : type.CreateInstance();
-        if (!TryRead(type, ref value)) throw new Exception("Read failed!");
+        if (!TryRead(type, ref value)) throw new Exception(L.T("Read failed!"));
 
         return value;
     }

@@ -124,8 +124,8 @@ public class WebSocketCodec : IMessageCodec
     public IOwnerPacket BuildHeader(IMessage message, Int64 bodyLength)
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
-        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Payload length must be non-negative.");
-        if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), "Payload length exceeds the 32-bit protocol limit.");
+        if (bodyLength < 0) throw new ArgumentOutOfRangeException(nameof(bodyLength), L.T("Payload length must be non-negative."));
+        if (bodyLength > Int32.MaxValue) throw new ArgumentOutOfRangeException(nameof(bodyLength), L.T("Payload length exceeds the 32-bit protocol limit."));
         if (!IsServer) throw new NotSupportedException(L.T("Masked frames do not support streaming send; use whole-frame Build instead."));
 
         var size = bodyLength switch

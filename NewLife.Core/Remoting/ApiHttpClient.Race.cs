@@ -83,7 +83,7 @@ public partial class ApiHttpClient
             }
 
             if (selectedService == null || selectedResponse == null)
-                throw new InvalidOperationException("No available service nodes!");
+                throw new InvalidOperationException(L.T("No available service nodes!"));
 
             // 取消其它任务，不等待清理
             raceCts.Cancel();
@@ -345,7 +345,7 @@ public partial class ApiHttpClient
             }
 
             if (selectedService == null || selectedResponse == null)
-                throw new InvalidOperationException("No available service nodes!");
+                throw new InvalidOperationException(L.T("No available service nodes!"));
 
             // 取消其它任务，不等待
             raceCts.Cancel();

@@ -82,7 +82,7 @@ public struct MemoryPacket : IPacket
     public MemoryPacket(Memory<Byte> memory, Int32 length)
     {
         if (length < 0 || length > memory.Length)
-            throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative and less than or equal to the memory owner's length.");
+            throw new ArgumentOutOfRangeException(nameof(length), L.T("Length must be non-negative and less than or equal to the memory owner's length."));
 
         _memory = memory;
         _length = length;
@@ -124,7 +124,7 @@ public struct MemoryPacket : IPacket
     public MemoryPacket Slice(Int32 offset, Int32 count = -1)
     {
         // 带有Next时，不支持Slice
-        if (Next != null) throw new NotSupportedException("Slice with Next");
+        if (Next != null) throw new NotSupportedException(L.T("Slice with Next"));
 
         var remain = _length - offset;
         if (count < 0 || count > remain) count = remain;

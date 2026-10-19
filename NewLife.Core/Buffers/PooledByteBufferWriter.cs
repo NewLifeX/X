@@ -166,7 +166,7 @@ public sealed class PooledByteBufferWriter : IBufferWriter<Byte>, IDisposable
             // 使用精确需求大小再尝试一次
             newSize = currentLength + sizeHint;
             if ((UInt32)newSize > MaxArrayLength)
-                throw new OutOfMemoryException($"BufferMaximumSizeExceeded({newSize})");
+                throw new OutOfMemoryException(L.T("BufferMaximumSizeExceeded({0})", newSize));
         }
 
         var old = _rentedBuffer;

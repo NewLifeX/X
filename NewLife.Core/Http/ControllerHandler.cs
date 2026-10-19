@@ -109,7 +109,7 @@ public class ControllerHandler : IHttpHandler
             // 只缓存命中项：把未找到的方法名（null）也缓存，任意随机方法名都能让字典无界增长
             if (method != null) _methods[methodName] = method;
         }
-        if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{type.FullName}]");
+        if (method == null) throw new ApiException(ApiCode.NotFound, L.T("Cannot find operation [{0}] within controller [{1}]", methodName, type.FullName));
 
         var args = ParameterBinder.Bind(method, context);
         Object? result;

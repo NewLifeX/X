@@ -122,10 +122,10 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
             ? throw new ObjectDisposedException(nameof(OwnerPacket))
             : index switch
             {
-                < 0 => throw new IndexOutOfRangeException($"Index cannot be negative: {index}"),
+                < 0 => throw new IndexOutOfRangeException(L.T("Index cannot be negative: {0}", index)),
                 var i when i < _length => _buffer[_offset + i],
                 var i when Next != null => Next[i - _length],
-                _ => throw new IndexOutOfRangeException($"Index {index} exceeds total length {Total}")
+                _ => throw new IndexOutOfRangeException(L.T("Index {0} exceeds total length {1}", index, Total))
             };
         set
         {
@@ -134,7 +134,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
             switch (index)
             {
                 case < 0:
-                    throw new IndexOutOfRangeException($"Index cannot be negative: {index}");
+                    throw new IndexOutOfRangeException(L.T("Index cannot be negative: {0}", index));
                 case var i when i < _length:
                     _buffer[_offset + i] = value;
                     break;
@@ -142,7 +142,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
                     Next[i - _length] = value;
                     break;
                 default:
-                    throw new IndexOutOfRangeException($"Index {index} exceeds total length {Total}");
+                    throw new IndexOutOfRangeException(L.T("Index {0} exceeds total length {1}", index, Total));
             }
         }
     }
@@ -157,8 +157,8 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// <remarks>实际分配的缓冲区可能大于请求长度，以适配内存池的分片策略；预留空间经 <see cref="FreeHeader"/> 查询</remarks>
     public OwnerPacket(Int32 length, Int32 reserve)
     {
-        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
-        if (reserve < 0) throw new ArgumentOutOfRangeException(nameof(reserve), "Reserve must be non-negative.");
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), L.T("Length must be non-negative."));
+        if (reserve < 0) throw new ArgumentOutOfRangeException(nameof(reserve), L.T("Reserve must be non-negative."));
 
         var buffer = ArrayPool<Byte>.Shared.Rent(length + reserve);
         _buffer = buffer;
@@ -186,11 +186,11 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     public OwnerPacket(Byte[] buffer, Int32 offset, Int32 length, Boolean hasOwner)
     {
         if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Offset must be non-negative.");
-        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), L.T("Offset must be non-negative."));
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), L.T("Length must be non-negative."));
         if (offset + length > buffer.Length)
             throw new ArgumentOutOfRangeException(nameof(length),
-                "Offset and length must be within buffer bounds.");
+                L.T("Offset and length must be within buffer bounds."));
 
         _buffer = buffer;
         _offset = offset;
@@ -220,12 +220,12 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     {
         if (owner == null) throw new ArgumentNullException(nameof(owner));
         if (expandSize < 0)
-            throw new ArgumentOutOfRangeException(nameof(expandSize), "Expand size must be non-negative.");
+            throw new ArgumentOutOfRangeException(nameof(expandSize), L.T("Expand size must be non-negative."));
 
-        if (owner._buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket), "Source packet has been disposed.");
+        if (owner._buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket), L.T("Source packet has been disposed."));
         if (owner._offset < expandSize)
             throw new ArgumentOutOfRangeException(nameof(expandSize),
-                $"Expand size {expandSize} exceeds available front space {owner._offset}");
+                L.T("Expand size {0} exceeds available front space {1}", expandSize, owner._offset));
 
         _buffer = owner._buffer;
         _offset = owner._offset - expandSize;
@@ -248,7 +248,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     public OwnerPacket(Stream stream, Int32 reserve = 0)
     {
         if (stream == null) throw new ArgumentNullException(nameof(stream));
-        if (reserve < 0) throw new ArgumentOutOfRangeException(nameof(reserve), "Reserve must be non-negative.");
+        if (reserve < 0) throw new ArgumentOutOfRangeException(nameof(reserve), L.T("Reserve must be non-negative."));
 
         if (stream is MemoryStream ms)
         {
@@ -356,10 +356,10 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
 
         // 还有别的句柄在用这块缓冲时不能脱手：它们释放后缓冲会归还池，而调用方还在用同一块缓冲
         if (owner.RefCount > 1)
-            throw new InvalidOperationException($"Cannot detach while {owner.RefCount - 1} other handle(s) still hold the buffer.");
+            throw new InvalidOperationException(L.T("Cannot detach while {0} other handle(s) still hold the buffer.", owner.RefCount - 1));
 
         // 链式后续节点会在本句柄脱手时丢失引用（链上缓存的归还责任随之消失），调用方确认无链才可脱手
-        if (Next != null) throw new InvalidOperationException("Cannot detach while the packet has a Next segment; dispose the chain first.");
+        if (Next != null) throw new InvalidOperationException(L.T("Cannot detach while the packet has a Next segment; dispose the chain first."));
 
         // 抑制析构兜底，防止 GC 时误把仍在借用中的缓冲归还池
         GC.SuppressFinalize(this);
@@ -412,7 +412,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// </remarks>
     public OwnerPacket Resize(Int32 size)
     {
-        if (size < 0) throw new ArgumentOutOfRangeException(nameof(size), "Size must be non-negative.");
+        if (size < 0) throw new ArgumentOutOfRangeException(nameof(size), L.T("Size must be non-negative."));
 
         if (Next == null)
         {
@@ -420,14 +420,14 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
             // 后续 GetSpan/GetMemory 会越窗（offset+length 超出数组长度）
             if (size > Buffer.Length - _offset)
                 throw new ArgumentOutOfRangeException(nameof(size),
-                    $"Size {size} exceeds available space {Buffer.Length - _offset}");
+                    L.T("Size {0} exceeds available space {1}", size, Buffer.Length - _offset));
 
             _length = size;
         }
         else
         {
             if (size >= _length)
-                throw new NotSupportedException("Cannot increase size when Next segment exists");
+                throw new NotSupportedException(L.T("Cannot increase size when Next segment exists"));
 
             _length = size;
         }
@@ -447,7 +447,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     public OwnerPacket Skip(Int32 len)
     {
         if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
-        if (len < 0 || len > _length) throw new ArgumentOutOfRangeException(nameof(len), $"Skip {len} exceeds current length {_length}");
+        if (len < 0 || len > _length) throw new ArgumentOutOfRangeException(nameof(len), L.T("Skip {0} exceeds current length {1}", len, _length));
 
         _offset += len;
         _length -= len;
@@ -485,16 +485,16 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
 
         if (offset < 0)
-            throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be negative.");
+            throw new ArgumentOutOfRangeException(nameof(offset), L.T("Offset cannot be negative."));
 
         var total = Total;
         if (count > total - offset)
             throw new ArgumentOutOfRangeException(nameof(count),
-                $"Count {count} with offset {offset} exceeds total length {total}");
+                L.T("Count {0} with offset {1} exceeds total length {2}", count, offset, total));
 
         if (count < 0) count = total - offset;
         if (count < 0)
-            throw new ArgumentOutOfRangeException(nameof(offset), $"Offset {offset} exceeds total length {total}");
+            throw new ArgumentOutOfRangeException(nameof(offset), L.T("Offset {0} exceeds total length {1}", offset, total));
 
         OwnerPacket? head = null;
         OwnerPacket? tail = null;
@@ -602,7 +602,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         if (source.TryGetArray(out var segment))
             return new OwnerPacket(segment.Array!, segment.Offset + offset, count, null);
 
-        throw new NotSupportedException($"Cannot share chain node of type {source.GetType().Name}");
+        throw new NotSupportedException(L.T("Cannot share chain node of type {0}", source.GetType().Name));
     }
 
     /// <summary>释放节点引用并作废节点（链式遍历用）。release 为 false 表示引用已移交给接管方</summary>

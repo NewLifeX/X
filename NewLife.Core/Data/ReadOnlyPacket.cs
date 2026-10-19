@@ -48,10 +48,10 @@ public readonly record struct ReadOnlyPacket : IPacket
         get
         {
             if (index < 0 || index >= _length)
-                throw new IndexOutOfRangeException($"Index {index} is out of range [0, {_length})");
+                throw new IndexOutOfRangeException(L.T("Index {0} is out of range [0, {1})", index, _length));
             return _buffer[_offset + index];
         }
-        set => throw new NotSupportedException("ReadOnlyPacket does not support modification");
+        set => throw new NotSupportedException(L.T("ReadOnlyPacket does not support modification"));
     }
     #endregion
 

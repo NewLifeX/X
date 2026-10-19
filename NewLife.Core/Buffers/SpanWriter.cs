@@ -117,9 +117,9 @@ public ref struct SpanWriter
     public void Advance(Int32 count)
     {
         if (count < 0)
-            throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+            throw new ArgumentOutOfRangeException(nameof(count), L.T("Count cannot be negative."));
         if (_index + count > _span.Length)
-            throw new ArgumentOutOfRangeException(nameof(count), "Exceeds buffer capacity.");
+            throw new ArgumentOutOfRangeException(nameof(count), L.T("Exceeds buffer capacity."));
 
         _index += count;
     }
@@ -153,14 +153,14 @@ public ref struct SpanWriter
     private void FlushAndGrow(Int32 size)
     {
         if (_stream == null)
-            throw new InvalidOperationException($"Not enough space to write {size} bytes. Available: {FreeCapacity}");
+            throw new InvalidOperationException(L.T("Not enough space to write {0} bytes. Available: {1}", size, FreeCapacity));
 
         // 先把已写入数据刷入流
         Flush();
 
         // Flush 后 _index=0，若单次写入仍超过缓冲区则抛异常
         if (size > _span.Length)
-            throw new InvalidOperationException($"Single write of {size} bytes exceeds buffer capacity {_span.Length}. Use Write(ReadOnlySpan<Byte>) for large data.");
+            throw new InvalidOperationException(L.T("Single write of {0} bytes exceeds buffer capacity {1}. Use Write(ReadOnlySpan<Byte>) for large data.", size, _span.Length));
     }
 
     /// <summary>写入字节</summary>
@@ -657,7 +657,7 @@ public ref struct SpanWriter
         1 => Write((Byte)length),
         2 => Write((UInt16)length),
         4 => Write(length),
-        _ => throw new ArgumentOutOfRangeException(nameof(sizeOf), $"Unsupported length size: {sizeOf}. Use 0/1/2/4.")
+        _ => throw new ArgumentOutOfRangeException(nameof(sizeOf), L.T("Unsupported length size: {0}. Use 0/1/2/4.", sizeOf))
     };
 
     /// <summary>写入长度前缀的二进制数据</summary>

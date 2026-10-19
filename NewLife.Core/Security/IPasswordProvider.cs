@@ -111,7 +111,7 @@ public class SaltPasswordProvider : IPasswordProvider
         // 老式MD5，password可能是密码原文，也可能是前端已经md5散列的值。数据库里刚好也是明文或MD5散列
         if (ss.Length == 1) return hash.EqualIgnoreCase(password, password.MD5());
 
-        if (ss.Length != 4) throw new NotSupportedException("Unsupported password hash value");
+        if (ss.Length != 4) throw new NotSupportedException(L.T("Unsupported password hash value"));
 
         var salt = ss[2];
         if (SaltTime > 0)
@@ -149,7 +149,7 @@ public class SaltPasswordProvider : IPasswordProvider
                 if (ss[3] == password.ToHex().SHA512(salt.GetBytes()).ToBase64()) return true;
                 return false;
             default:
-                throw new NotSupportedException($"Unsupported password hash mode [{ss[1]}]");
+                throw new NotSupportedException(L.T("Unsupported password hash mode [{0}]", ss[1]));
         }
     }
 }

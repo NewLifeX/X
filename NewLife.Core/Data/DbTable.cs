@@ -343,7 +343,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         _ = binary.Read<Byte>();
 
         // 版本兼容
-        if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}] Unable to support newer versions [{ver}]");
+        if (ver > _Ver) throw new InvalidDataException(L.T("DbTable[ver={0}] Unable to support newer versions [{1}]", _Ver, ver));
 
         // v3开始支持FullTime
         if (ver < 3) binary.FullTime = false;
@@ -884,7 +884,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         _ = reader.ReadByte();
 
         // 版本兼容
-        if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}] Unable to support newer versions [{ver}]");
+        if (ver > _Ver) throw new InvalidDataException(L.T("DbTable[ver={0}] Unable to support newer versions [{1}]", _Ver, ver));
 
         // 读取列数
         var count = reader.ReadEncodedInt();

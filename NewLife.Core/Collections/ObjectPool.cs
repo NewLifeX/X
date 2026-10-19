@@ -174,7 +174,7 @@ public class ObjectPool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
                     pi = new Item { Value = OnCreate(), CreatedTime = TimerX.Now };
                     // 创建失败时抛异常，由外层 catch 释放槽位，避免无限循环并永久占用槽位
                     if (pi.Value == null)
-                        throw new InvalidOperationException($"[ObjectPool:{Name}] Unable to create instance of [{typeof(T).FullName}]");
+                        throw new InvalidOperationException(L.T("[ObjectPool:{0}] Unable to create instance of [{1}]", Name, typeof(T).FullName));
                 }
 
                 // 空闲池中可能残留 null 项，跳过重试
@@ -231,7 +231,7 @@ public class ObjectPool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
                     pi = new Item { Value = await OnCreateAsync(cancellationToken).ConfigureAwait(false), CreatedTime = TimerX.Now };
                     // 创建失败时抛异常，由外层 catch 释放槽位，避免无限循环并永久占用槽位
                     if (pi.Value == null)
-                        throw new InvalidOperationException($"[ObjectPool:{Name}] Unable to create instance of [{typeof(T).FullName}]");
+                        throw new InvalidOperationException(L.T("[ObjectPool:{0}] Unable to create instance of [{1}]", Name, typeof(T).FullName));
                 }
 
                 // 空闲池中可能残留 null 项，跳过重试

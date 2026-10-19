@@ -93,7 +93,7 @@ public sealed class Pipe : IDisposable
     {
         lock (SyncRoot)
         {
-            if (!WriterCompleted || !ReaderCompleted) throw new InvalidOperationException("Pipe must be completed on both sides before reset.");
+            if (!WriterCompleted || !ReaderCompleted) throw new InvalidOperationException(L.T("Pipe must be completed on both sides before reset."));
 
             WriterCompleted = false;
             ReaderCompleted = false;

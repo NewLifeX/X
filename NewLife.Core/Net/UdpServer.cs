@@ -655,7 +655,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                     // 根据目标地址适配本地IPv4/IPv6
                     Local.Address = Local.Address.GetRightAny(remoteEP.AddressFamily);
 
-                    if (!Open()) throw new InvalidOperationException($"Open {Local} error");
+                    if (!Open()) throw new InvalidOperationException(L.T("Open {0} error", Local));
                 }
             }
         }
@@ -871,7 +871,7 @@ public static class UdpHelper
         if (udp.Client != null && udp.Client.LocalEndPoint != null)
         {
             if (udp.Client.LocalEndPoint is IPEndPoint ip && !ip.Address.IsIPv4())
-                throw new NotSupportedException("IPv6 does not support broadcasting!");
+                throw new NotSupportedException(L.T("IPv6 does not support broadcasting!"));
         }
 
         if (!udp.EnableBroadcast) udp.EnableBroadcast = true;

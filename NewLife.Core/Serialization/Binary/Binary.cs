@@ -257,7 +257,7 @@ public class Binary : FormatterBase, IBinary
     public virtual Object? Read(Type type)
     {
         Object? value = null;
-        if (!TryRead(type, ref value)) throw new Exception($"Read failed, type {type} is not supported!");
+        if (!TryRead(type, ref value)) throw new Exception(L.T("Read failed, type {0} is not supported!", type));
 
         return value;
     }
@@ -321,13 +321,13 @@ public class Binary : FormatterBase, IBinary
     /// <returns></returns>
     public virtual Byte ReadByte()
     {
-        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+        if (EndOfStream) throw new EndOfStreamException(L.T("The data stream is out of range!"));
 
         var b = Stream.ReadByte();
         if (b < 0)
         {
             EndOfStream = true;
-            throw new EndOfStreamException("The data stream is out of range!");
+            throw new EndOfStreamException(L.T("The data stream is out of range!"));
         }
 
         // 探测数据流是否已经到达末尾
@@ -371,7 +371,7 @@ public class Binary : FormatterBase, IBinary
     {
         if (count == 0) return [];
 
-        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+        if (EndOfStream) throw new EndOfStreamException(L.T("The data stream is out of range!"));
 
         // 如果是-1，则读取全部剩余数据
         if (count < 0)
@@ -418,7 +418,7 @@ public class Binary : FormatterBase, IBinary
     {
         if (span.Length == 0) return 0;
 
-        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+        if (EndOfStream) throw new EndOfStreamException(L.T("The data stream is out of range!"));
 
         var totalRead = 0;
         while (totalRead < span.Length)
@@ -451,7 +451,7 @@ public class Binary : FormatterBase, IBinary
     {
         if (count == 0) return 0;
 
-        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+        if (EndOfStream) throw new EndOfStreamException(L.T("The data stream is out of range!"));
 
         var totalRead = 0;
         while (totalRead < count)
@@ -661,7 +661,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 16) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 16) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return rs;
     }
@@ -682,7 +682,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 32) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return rs;
     }
@@ -703,7 +703,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 64) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return rs;
     }
@@ -724,7 +724,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 16) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 16) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return true;
     }
@@ -745,7 +745,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 32) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return true;
     }
@@ -766,7 +766,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 64) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return true;
     }

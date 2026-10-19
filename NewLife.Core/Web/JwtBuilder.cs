@@ -148,7 +148,7 @@ public class JwtBuilder : IExtend
             return $"{header}.{body}.{sign.ToUrlBase64()}";
         }
 
-        throw new InvalidOperationException($"Unsupported algorithm [{alg}]");
+        throw new InvalidOperationException(L.T("Unsupported algorithm [{0}]", alg));
     }
 
     /// <summary>分析令牌</summary>

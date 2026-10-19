@@ -38,7 +38,7 @@ public class LogEventListenerTests
         {
             lock (messages)
             {
-                messages.Add(fmt);
+                messages.Add(args == null || args.Length == 0 ? fmt : String.Format(fmt, args));
             }
         });
         actionLog.Level = LogLevel.All;
@@ -79,7 +79,7 @@ public class LogEventListenerTests
         {
             lock (messages)
             {
-                messages.Add(fmt);
+                messages.Add(args == null || args.Length == 0 ? fmt : String.Format(fmt, args));
             }
         });
         actionLog.Level = LogLevel.All;
@@ -124,7 +124,7 @@ public class LogEventListenerTests
         {
             lock (messages)
             {
-                messages.Add(fmt);
+                messages.Add(args == null || args.Length == 0 ? fmt : String.Format(fmt, args));
             }
         });
         actionLog.Level = LogLevel.All;

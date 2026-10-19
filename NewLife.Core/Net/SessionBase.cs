@@ -953,7 +953,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         if (message == null) throw new ArgumentNullException(nameof(message));
 
-        var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
+        var codec = Protocol ?? throw new InvalidOperationException(L.T("Protocol not set for session [{0}]", Name));
 
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
         try
@@ -992,7 +992,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
 
-        var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
+        var codec = Protocol ?? throw new InvalidOperationException(L.T("Protocol not set for session [{0}]", Name));
         if (ResponseMatcher.Resolve(codec) == null) throw new NotSupportedException(L.T("Protocol [{0}] does not implement request/response matching (IMessageMatcher); cannot wait for a response.", codec.GetType().Name));
         if (this is not IStreamSession) throw new NotSupportedException(L.T("Session type [{0}] does not support response-matched delivery and cannot wait for a response (use UdpServer/UdpSession for datagram sessions).", GetType().Name));
 
@@ -1029,7 +1029,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 协议模式：消息经协议构建整帧发送
         if (Protocol != null && message is IMessage msg) return SendMessage(msg);
 
-        throw new InvalidOperationException($"Protocol not set or message is not IMessage for session [{Name}]");
+        throw new InvalidOperationException(L.T("Protocol not set or message is not IMessage for session [{0}]", Name));
     }
 
     /// <summary>发送消息并等待响应（协议模式）。经协议构建整帧发送，收到匹配响应后交付消息本体</summary>
@@ -1042,7 +1042,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 协议模式：消息经协议构建并等待匹配响应（交付消息本体）
         if (Protocol != null && message is IMessage msg) return SendMessageAsyncForObject(msg, cancellationToken);
 
-        throw new InvalidOperationException($"Protocol not set or message is not IMessage for session [{Name}]");
+        throw new InvalidOperationException(L.T("Protocol not set or message is not IMessage for session [{0}]", Name));
     }
 
     /// <summary>处理数据帧</summary>

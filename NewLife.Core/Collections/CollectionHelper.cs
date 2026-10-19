@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
@@ -89,7 +90,7 @@ public static class CollectionHelper
         if (source is IDictionary<String, Object?> dic) return dic;
         var type = source?.GetType();
         if (type != null && (type.IsBaseType() || type.IsArray || typeof(IList).IsAssignableFrom(type)))
-            throw new InvalidDataException("source is not Object");
+            throw new InvalidDataException(L.T("source is not Object"));
 
         dic = new NullableDictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
         if (source != null)

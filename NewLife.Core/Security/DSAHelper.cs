@@ -65,7 +65,7 @@ public static class DSAHelper
 
         if (xmlDoc.DocumentElement == null || !xmlDoc.DocumentElement.Name.Equals("DSAKeyValue"))
         {
-            throw new Exception("Invalid XML DSA key.");
+            throw new Exception(L.T("Invalid XML DSA key."));
         }
 
         foreach (var item in xmlDoc.DocumentElement.ChildNodes)

@@ -331,7 +331,7 @@ public static class Reflect
         if (!throwOnError) return null;
 
         var type = GetType(target);
-        throw new ArgumentException($"The [{name}] property or field does not exist in class [{type.FullName}].");
+        throw new ArgumentException(L.T("The [{0}] property or field does not exist in class [{1}].", name, type.FullName));
     }
 
     /// <summary>获取目标对象指定名称的属性/字段值</summary>

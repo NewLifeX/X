@@ -86,7 +86,7 @@ public class MessagePump
         message = null;
         frameLength = 0;
 
-        var codec = Codec ?? throw new InvalidOperationException("MessagePump.Codec not set.");
+        var codec = Codec ?? throw new InvalidOperationException(L.T("MessagePump.Codec not set."));
 
         while (true)
         {

@@ -330,7 +330,7 @@ namespace NewLife.Security
                 var algorithm = oids[0];
                 var parameters = oids[1];
 
-                if (algorithm.FriendlyName != "ECC") throw new InvalidDataException($"Invalid key {algorithm}");
+                if (algorithm.FriendlyName != "ECC") throw new InvalidDataException(L.T("Invalid key {0}", algorithm));
 
                 keys = Asn1.Read((keys[2].Value as Byte[]) ?? throw new InvalidDataException())?.Value as Asn1[] ?? throw new InvalidDataException();
 
@@ -365,7 +365,7 @@ namespace NewLife.Security
                 var algorithm = oids[0];
                 var parameters = oids[1];
 
-                if (algorithm.FriendlyName != "ECC") throw new InvalidDataException($"Invalid key {algorithm}");
+                if (algorithm.FriendlyName != "ECC") throw new InvalidDataException(L.T("Invalid key {0}", algorithm));
 
                 // 里面是一个字节前缀，后面X+Y
                 var k2 = keys[1].Value as Byte[] ?? throw new InvalidDataException();

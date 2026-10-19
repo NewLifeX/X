@@ -63,13 +63,13 @@ public partial class TcpSession
         while (total < count)
         {
             var sent = sock.Send(buffer, offset + total, count - total, SocketFlags.None);
-            if (sent <= 0) throw new IOException($"Send failed (result={sent}), {total}/{count} bytes sent");
+            if (sent <= 0) throw new IOException(L.T("Send failed (result={0}), {1}/{2} bytes sent", sent, total, count));
 
             total += sent;
 
             // 续发前检查总预算：对端持续慢读时，单次 SendTimeout 约束不住整包发送的总耗时
             if (deadline > 0 && total < count && Runtime.TickCount64 > deadline)
-                throw new TimeoutException($"Send timeout, {total}/{count} bytes sent");
+                throw new TimeoutException(L.T("Send timeout, {0}/{1} bytes sent", total, count));
         }
 
         return total;
@@ -85,7 +85,7 @@ public partial class TcpSession
     {
         // 先尝试一次多段发送（平台可合并系统调用）；正常路径一次发完直接返回
         var sent = sock.Send(segments);
-        if (sent <= 0) throw new IOException($"Send failed (result={sent}), 0/{total} bytes sent");
+        if (sent <= 0) throw new IOException(L.T("Send failed (result={0}), 0/{1} bytes sent", sent, total));
         if (sent >= total) return sent;
 
         // 短计数：按段序跳过已发字节，逐段续发（复用原段缓冲，零拷贝）
@@ -268,7 +268,7 @@ public partial class TcpSession
         var count = pk.Total;
         if (count == 0) return 0;
 
-        var sock = Client ?? throw new InvalidOperationException($"Session [{Name}] is not open.");
+        var sock = Client ?? throw new InvalidOperationException(L.T("Session [{0}] is not open.", Name));
 
         TuneSendBufferSize(sock, count);
 
@@ -297,7 +297,7 @@ public partial class TcpSession
     /// <returns>已发送字节数</returns>
     private Int32 WriteMemory(ReadOnlySpan<Byte> data)
     {
-        var sock = Client ?? throw new InvalidOperationException($"Session [{Name}] is not open.");
+        var sock = Client ?? throw new InvalidOperationException(L.T("Session [{0}] is not open.", Name));
         Int32 rs;
 
         TuneSendBufferSize(sock, data.Length);
@@ -382,7 +382,7 @@ public partial class TcpSession
     {
         if (source == null) throw new ArgumentNullException(nameof(source));
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
+        if (!Open()) throw new InvalidOperationException(L.T("Session [{0}] is not open.", GetType().Name));
 
         Exception? error = null;
         var total = 0L;
@@ -445,13 +445,13 @@ public partial class TcpSession
 
                 // 写完这一块才读下一块：内存恒为一块，慢对端由内核缓冲形成背压
                 var rs = await WriteMemoryAsync(buffer.AsMemory(0, count)).ConfigureAwait(false);
-                if (rs < 0) throw new IOException($"Send failed on [{Name}], {total} bytes sent before failure.");
+                if (rs < 0) throw new IOException(L.T("Send failed on [{0}], {1} bytes sent before failure.", Name, total));
 
                 total += count;
             }
 
             // 流提前结束：报错，避免调用方误以为已完整发送
-            if (length > 0 && total < length) throw new InvalidDataException($"Stream ended early. Expected {length} bytes but got {total}.");
+            if (length > 0 && total < length) throw new InvalidDataException(L.T("Stream ended early. Expected {0} bytes but got {1}.", length, total));
 
             return total;
         }
@@ -487,9 +487,9 @@ public partial class TcpSession
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
         var fi = filePath.AsFile();
-        if (!fi.Exists) throw new FileNotFoundException($"File not found: {filePath}", filePath);
+        if (!fi.Exists) throw new FileNotFoundException(L.T("File not found: {0}", filePath), filePath);
 
-        if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
+        if (!Open()) throw new InvalidOperationException(L.T("Session [{0}] is not open.", GetType().Name));
 
         var length = fi.Length;
 
@@ -558,7 +558,7 @@ public partial class TcpSession
         if (message == null) throw new ArgumentNullException(nameof(message));
         if (body == null) throw new ArgumentNullException(nameof(body));
 
-        var codec = Protocol ?? throw new InvalidOperationException($"Protocol not set for session [{Name}]");
+        var codec = Protocol ?? throw new InvalidOperationException(L.T("Protocol not set for session [{0}]", Name));
 
         // 长度未知：从可定位流推导（协议头须先声明长度）
         if (bodyLength < 0)
@@ -574,7 +574,7 @@ public partial class TcpSession
             var rs = await SendMessageLockedAsync(header, body, bodyLength, cancellationToken).ConfigureAwait(false);
 
             // 失败返回 -1：底层已记错误日志并按失败关闭会话，这里转成异常，保持本方法“失败即抛”的契约
-            if (rs < 0) throw new IOException($"Send message failed on [{Name}].");
+            if (rs < 0) throw new IOException(L.T("Send message failed on [{0}].", Name));
 
             return rs;
         }
@@ -658,7 +658,7 @@ public partial class TcpSession
     {
         if (data == null) throw new ArgumentNullException(nameof(data));
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        if (!Open()) throw new InvalidOperationException($"Session [{GetType().Name}] is not open.");
+        if (!Open()) throw new InvalidOperationException(L.T("Session [{0}] is not open.", GetType().Name));
 
         return DirectSendAsync(data, cancellationToken);
     }

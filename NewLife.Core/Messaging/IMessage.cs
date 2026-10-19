@@ -130,7 +130,7 @@ public class Message : IMessage
 
         if (type.CreateInstance() is Message msg) return msg;
 
-        throw new InvalidOperationException($"Cannot create an instance of type [{type.FullName}]");
+        throw new InvalidOperationException(L.T("Cannot create an instance of type [{0}]", type.FullName));
     }
 
     /// <summary>根据请求创建配对的响应消息。基类不支持回复，返回 null；带配对键的协议子类重写</summary>

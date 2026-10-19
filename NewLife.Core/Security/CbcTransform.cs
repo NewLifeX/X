@@ -46,7 +46,7 @@ public sealed class CbcTransform : ICryptoTransform
 
         if (transform.InputBlockSize != transform.OutputBlockSize) throw new CryptographicException();
 
-        if (iv == null || iv.Length != transform.InputBlockSize) throw new CryptographicException("IV length mismatch");
+        if (iv == null || iv.Length != transform.InputBlockSize) throw new CryptographicException(L.T("IV length mismatch"));
 
         iv.AsSpan(0, transform.InputBlockSize).CopyTo(_lastBlock);
         _iv = (Byte[])_lastBlock.Clone();

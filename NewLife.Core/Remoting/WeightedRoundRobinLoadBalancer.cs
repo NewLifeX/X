@@ -27,7 +27,7 @@ public class WeightedRoundRobinLoadBalancer : LoadBalancerBase
     public override ServiceEndpoint GetService(IList<ServiceEndpoint> services)
     {
         if (services == null || services.Count == 0)
-            throw new InvalidOperationException("No available service nodes!");
+            throw new InvalidOperationException(L.T("No available service nodes!"));
 
         EnsureAvailable(services);
 
@@ -53,7 +53,7 @@ public class WeightedRoundRobinLoadBalancer : LoadBalancerBase
 
         // 如果都没有可用节点，默认选第一个
         if (svc == null && services.Count > 0) svc = services[0];
-        if (svc == null) throw new InvalidOperationException("No available service nodes!");
+        if (svc == null) throw new InvalidOperationException(L.T("No available service nodes!"));
 
         svc.Times++;
 
