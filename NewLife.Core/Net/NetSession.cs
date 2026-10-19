@@ -67,7 +67,7 @@ public class NetSession<TServer> : NetSession where TServer : NetServer
 ///     protected override void OnDisconnected(String reason)
 ///     {
 ///         base.OnDisconnected(reason);
-///         WriteLog($"客户端断开: {reason}");
+///         WriteLog("Client disconnected: {0}", reason);
 ///     }
 /// }
 /// </code>
