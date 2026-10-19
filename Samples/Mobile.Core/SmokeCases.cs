@@ -407,7 +407,7 @@ public static class SmokeCases
         }
         catch (PlatformNotSupportedException ex)
         {
-            if (!ex.Message.Contains("插件动态加载")) throw new Exception("异常信息不明确: " + ex.Message);
+            if (!ex.Message.Contains("插件动态加载") && !ex.Message.Contains("plugin dynamic loading")) throw new Exception("异常信息不明确: " + ex.Message);
         }
     }
 

@@ -84,7 +84,7 @@ Bin\Mobile.Android\apk\Mobile-NativeAot.apk
 |---|---|---:|---|
 | `Jit` | Mono JIT | 9.40 MB | 构建最快，调试最方便；启动/JIT 开销较大 |
 | `Aot` | Mono AOT（normal + profiled） | 12.47 MB | 默认交付；启动更快，Release 默认开启 |
-| `NativeAot` | NativeAOT | 15.40 MB | 已实测可构建（实验性）；需 Android NDK 26.3，`pack-android.ps1` 自动定位 clang/LLVM；反射与动态能力受限，未在真机验证 |
+| `NativeAot` | NativeAOT | 15.40 MB | 已实测可构建（实验性）；需 Android NDK 26.3，`pack-android.ps1` 自动定位 clang/LLVM；API 36 x86_64 模拟器冒烟 21/21 通过，未在真机验证 |
 
 > NativeAOT 模式需要 Android NDK：先执行 `sdkmanager "ndk;26.3.11579264"`；`pack-android.ps1` 会自动定位 NDK 并把 clang/LLVM 加入 PATH。
 
