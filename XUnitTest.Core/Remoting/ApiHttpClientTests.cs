@@ -216,33 +216,6 @@ public class ApiHttpClientTests : DisposeBase
         Assert.NotNull(infs);
     }
 
-    [Fact(Skip = "依赖外部网络服务 star.newlifex.com")]
-    public async Task SlaveAsyncTest()
-    {
-        var filter = new TokenHttpFilter
-        {
-            UserName = "test",
-            Password = "",
-        };
-        var client = new ApiHttpClient("http://127.0.0.1:10001,http://127.0.0.1:20001,http://star.newlifex.com:6600")
-        {
-            Filter = filter,
-            Timeout = 3_000
-        };
-
-        var rs = await client.PostAsync<Object>("config/getall", new { appid = "starweb" });
-        Assert.NotNull(rs);
-
-        var ss = client.Services;
-        Assert.Equal(3, ss.Count);
-        Assert.Equal(1, ss[0].Times);
-        Assert.Equal(1, ss[0].Errors);
-        Assert.Equal(1, ss[1].Times);
-        Assert.Equal(1, ss[1].Errors);
-        Assert.Equal(1, ss[2].Times);
-        Assert.Equal(0, ss[2].Errors);
-    }
-
     [Fact(DisplayName = "加权轮询测试")]
     public async Task RoundRobinTest()
     {
@@ -569,29 +542,8 @@ public class ApiHttpClientTests : DisposeBase
     }
     #endregion
 
-    #region Filter测试
-    [Fact(Skip = "依赖外部网络服务 star.newlifex.com")]
-    public async Task FilterTest()
-    {
-        var filter = new TokenHttpFilter
-        {
-            UserName = "test",
-            Password = "",
-        };
-
-        var client = new ApiHttpClient("http://star.newlifex.com:6600")
-        {
-            Filter = filter,
-
-            Log = XTrace.Log,
-        };
-
-        var rs = await client.PostAsync<Object>("config/getall", new { appid = "starweb" });
-
-        Assert.NotNull(rs);
-        Assert.NotNull(filter.Token);
-    }
-    #endregion
+    // 外部服务 star.newlifex.com 的 TokenHttpFilter 联测已移除：测试只依赖本机 ApiServer，
+    // 需要令牌过滤器覆盖时用本地 ApiServer + 自定义登录端点构造。
 
     #region CodeName/DataName测试
     [Fact(DisplayName = "自定义CodeName测试")]
