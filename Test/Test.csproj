@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net45;net461;net462;net8.0;net9.0;net10.0</TargetFrameworks>
@@ -25,8 +25,8 @@
     <None Remove="Model\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NewLife.Stardust" Version="3.10.2026.910-beta1512" />
-    <PackageReference Include="NewLife.XCode" Version="12.2.2026.1015-beta1338" />
+    <PackageReference Include="NewLife.Stardust" Version="3.10.2026.1018-beta1738" />
+    <PackageReference Include="NewLife.XCode" Version="12.2.2026.1019-beta0432" />
     <!--<PackageReference Include="System.Speech" Version="7.0.0" />-->
   </ItemGroup>
   <ItemGroup>

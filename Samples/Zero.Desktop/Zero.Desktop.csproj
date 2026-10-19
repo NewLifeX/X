@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -26,8 +26,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.Remoting" Version="3.9.2026.1015-beta1355" />
-    <PackageReference Include="NewLife.Stardust" Version="3.10.2026.910-beta1512" />
+    <PackageReference Include="NewLife.Remoting" Version="3.9.2026.1019-beta1013" />
+    <PackageReference Include="NewLife.Stardust" Version="3.10.2026.1018-beta1738" />
     <PackageReference Include="System.Speech" Version="10.0.10" />
   </ItemGroup>
 
