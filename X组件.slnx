@@ -13,7 +13,7 @@
     <File Path=".github/workflows/test.yml" />
     <File Path=".gitignore" />
     <File Path="ChangeLog.md" />
-    <File Path="Readme.MD" />
+    <File Path="README.md" />
     <Project Path="Tools/SelfHostRunner/SelfHostRunner.csproj">
       <Build Solution="*|iPhone" Project="false" />
       <Build Solution="*|iPhoneSimulator" Project="false" />
