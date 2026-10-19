@@ -19,25 +19,11 @@
 🌐 [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
-NewLife framework is a comprehensive .NET component ecosystem that provides high-performance infrastructure for building scalable applications. It offers essential capabilities such as logging, networking, serialization, caching, and multithreading, serving as the foundation for a range of applications from web services to IoT devices.  
+**NewLife.Core** is the foundation of the NewLife ecosystem: one package for logging, configuration, caching, networking, serialization, scheduling, object container and APM tracing. It targets 11 frameworks from net45 to net10.0 and powers XCode, Cube, Redis, Stardust and 30+ sibling projects.
 
 Core library tutorial: [https://newlifex.com/core](https://newlifex.com/core)  
 
-**Contents**: [Framework Overview](#framework-overview) · [Why NewLife.Core](#why-newlifecore) · [Quick Start](#quick-start) · [Main Features](#main-features) · [Documentation Index](#documentation-index) · [Repository layout](#repository-layout) · [Build and test](#build-and-test) · [NewLife Project Matrix](#newlife-project-matrix) · [Contributing and feedback](#contributing-and-feedback) · [License](#license)
-
-## Framework Overview
-
-NewLife is composed of multiple component libraries, with NewLife.Core providing the foundation. The framework supports multiple target frameworks from net45 to net10.0 (.NET Framework 4.5 through .NET 10.0), thereby achieving broad compatibility across different environments.
-
-**NativeAOT**: The core path is supported (measured in <!--aot-scenarios:start-->31<!--aot-scenarios:end--> scenarios + CI regression protection); dynamic capabilities such as plugins and scripting are not supported by design, see [AOT Compatibility Analysis (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) for the boundaries.
-
-
-## Why NewLife.Core
-
-- **One package for common infrastructure**: logging, configuration, caching, networking, serialization, scheduling, object container and DI — a single reference is enough.
-- **Broad version coverage**: 11 target frameworks in one package (net45 → net10.0, including Windows variants), the same API for legacy systems and new projects.
-- **NativeAOT ready**: <!--aot-scenarios:start-->31<!--aot-scenarios:end--> core scenarios measured and guarded by a multi-RID CI smoke matrix; boundaries in [AOT Compatibility Analysis](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md).
-- **Restrained dependencies, permissive license**: BCL and Microsoft compatibility packages only; MIT, so you can modify and rebrand (see [License](#license)).
+**Contents**: [Quick Start](#quick-start) · [Why NewLife.Core](#why-newlifecore) · [Main Features](#main-features) · [Ecosystem](#ecosystem) · [Documentation](#documentation) · [Contributing](#contributing) · [Team](#team) · [License](#license)
 
 ## Quick Start
 
@@ -72,34 +58,25 @@ cd test
 dotnet run
 ```
 
-### Build and customize
+### Platform support
 
-The team has always maintained an open attitude: it not only supports opening the solution and compiling in VisualStudio (latest release), but is also compatible with `dotnet build` command-line compilation. The project files abandon complex features in pursuit of simplicity and ease of use, truly ready to use out of the box.
+| Item | Coverage |
+| --- | --- |
+| Target frameworks | 11 in one package: net45, net461, net462, netstandard2.0, netstandard2.1, net6.0, net6.0-windows, net8.0, net8.0-windows, net10.0, net10.0-windows |
+| OS and architecture | Windows, Linux, macOS, Android, iOS; x64, x86, arm64, arm, loongarch64, riscv64, s390x |
+| NativeAOT | <!--aot-scenarios:start-->31<!--aot-scenarios:end--> core scenarios measured; multi-RID CI smoke matrix (win-x64, linux-x64, linux-arm64 and linux-loongarch64 are blocking gates). Plugins and scripting are not AOT-compatible by design — see [AOT Compatibility Analysis](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) |
 
-We publish the strong-name certificate `newlife.snk` to support compiling and replacing assemblies on your own.
+## Why NewLife.Core
 
-NewLife components have been co-created by the community for more than 20 years and use the MIT open source license. **Anyone can modify and redistribute them at will** (no need to indicate the source)! Many enterprises build internal development frameworks based on this, and can even achieve private customization by batch-replacing all `NewLife` strings in the source code with their company name.
-
-## Documentation Index
-
-### Usage docs
-
-- [Core Library Contents (中文)](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): Index of core component articles
-- [AOT Compatibility Analysis (中文)](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): NativeAOT support scope, measured conclusions (smoke test <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), usage guidance, and known boundaries
-
-### Development docs
-
-The repository's `Doc/` directory maintains a capability documentation system (requirements definition → feature tracking → architecture design):
-
-- [Requirements (中文)](https://github.com/NewLifeX/X/blob/master/Doc/需求文档.md): Vision, core goals, and functional requirements
-- [Feature List (中文)](https://github.com/NewLifeX/X/blob/master/Doc/功能清单.md): Implementation/test/comment status tracking for all feature points
-- [Architecture Design (中文)](https://github.com/NewLifeX/X/blob/master/Doc/架构设计.md): Layering, module components, and key design decisions
+- **One package for common infrastructure**: logging, configuration, caching, networking, serialization, scheduling, object container and DI — a single reference is enough.
+- **Broad version coverage**: 11 target frameworks in one package (net45 → net10.0, including Windows variants), the same API for legacy systems and new projects.
+- **Proven at ecosystem scale**: the same foundation runs XCode (single tables of 10 billion rows), Net (22.66M tps), Redis and Stardust (tens of billions of records).
+- **Restrained dependencies, permissive license**: BCL and Microsoft compatibility packages only; MIT, so you can modify and rebrand (see [License](#license)).
 
 ## Main Features
 
-
 <details>
-<summary><b>Basic Extensions</b> (9)</summary>
+<summary><b>Basic Extensions</b> (10)</summary>
 
 | Feature | Key Characteristics |
 | --- | --- |
@@ -112,6 +89,7 @@ The repository's `Doc/` directory maintains a capability documentation system (r
 | [Disposable DisposeBase](https://newlifex.com/core/disposebase) | Provides a standard resource release pattern that effectively prevents memory and resource leaks. |
 | [Reflection Extensions Reflect](https://newlifex.com/core/reflect) | High-performance reflection tooling for fast reading and writing of object members. |
 | [Security Extensions SecurityHelper](https://newlifex.com/core/security_helper) | Integrates RSA/AES/DES/MD5 and other encryption and decryption algorithms, simplifying security operations. |
+| [Latitude/Longitude Hash GeoHash](https://newlifex.com/core/geo_hash) | Encodes latitude and longitude into strings for nearby location search. |
 
 </details>
 
@@ -194,7 +172,7 @@ The repository's `Doc/` directory maintains a capability documentation system (r
 </details>
 
 <details>
-<summary><b>Application Framework</b> (16)</summary>
+<summary><b>Application Framework</b> (15)</summary>
 
 | Feature | Key Characteristics |
 | --- | --- |
@@ -202,7 +180,6 @@ The repository's `Doc/` directory maintains a capability documentation system (r
 | [Lightweight Application Host Host](https://newlifex.com/core/host) | Simplifies application hosting to easily build long-running background services. |
 | [Plugin Framework IPlugin](https://newlifex.com/core/plugin) | Provides a standardized plugin management mechanism for modular application development. |
 | [Parallel Model Actor](https://newlifex.com/core/actor) | Simplified concurrent programming model that improves throughput through message queue processing. |
-| [Pipeline Model Pipeline](https://github.com/NewLifeX/X/blob/master/Doc/管道模型Pipeline.md) ⚠️ Retired, replaced by the protocol pattern (frame pump) | Bidirectional processing chain model unifying the Read/Write/Open/Close flow. |
 | [Deferred Queue DeferredQueue](https://github.com/NewLifeX/X/blob/master/Doc/延迟队列DeferredQueue.md) | Aggregates high-frequency changes and persists them in batches, reducing write amplification. |
 | [Event Bus EventBus](https://github.com/NewLifeX/X/blob/master/Doc/事件总线EventBus.md) | In-process event dispatch supporting topic routing and queue-style messages. |
 | [Weak Reference Delegate WeakAction](https://newlifex.com/core/weak_action) | Solves the memory leak problem of event subscriptions and enables safe event handling. |
@@ -229,16 +206,7 @@ The repository's `Doc/` directory maintains a capability documentation system (r
 </details>
 
 <details>
-<summary><b>Cloud Services</b> (1)</summary>
-
-| Feature | Key Characteristics |
-| --- | --- |
-| [Latitude/Longitude Hash GeoHash](https://newlifex.com/core/geo_hash) | Encodes latitude and longitude into strings for nearby location search. |
-
-</details>
-
-<details>
-<summary><b>Networking</b> (15)</summary>
+<summary><b>Networking</b> (13)</summary>
 
 | Feature | Key Characteristics |
 | --- | --- |
@@ -249,8 +217,6 @@ The repository's `Doc/` directory maintains a capability documentation system (r
 | [Data Pipeline Pipe](https://github.com/NewLifeX/X/blob/dev/Doc/数据管道Pipe.md) | Zero-copy data pipeline aligned with the System.IO.Pipelines shape. |
 | [Simple Remote Message Exchange Protocol SRMP](https://newlifex.com/core/srmp) | Lightweight RPC protocol supporting binary serialization and UDP transport. |
 | [Load Balancing and Failover LoadBalancer](https://github.com/NewLifeX/X/blob/master/Doc/负载均衡与故障转移LoadBalancer.md) | Provides three multi-node scheduling strategies: Failover, polling, and racing. |
-| [RPC Communication ApiServer](https://newlifex.com/core/api_server) | ⚠️ Moved to [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting) |
-| [RPC Communication ApiClient](https://newlifex.com/core/api_client) | ⚠️ Moved to [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting) |
 | [HTTP Client ApiHttpClient](https://newlifex.com/core/api_http) | Based on an HttpClient wrapper, simplifying the calling and handling of Web APIs. |
 | [HTTP Server HttpServer (Embedded Devices)](https://newlifex.com/core/httpserver) | Lightweight Http server supporting middleware pipelines, parameterized routing, and static file serving. |
 | [Network Download WebClientX](https://newlifex.com/core/webclient) | Enhanced WebClient supporting multi-threaded and resumable downloads. |
@@ -260,10 +226,101 @@ The repository's `Doc/` directory maintains a capability documentation system (r
 
 </details>
 
-> ⚠️ Baidu Maps/AMap have been extracted into separate NuGet packages.
+> RPC (`ApiServer`/`ApiClient`) has moved to [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting).
 
+## Ecosystem
 
-## Repository layout
+NewLife is a layered ecosystem of independently versioned open-source projects. The layer map below is shared verbatim by every NewLife repository; the detailed table adds each project's positioning and traction.
+
+| Layer | Projects |
+| --- | --- |
+| Foundation | Core · XCode · Net · Remoting · Agent · Templates |
+| Data & Messaging | Redis · RocketMQ · MQTT · NovaDb · MySql |
+| Web, AI & Distributed | Cube · Stardust · AntJob · NewLife.AI |
+| Industrial & IoT | IoT · Modbus · Siemens · Omron · Melsec · OPC · BACnet · ZeroIoT |
+| Vehicle Telematics | JT808 · JT809 · JT1078 |
+| Domain Components | Office · Audio · Video · Map · IP |
+| Tools & Products | CrazyCoder · GitCandy · LuckyClover |
+
+### Project details
+
+| Project | What it does | Traction |
+| --- | --- | --- |
+| **Foundation** | | |
+| [NewLife.Core](https://github.com/NewLifeX/X) | Logging, configuration, caching, networking, serialization, scheduling and APM tracing. | ★1.9k · 1.91M |
+| [NewLife.XCode](https://github.com/NewLifeX/NewLife.XCode) | Data middleware: single tables at the tens-of-billions scale, automatic sharding, read-write splitting, 10+ databases. | ★104 · 541k |
+| [NewLife.Net](https://github.com/NewLifeX/NewLife.Net) | High-performance network library: 22.66M tps per machine, 4M long-lived TCP connections. | ★313 · 74.5k |
+| [NewLife.Remoting](https://github.com/NewLifeX/NewLife.Remoting) | Protocol communication and RPC framework for client/server applications and IoT devices. | ★16 · 272k |
+| [NewLife.Agent](https://github.com/NewLifeX/NewLife.Agent) | Installs .NET applications as OS daemons: Windows services and Linux systemd. | ★45 · 108k |
+| [NewLife.Templates](https://github.com/NewLifeX/NewLife.Zero) | `dotnet new` project templates for console, web, API, service, data and IoT projects. | ★82 · 14.9k |
+| **Data & Messaging** | | |
+| [NewLife.Redis](https://github.com/NewLifeX/NewLife.Redis) | Redis client with microsecond latency, millions of ops/s and built-in message queues. | ★878 · 723k |
+| [NewLife.RocketMQ](https://github.com/NewLifeX/NewLife.RocketMQ) | Pure managed RocketMQ client for Apache RocketMQ and Alibaba Cloud Message Queue. | ★225 · 120k |
+| [NewLife.MQTT](https://github.com/NewLifeX/NewLife.MQTT) | MQTT client and server, including Alibaba Cloud IoT connectivity. | ★150 · 99.4k |
+| [NewLife.NovaDb](https://github.com/NewLifeX/NewLife.NovaDb) | Hybrid database in C#: embedded or networked, relational, time-series, message queue and KV in one. | ★12 · 3.4k |
+| [NewLife.MySql](https://github.com/NewLifeX/NewLife.MySql) | MySql driver and helper layer built on the NewLife data stack. | ★23 · 8.4k |
+| **Web, AI & Distributed** | | |
+| [NewLife.Cube](https://github.com/NewLifeX/NewLife.Cube) | Rapid admin-platform framework: permissions, SSO, OAuth server and CRUD scaffolding. | ★637 · 186k |
+| [Stardust](https://github.com/NewLifeX/Stardust) | Distributed service platform: node management, APM, configuration center, registry and release center. | ★354 · 274k |
+| [AntJob](https://github.com/NewLifeX/AntJob) | Distributed task and real-time data scheduling platform with sharding, retries and backfill. | ★429 · 56.8k |
+| [NewLife.AI](https://github.com/NewLifeX/NewLife.AI) | Unified client for 46 LLM providers plus ChatAI, a ready-to-run web chat application. | ★20 · 11.4k |
+| **Industrial & IoT** | | |
+| [NewLife.IoT](https://github.com/NewLifeX/NewLife.IoT) | IoT standard library defining protocol contracts and device abstractions. | ★30 · 104k |
+| [NewLife.Modbus](https://github.com/NewLifeX/NewLife.Modbus) | Modbus TCP/RTU/ASCII implementation on top of NewLife.IoT. | ★27 · 48.7k |
+| [NewLife.Siemens](https://github.com/NewLifeX/NewLife.Siemens) | Siemens PLC protocol on top of NewLife.IoT. | ★30 · 14.3k |
+| [NewLife.Omron](https://github.com/NewLifeX/NewLife.Omron) | Omron PLC protocol on top of NewLife.IoT. | ★8 · 11.1k |
+| [NewLife.Melsec](https://github.com/NewLifeX/NewLife.Melsec) | Mitsubishi Melsec PLC protocol on top of NewLife.IoT. | ★34 · 10.8k |
+| [NewLife.OPC](https://github.com/NewLifeX/NewLife.OPC) | OPC client for industrial data access. | ★9 · — |
+| [NewLife.BACnet](https://github.com/NewLifeX/NewLife.BACnet) | BACnet building-automation protocol stack. | ★8 · 9k |
+| [ZeroIoT](https://github.com/NewLifeX/ZeroIoT) | Lightweight open-source IoT platform with gateway and device management. | ★10 · — |
+| **Vehicle Telematics** | | |
+| NewLife.JT808 | JT/T 808 vehicle positioning protocol: 70+ message bodies, 2011/2013/2019. | — |
+| NewLife.JT809 | JT/T 809 platform-to-platform protocol for transport authorities. | — · 135 |
+| NewLife.JT1078 | JT/T 1078 in-vehicle video: RTP parsing, FLV/fMP4 remuxing and live streaming. | — |
+| **Domain Components** | | |
+| [NewLife.Office](https://github.com/NewLifeX/NewLife.Office) | One package for Excel, Word, PPT, PDF and 15+ document formats. | ★11 · 12.9k |
+| [NewLife.Audio](https://github.com/NewLifeX/NewLife.Audio) | Cross-platform audio: codecs, device I/O, DSP, containers and streaming. | ★5 · 6.6k |
+| [NewLife.Video](https://github.com/NewLifeX/NewLife.Video) | Video codecs, container formats, frame processing and streaming. | ★2 · 610 |
+| [NewLife.Map](https://github.com/NewLifeX/NewLife.Map) | Unified interface over Baidu, AMap, Tencent and Tianditu with geocoding and coordinate conversion. | ★15 · 24.8k |
+| [NewLife.IP](https://github.com/NewLifeX/NewLife.IP) | IPv4 geolocation with an offline memory-mapped database and an online API fallback. | ★16 · 84.7k |
+| **Tools & Products** | | |
+| [CrazyCoder](https://github.com/NewLifeX/XCoder) | Developer toolbox: network, serial port, crypto, regex, Modbus and MQTT. | ★330 · 42.1k |
+| [GitCandy](https://github.com/NewLifeX/GitCandy) | Self-hosted Git source code management system. | ★49 · — |
+| [LuckyClover](https://github.com/NewLifeX/LuckyClover) | Installs the matching .NET runtime automatically when launched from an older host. | ★13 · — |
+
+> The 30+ packages not listed here (FTP, LoRa, Office extensions, protocol drivers and more) are available under the [NewLifeX organization](https://github.com/NewLifeX) and on [newlifex.com](https://newlifex.com).
+
+## Documentation
+
+### Guides
+
+- [Core Library Contents](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): index of core component articles, grouped by module
+- [AOT Compatibility Analysis](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): NativeAOT scope, measured conclusions (smoke <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), RID matrix and known boundaries
+- [Localization](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): message model, language tables, downstream overrides and runtime addition of languages
+- [Downstream localization checklist](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md): integration steps, language rules, CI gates and badge templates
+- [Mobile architecture](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md): .NET mobile stack, UI framework selection, APK packaging and AOT notes
+- [Samples](https://github.com/NewLifeX/X/tree/master/Samples): console, service, Http, IoT and mobile samples
+
+### Release notes
+
+- [ChangeLog.md](https://github.com/NewLifeX/X/blob/master/ChangeLog.md): version history
+
+## Contributing
+
+### Build and test
+
+The solution opens in Visual Studio (latest release) and also builds with the .NET CLI; project files stay deliberately simple so that a fresh clone builds out of the box.
+
+```bash
+dotnet build NewLife.Core/NewLife.Core.csproj -c Release
+dotnet test XUnitTest.Core -c Release
+```
+
+- Full parallel run: `run-tests.ps1` (multi-host parallel, timeout guard and trx summary)
+- NativeAOT smoke: `AotSmoke/`, CI in `.github/workflows/aot.yml`
+- Benchmarks: `Benchmark/` (BenchmarkDotNet)
+
+### Repository layout
 
 | Directory | Description |
 | --- | --- |
@@ -276,76 +333,34 @@ The repository's `Doc/` directory maintains a capability documentation system (r
 | `XUnitTest.Compat/`, `XUnitTest.Net6/` | Cross-version compatibility tests |
 | `AotSmoke/` | NativeAOT smoke project |
 
-## Build and test
+### Release
 
-```bash
-dotnet build NewLife.Core/NewLife.Core.csproj -c Release
-dotnet test XUnitTest.Core -c Release
-```
+Push a `v`-prefixed tag (for example `v12.0.2026.0927`) to trigger `.github/workflows/publish.yml`. The workflow packs the package, publishes it to NuGet.org and GitHub Packages, and creates a GitHub Release whose notes are taken from the matching `ChangeLog.md` section (assets include nupkg and snupkg). A manual run only publishes packages and does not create a Release.
 
-- Full parallel run: `run-tests.ps1` (multi-host parallel + timeout + trx summary)
-- NativeAOT smoke: `AotSmoke/`, CI in `.github/workflows/aot.yml`
-- Benchmarks: `Benchmark/` (BenchmarkDotNet)
+### Development docs
 
-## NewLife Project Matrix
+The `Doc/` directory keeps a capability documentation set that mirrors the code: requirements → feature tracking → architecture. These documents are written in Chinese.
 
-All projects support net10.0/netstandard2.1/netstandard2.0/net462/net4.5 by default; older versions (2024.0801) support net4.0/net2.0  
+- [Requirements](https://github.com/NewLifeX/X/blob/master/Doc/需求文档.md): vision, core goals and functional requirements
+- [Feature List](https://github.com/NewLifeX/X/blob/master/Doc/功能清单.md): implementation, test and comment status of every feature
+- [Architecture Design](https://github.com/NewLifeX/X/blob/master/Doc/架构设计.md): layering, components and key design decisions
 
-| Project | Year | Description |
-| :---: | :---: | --- |
-| Basic Components |  | Supports other middleware and product projects |
-| [NewLife.Core](https://github.com/NewLifeX/X) | 2002 | Core library: logging, configuration, caching, networking, serialization, APM performance tracing |
-| [NewLife.XCode](https://github.com/NewLifeX/NewLife.XCode) | 2005 | Big data middleware, single tables at the tens-of-billions scale, MySql/SQLite/SqlServer/Oracle/PostgreSql/DaMeng, automatic table sharding, read-write splitting |
-| [NewLife.Net](https://github.com/NewLifeX/NewLife.Net) | 2005 | Networking library, tens of millions of throughput per machine (22.66 million tps), millions of connections per machine (4 million long-lived TCP connections) |
-| [NewLife.Remoting](https://github.com/NewLifeX/NewLife.Remoting) | 2011 | Protocol communication library providing a CS application communication framework, supporting Http/RPC communication frameworks, high throughput, low overhead and easy access for IoT devices |
-| [NewLife.Cube](https://github.com/NewLifeX/NewLife.Cube) | 2010 | Cube rapid development platform integrating user permissions, SSO login, OAuth server, etc., validated on a project with 10 billion records in a single table |
-| [NewLife.Agent](https://github.com/NewLifeX/NewLife.Agent) | 2008 | Service management component that installs applications as operating system daemons: Windows services and Linux systemd |
-| [NewLife.Zero](https://github.com/NewLifeX/NewLife.Zero) | 2020 | Zero-generation scaffolding, the NewLife.Templates project template based on the NewLife component ecosystem: Web, WebApi, Service |
-| Middleware |  | Connects to well-known middleware platforms |
-| [NewLife.Redis](https://github.com/NewLifeX/NewLife.Redis) | 2017 | Redis client with microsecond-level latency, millions-level throughput, rich message queues, validated on a project with tens of billions of records |
-| [NewLife.RocketMQ](https://github.com/NewLifeX/NewLife.RocketMQ) | 2018 | Pure managed RocketMQ client supporting Apache RocketMQ and Alibaba Cloud Message Queue, validated on billion-level projects |
-| [NewLife.MQTT](https://github.com/NewLifeX/NewLife.MQTT) | 2019 | IoT messaging protocol, MqttClient/MqttServer, the client supports Alibaba Cloud IoT |
-| [NewLife.IoT](https://github.com/NewLifeX/NewLife.IoT) | 2022 | IoT standard library defining various communication protocol standards and specifications in the IoT field |
-| [NewLife.Modbus](https://github.com/NewLifeX/NewLife.Modbus) | 2022 | ModbusTcp/ModbusRTU/ModbusASCII, implemented based on the IoT standard library, supporting the ZeroIoT platform and IoTEdge gateway |
-| [NewLife.Siemens](https://github.com/NewLifeX/NewLife.Siemens) | 2022 | Siemens PLC protocol, implemented based on the IoT standard library, supporting the IoT platform and IoTEdge |
-| [NewLife.Map](https://github.com/NewLifeX/NewLife.Map) | 2022 | Map component library wrapping Baidu Maps, AMap, Tencent Maps, and Tianditu |
-| [NewLife.Audio](https://github.com/NewLifeX/NewLife.Audio) | 2023 | Audio codec library, PCM/ADPCMA/G711A/G722U/WAV/AAC |
-| Product Platforms |  | Product platform level, ready to use after compilation and deployment, with personalized customization |
-| [Stardust](https://github.com/NewLifeX/Stardust) | 2018 | Stardust, distributed service platform: node management, APM monitoring center, configuration center, registration center, release center |
-| [AntJob](https://github.com/NewLifeX/AntJob) | 2019 | AntJob, distributed big data computing platform (real-time/offline), ant-moving sharding concept, validated on a project with trillions of records |
-| [NewLife.ERP](https://github.com/NewLifeX/NewLife.ERP) | 2021 | Enterprise ERP: product management, customer management, sales management, supplier management |
-| [CrazyCoder](https://github.com/NewLifeX/XCoder) | 2006 | CrazyCoder, numerous developer tools: networking, serial ports, encryption/decryption, regular expressions, Modbus, MQTT |
-| [EasyIO](https://github.com/NewLifeX/EasyIO) | 2023 | Simple file storage, supporting centralized file storage in distributed systems. |
-| [XProxy](https://github.com/NewLifeX/XProxy) | 2005 | Product-grade reverse proxy, NAT proxy, Http proxy |
-| [HttpMeter](https://github.com/NewLifeX/HttpMeter) | 2022 | Http stress testing tool |
-| [GitCandy](https://github.com/NewLifeX/GitCandy) | 2015 | Git source code management system |
-| [SmartOS](https://github.com/NewLifeX/SmartOS) | 2014 | Embedded operating system, completely independent and self-developed, supporting the ARM Cortex-M chip architecture |
-| [SmartA2](https://github.com/NewLifeX/SmartA2) | 2019 | Embedded industrial computer, IoT edge gateway, high-performance .NET8 host, applied in industry, agriculture, transportation, and healthcare |
-| FIoT IoT Platform | 2020 | Complete IoT solutions for buildings, environmental protection, and agriculture, integrating software, hardware, and big data analysis, validated on a project with 100,000-level points per machine |
+### Feedback
 
+- Before submitting, make sure `dotnet build` and the relevant unit tests pass; follow the repository conventions for code style and commit messages.
+- Report bugs and suggestions via [Issue](https://github.com/NewLifeX/X/issues); Stars and PRs are welcome.
 
----
+## Team
 
-## NewLife Development Team
+NewLife was founded in 2002 and focuses on .NET, IoT and distributed systems. Its open-source components have been downloaded <!--nuget-total:start-->6.04M<!--nuget-total:end--> times from NuGet (as of 2026-10) and are used in power, industry, transportation, environmental protection, healthcare and cultural heritage projects.
 
-![XCode](https://newlifex.com/logo.png)
-
-The NewLife team (NewLife) was founded in 2002 and is an IoT industry solution provider for the new era, dedicated to providing software and hardware application solution consulting, system architecture planning, and development services. 5.23 million+ cumulative NuGet downloads. The team's core components (XCode / Redis / Stardust / AntJob / IoT, etc.) have been applied at scale in industries such as power, industry, transportation, environmental protection, healthcare, and cultural heritage.
-
-We continue to improve, striving to become a long-term trusted .NET / IoT / distributed technology partner.
-
-Website: https://newlifex.com   Open source organization: https://github.com/NewLifeX  
+Website: https://newlifex.com · Open source organization: https://github.com/NewLifeX  
 WeChat Official Account:  
 ![智能大石头](https://newlifex.com/stone.jpg)
 
-## Contributing and feedback
-
-- Before submitting, make sure `dotnet build` and the relevant unit tests pass; see the repository conventions for code style and commit messages.
-- Report bugs and suggestions via [Issue](https://github.com/NewLifeX/X/issues); Stars and PRs are welcome.
-- See [ChangeLog.md](https://github.com/NewLifeX/X/blob/master/ChangeLog.md) for release notes.
-
 ## License
 
-This project is licensed under [MIT](https://github.com/NewLifeX/X/blob/master/LICENSE); the strong-name certificate `newlife.snk` is published so you can build and replace assemblies yourself.
+This project is licensed under [MIT](https://github.com/NewLifeX/X/blob/master/LICENSE); the strong-name certificate `newlife.snk` is published so you can build and replace assemblies yourself, and the sources may be modified and redistributed without attribution.
 
 > If this project is helpful to you, welcome to Star it, share it with your team, or provide improvement suggestions via Issue/PR.
+

@@ -19,28 +19,13 @@
 🌐 [English](README.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
-NewLife框架是一个全面的 .NET 组件生态系统，它为构建可扩展的应用程序提供了高性能的基础设施。它提供日志、网络、序列化、缓存和多线程等基本功能，作为从 Web 服务到 IoT 设备的一系列应用程序的基础。  
+**NewLife.Core** 是 NewLife 生态的基础库：日志、配置、缓存、网络、序列化、定时调度、对象容器与 APM 追踪，一个包即可开工。单包覆盖 net45 → net10.0 共 11 个目标框架，支撑 XCode、Cube、Redis、Stardust 等 30 多个兄弟项目。
 
 核心库教程：[https://newlifex.com/core](https://newlifex.com/core)  
 
 > ℹ️ 本中文版与 [English README](README.md) 同批维护；若两者内容不一致，以英文版为对外口径。
 
-**目录**：[框架概述](#框架概述) · [为什么选择](#为什么选择-newlifecore) · [快速开始](#快速开始) · [主要功能](#主要功能) · [文档索引](#文档索引) · [仓库结构](#仓库结构) · [构建与测试](#构建与测试) · [项目矩阵](#新生命项目矩阵) · [贡献与反馈](#贡献与反馈) · [许可证](#许可证)
-
-
-## 框架概述
-
-NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持 net45~net10.0 多目标框架（.NET Framework 4.5 至 .NET 10.0），从而在不同环境中实现广泛的兼容性（NewLife.Core 单包 11 个目标框架）。
-
-**NativeAOT**：核心链路已支持（<!--aot-scenarios:start-->31<!--aot-scenarios:end--> 场景实测 + 多 RID 的 CI 冒烟矩阵；win-x64/linux-x64/linux-arm64/linux-la64 为阻断门禁——LA64 经 QEMU 必选覆盖，其余平台观察期；push/PR + 人工手动触发）；跨平台单测覆盖 win/linux/osx 的 x64/arm64、LA64 与 musl。插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
-
-
-## 为什么选择 NewLife.Core
-
-- **一套组件覆盖常见基础设施**：日志、配置、缓存、网络、序列化、定时调度、对象容器与依赖注入，引用一个包即可开工。
-- **跨版本覆盖广**：单包 11 个目标框架（net45 → net10.0，含 Windows 变体），老系统与新项目共用同一套 API。
-- **NativeAOT 可用**：核心链路 <!--aot-scenarios:start-->31<!--aot-scenarios:end--> 场景实测通过，多 RID CI 冒烟矩阵把关，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)。
-- **依赖克制、协议宽松**：仅使用 BCL 与微软官方兼容包；MIT 协议，允许改源码、改名私有化（见[许可证](#许可证)）。
+**目录**：[快速开始](#快速开始) · [为什么选择](#为什么选择-newlifecore) · [主要功能](#主要功能) · [生态全景](#生态全景) · [文档与示例](#文档与示例) · [参与贡献](#参与贡献) · [新生命开发团队](#新生命开发团队) · [许可证](#许可证)
 
 ## 快速开始
 
@@ -66,7 +51,7 @@ var value = cache.Get<String>("key");   // 读取
 
 ### 模板脚手架
 
-命令行中运行以下命令快速体验NewLife组件：
+命令行中运行以下命令快速体验 NewLife 组件：
 
 ```
 dotnet new install NewLife.Templates
@@ -75,37 +60,25 @@ cd test
 dotnet run
 ```
 
-### 编译与定制
+### 平台支持
 
-团队始终秉承开放态度，不仅支持VisualStudio（最新正式版）打开解决方案编译，也兼容`dotnet build`命令行编译，项目文件摒弃复杂功能以追求简单易用，真正做到开箱即用。
+| 项目 | 覆盖范围 |
+| --- | --- |
+| 目标框架 | 单包 11 个：net45、net461、net462、netstandard2.0、netstandard2.1、net6.0、net6.0-windows、net8.0、net8.0-windows、net10.0、net10.0-windows |
+| 系统与架构 | Windows、Linux、macOS、Android、iOS；x64、x86、arm64、arm、loongarch64、riscv64、s390x |
+| NativeAOT | <!--aot-scenarios:start-->31<!--aot-scenarios:end--> 个核心场景实测通过，多 RID CI 冒烟矩阵把关（win-x64、linux-x64、linux-arm64、linux-loongarch64 为阻断门禁）。插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) |
 
-我们公开强命名证书`newlife.snk`以支持独自编译替换程序集。
+## 为什么选择 NewLife.Core
 
-NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任意修改并再次发行**（无需声明来源）！许多企业基于此构建内部开发框架时，甚至可通过批量替换源码中所有`NewLife`字符串为贵公司名实现私有化定制。
-
-## 文档索引
-
-### 使用文档
-
-- [核心库目录](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md)：核心组件文章索引（按模块分类）
-- [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)：NativeAOT 支持范围、实测结论（冒烟 <!--aot-smoke:start-->31/31<!--aot-smoke:end-->）、多 RID 覆盖矩阵与已知边界
-- [多语言本地化](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)：异常与日志的多语言模型、语言表扩充、下游覆盖与运行时新增语言
-- [下游多语言接入清单](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md)：下游组件接入步骤、语言口径、CI 门禁与徽章模板
-- [移动端技术架构](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md)：.NET 移动技术栈分层、UI 框架选型、Mobile 示例工程、APK 打包与 JIT/Mono AOT/NativeAOT 说明
-
-### 研发过程文档
-
-仓库 `Doc/` 目录同时维护能力文档体系（需求定义 → 功能追踪 → 架构设计）：
-
-- [需求文档](https://github.com/NewLifeX/X/blob/master/Doc/需求文档.md)：愿景、核心目标与功能需求
-- [功能清单](https://github.com/NewLifeX/X/blob/master/Doc/功能清单.md)：全部功能点的实现/测试/注释状态追踪
-- [架构设计](https://github.com/NewLifeX/X/blob/master/Doc/架构设计.md)：分层、模块组件与关键设计决策
+- **一套组件覆盖常见基础设施**：日志、配置、缓存、网络、序列化、定时调度、对象容器与依赖注入，引用一个包即可开工。
+- **跨版本覆盖广**：单包 11 个目标框架（net45 → net10.0，含 Windows 变体），老系统与新项目共用同一套 API。
+- **经生态规模验证**：同一套底座支撑 XCode（单表百亿级）、Net（2266 万 tps）、Redis 与 Stardust（百亿级数据量）等项目。
+- **依赖克制、协议宽松**：仅使用 BCL 与微软官方兼容包；MIT 协议，允许改源码、改名私有化（见[许可证](#许可证)）。
 
 ## 主要功能
 
-
 <details>
-<summary><b>基础扩展</b>（9 项）</summary>
+<summary><b>基础扩展</b>（10 项）</summary>
 
 | 功能点 | 主要特点 |
 | --- | --- |
@@ -117,6 +90,7 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 | [运行时信息Runtime](https://newlifex.com/core/runtime) | 提供简单方法获取应用运行时信息，便于调试诊断。 |
 | [可销毁DisposeBase](https://newlifex.com/core/disposebase) | 提供标准的资源释放模式，有效防止内存和资源泄漏。 |
 | [反射扩展Reflect](https://newlifex.com/core/reflect) | 高性能反射工具，快速进行对象成员的读写操作。 |
+| [经纬度哈希GeoHash](https://newlifex.com/core/geo_hash) | 将经纬度编码为字符串，用于附近位置搜索。 |
 | [安全扩展SecurityHelper](https://newlifex.com/core/security_helper) | 集成RSA/AES/DES/MD5等多种加解密，简化安全操作。 |
 
 </details>
@@ -200,7 +174,7 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 </details>
 
 <details>
-<summary><b>应用框架</b>（16 项）</summary>
+<summary><b>应用框架</b>（15 项）</summary>
 
 | 功能点 | 主要特点 |
 | --- | --- |
@@ -208,7 +182,6 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 | [轻量级应用主机Host](https://newlifex.com/core/host) | 简化应用托管，轻松构建长时间运行的后台服务。 |
 | [插件框架IPlugin](https://newlifex.com/core/plugin) | 提供标准化的插件管理机制，实现应用模块化开发。 |
 | [并行模型Actor](https://newlifex.com/core/actor) | 简化的并发编程模型，通过消息队列处理提升吞吐。 |
-| [管道模型Pipeline](https://github.com/NewLifeX/X/blob/master/Doc/管道模型Pipeline.md) | 双向处理链模型，统一Read/Write/Open/Close流程。⚠️ 已退役，由协议模式（帧泵）取代。 |
 | [延迟队列DeferredQueue](https://github.com/NewLifeX/X/blob/master/Doc/延迟队列DeferredQueue.md) | 聚合高频变更并批处理落地，降低写入放大。 |
 | [事件总线EventBus](https://github.com/NewLifeX/X/blob/master/Doc/事件总线EventBus.md) | 进程内事件分发，支持主题路由和队列式消息。 |
 | [弱引用委托WeakAction](https://newlifex.com/core/weak_action) | 解决事件订阅内存泄漏问题，实现安全的事件处理。 |
@@ -235,16 +208,7 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 </details>
 
 <details>
-<summary><b>云服务</b>（1 项）</summary>
-
-| 功能点 | 主要特点 |
-| --- | --- |
-| [经纬度哈希GeoHash](https://newlifex.com/core/geo_hash) | 将经纬度编码为字符串，用于附近位置搜索。 |
-
-</details>
-
-<details>
-<summary><b>网络库</b>（15 项）</summary>
+<summary><b>网络库</b>（13 项）</summary>
 
 | 功能点 | 主要特点 |
 | --- | --- |
@@ -255,8 +219,6 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 | [数据管道Pipe](https://github.com/NewLifeX/X/blob/dev/Doc/数据管道Pipe.md) | 零拷贝数据管道，对齐 System.IO.Pipelines 形态。 |
 | [简易远程消息交换协议SRMP](https://newlifex.com/core/srmp) | 轻量级RPC协议，支持二进制序列化和UDP传输。 |
 | [负载均衡与故障转移LoadBalancer](https://github.com/NewLifeX/X/blob/master/Doc/负载均衡与故障转移LoadBalancer.md) | 提供Failover/轮询/竞速三种多节点调度策略。 |
-| [RPC通信ApiServer](https://newlifex.com/core/api_server) | ⚠️ 已移至 [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting) |
-| [RPC通信ApiClient](https://newlifex.com/core/api_client) | ⚠️ 已移至 [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting) |
 | [HTTP客户端ApiHttpClient](https://newlifex.com/core/api_http) | 基于HttpClient封装，简化Web API的调用和处理。 |
 | [HTTP服务端HttpServer（嵌入式设备）](https://newlifex.com/core/httpserver) | 轻量级Http服务器，支持中间件管道、参数化路由与静态文件服务。 |
 | [网络下载WebClientX](https://newlifex.com/core/webclient) | 增强版WebClient，支持多线程、断点续传下载。 |
@@ -266,10 +228,102 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 
 </details>
 
-> ⚠️ 百度地图/高德地图 已提取到独立 NuGet 包。
+> RPC 通信（ApiServer/ApiClient）已移至 [NewLife.Remoting](https://www.nuget.org/packages/NewLife.Remoting)。
 
 
-## 仓库结构
+## 生态全景
+
+NewLife 生态按依赖分层，各项目独立版本、独立发版。下面的分层图在所有 NewLife 仓库中逐字一致；项目明细额外给出每个项目的定位与热度。
+
+| 层 | 项目 |
+| --- | --- |
+| 基础底座 | Core · XCode · Net · Remoting · Agent · Templates |
+| 数据存储与消息 | Redis · RocketMQ · MQTT · NovaDb · MySql |
+| Web、AI 与分布式 | Cube · Stardust · AntJob · NewLife.AI |
+| 工业与物联网 | IoT · Modbus · Siemens · Omron · Melsec · OPC · BACnet · ZeroIoT |
+| 车联网 | JT808 · JT809 · JT1078 |
+| 领域组件 | Office · Audio · Video · Map · IP |
+| 工具与产品 | CrazyCoder · GitCandy · LuckyClover |
+
+### 项目明细
+
+| 项目 | 一句话定位 | 热度 |
+| --- | --- | --- |
+| **基础底座** | | |
+| [NewLife.Core](https://github.com/NewLifeX/X) | 日志、配置、缓存、网络、序列化、定时调度与 APM 追踪。 | ★1.9k · 191万 |
+| [NewLife.XCode](https://github.com/NewLifeX/NewLife.XCode) | 数据中间件：单表百亿级、自动分表、读写分离，支持 10 多种数据库。 | ★104 · 54万 |
+| [NewLife.Net](https://github.com/NewLifeX/NewLife.Net) | 高性能网络库：单机 2266 万 tps、400 万 Tcp 长连接。 | ★313 · 7.4万 |
+| [NewLife.Remoting](https://github.com/NewLifeX/NewLife.Remoting) | 协议通信与 RPC 框架，面向 CS 应用与物联网设备。 | ★16 · 27万 |
+| [NewLife.Agent](https://github.com/NewLifeX/NewLife.Agent) | 把 .NET 应用安装为操作系统守护进程：Windows 服务与 Linux systemd。 | ★45 · 10.8万 |
+| [NewLife.Templates](https://github.com/NewLifeX/NewLife.Zero) | `dotnet new` 项目模板：控制台、Web、WebApi、服务、数据与物联网。 | ★82 · 1.5万 |
+| **数据存储与消息** | | |
+| [NewLife.Redis](https://github.com/NewLifeX/NewLife.Redis) | Redis 客户端：微秒级延迟、百万级吞吐，内置消息队列。 | ★878 · 72万 |
+| [NewLife.RocketMQ](https://github.com/NewLifeX/NewLife.RocketMQ) | 纯托管 RocketMQ 客户端，支持 Apache RocketMQ 与阿里云消息队列。 | ★225 · 12万 |
+| [NewLife.MQTT](https://github.com/NewLifeX/NewLife.MQTT) | MQTT 客户端与服务端，客户端支持阿里云物联网。 | ★150 · 9.9万 |
+| [NewLife.NovaDb](https://github.com/NewLifeX/NewLife.NovaDb) | C# 混合数据库：嵌入/网络双模，关系型、时序、消息队列与 KV 于一体。 | ★12 · 3.4k |
+| [NewLife.MySql](https://github.com/NewLifeX/NewLife.MySql) | MySql 驱动与数据访问辅助层，基于 NewLife 数据栈实现。 | ★23 · 8.4k |
+| **Web、AI 与分布式** | | |
+| [NewLife.Cube](https://github.com/NewLifeX/NewLife.Cube) | 魔方快速开发平台：用户权限、SSO、OAuth 服务端与 CRUD 脚手架。 | ★637 · 18.6万 |
+| [Stardust](https://github.com/NewLifeX/Stardust) | 星尘分布式服务平台：节点管理、APM、配置中心、注册中心与发布中心。 | ★354 · 27万 |
+| [AntJob](https://github.com/NewLifeX/AntJob) | 蚂蚁调度：分布式任务与实时数据平台，支持分片、重试与回溯补算。 | ★429 · 5.7万 |
+| [NewLife.AI](https://github.com/NewLifeX/NewLife.AI) | 统一接入 46 家大模型服务商，附带开箱即用的 ChatAI Web 对话应用。 | ★20 · 1.1万 |
+| **工业与物联网** | | |
+| [NewLife.IoT](https://github.com/NewLifeX/NewLife.IoT) | IoT 标准库，定义物联网通信协议契约与设备抽象。 | ★30 · 10.4万 |
+| [NewLife.Modbus](https://github.com/NewLifeX/NewLife.Modbus) | Modbus TCP/RTU/ASCII，基于 NewLife.IoT 实现。 | ★27 · 4.9万 |
+| [NewLife.Siemens](https://github.com/NewLifeX/NewLife.Siemens) | 西门子 PLC 协议，基于 NewLife.IoT 实现。 | ★30 · 1.4万 |
+| [NewLife.Omron](https://github.com/NewLifeX/NewLife.Omron) | 欧姆龙 PLC 协议，基于 NewLife.IoT 实现。 | ★8 · 1.1万 |
+| [NewLife.Melsec](https://github.com/NewLifeX/NewLife.Melsec) | 三菱 Melsec PLC 协议，基于 NewLife.IoT 实现。 | ★34 · 1.1万 |
+| [NewLife.OPC](https://github.com/NewLifeX/NewLife.OPC) | OPC 客户端，用于工业数据采集。 | ★9 · — |
+| [NewLife.BACnet](https://github.com/NewLifeX/NewLife.BACnet) | BACnet 楼宇自控协议栈。 | ★8 · 9k |
+| [ZeroIoT](https://github.com/NewLifeX/ZeroIoT) | 开源轻量级 IoT 平台，含网关与设备管理。 | ★10 · — |
+| **车联网** | | |
+| NewLife.JT808 | JT/T 808 车辆定位协议：70+ 消息体，覆盖 2011/2013/2019 三个版本。 | — |
+| NewLife.JT809 | JT/T 809 部标平台互联协议，面向运输管理部门。 | — · 135 |
+| NewLife.JT1078 | JT/T 1078 车载视频：RTP 解析、FLV/fMP4 转封装与直播推送。 | — |
+| **领域组件** | | |
+| [NewLife.Office](https://github.com/NewLifeX/NewLife.Office) | 一个包覆盖 Excel、Word、PPT、PDF 等 15+ 文档格式。 | ★11 · 1.3万 |
+| [NewLife.Audio](https://github.com/NewLifeX/NewLife.Audio) | 跨平台音频：编解码、设备 IO、DSP、容器与流式处理。 | ★5 · 6.6k |
+| [NewLife.Video](https://github.com/NewLifeX/NewLife.Video) | 视频编解码、封装格式、帧处理与流媒体。 | ★2 · 610 |
+| [NewLife.Map](https://github.com/NewLifeX/NewLife.Map) | 百度/高德/腾讯/天地图统一接口，支持地理编码与坐标转换。 | ★15 · 2.5万 |
+| [NewLife.IP](https://github.com/NewLifeX/NewLife.IP) | IPv4 归属地：离线内存映射库 + 在线 API 双源。 | ★16 · 8.5万 |
+| **工具与产品** | | |
+| [CrazyCoder](https://github.com/NewLifeX/XCoder) | 码神工具：网络、串口、加解密、正则、Modbus 与 MQTT。 | ★330 · 4.2万 |
+| [GitCandy](https://github.com/NewLifeX/GitCandy) | 自托管 Git 源代码管理系统。 | ★49 · — |
+| [LuckyClover](https://github.com/NewLifeX/LuckyClover) | 从低版本宿主启动时，自动安装匹配的 .NET 运行时。 | ★13 · — |
+
+> 未在表中列出的 30 多个包（FTP、LoRa、Office 扩展、各类协议驱动等）见 [NewLifeX 组织](https://github.com/NewLifeX) 与 [newlifex.com](https://newlifex.com)。
+
+## 文档与示例
+
+### 使用文档
+
+- [核心库目录](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md)：核心组件文章索引（按模块分类）
+- [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)：NativeAOT 支持范围、实测结论（冒烟 <!--aot-smoke:start-->31/31<!--aot-smoke:end-->）、多 RID 覆盖矩阵与已知边界
+- [多语言本地化](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)：异常与日志的多语言模型、语言表扩充、下游覆盖与运行时新增语言
+- [下游多语言接入清单](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md)：下游组件接入步骤、语言口径、CI 门禁与徽章模板
+- [移动端技术架构](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md)：.NET 移动技术栈分层、UI 框架选型、APK 打包与 AOT 说明
+- [Samples](https://github.com/NewLifeX/X/tree/master/Samples)：控制台、服务、Http、物联网与移动端示例
+
+### 版本记录
+
+- [ChangeLog.md](https://github.com/NewLifeX/X/blob/master/ChangeLog.md)：版本变更记录
+
+## 参与贡献
+
+### 构建与测试
+
+解决方案支持 Visual Studio（最新正式版）打开编译，也兼容 `dotnet build` 命令行；项目文件保持简单，克隆后即可开箱构建。
+
+```bash
+dotnet build NewLife.Core/NewLife.Core.csproj -c Release
+dotnet test XUnitTest.Core -c Release
+```
+
+- 全量并行测试：`run-tests.ps1`（多宿主并行 + 超时兜底 + trx 汇总）
+- NativeAOT 冒烟：`AotSmoke/`，CI 见 `.github/workflows/aot.yml`
+- 性能基准：`Benchmark/`（BenchmarkDotNet）
+
+### 仓库结构
 
 | 目录 | 说明 |
 | --- | --- |
@@ -282,77 +336,33 @@ NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任
 | `XUnitTest.Compat/`、`XUnitTest.Net6/` | 跨版本兼容性测试 |
 | `AotSmoke/` | NativeAOT 冒烟工程 |
 
-## 构建与测试
+### 发版
 
-```bash
-dotnet build NewLife.Core/NewLife.Core.csproj -c Release
-dotnet test XUnitTest.Core -c Release
-```
+推送 `v` 前缀 tag（如 `v12.0.2026.0927`）触发 `.github/workflows/publish.yml`。工作流完成打包后同时发布到 NuGet.org 与 GitHub Packages，并创建同名 GitHub Release（说明取自 `ChangeLog.md` 对应段落，资产含 nupkg/snupkg）；手工触发工作流只发包，不创建 Release。
 
-- 全量并行测试：`run-tests.ps1`（多宿主并行 + 超时兜底 + trx 汇总）
-- NativeAOT 冒烟：`AotSmoke/`，CI 见 `.github/workflows/aot.yml`
-- 性能基准：`Benchmark/`（BenchmarkDotNet）
-- 发版：推送 `v` 前缀 tag（如 `v12.0.2026.0927`）触发 `.github/workflows/publish.yml`，打包后同时发布到 NuGet.org 与 GitHub Packages，并创建同名 GitHub Release（说明取自 `ChangeLog.md` 对应段落，资产含 nupkg/snupkg）；手工触发工作流只发包，不创建 Release
+### 研发过程文档
 
-## 新生命项目矩阵
+`Doc/` 目录同时维护与代码同步的能力文档体系：需求定义 → 功能追踪 → 架构设计。这些文档以中文撰写。
 
-各项目默认支持net10.0/netstandard2.1/netstandard2.0/net462/net45，旧版（2024.0801）支持net4.0/net2.0  
+- [需求文档](https://github.com/NewLifeX/X/blob/master/Doc/需求文档.md)：愿景、核心目标与功能需求
+- [功能清单](https://github.com/NewLifeX/X/blob/master/Doc/功能清单.md)：全部功能点的实现/测试/注释状态追踪
+- [架构设计](https://github.com/NewLifeX/X/blob/master/Doc/架构设计.md)：分层、模块组件与关键设计决策
 
-|                               项目                               | 年份  | 说明                                                                                        |
-| :--------------------------------------------------------------: | :---: | ------------------------------------------------------------------------------------------- |
-|                             基础组件                             |       | 支撑其它中间件以及产品项目                                                                  |
-|          [NewLife.Core](https://github.com/NewLifeX/X)           | 2002  | 核心库，日志、配置、缓存、网络、序列化、APM性能追踪                                         |
-|    [NewLife.XCode](https://github.com/NewLifeX/NewLife.XCode)    | 2005  | 大数据中间件，单表百亿级，MySql/SQLite/SqlServer/Oracle/PostgreSql/达梦，自动分表，读写分离 |
-|      [NewLife.Net](https://github.com/NewLifeX/NewLife.Net)      | 2005  | 网络库，单机千万级吞吐率（2266万tps），单机百万级连接（400万Tcp长连接）                     |
-| [NewLife.Remoting](https://github.com/NewLifeX/NewLife.Remoting) | 2011  | 协议通信库，提供CS应用通信框架，支持Http/RPC通信框架，高吞吐，物联网设备低开销易接入        |
-|     [NewLife.Cube](https://github.com/NewLifeX/NewLife.Cube)     | 2010  | 魔方快速开发平台，集成了用户权限、SSO登录、OAuth服务端等，单表100亿级项目验证               |
-|    [NewLife.Agent](https://github.com/NewLifeX/NewLife.Agent)    | 2008  | 服务管理组件，把应用安装成为操作系统守护进程，Windows服务、Linux的Systemd                   |
-|     [NewLife.Zero](https://github.com/NewLifeX/NewLife.Zero)     | 2020  | Zero零代脚手架，基于NewLife组件生态的项目模板NewLife.Templates，Web、WebApi、Service        |
-|                              中间件                              |       | 对接知名中间件平台                                                                          |
-|    [NewLife.Redis](https://github.com/NewLifeX/NewLife.Redis)    | 2017  | Redis客户端，微秒级延迟，百万级吞吐，丰富的消息队列，百亿级数据量项目验证                   |
-| [NewLife.RocketMQ](https://github.com/NewLifeX/NewLife.RocketMQ) | 2018  | RocketMQ纯托管客户端，支持Apache RocketMQ和阿里云消息队列，十亿级项目验证                     |
-|     [NewLife.MQTT](https://github.com/NewLifeX/NewLife.MQTT)     | 2019  | 物联网消息协议，MqttClient/MqttServer，客户端支持阿里云物联网                               |
-|      [NewLife.IoT](https://github.com/NewLifeX/NewLife.IoT)      | 2022  | IoT标准库，定义物联网领域的各种通信协议标准规范                                             |
-|   [NewLife.Modbus](https://github.com/NewLifeX/NewLife.Modbus)   | 2022  | ModbusTcp/ModbusRTU/ModbusASCII，基于IoT标准库实现，支持ZeroIoT平台和IoTEdge网关            |
-|  [NewLife.Siemens](https://github.com/NewLifeX/NewLife.Siemens)  | 2022  | 西门子PLC协议，基于IoT标准库实现，支持IoT平台和IoTEdge                                      |
-|      [NewLife.Map](https://github.com/NewLifeX/NewLife.Map)      | 2022  | 地图组件库，封装百度地图、高德地图、腾讯地图、天地图                                        |
-|    [NewLife.Audio](https://github.com/NewLifeX/NewLife.Audio)    | 2023  | 音频编解码库，PCM/ADPCMA/G711A/G722U/WAV/AAC                                                |
-|                             产品平台                             |       | 产品平台级，编译部署即用，个性化自定义                                                      |
-|         [Stardust](https://github.com/NewLifeX/Stardust)         | 2018  | 星尘，分布式服务平台，节点管理、APM监控中心、配置中心、注册中心、发布中心                   |
-|           [AntJob](https://github.com/NewLifeX/AntJob)           | 2019  | 蚂蚁调度，分布式大数据计算平台（实时/离线），蚂蚁搬家分片思想，万亿级数据量项目验证         |
-|      [NewLife.ERP](https://github.com/NewLifeX/NewLife.ERP)      | 2021  | 企业ERP，产品管理、客户管理、销售管理、供应商管理                                           |
-|         [CrazyCoder](https://github.com/NewLifeX/XCoder)         | 2006  | 码神工具，众多开发者工具，网络、串口、加解密、正则表达式、Modbus、MQTT                      |
-|           [EasyIO](https://github.com/NewLifeX/EasyIO)           | 2023  | 简易文件存储，支持分布式系统中文件集中存储。                                                |
-|           [XProxy](https://github.com/NewLifeX/XProxy)           | 2005  | 产品级反向代理，NAT代理、Http代理                                                           |
-|        [HttpMeter](https://github.com/NewLifeX/HttpMeter)        | 2022  | Http压力测试工具                                                                            |
-|         [GitCandy](https://github.com/NewLifeX/GitCandy)         | 2015  | Git源代码管理系统                                                                           |
-|          [SmartOS](https://github.com/NewLifeX/SmartOS)          | 2014  | 嵌入式操作系统，完全独立自主，支持ARM Cortex-M芯片架构                                      |
-|          [SmartA2](https://github.com/NewLifeX/SmartA2)          | 2019  | 嵌入式工业计算机，物联网边缘网关，高性能.NET8主机，应用于工业、农业、交通、医疗             |
-|                          FIoT物联网平台                          | 2020  | 物联网整体解决方案，建筑、环保、农业，软硬件及大数据分析一体化，单机十万级点位项目验证      |
-
-
----
-
-## 新生命开发团队
-
-![XCode](https://newlifex.com/logo.png)
-
-新生命团队（NewLife）成立于2002年，是新时代物联网行业解决方案提供者，致力于提供软硬件应用方案咨询、系统架构规划与开发服务。NuGet 累计下载 523万+（全生态）。团队核心组件（XCode / Redis / Stardust / AntJob / IoT 等）已在电力、工业、交通、环保、医疗、文博等行业大规模应用。
-
-我们持续改进，力求成为值得长期信赖的 .NET / IoT / 分布式技术伙伴。
-
-网站：https://newlifex.com   开源组织：https://github.com/NewLifeX  
-微信公众号：  
-![智能大石头](https://newlifex.com/stone.jpg)
-
-## 贡献与反馈
+### 反馈
 
 - 提交前请确保 `dotnet build` 与相关单元测试通过；代码风格与提交信息见仓库约定。
 - 缺陷与建议请提 [Issue](https://github.com/NewLifeX/X/issues)，欢迎 Star 与 PR。
-- 版本变更记录见 [ChangeLog.md](https://github.com/NewLifeX/X/blob/master/ChangeLog.md)。
+
+## 新生命开发团队
+
+新生命团队（NewLife）成立于 2002 年，专注 .NET、物联网与分布式系统。开源组件在 NuGet 累计下载 <!--nuget-total:start-->6.04M<!--nuget-total:end--> 次（截至 2026-10），长期应用于电力、工业、交通、环保、医疗、文博等行业。
+
+网站：https://newlifex.com · 开源组织：https://github.com/NewLifeX  
+微信公众号：  
+![智能大石头](https://newlifex.com/stone.jpg)
 
 ## 许可证
 
-本项目采用 [MIT](https://github.com/NewLifeX/X/blob/master/LICENSE) 协议；公开强命名证书 `newlife.snk`，支持自行编译并替换程序集。
+本项目采用 [MIT](https://github.com/NewLifeX/X/blob/master/LICENSE) 协议；公开强命名证书 `newlife.snk`，支持自行编译并替换程序集，也可修改源码后再次发行而无需声明来源。
 
 > 如果本项目对你有帮助，欢迎 Star、分享给团队，或通过 Issue/PR 反馈改进建议。

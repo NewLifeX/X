@@ -26,6 +26,7 @@ $values = @{
     "aot-scenarios" = [String]$metrics.values.aotScenarios
     "tfm-count"     = [String]$metrics.values.tfmCount
     "locale-count"  = [String]$metrics.values.localeCount
+    "nuget-total"   = [String]$metrics.values.nugetTotal
 }
 
 $files = @(Get-ChildItem -Path $Root -File | Where-Object {
