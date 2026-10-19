@@ -176,6 +176,7 @@ public static class SmokeCases
         if (String.IsNullOrEmpty(mi.OSName)) throw new Exception("MachineInfo.OSName 为空");
         if (String.IsNullOrEmpty(mi.OSVersion)) throw new Exception("MachineInfo.OSVersion 为空");
         if (OperatingSystem.IsIOS() && mi.OSName != "iOS") throw new Exception($"MachineInfo.OSName 异常：{mi.OSName}");
+        if (OperatingSystem.IsIOS() && mi.OSVersion.StartsWithIgnoreCase("Unix")) throw new Exception($"MachineInfo.OSVersion 未取到系统产品版本：{mi.OSVersion}");
         if (mi.Memory == 0)
         {
             if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()) throw new Exception("MachineInfo.Memory 未采集");

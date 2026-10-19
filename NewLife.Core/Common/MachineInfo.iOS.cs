@@ -24,6 +24,10 @@ public partial class MachineInfo
 
         var memory = SysctlUInt64("hw.memsize");
         if (memory > 0) Memory = memory;
+
+        // Environment.OSVersion 在 iOS 上返回 Darwin 内核版本，这里改用系统产品版本（如 17.0）
+        var version = SysctlString("kern.osproductversion");
+        if (!version.IsNullOrEmpty()) OSVersion = version;
     }
 
     /// <summary>刷新 iOS 实时信息</summary>
