@@ -9,7 +9,7 @@ param(
     [String]$Root = $PSScriptRoot,
     [String[]]$Dir,
     [String[]]$Exclude = @(),
-    [String]$MessageCall = 'throw new|: base\(|Console\.Write|MessageBox\.Show|AppendTag\(|NewError\(|NewSpan\(|Debug\.Fail\(|WriteLog\(|OnWrite\(|XTrace\.|Log\.(Write|Error|Info|Debug|Warn|Fatal)',
+    [String]$MessageCall = 'throw new|: base\(|Console\.Write|MessageBox\.Show|AppendTag\(|NewError\(|NewSpan\(|Debug\.Fail\(|WriteLog\(|OnWrite\(|XTrace\.|Log\.(Write|Error|Info|Debug|Warn|Fatal)|(Info|Error|Warn|Debug|Fatal)Prefixed\(|WritePrefixed\(|L\.T\(|Localization\.Translate|ApiException\(|HttpException\(',
     [Switch]$List,
     [String]$Csv
 )
