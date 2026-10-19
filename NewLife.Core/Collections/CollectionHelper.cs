@@ -90,7 +90,7 @@ public static class CollectionHelper
         if (source is IDictionary<String, Object?> dic) return dic;
         var type = source?.GetType();
         if (type != null && (type.IsBaseType() || type.IsArray || typeof(IList).IsAssignableFrom(type)))
-            throw new InvalidDataException(L.T("source is not Object"));
+            throw new InvalidDataException(L.T("The source must be an object."));
 
         dic = new NullableDictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
         if (source != null)

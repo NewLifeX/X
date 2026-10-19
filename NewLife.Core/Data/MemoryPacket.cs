@@ -124,7 +124,7 @@ public struct MemoryPacket : IPacket
     public MemoryPacket Slice(Int32 offset, Int32 count = -1)
     {
         // 带有Next时，不支持Slice
-        if (Next != null) throw new NotSupportedException(L.T("Slice with Next"));
+        if (Next != null) throw new NotSupportedException(L.T("Cannot slice a packet that has a Next segment."));
 
         var remain = _length - offset;
         if (count < 0 || count > remain) count = remain;

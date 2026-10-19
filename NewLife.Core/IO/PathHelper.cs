@@ -369,11 +369,11 @@ public static class PathHelper
             {
                 var fullPath = Path.GetFullPath(Path.Combine(fullName, item.FullName));
                 if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
-                    throw new IOException(L.T("IO_ExtractingResultsInOutside"));
+                    throw new IOException(L.T("The archive entry '{0}' would be extracted outside the target directory.", item.FullName));
 
                 if (Path.GetFileName(fullPath).Length == 0)
                 {
-                    if (item.Length != 0L) throw new IOException(L.T("IO_DirectoryNameWithData"));
+                    if (item.Length != 0L) throw new IOException(L.T("The archive entry '{0}' is a directory but has non-zero length.", item.FullName));
 
                     Directory.CreateDirectory(fullPath);
                 }

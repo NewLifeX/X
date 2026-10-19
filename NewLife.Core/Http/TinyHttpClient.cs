@@ -236,7 +236,7 @@ public class TinyHttpClient : DisposeBase
             res.Body = null;
             body.TryDispose();
 
-            throw new Exception(L.T("{0} {1}", (Int32)res.StatusCode, res.StatusDescription));
+            throw new Exception(L.T("HTTP request failed: {0} {1}", (Int32)res.StatusCode, res.StatusDescription));
         }
 
         // 断开连接
