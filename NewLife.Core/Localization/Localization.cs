@@ -120,6 +120,27 @@ public static partial class Localization
     /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>
     public static String TranslateForLog(String template, params Object?[]? args) => Translate(LogCulture ?? Culture, template, args);
 
+    /// <summary>判断指定区域是否有可用的翻译表</summary>
+    /// <param name="culture">目标区域</param>
+    /// <returns>存在内置或运行时注册的翻译表时返回 true；英文始终返回 true</returns>
+    /// <remarks>
+    /// 支持按语言父级匹配，例如 fr-CA 命中 fr、zh-CN 命中 zh-Hans、zh-TW 命中 zh-Hant。
+    /// 该判断只看语言表是否存在，不代表每条词条都有译文；缺失词条仍按英文原文回退。
+    /// </remarks>
+    public static Boolean IsSupported(CultureInfo culture)
+    {
+        if (culture == null) return false;
+
+        var key = GetCultureKeyCached(culture);
+        if (key == null) return false;
+        if (key == "en") return true;
+
+        // 运行时注册的覆盖表可能包含内置语言之外的新语言
+        if (Volatile.Read(ref _overrideCount) != 0 && _overrides.ContainsKey(key)) return true;
+
+        return GetTable(key) != null;
+    }
+
     internal static String Translate(CultureInfo? culture, String template)
     {
         if (template.IsNullOrEmpty()) return template;

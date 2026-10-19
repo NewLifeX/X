@@ -279,6 +279,110 @@ public class LocalizationTests
     public void Unregister_unknown() => Assert.False(Localization.Unregister(CultureInfo.GetCultureInfo("ja-JP")));
     #endregion
 
+    #region 请求语言
+    [Theory(DisplayName = "支持语言：内置语言与父级匹配命中，未知语言不命中")]
+    [InlineData("en-US", true)]
+    [InlineData("en-GB", true)]
+    [InlineData("zh-CN", true)]
+    [InlineData("zh-HK", true)]
+    [InlineData("zh-TW", true)]
+    [InlineData("fr-FR", true)]
+    [InlineData("fr-CA", true)]
+    [InlineData("de-AT", true)]
+    [InlineData("pt-BR", true)]
+    [InlineData("sw-KE", false)]
+    public void IsSupported_cultures(String name, Boolean expected) => Assert.Equal(expected, Localization.IsSupported(CultureInfo.GetCultureInfo(name)));
+
+    [Fact(DisplayName = "支持语言：空值与 Invariant 文化不视为支持")]
+    public void IsSupported_null_or_invariant()
+    {
+        Assert.False(Localization.IsSupported(null!));
+        Assert.False(Localization.IsSupported(CultureInfo.InvariantCulture));
+    }
+
+    [Fact(DisplayName = "支持语言：运行时注册的新语言也视为支持")]
+    public void IsSupported_registered()
+    {
+        var culture = CultureInfo.GetCultureInfo("sw-KE");
+        var key = "Localization support test {0}.";
+        try
+        {
+            Assert.False(Localization.IsSupported(culture));
+
+            Localization.Register(culture, new Dictionary<String, String> { [key] = "Jaribio {0}." });
+
+            Assert.True(Localization.IsSupported(culture));
+            Assert.Equal("Jaribio 1.", Localization.Translate(culture, key, 1));
+        }
+        finally
+        {
+            Localization.Unregister(culture);
+        }
+    }
+
+    [Fact(DisplayName = "请求语言：按 q 权重选择最高权重的受支持语言")]
+    public void RequestCulture_parse_supported_quality()
+    {
+        Assert.Equal("zh-CN", RequestCultureScope.ParseAcceptLanguage("fr-FR;q=0.5, zh-CN;q=0.9, en;q=0.8")!.Name);
+        Assert.Equal("fr-FR", RequestCultureScope.ParseAcceptLanguage("sw-KE;q=1.0, fr-FR;q=0.5")!.Name);
+        Assert.Equal("fr-FR", RequestCultureScope.ParseAcceptLanguage("fr-FR;q=0.9, zh-CN;q=0.9")!.Name);
+        Assert.Null(RequestCultureScope.ParseAcceptLanguage("sw-KE;q=1.0, af-ZA;q=0.5"));
+        Assert.Null(RequestCultureScope.ParseAcceptLanguage("fr-FR;q=0"));
+        Assert.Equal("zh-CN", RequestCultureScope.ParseAcceptLanguage("fr-FR;q=0, zh-CN;q=0.5")!.Name);
+        Assert.Null(RequestCultureScope.ParseAcceptLanguage("*"));
+        Assert.Null(RequestCultureScope.ParseAcceptLanguage(""));
+        Assert.Null(RequestCultureScope.ParseAcceptLanguage("invalid-!!"));
+    }
+
+    [Fact(DisplayName = "请求语言：切换 UI 文化并在释放后还原")]
+    public void RequestCulture_scope_switch_and_restore()
+    {
+        var saved = Localization.Culture;
+        var savedUI = CultureInfo.CurrentUICulture;
+        try
+        {
+            Localization.Culture = null;
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+
+            using (RequestCultureScope.Create("sw-KE;q=1.0, fr-FR;q=0.5"))
+            {
+                Assert.Equal("fr-FR", CultureInfo.CurrentUICulture.Name);
+                Assert.Equal("La réinitialisation n'est pas prise en charge en mode flux.", Localization.Translate(Key));
+            }
+
+            Assert.Equal("en-US", CultureInfo.CurrentUICulture.Name);
+        }
+        finally
+        {
+            Localization.Culture = saved;
+            CultureInfo.CurrentUICulture = savedUI;
+        }
+    }
+
+    [Fact(DisplayName = "请求语言：全局固定 Culture 时忽略请求语言")]
+    public void RequestCulture_scope_ignores_fixed_culture()
+    {
+        var saved = Localization.Culture;
+        var savedUI = CultureInfo.CurrentUICulture;
+        try
+        {
+            Localization.Culture = CultureInfo.GetCultureInfo("en-US");
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+
+            using (RequestCultureScope.Create("zh-CN"))
+            {
+                Assert.Equal("en-US", CultureInfo.CurrentUICulture.Name);
+                Assert.Equal(Key, Localization.Translate(Key));
+            }
+        }
+        finally
+        {
+            Localization.Culture = saved;
+            CultureInfo.CurrentUICulture = savedUI;
+        }
+    }
+    #endregion
+
     #region 异常与并发
     [Fact(DisplayName = "XException：默认英文环境下输出英文原文")]
     public void XException_english()
