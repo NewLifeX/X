@@ -452,6 +452,6 @@ public class TimerScheduler : IDisposable, ILogFeature
     /// <summary>日志</summary>
     public ILog Log { get; set; } = Logger.Null;
 
-    private void WriteLog(String format, params Object?[] args) => Log?.Info(Name + format, args);
+    private void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed(Name, format, args);
     #endregion
 }

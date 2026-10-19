@@ -350,6 +350,6 @@ public class DeferredQueue : DisposeBase
     /// <summary>写日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    protected void WriteLog(String format, params Object?[] args) => Log?.Info($"DeferredQueue[{Name}]\t" + Localization.Translate(format), args);
+    protected void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed("DeferredQueue[" + Name + "]\t", format, args);
     #endregion
 }

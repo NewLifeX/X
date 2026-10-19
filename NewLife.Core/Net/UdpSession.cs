@@ -495,7 +495,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <param name="ex">异常</param>
     protected virtual void OnError(String action, Exception ex)
     {
-        Log?.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex.Message);
+        Log?.ErrorPrefixed(LogPrefix, "{0}Error {1} {2}", action, this, ex.Message);
         Error?.Invoke(this, new ExceptionEventArgs(action, ex));
     }
     #endregion
@@ -576,6 +576,6 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <summary>输出日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    public void WriteLog(String format, params Object?[] args) => Log.Info(LogPrefix + format, args);
+    public void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed(LogPrefix, format, args);
     #endregion
 }

@@ -911,14 +911,15 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <param name="args">参数</param>
     public virtual void WriteLog(String format, params Object?[] args)
     {
-        if (!LogPrefix.EndsWith(" ") && !format.StartsWith(" ")) format = " " + format;
-        Log.Info(LogPrefix + format, args);
+        var prefix = LogPrefix;
+        if (!prefix.EndsWith(" ") && !format.StartsWith(" ")) prefix += " ";
+        Log?.InfoPrefixed(prefix, format, args);
     }
 
     /// <summary>输出错误日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    public virtual void WriteError(String format, params Object?[] args) => Log.Error(LogPrefix + format, args);
+    public virtual void WriteError(String format, params Object?[] args) => Log?.ErrorPrefixed(LogPrefix, format, args);
     #endregion
 
     #region 辅助

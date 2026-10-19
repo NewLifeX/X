@@ -329,6 +329,42 @@ public class LocalizationTests
             Localization.LogCulture = saved;
         }
     }
+
+    [Fact(DisplayName = "Logger.FormatMessage：Logger 路径保留异常特殊处理")]
+    public void Logger_format_message_uses_logger_format()
+    {
+        var saved = Localization.LogCulture;
+        try
+        {
+            Localization.LogCulture = _zh;
+            var log = new ProbeLogger();
+            Assert.Equal("消息体未读满：期望 5 字节，实读 3 字节", Logger.FormatMessage(log, "Message body is incomplete; expected {0} bytes, read {1} bytes.", [5, 3]));
+
+            var ex = new InvalidOperationException("boom");
+            Assert.Equal(ex.GetMessage(), Logger.FormatMessage(log, "{0}", [ex]));
+        }
+        finally
+        {
+            Localization.LogCulture = saved;
+        }
+    }
+
+    [Fact(DisplayName = "Logger.FormatMessage：非 Logger 日志器回退 TranslateForLog")]
+    public void Logger_format_message_falls_back()
+    {
+        var saved = Localization.LogCulture;
+        try
+        {
+            Localization.LogCulture = _zh;
+            var log = new PlainLog();
+            Assert.Equal("消息体未读满：期望 5 字节，实读 3 字节", Logger.FormatMessage(log, "Message body is incomplete; expected {0} bytes, read {1} bytes.", [5, 3]));
+        }
+        finally
+        {
+            Localization.LogCulture = saved;
+        }
+    }
+
     #endregion
 
     private sealed class ProbeLogger : Logger
@@ -336,6 +372,25 @@ public class LocalizationTests
         public String Probe(String format, params Object?[] args) => Format(format, args);
 
         protected override void OnWrite(LogLevel level, String format, params Object?[] args) { }
+    }
+
+    private sealed class PlainLog : ILog
+    {
+        public Boolean Enable { get; set; } = true;
+
+        public LogLevel Level { get; set; } = LogLevel.Info;
+
+        public void Write(LogLevel level, String format, params Object?[] args) { }
+
+        public void Debug(String format, params Object?[] args) { }
+
+        public void Info(String format, params Object?[] args) { }
+
+        public void Warn(String format, params Object?[] args) { }
+
+        public void Error(String format, params Object?[] args) { }
+
+        public void Fatal(String format, params Object?[] args) { }
     }
 }
 

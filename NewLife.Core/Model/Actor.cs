@@ -300,6 +300,6 @@ public abstract class Actor : DisposeBase, IActor
     /// <summary>写日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    protected void WriteLog(String format, params Object?[] args) => Log?.Info($"[{Name}]{format}", args);
+    protected void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed("[" + Name + "]", format, args);
     #endregion
 }

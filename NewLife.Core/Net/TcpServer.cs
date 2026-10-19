@@ -539,10 +539,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object?[] args)
-    {
-        if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
-    }
+    public void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed(LogPrefix, format, args);
     #endregion
 
     #region 辅助

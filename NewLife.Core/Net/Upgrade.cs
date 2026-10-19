@@ -422,6 +422,6 @@ public class Upgrade
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object?[] args) => Log?.Info($"[{Name}]{format}", args);
+    public void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed("[" + Name + "]", format, args);
     #endregion
 }

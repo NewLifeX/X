@@ -1121,7 +1121,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public void WriteLog(String format, params Object?[] args)
     {
         LogPrefix ??= Name.TrimSuffix("Server", "Session", "Client");
-        if (Log != null && Log.Enable) Log.Info($"[{LogPrefix}]{format}", args);
+        Log?.InfoPrefixed("[" + LogPrefix + "]", format, args);
     }
 
     #endregion 日志

@@ -600,7 +600,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     /// <summary>输出日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    public virtual void WriteLog(String format, params Object?[] args) => Log.Info(LogPrefix + format, args);
+    public virtual void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed(LogPrefix, format, args);
 
     #endregion
 }
