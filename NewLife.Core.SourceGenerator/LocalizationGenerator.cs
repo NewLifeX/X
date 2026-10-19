@@ -54,9 +54,17 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
                     || ownL.DeclaredAccessibility == Accessibility.Public
                     || (ownL.DeclaredAccessibility == Accessibility.Internal && ownL.ContainingAssembly.GivesAccessTo(c.Assembly)));
 
+                // 只把“当前编译可见”的 ModuleInitializerAttribute 视为可用。
+                // 依赖包里 internal 的 polyfill 对下游不可见，若误判为可用会生成 [ModuleInitializer] 并触发 CS0122。
+                var ownModuleInitializer = c.GetTypeByMetadataName("System.Runtime.CompilerServices.ModuleInitializerAttribute");
+                var hasModuleInitializer = ownModuleInitializer != null && (
+                    SymbolEqualityComparer.Default.Equals(ownModuleInitializer.ContainingAssembly, c.Assembly)
+                    || ownModuleInitializer.DeclaredAccessibility == Accessibility.Public
+                    || (ownModuleInitializer.DeclaredAccessibility == Accessibility.Internal && ownModuleInitializer.ContainingAssembly.GivesAccessTo(c.Assembly)));
+
                 return new ProjectInfo(
                     c.AssemblyName,
-                    c.GetTypeByMetadataName("System.Runtime.CompilerServices.ModuleInitializerAttribute") != null,
+                    hasModuleInitializer,
                     hasL,
                     c.Options.OutputKind is OutputKind.ConsoleApplication or OutputKind.WindowsApplication);
             }))
@@ -369,6 +377,17 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
             sb.AppendLine("        /// <param name=\"args\">格式化参数</param>");
             sb.AppendLine("        /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>");
             sb.AppendLine("        public static String T(String template, params Object?[]? args) => Localization.Translate(template, args);");
+            sb.AppendLine();
+            sb.AppendLine("        /// <summary>按日志语言翻译指定文本</summary>");
+            sb.AppendLine("        /// <param name=\"template\">英文原文模板</param>");
+            sb.AppendLine("        /// <returns>本地化文本；缺少翻译时返回原文</returns>");
+            sb.AppendLine("        public static String TLog(String template) => Localization.TranslateForLog(template);");
+            sb.AppendLine();
+            sb.AppendLine("        /// <summary>按日志语言翻译并格式化指定文本</summary>");
+            sb.AppendLine("        /// <param name=\"template\">英文原文模板</param>");
+            sb.AppendLine("        /// <param name=\"args\">格式化参数</param>");
+            sb.AppendLine("        /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>");
+            sb.AppendLine("        public static String TLog(String template, params Object?[]? args) => Localization.TranslateForLog(template, args);");
             sb.AppendLine("    }");
         }
 
