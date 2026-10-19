@@ -105,7 +105,7 @@ public class JsonParser
             var len = _json.Length;
             if (len > 128) len = 128;
 
-            throw new XException($"Non standard Json string [{_json.Substring(0, len)}]");
+            throw new XException("Non standard Json string [{0}]", _json.Substring(0, len));
         }
 
         return ParseValue();
@@ -339,7 +339,7 @@ public class JsonParser
             var len = index - runIndex;
             if (len > 32) len = 32;
 
-            throw new XException($"Reached the end of the string while parsing it [{_json.Substring(runIndex, len)}]");
+            throw new XException("Reached the end of the string while parsing it [{0}]", _json.Substring(runIndex, len));
         }
 
         throw new XException("Reached the end of the string while parsing it");
@@ -493,7 +493,7 @@ public class JsonParser
                 var len = _json.Length;
                 if (len > 32) len = 32;
 
-                throw new XException($"End of string reached while parsing token [{_json.Substring(_json.Length - len, len)}]");
+                throw new XException("End of string reached while parsing token [{0}]", _json.Substring(_json.Length - len, len));
             }
 
             throw new XException("End of string reached while parsing token");

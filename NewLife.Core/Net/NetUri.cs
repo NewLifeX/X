@@ -269,7 +269,7 @@ public class NetUri
         }
         catch (SocketException ex)
         {
-            throw new XException($"Failed to resolve the address of host {hostname}!{ex.Message}", ex);
+            throw new XException(ex, "Failed to resolve the address of host {0}!{1}", hostname, ex.Message);
         }
     }
 
