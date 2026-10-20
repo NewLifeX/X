@@ -43,9 +43,9 @@
 ## 维护方式
 
 - **单一事实源**：`readme-languages.json`（`code` / `name` / `file`，数组顺序即展示顺序）。
-- **生成与校验**：`sync-readme-languages.ps1` 按配置重写各 README 的切换块；加 `-Check` 只校验不写入，不一致时退出码 1。
-- **NuGet 包版**：`sync-readme-package.ps1` 按 `readme-package.json` 从 `README.md` 生成 `README.nuget.md`，把所有相对链接改写为 GitHub 绝对地址；加 `-Check` 校验生成物与 `PackageReadmeFile` 目标。
-- **指标**：`readme-metrics.json` 集中维护 AOT 冒烟场景数、TFM 数、内置语言数与全生态 NuGet 累计下载量（`nugetTotal`）；`sync-readme-metrics.ps1` 写入各 README 的 `<!--名称:start-->值<!--名称:end-->` 标记，`-Check` 校验 11 份副本一致。
+- **生成与校验**：`Tools/Scripts/sync-readme-languages.ps1` 按配置重写各 README 的切换块；加 `-Check` 只校验不写入，不一致时退出码 1。
+- **NuGet 包版**：`Tools/Scripts/sync-readme-package.ps1` 按 `readme-package.json` 从 `README.md` 生成 `README.nuget.md`，把所有相对链接改写为 GitHub 绝对地址；加 `-Check` 校验生成物与 `PackageReadmeFile` 目标。
+- **指标**：`readme-metrics.json` 集中维护 AOT 冒烟场景数、TFM 数、内置语言数与全生态 NuGet 累计下载量（`nugetTotal`）；`Tools/Scripts/sync-readme-metrics.ps1` 写入各 README 的 `<!--名称:start-->值<!--名称:end-->` 标记，`-Check` 校验 11 份副本一致。
 - **CI 门禁**：`.github/workflows/readme.yml` 在 README、配置或脚本变动时执行 `-Check`，顺序不一致或多份副本漂移会直接失败。
 - 各 README 只有下面标记块之间的内容由脚本生成，其余内容不受影响：
 
@@ -60,13 +60,13 @@
 1. 翻译整篇 README，文件名用 `README.{BCP 47 语言标签}.md`；English 固定 `README.md`，简体中文固定 `README.zh-CN.md`，繁體中文固定 `README.zh-TW.md`。
 2. 在 `readme-languages.json` 的 `languages` 数组**末尾**追加 `{ "code", "name", "file" }`，`name` 用本族语名称。
 3. 在正文开头补上与其它版本一致的说明：「本翻译可能滞后，以 [English README](README.md) 为准」。
-4. 运行 `pwsh -File sync-readme-languages.ps1` 生成切换行，再运行 `-Check` 确认。
+4. 运行 `pwsh -File Tools/Scripts/sync-readme-languages.ps1` 生成切换行，再运行 `-Check` 确认。
 5. 根目录新增了 README 却没登记到配置，脚本会直接报错，避免切换行静默漏掉该语种。
 
 ## NuGet 包 README
 
 - `PackageReadmeFile` 一律指向生成的 `README.nuget.md`，不直接使用 `README.md`。
-- 生成规则：`sync-readme-package.ps1` 读取 `readme-package.json`，把 Markdown 相对链接改写为 `https://github.com/{owner}/{repo}/blob/{branch}/...`；页内锚点保持不变。
+- 生成规则：`Tools/Scripts/sync-readme-package.ps1` 读取 `readme-package.json`，把 Markdown 相对链接改写为 `https://github.com/{owner}/{repo}/blob/{branch}/...`；页内锚点保持不变。
 - 生成物带 `<!-- generated ... -->` 头，禁止手工修改；CI 执行 `-Check` 防止漂移。
 - 子项目若有独立包 README，在 `readme-package.json` 的 `items` 中增加一条，源文件用该子项目的 English README，输出到同目录 `README.nuget.md`。
 

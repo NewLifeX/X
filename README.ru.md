@@ -305,7 +305,7 @@ dotnet build NewLife.Core/NewLife.Core.csproj -c Release
 dotnet test XUnitTest.Core -c Release
 ```
 
-- Полный параллельный прогон: `run-tests.ps1` (несколько хостов параллельно, защита по таймауту и сводка trx)
+- Полный параллельный прогон: `Tools/Scripts/run-tests.ps1` (несколько хостов параллельно, защита по таймауту и сводка trx)
 - Смоук-тест NativeAOT: `AotSmoke/`, CI в `.github/workflows/aot.yml`
 - Бенчмарки: `Benchmark/` (BenchmarkDotNet)
 

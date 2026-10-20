@@ -5,12 +5,13 @@
 # 并省略当前语种自身，与新语种追加到末尾的约定配套。
 #
 # 用法：
-#   pwsh -File sync-readme-languages.ps1           # 按配置重写各 README 的切换块
-#   pwsh -File sync-readme-languages.ps1 -Check    # 只校验不写入，不一致退出码 1（CI 使用）
-#   pwsh -File sync-readme-languages.ps1 -Root D:\src\MyLib   # 下游在自己的仓根运行
+#   pwsh -File Tools/Scripts/sync-readme-languages.ps1           # 按配置重写各 README 的切换块
+#   pwsh -File Tools/Scripts/sync-readme-languages.ps1 -Check    # 只校验不写入，不一致退出码 1（CI 使用）
+#   pwsh -File Tools/Scripts/sync-readme-languages.ps1 -Root D:\src\MyLib   # 下游在自己的仓根运行
 param(
     [Switch]$Check,
-    [String]$Root = $PSScriptRoot,
+    # 默认仓库根：脚本位于 Tools\Scripts，在其上两级；下游复用可显式传入 -Root
+    [String]$Root = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),
     [String]$Config = "readme-languages.json"
 )
 
@@ -89,7 +90,7 @@ foreach ($item in $langs) {
 
 if ($Check) {
     if ($errors -gt 0) {
-        Write-Host "`n语言切换行不一致：$errors / $($langs.Count) 个文件。请运行 pwsh -File sync-readme-languages.ps1 后提交。"
+        Write-Host "`n语言切换行不一致：$errors / $($langs.Count) 个文件。请运行 pwsh -File Tools/Scripts/sync-readme-languages.ps1 后提交。"
         exit 1
     }
     Write-Host "语言切换行一致（$($langs.Count) 个语种）"

@@ -34,7 +34,7 @@ jobs:
     - name: Package consumer smoke
       # 下游只加 PackageReference + Locales/*.yml 的端到端验证；失败即不发包
       shell: pwsh
-      run: ./check-package-consumer.ps1
+      run: ./Tools/Scripts/check-package-consumer.ps1
     - name: Publish to GitHub Packages
       id: ghpackages
       # 备用镜像渠道，失败只告警，不阻断 NuGet.org 正式发布

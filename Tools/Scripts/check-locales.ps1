@@ -2,9 +2,9 @@
 # 以基准语言文件（默认 zh-Hans.yml）为准，所有语言必须提供完全相同的键集合
 #
 # 用法：
-#   pwsh -File check-locales.ps1                                      # Core 默认目录
-#   pwsh -File check-locales.ps1 -LocaleDir src\Lib\Locales -SourceDir src\Lib
-#   pwsh -File check-locales.ps1 -LocaleDir src\Lib\Locales -SkipOrphan   # 下游只想校验词表内部一致性
+#   pwsh -File Tools/Scripts/check-locales.ps1                                      # Core 默认目录
+#   pwsh -File Tools/Scripts/check-locales.ps1 -LocaleDir src\Lib\Locales -SourceDir src\Lib
+#   pwsh -File Tools/Scripts/check-locales.ps1 -LocaleDir src\Lib\Locales -SkipOrphan   # 下游只想校验词表内部一致性
 param(
     [String]$LocaleDir = "NewLife.Core\Locales",
     [String]$Baseline = "zh-Hans.yml",
@@ -14,7 +14,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$root = $PSScriptRoot
+# 脚本位于 Tools\Scripts，仓库根目录在其上两级
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $localeDir = if ([IO.Path]::IsPathRooted($LocaleDir)) { $LocaleDir } else { Join-Path $root $LocaleDir }
 if (!(Test-Path $localeDir)) {
     Write-Host "未找到语言目录：$localeDir" -ForegroundColor Red

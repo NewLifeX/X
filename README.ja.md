@@ -307,7 +307,7 @@ dotnet build NewLife.Core/NewLife.Core.csproj -c Release
 dotnet test XUnitTest.Core -c Release
 ```
 
-- 全量並列実行：`run-tests.ps1`（マルチホスト並列、タイムアウト保護、trx 集計）
+- 全量並列実行：`Tools/Scripts/run-tests.ps1`（マルチホスト並列、タイムアウト保護、trx 集計）
 - NativeAOT スモーク：`AotSmoke/`、CI は `.github/workflows/aot.yml`
 - ベンチマーク：`Benchmark/`（BenchmarkDotNet）
 

@@ -305,7 +305,7 @@ dotnet build NewLife.Core/NewLife.Core.csproj -c Release
 dotnet test XUnitTest.Core -c Release
 ```
 
-- تشغيل الاختبارات الكامل بالتوازي: `run-tests.ps1` (مضيفات متعددة بالتوازي + مهلة + ملخص trx)
+- تشغيل الاختبارات الكامل بالتوازي: `Tools/Scripts/run-tests.ps1` (مضيفات متعددة بالتوازي + مهلة + ملخص trx)
 - اختبار NativeAOT السريع: `AotSmoke/`، وCI في `.github/workflows/aot.yml`
 - قياسات الأداء: `Benchmark/` (BenchmarkDotNet)
 

@@ -307,7 +307,7 @@ dotnet build NewLife.Core/NewLife.Core.csproj -c Release
 dotnet test XUnitTest.Core -c Release
 ```
 
-- Ejecución totalmente paralela: `run-tests.ps1` (paralelismo multi-host, protección por tiempo de espera y resumen trx)
+- Ejecución totalmente paralela: `Tools/Scripts/run-tests.ps1` (paralelismo multi-host, protección por tiempo de espera y resumen trx)
 - Smoke de NativeAOT: `AotSmoke/`, CI en `.github/workflows/aot.yml`
 - Benchmarks: `Benchmark/` (BenchmarkDotNet)
 

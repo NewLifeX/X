@@ -4,14 +4,14 @@
 # 仅支持 Windows（Compat-net462 宿主需要 .NET Framework）；Windows PowerShell 5.1 与 PowerShell 7（pwsh）均可运行。
 #
 # 用法：
-#   pwsh -File run-tests.ps1                      # 构建 Release 后并行跑全部宿主
-#   pwsh -File run-tests.ps1 -Configuration Debug # 指定构建配置
-#   pwsh -File run-tests.ps1 -SkipBuild           # 跳过构建（要求各宿主产物已存在）
-#   pwsh -File run-tests.ps1 -Only "Core-*"       # 只跑名称匹配的宿主（正则）
-#   pwsh -File run-tests.ps1 -TimeoutSec 1200     # 单宿主超时秒数（默认 900）
-#   pwsh -File run-tests.ps1 -ThrottleLimit 5     # 限制同时运行的宿主数（默认 0=不限）
-#   pwsh -File run-tests.ps1 -Repeat 10           # 稳定性验收：连续跑 10 轮，任一轮失败即退出码非零
-#   pwsh -File run-tests.ps1 -List                # 列出全部宿主后退出
+#   pwsh -File Tools/Scripts/run-tests.ps1                      # 构建 Release 后并行跑全部宿主
+#   pwsh -File Tools/Scripts/run-tests.ps1 -Configuration Debug # 指定构建配置
+#   pwsh -File Tools/Scripts/run-tests.ps1 -SkipBuild           # 跳过构建（要求各宿主产物已存在）
+#   pwsh -File Tools/Scripts/run-tests.ps1 -Only "Core-*"       # 只跑名称匹配的宿主（正则）
+#   pwsh -File Tools/Scripts/run-tests.ps1 -TimeoutSec 1200     # 单宿主超时秒数（默认 900）
+#   pwsh -File Tools/Scripts/run-tests.ps1 -ThrottleLimit 5     # 限制同时运行的宿主数（默认 0=不限）
+#   pwsh -File Tools/Scripts/run-tests.ps1 -Repeat 10           # 稳定性验收：连续跑 10 轮，任一轮失败即退出码非零
+#   pwsh -File Tools/Scripts/run-tests.ps1 -List                # 列出全部宿主后退出
 #
 # 结果：TestResults\<时间戳>\<宿主>.trx（用例明细，可与 CI 矩阵产物对照）+ <宿主>.log（控制台输出）
 param(
@@ -28,14 +28,15 @@ param(
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$root = $PSScriptRoot
+# 脚本位于 Tools\Scripts，仓库根目录在其上两级
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 # 异常消息必须为英文（全球化约束）
-& (Join-Path $root "check-english-exceptions.ps1")
+& (Join-Path $PSScriptRoot "check-english-exceptions.ps1")
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # 多语言词表必须键集与占位符一致
-& (Join-Path $root "check-locales.ps1")
+& (Join-Path $PSScriptRoot "check-locales.ps1")
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # 宿主表：名称与 .github/workflows/test.yml 的矩阵项一致，便于与 CI 结果对照

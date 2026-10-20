@@ -7,8 +7,8 @@
 #   4. 放入 Locales/ta.yml，运行 Translate / L.T，断言泰米尔语与英文回退。
 #
 # 用法：
-#   pwsh -File check-package-consumer.ps1
-#   pwsh -File check-package-consumer.ps1 -Keep     # 保留临时目录便于排查
+#   pwsh -File Tools/Scripts/check-package-consumer.ps1
+#   pwsh -File Tools/Scripts/check-package-consumer.ps1 -Keep     # 保留临时目录便于排查
 param(
     [String]$Configuration = "Release",
     [String]$Framework = "net10.0",
@@ -17,7 +17,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$root = $PSScriptRoot
+# 脚本位于 Tools\Scripts，仓库根目录在其上两级
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $work = Join-Path $root ".tmp\package-consumer"
 $out = Join-Path $work "out"
 $consumer = Join-Path $work "Consumer"

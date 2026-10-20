@@ -4,14 +4,15 @@
 # NewLife.Core\CompatibilitySuppressions.xml（治理规则见 Doc\架构设计.md §7 收口记录）。
 #
 # 用法：
-#   pwsh -File check-api-compat.ps1                        # 基线自动取最新 12.0.* 已发布版本
-#   pwsh -File check-api-compat.ps1 -BaselineVersion 12.0.2026.1016-beta0911
+#   pwsh -File Tools/Scripts/check-api-compat.ps1                        # 基线自动取最新 12.0.* 已发布版本
+#   pwsh -File Tools/Scripts/check-api-compat.ps1 -BaselineVersion 12.0.2026.1016-beta0911
 #
 # 结果：输出包到 .tmp\api-compat（已 gitignore），退出码即校验结果（0=通过）。
 param([String]$BaselineVersion)
 
 $ErrorActionPreference = "Stop"
-$root = $PSScriptRoot
+# 脚本位于 Tools\Scripts，仓库根目录在其上两级
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $root
 
 if (-not $BaselineVersion) {

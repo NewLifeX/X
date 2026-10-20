@@ -4,13 +4,14 @@
 # 会随发布变化的数字，不再散落在 11 份 README 里手工维护。
 #
 # 用法：
-#   pwsh -File sync-readme-metrics.ps1 -Migrate   # 首次迁移：给旧数字套上标记，并生成徽章块
-#   pwsh -File sync-readme-metrics.ps1            # 按配置写入标记块与数字
-#   pwsh -File sync-readme-metrics.ps1 -Check     # 只校验不写入，不一致退出码 1（CI 使用）
+#   pwsh -File Tools/Scripts/sync-readme-metrics.ps1 -Migrate   # 首次迁移：给旧数字套上标记，并生成徽章块
+#   pwsh -File Tools/Scripts/sync-readme-metrics.ps1            # 按配置写入标记块与数字
+#   pwsh -File Tools/Scripts/sync-readme-metrics.ps1 -Check     # 只校验不写入，不一致退出码 1（CI 使用）
 param(
     [Switch]$Check,
     [Switch]$Migrate,
-    [String]$Root = $PSScriptRoot,
+    # 默认仓库根：脚本位于 Tools\Scripts，在其上两级；下游复用可显式传入 -Root
+    [String]$Root = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),
     [String]$Config = "readme-metrics.json"
 )
 
@@ -124,7 +125,7 @@ foreach ($file in $files) {
         $newText = Convert-Sync (Convert-Migrate $text $file.Name)
     }
     elseif (!$text.Contains($StartMarker) -or !$text.Contains($EndMarker)) {
-        throw "$($file.Name) 缺少指标标记块，请先运行 pwsh -File sync-readme-metrics.ps1 -Migrate"
+        throw "$($file.Name) 缺少指标标记块，请先运行 pwsh -File Tools/Scripts/sync-readme-metrics.ps1 -Migrate"
     }
     else {
         $newText = Convert-Sync $text
@@ -133,7 +134,7 @@ foreach ($file in $files) {
     if ($Check -and ($newText -notmatch '<!--aot-smoke:start-->' -or $newText -notmatch '<!--aot-scenarios:start-->')) {
         $errors++
         Write-Host "✗ $($file.Name)"
-        Write-Host "  缺少 aot-smoke / aot-scenarios 标记，请运行 pwsh -File sync-readme-metrics.ps1 -Migrate"
+        Write-Host "  缺少 aot-smoke / aot-scenarios 标记，请运行 pwsh -File Tools/Scripts/sync-readme-metrics.ps1 -Migrate"
         continue
     }
 
@@ -142,7 +143,7 @@ foreach ($file in $files) {
     if ($Check) {
         $errors++
         Write-Host "✗ $($file.Name)"
-        Write-Host "  指标块或标记数字与 readme-metrics.json 不一致，请运行 pwsh -File sync-readme-metrics.ps1"
+        Write-Host "  指标块或标记数字与 readme-metrics.json 不一致，请运行 pwsh -File Tools/Scripts/sync-readme-metrics.ps1"
     }
     else {
         [IO.File]::WriteAllText($path, $newText, (New-Object System.Text.UTF8Encoding($false)))

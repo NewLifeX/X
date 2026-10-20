@@ -307,7 +307,7 @@ dotnet build NewLife.Core/NewLife.Core.csproj -c Release
 dotnet test XUnitTest.Core -c Release
 ```
 
-- 全量平行測試：`run-tests.ps1`（多宿主平行 + 逾時防護 + trx 彙總）
+- 全量平行測試：`Tools/Scripts/run-tests.ps1`（多宿主平行 + 逾時防護 + trx 彙總）
 - NativeAOT 冒煙：`AotSmoke/`，CI 見 `.github/workflows/aot.yml`
 - 效能基準：`Benchmark/`（BenchmarkDotNet）
 

@@ -2,11 +2,12 @@
 # 规则：调用点字符串中不得出现 CJK 字符；注释中的中文不受限制。
 #
 # 用法：
-#   pwsh -File check-english-exceptions.ps1                         # Core 默认目录，失败退出码 1
-#   pwsh -File check-english-exceptions.ps1 -Dir src -List          # 下游盘点中文消息，不失败
-#   pwsh -File check-english-exceptions.ps1 -Dir src -Csv hits.csv  # 导出待翻译清单
+#   pwsh -File Tools/Scripts/check-english-exceptions.ps1                         # Core 默认目录，失败退出码 1
+#   pwsh -File Tools/Scripts/check-english-exceptions.ps1 -Dir src -List          # 下游盘点中文消息，不失败
+#   pwsh -File Tools/Scripts/check-english-exceptions.ps1 -Dir src -Csv hits.csv  # 导出待翻译清单
 param(
-    [String]$Root = $PSScriptRoot,
+    # 默认仓库根：脚本位于 Tools\Scripts，在其上两级；下游复用可显式传入 -Root
+    [String]$Root = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),
     [String[]]$Dir,
     [String[]]$Exclude = @(),
     [String]$MessageCall = 'throw new|: base\(|Console\.Write|MessageBox\.Show|AppendTag\(|NewError\(|NewSpan\(|Debug\.Fail\(|WriteLog\(|OnWrite\(|XTrace\.|Log\.(Write|Error|Info|Debug|Warn|Fatal)|(Info|Error|Warn|Debug|Fatal)Prefixed\(|WritePrefixed\(|L\.T\(|Localization\.Translate|ApiException\(|HttpException\(',

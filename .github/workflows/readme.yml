@@ -1,6 +1,6 @@
 name: readme
 
-# README 语言切换行由 sync-readme-languages.ps1 从 readme-languages.json 生成。
+# README 语言切换行由 Tools/Scripts/sync-readme-languages.ps1 从 readme-languages.json 生成。
 # 手工改顺序、或某一份副本忘记同步，都会在这里被拦下。
 on:
   push:
@@ -10,9 +10,9 @@ on:
       - 'readme-languages.json'
       - 'readme-metrics.json'
       - 'readme-package.json'
-      - 'sync-readme-languages.ps1'
-      - 'sync-readme-metrics.ps1'
-      - 'sync-readme-package.ps1'
+      - 'Tools/Scripts/sync-readme-languages.ps1'
+      - 'Tools/Scripts/sync-readme-metrics.ps1'
+      - 'Tools/Scripts/sync-readme-package.ps1'
       - '.github/workflows/readme.yml'
   pull_request:
     branches: [ '*' ]
@@ -21,9 +21,9 @@ on:
       - 'readme-languages.json'
       - 'readme-metrics.json'
       - 'readme-package.json'
-      - 'sync-readme-languages.ps1'
-      - 'sync-readme-metrics.ps1'
-      - 'sync-readme-package.ps1'
+      - 'Tools/Scripts/sync-readme-languages.ps1'
+      - 'Tools/Scripts/sync-readme-metrics.ps1'
+      - 'Tools/Scripts/sync-readme-package.ps1'
       - '.github/workflows/readme.yml'
   workflow_dispatch:
 
@@ -40,10 +40,10 @@ jobs:
     - uses: actions/checkout@v4
     - name: Check README language switcher
       shell: pwsh
-      run: pwsh -NoProfile -File ./sync-readme-languages.ps1 -Check
+      run: pwsh -NoProfile -File ./Tools/Scripts/sync-readme-languages.ps1 -Check
     - name: Check README metrics
       shell: pwsh
-      run: pwsh -NoProfile -File ./sync-readme-metrics.ps1 -Check
+      run: pwsh -NoProfile -File ./Tools/Scripts/sync-readme-metrics.ps1 -Check
     - name: Check README package copy
       shell: pwsh
-      run: pwsh -NoProfile -File ./sync-readme-package.ps1 -Check
+      run: pwsh -NoProfile -File ./Tools/Scripts/sync-readme-package.ps1 -Check
