@@ -256,7 +256,7 @@ jobs:
       run: |
         docker run --rm -v "$PWD:/src" -v "$HOME/.nuget/packages:/nuget-packages" -e NUGET_PACKAGES=/nuget-packages -w /src alpine:3.20 sh -c '
           set -e
-          apk add --no-cache bash curl icu-libs krb5-libs libgcc libstdc++ tzdata >/dev/null
+          apk add --no-cache bash curl icu-libs icu-data-full krb5-libs libgcc libstdc++ tzdata >/dev/null
           curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
           bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet >/dev/null
           ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
