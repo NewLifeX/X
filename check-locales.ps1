@@ -23,6 +23,7 @@ if (!(Test-Path $localeDir)) {
 
 $pattern = '^\s*"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"\s*$'
 $placeholder = '\{(\d+)(?:,-?\d+)?(:[^}]*)?\}'
+$languageCode = '\b[a-z]{2}-[A-Za-z]{2,4}\b'
 
 function Unescape-Yaml([string]$text) {
     # 与源生成器保持一致：还原 \\ \" \n \r \t \uXXXX
@@ -58,6 +59,14 @@ function Get-PlaceholderSpecs([string]$text) {
     return $map
 }
 
+# 语言清单条目：译文中的语言代码集合必须与英文 key 一致，防止译者漏码
+function Test-LanguageCodeList([string]$key, [string]$value) {
+    if (!$key.StartsWith("UI language. Values:")) { return $true }
+    $expected = @([regex]::Matches($key, $languageCode) | ForEach-Object { $_.Value } | Sort-Object -Unique)
+    $actual = @([regex]::Matches($value, $languageCode) | ForEach-Object { $_.Value } | Sort-Object -Unique)
+    return !(Compare-Object $expected $actual)
+}
+
 function Read-Locale([string]$path) {
     $entries = [ordered]@{}
     $errors = @()
@@ -88,6 +97,12 @@ if (!(Test-Path -LiteralPath $referencePath)) {
 $reference = Read-Locale $referencePath
 $allErrors = @($reference.Errors | ForEach-Object { "$($Baseline): $_" })
 $allWarnings = @()
+
+foreach ($key in $reference.Entries.Keys) {
+    if (!(Test-LanguageCodeList $key $reference.Entries[$key])) {
+        $allErrors += "$($Baseline): 语言代码清单不一致 → $key"
+    }
+}
 
 foreach ($file in Get-ChildItem $localeDir -Filter *.yml | Sort-Object Name) {
     if ($file.Name -eq $Baseline) { continue }
@@ -121,6 +136,10 @@ foreach ($file in Get-ChildItem $localeDir -Filter *.yml | Sort-Object Name) {
                 $allWarnings += "$($file.Name): 格式说明符不一致 → $key"
                 break
             }
+        }
+
+        if (!(Test-LanguageCodeList $key $value)) {
+            $allErrors += "$($file.Name): 语言代码清单不一致 → $key"
         }
     }
 }

@@ -20,13 +20,11 @@ public class Setting : Config<Setting>
     #region 属性
     /// <summary>界面语言。留空跟随系统；设置后固定界面与日志语言，不再跟随请求语言</summary>
     /// <remarks>
-    /// 内置可用值：zh-CN、zh-TW、en-US、es-ES、de-DE、ja-JP、fr-FR、pt-BR、ru-RU、ko-KR、ar-SA、
-    /// bn-BD、cs-CZ、da-DK、el-GR、fa-IR、fi-FI、he-IL、hi-IN、hu-HU、id-ID、it-IT、ms-MY、nb-NO、
-    /// nl-NL、pl-PL、ro-RO、sv-SE、th-TH、tr-TR、uk-UA、vi-VN。
-    /// 裸语言码（en、ja、de-AT）由 <see cref="Localization.NormalizeCulture"/> 归一化；
-    /// 运行时注册的语言同样可用，完整清单与显示名称见 <see cref="Localization.GetLanguages"/>。
+    /// 完整清单见 <see cref="Localization.SupportedCultures"/>，显示名称见 <see cref="Localization.GetLanguages"/>，
+    /// 管理端下拉框可直接用 <see cref="Localization.GetLanguageOptions"/>。
+    /// 裸语言码（en、ja、de-AT）由 <see cref="Localization.NormalizeCulture"/> 归一化；运行时注册的语言同样可用。
     /// </remarks>
-    [Description("UI language. Values: zh-CN, zh-TW, en-US, es-ES, de-DE, ja-JP, fr-FR, pt-BR, ru-RU, ko-KR, ar-SA, bn-BD, cs-CZ, da-DK, el-GR, fa-IR, fi-FI, he-IL, hi-IN, hu-HU, id-ID, it-IT, ms-MY, nb-NO, nl-NL, pl-PL, ro-RO, sv-SE, th-TH, tr-TR, uk-UA, vi-VN. Empty follows the system; a supported language fixes the UI and log language regardless of request culture.")]
+    [Description("UI language. Values: zh-CN/zh-TW/en-US/es-ES/de-DE/ja-JP/fr-FR/pt-BR/ru-RU/ko-KR/ar-SA/bn-BD/cs-CZ/da-DK/el-GR/fa-IR/fi-FI/he-IL/hi-IN/hu-HU/id-ID/it-IT/ms-MY/nb-NO/nl-NL/pl-PL/ro-RO/sv-SE/th-TH/tr-TR/uk-UA/vi-VN. Empty follows the system; a supported language fixes the UI and log language regardless of request culture.")]
     public String Language { get; set; } = "";
 
     /// <summary>是否启用全局调试。默认启用</summary>

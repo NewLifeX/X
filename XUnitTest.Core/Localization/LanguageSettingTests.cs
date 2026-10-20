@@ -51,12 +51,12 @@ public class LanguageSettingTests
             // 清空配置即恢复自动识别
             Assert.Null(Localization.SetLanguage(null));
             Assert.Null(Localization.Culture);
+            Assert.Null(Localization.LogCulture);
             Assert.Null(Localization.ForcedLanguage);
         }
         finally
         {
-            // 先恢复强制语言标记，再还原界面与日志语言；顺序不可颠倒，
-            // 否则 SetLanguage 会把 LogCulture 重置为进程启动时的系统语言，污染后续用例
+            // 先恢复强制语言标记，再还原界面与日志语言；顺序不可颠倒，避免 SetLanguage 覆盖待恢复的 LogCulture
             Localization.SetLanguage(forced);
             Localization.Culture = culture;
             Localization.LogCulture = logCulture;

@@ -49,8 +49,6 @@ partial class Localization
 
     private static readonly ConcurrentDictionary<String, LanguageInfo> _extraLanguages = new(StringComparer.Ordinal);
 
-    private static readonly CultureInfo _SystemCulture = CultureInfo.CurrentUICulture;
-
     /// <summary>已由配置强制的界面语言。为空表示自动识别</summary>
     public static String? ForcedLanguage { get; private set; }
     #endregion
@@ -65,13 +63,32 @@ partial class Localization
         if (!_extraLanguages.IsEmpty)
         {
             var extras = new List<LanguageInfo>(_extraLanguages.Count);
-            foreach (var item in _extraLanguages) extras.Add(item.Value);
+            foreach (var item in _extraLanguages)
+            {
+                // 旧版别名（in/iw/no/mo）与内置区域语言重复，归一化命中内置语言时跳过
+                var name = NormalizeCulture(item.Value.Name);
+                if (name != null && Array.IndexOf(SupportedCultures, name) >= 0) continue;
+
+                extras.Add(item.Value);
+            }
 
             extras.Sort((x, y) => StringComparer.Ordinal.Compare(x.Name, y.Name));
             list.AddRange(extras);
         }
 
         return list;
+    }
+
+    /// <summary>获取语言选项。可直接绑定管理端下拉框</summary>
+    public static IDictionary<String, String> GetLanguageOptions()
+    {
+        var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in GetLanguages())
+        {
+            dic[item.Name] = item.GetDisplayName();
+        }
+
+        return dic;
     }
 
     private static Boolean IsBuiltinLanguage(String name)
@@ -102,6 +119,9 @@ partial class Localization
         var p = first.IndexOf(';');
         if (p > 0) first = first.Substring(0, p).Trim();
         if (first.IsNullOrEmpty()) return null;
+
+        // 旧版 .NET 与浏览器仍可能发送被弃用的语言别名，先归一到现代语言代码
+        first = NormalizeAlias(first);
 
         // 中文按脚本/地区归一，zh-Hant、zh-TW、zh-HK、zh-MO 均为繁体
         if (first.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
@@ -167,10 +187,28 @@ partial class Localization
         }
 
         Culture = culture;
-        LogCulture = culture ?? _SystemCulture;
+        LogCulture = culture;
         ForcedLanguage = name;
 
         return name;
+    }
+
+    internal static String NormalizeAlias(String name)
+    {
+        if (name.IsNullOrEmpty()) return name;
+
+        var dash = name.IndexOf('-');
+        var lang = dash > 0 ? name[..dash] : name;
+        var alias = lang.ToLowerInvariant() switch
+        {
+            "in" => "id",
+            "iw" => "he",
+            "mo" => "ro",
+            "no" => "nb",
+            _ => null,
+        };
+
+        return alias == null ? name : (dash > 0 ? alias + name[dash..] : alias);
     }
     #endregion
 }

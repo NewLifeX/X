@@ -48,14 +48,15 @@ public sealed class LanguageInfo
 
     #region 方法
     /// <summary>获取该语言在指定语言下的名称</summary>
-    /// <param name="culture">显示语言。为空时跟随当前界面语言</param>
-    /// <returns>目标语言就是该语言时返回自称；否则返回英文名称，词表提供译文时返回译文</returns>
     public String GetName(CultureInfo? culture = null)
     {
         culture ??= Localization.Culture ?? CultureInfo.CurrentUICulture;
 
         // 目标语言与该语言同属一种语言（如 zh-CN 与 zh-TW），直接使用自称
         if (GetLanguage(culture.Name) == GetLanguage(Name)) return NativeName;
+
+        // 取中性语言名称，避免“英语（美国）”这类冗长后缀
+        if (culture.Name.EqualIgnoreCase(CultureInfo.CurrentUICulture.Name) && TryGetNativeDisplayName(Name, out var named) && !named.IsNullOrEmpty()) return named;
 
         return Localization.Translate(culture, EnglishName);
     }
@@ -82,6 +83,25 @@ public sealed class LanguageInfo
     {
         var index = name.IndexOf('-');
         return index > 0 ? name.Substring(0, index).ToLowerInvariant() : name.ToLowerInvariant();
+    }
+
+    private static Boolean TryGetNativeDisplayName(String name, out String? display)
+    {
+        display = null;
+        try
+        {
+            var culture = CultureInfo.GetCultureInfo(name);
+            var target = culture.Parent;
+            if (target == null || target.Name.IsNullOrEmpty()) target = culture;
+            if (target.Name.IsNullOrEmpty()) return false;
+
+            display = target.DisplayName;
+            return !display.IsNullOrEmpty() && display != target.Name;
+        }
+        catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException || ex is InvalidOperationException)
+        {
+            return false;
+        }
     }
 
     /// <summary>按区域文化创建语言信息</summary>
