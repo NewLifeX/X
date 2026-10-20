@@ -94,7 +94,8 @@ public class ApiHttpClientTests : DisposeBase
         Assert.NotNull(ex);
         Assert.Equal(404, ex.Code);
         //Assert.True(ex.Message.EndsWith("无法找到名为[api/info3]的服务！"));
-        Assert.EndsWith("无法找到名为[api/info3]的服务！", ex.Message);
+        // 消息由 NewLife.Remoting 词表按当前界面语言本地化，测试程序集固定英文，不能写死中文
+        Assert.Equal(Localization.Translate("Cannot find service named [{0}]!", "api/info3"), ex.Message);
     }
 
     [Fact(DisplayName = "同步调用测试")]

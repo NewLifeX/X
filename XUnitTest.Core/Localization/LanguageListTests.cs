@@ -104,8 +104,11 @@ public class LanguageListTests
             // 当前界面语言为中文时，语言名称交给 .NET 区域数据，无需词表
             CultureInfo.CurrentUICulture = zhCulture;
 
-            Assert.Equal("英语 (English)", en.GetDisplayName(zhCulture));
-            Assert.Equal("德语 (Deutsch)", Find(list, "de-DE")!.GetDisplayName(zhCulture));
+            // 不变量全球化（无 ICU 区域数据）下 .NET 无法按中文显示英文名，退回英文
+            var enName = en.GetDisplayName(zhCulture);
+            Assert.Equal(TestSetup.HasCultureData ? "英语 (English)" : "English", enName);
+            var deName = Find(list, "de-DE")!.GetDisplayName(zhCulture);
+            Assert.Equal(TestSetup.HasCultureData ? "德语 (Deutsch)" : "German (Deutsch)", deName);
         }
         finally
         {
@@ -129,6 +132,28 @@ public class LanguageListTests
         finally
         {
             Localization.Unregister(zh);
+        }
+    }
+
+    [Fact(DisplayName = "语言名称：区域数据未本地化时退回英文名，可由词表改写")]
+    public void LocalizedName_english_fallback()
+    {
+        var en = CultureInfo.GetCultureInfo("en-US");
+        var de = Find(Localization.GetLanguages(), "de-DE")!;
+        var prev = CultureInfo.CurrentUICulture;
+        try
+        {
+            // 英文界面下 .NET 区域名称与英文名一致，不应直接显示区域数据，而是交给词表（无译文时为英文名）
+            CultureInfo.CurrentUICulture = en;
+            Localization.Register(en, new Dictionary<String, String> { [de.EnglishName] = "German (custom)" }, true);
+
+            Assert.Equal("German (custom)", de.GetName(en));
+            Assert.Equal("German (custom) (Deutsch)", de.GetDisplayName(en));
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = prev;
+            Localization.Unregister(en);
         }
     }
 
@@ -199,9 +224,10 @@ public class LanguageListTests
 
             Assert.True(options.Count >= Localization.SupportedCultures.Length);
             Assert.Equal("简体中文", options["zh-CN"]);
-            Assert.Equal("英语 (English)", options["en-US"]);
-            Assert.Equal("德语 (Deutsch)", options["de-DE"]);
-            Assert.Equal("日语 (日本語)", options["ja-JP"]);
+            // 不变量全球化（无 ICU 区域数据）下区域显示名退回英文名，仅自称仍可用
+            Assert.Equal(TestSetup.HasCultureData ? "英语 (English)" : "English", options["en-US"]);
+            Assert.Equal(TestSetup.HasCultureData ? "德语 (Deutsch)" : "German (Deutsch)", options["de-DE"]);
+            Assert.Equal(TestSetup.HasCultureData ? "日语 (日本語)" : "Japanese (日本語)", options["ja-JP"]);
         }
         finally
         {

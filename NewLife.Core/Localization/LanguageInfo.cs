@@ -96,7 +96,8 @@ public sealed class LanguageInfo
             if (target.Name.IsNullOrEmpty()) return false;
 
             display = target.DisplayName;
-            return !display.IsNullOrEmpty() && display != target.Name;
+            // 英文界面或缺少区域数据（不变量全球化）时显示名与英文名相同，交给词表翻译，保证各平台输出一致
+            return !display.IsNullOrEmpty() && display != target.Name && display != target.EnglishName;
         }
         catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException || ex is InvalidOperationException)
         {

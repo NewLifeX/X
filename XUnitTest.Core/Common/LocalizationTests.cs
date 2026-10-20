@@ -109,7 +109,9 @@ public class LocalizationTests
                 [key] = "下载完成，大小 {0:n0} 字节，耗时 {1:n0} 毫秒",
             }, true);
 
-            Assert.Equal("下载完成，大小 1.234 字节，耗时 56 毫秒", Localization.Translate(de, key, 1234, 56));
+            // 期望值由目标区域自身的格式化规则产生，避免不变量全球化（无 ICU 数据）下分组符号差异
+            var expected = String.Format(de, "下载完成，大小 {0:n0} 字节，耗时 {1:n0} 毫秒", 1234, 56);
+            Assert.Equal(expected, Localization.Translate(de, key, 1234, 56));
         }
         finally
         {
@@ -284,7 +286,15 @@ public class LocalizationTests
     }
 
     [Fact(DisplayName = "注销未知语言：返回 false")]
-    public void Unregister_unknown() => Assert.False(Localization.Unregister(CultureInfo.GetCultureInfo("ja-JP")));
+    public void Unregister_unknown()
+    {
+        // 下游程序集（如 NewLife.Remoting）会在模块初始化时把自带词表注册为覆盖表，
+        // 连内置语言（如 ja-JP）也可能存在覆盖表，因此用没有词表的语言代表未知语言
+        var culture = CultureInfo.GetCultureInfo("sw-KE");
+        Localization.Unregister(culture);
+
+        Assert.False(Localization.Unregister(culture));
+    }
     #endregion
 
     #region 请求语言
