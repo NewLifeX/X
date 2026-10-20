@@ -4,7 +4,7 @@
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>NewLife核心组件库</AssemblyTitle>
-    <Description>Core library of NewLife framework. Provides high-performance infrastructure for building scalable applications: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), network (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler, plugin framework, and more. Supports .NET Framework 4.5 to .NET 10. 核心组件库，为构建可扩展应用程序提供高性能基础设施。提供日志（文件/网络）、配置（XML/JSON/HTTP）、缓存（内存/分布式）、网络（TCP/UDP/HTTP/WebSocket）、序列化（Binary/XML/JSON）、APM性能追踪、对象容器、并行模型、定时调度、插件框架等。支持.NET Framework 4.5至.NET 10全版本。</Description>
+    <Description>Core library of the NewLife framework: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), networking (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler and plugin framework. NativeAOT-ready, with built-in runtime localization; targets 11 frameworks from .NET Framework 4.5 to .NET 10.0. 核心组件库：日志、配置、缓存、网络、序列化、APM 性能追踪、对象容器、并行模型、定时调度与插件框架；原生 AOT 就绪，内置运行时多语言消息；单包覆盖 .NET Framework 4.5 至 .NET 10.0 共 11 个目标框架。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
     <VersionPrefix>12.0</VersionPrefix>
@@ -31,7 +31,7 @@
     <PackageIcon>leaf.png</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
+    <PackageTags>新生命团队;X组件;NewLife;AOT;NativeAOT;本地化;$(AssemblyName)</PackageTags>
     <PackageReleaseNotes>v12 多语言版本：内置 31 种语言、269 条运行时消息，异常/日志经编译期词表按 CurrentUICulture 本地化，英文为源文与兜底；源生成器随主包分发，下游声明 Locales/*.yml 即可复用与覆盖；语言表 Deflate 压缩、按需解压，单 DLL 且 AOT 安全（冒烟 31 场景）。同时目标框架精简为 11 个（net45 ~ net10.0，含 Windows 变体），运行时消息统一英文化。升级须知与完整变更见 ChangeLog.md</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
