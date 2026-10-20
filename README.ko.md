@@ -288,8 +288,7 @@ NewLife는 독립적으로 버전이 관리되는 오픈소스 프로젝트의 �
 
 - [핵심 라이브러리 목차](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): 모듈별로 분류한 핵심 컴포넌트 문서 색인
 - [AOT 호환성 분석](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): NativeAOT 지원 범위, 실측 결론(스모크 <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), RID 매트릭스와 알려진 경계
-- [다국어 지역화](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): 메시지 모델, 언어 테이블, 하위 프로젝트 재정의, 런타임 언어 추가
-- [하위 프로젝트 다국어 적용 체크리스트](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md): 통합 단계, 언어 규칙, CI 게이트, 배지 템플릿
+- [다국어 지역화](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): 지원 언어와 기본 사용법
 - [모바일 아키텍처](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md): .NET 모바일 스택, UI 프레임워크 선정, APK 패키징, AOT 참고 사항
 - [Samples](https://github.com/NewLifeX/X/tree/master/Samples): 콘솔, 서비스, Http, IoT, 모바일 예제
 

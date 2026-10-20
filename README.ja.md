@@ -288,8 +288,7 @@ NewLife は、独立したバージョン管理を行うオープンソースプ
 
 - [コアライブラリ目次](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md)：モジュール別に分類したコアコンポーネント記事のインデックス
 - [AOT互換性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)：NativeAOT の対応範囲、実測結果（スモーク <!--aot-smoke:start-->31/31<!--aot-smoke:end-->）、RID マトリクスと既知の境界
-- [多言語ローカライズ](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)：メッセージモデル、言語テーブル、下流での上書き、実行時の言語追加
-- [下流の多言語対応チェックリスト](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md)：統合手順、言語ルール、CI ゲート、バッジテンプレート
+- [多言語ローカライズ](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)：対応言語と基本的な使い方
 - [モバイル技術アーキテクチャ](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md)：.NET モバイルスタック、UI フレームワーク選定、APK パッケージング、AOT の注意点
 - [Samples](https://github.com/NewLifeX/X/tree/master/Samples)：コンソール、サービス、Http、IoT、モバイルのサンプル
 

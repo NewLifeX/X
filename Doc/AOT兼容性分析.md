@@ -34,7 +34,7 @@
 | | | 25 | Reflect 泛型入口保留（`GetPropertyEx<T>`） |
 | 26 | 运行时平台探测 Runtime | 27 | 机器信息 MachineInfo 平台分支 |
 | 28 | 临时路径与文件IO PathHelper | 29 | 进程信息 ProcessHelper |
-| 30 | 多语言 Localization 静态表（含 XException / 运行时注册） | 31 | 多语言全部内置语言表在 AOT 下可用（31 种） |
+| 30 | 多语言 Localization（含 XException / 运行时注册） | 31 | 多语言全部内置语言表在 AOT 下可用（31 种） |
 
 > AOT 判真：原生发布件入口 `Assembly.Location` 为空，而 JIT 基线为磁盘路径；因冒烟工程固定“严格 AOT 姿态”，两种运行的 `IsDynamicCodeSupported` 均为 False，该值不作判别依据。
 

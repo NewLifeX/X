@@ -286,8 +286,7 @@ NewLife منظومة متعدّدة الطبقات من مشاريع مفتوح�
 
 - [فهرس المكتبة الأساسية](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): فهرس مقالات المكوّنات الأساسية، مجمّعًا حسب الوحدة
 - [تحليل توافق AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): نطاق NativeAOT، والنتائج المقاسة (اختبار سريع <!--aot-smoke:start-->31/31<!--aot-smoke:end-->)، ومصفوفة RID والحدود المعروفة
-- [التوطين](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): نموذج الرسائل، وجداول اللغات، وتجاوزات المشاريع النهائية، وإضافة لغات أثناء التشغيل
-- [قائمة تحقّق التوطين للمشاريع النهائية](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md): خطوات التكامل، وقواعد اللغات، وبوابات CI، وقوالب الشارات
+- [التوطين](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): اللغات المدعومة والاستخدام الأساسي
 - [البنية المعمارية للجوال](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md): مكدّس .NET للجوال، واختيار إطار واجهة المستخدم، وتغليف APK، وملاحظات AOT
 - [أمثلة](https://github.com/NewLifeX/X/tree/master/Samples): أمثلة الطرفية والخدمة وHttp وإنترنت الأشياء والجوال
 

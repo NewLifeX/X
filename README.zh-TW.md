@@ -288,8 +288,7 @@ NewLife 生態系按相依分層，各專案獨立版本、獨立發行。下面
 
 - [核心庫目錄](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md)：核心元件文章索引（依模組分類）
 - [AOT相容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md)：NativeAOT 支援範圍、實測結論（冒煙 <!--aot-smoke:start-->31/31<!--aot-smoke:end-->）、RID 涵蓋矩陣與已知邊界
-- [多語言在地化](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)：訊息模型、語言表、下游覆寫與執行階段新增語言
-- [下游多語言接入清單](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md)：接入步驟、語言口徑、CI 門禁與徽章範本
+- [多語言在地化](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)：支援的語言與基本用法
 - [行動裝置技術架構](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md)：.NET 行動技術堆疊、UI 框架選型、APK 封裝與 AOT 說明
 - [Samples](https://github.com/NewLifeX/X/tree/master/Samples)：主控台、服務、Http、物聯網與行動裝置範例
 

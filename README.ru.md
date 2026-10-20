@@ -286,8 +286,7 @@ NewLife — это многоуровневая экосистема незав�
 
 - [Каталог базовой библиотеки](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): индекс статей о ключевых компонентах, сгруппированный по модулям
 - [Анализ AOT-совместимости](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): область поддержки NativeAOT, измеренные результаты (смоук <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), матрица RID и известные ограничения
-- [Локализация](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): модель сообщений, таблицы языков, переопределения в downstream-проектах и добавление языков во время выполнения
-- [Чек-лист локализации для downstream-проектов](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md): шаги интеграции, правила языков, шлюзы CI и шаблоны бейджей
+- [Локализация](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): поддерживаемые языки и базовое использование
 - [Мобильная архитектура](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md): мобильный стек .NET, выбор UI-фреймворка, упаковка APK и заметки об AOT
 - [Примеры](https://github.com/NewLifeX/X/tree/master/Samples): примеры для консоли, службы, Http, IoT и мобильных платформ
 

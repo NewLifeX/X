@@ -288,8 +288,7 @@ NewLife es un ecosistema por capas de proyectos de código abierto con versionad
 
 - [Contenido de la biblioteca principal](https://github.com/NewLifeX/X/blob/master/Doc/核心库目录.md): índice de artículos de los componentes principales, agrupados por módulo
 - [Análisis de compatibilidad AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md): alcance de NativeAOT, conclusiones medidas (smoke <!--aot-smoke:start-->31/31<!--aot-smoke:end-->), matriz de RID y límites conocidos
-- [Localización](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): modelo de mensajes, tablas de idioma, sobrescrituras en proyectos derivados y adición de idiomas en tiempo de ejecución
-- [Lista de verificación de localización para proyectos derivados](https://github.com/NewLifeX/X/blob/master/Doc/下游多语言接入清单.md): pasos de integración, reglas de idioma, puertas de CI y plantillas de insignias
+- [Localización](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md): idiomas admitidos y uso básico
 - [Arquitectura móvil](https://github.com/NewLifeX/X/blob/dev/Doc/移动端技术架构.md): pila móvil de .NET, selección del framework de UI, empaquetado APK y notas de AOT
 - [Ejemplos](https://github.com/NewLifeX/X/tree/master/Samples): ejemplos de consola, servicio, Http, IoT y móvil
 

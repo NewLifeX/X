@@ -10,12 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace NewLife.SourceGenerator;
 
-/// <summary>把 Locales/*.yml 生成为静态语言表</summary>
-/// <remarks>
-/// 文件格式为严格 YAML 子集：每行一条 <c>"英文原文": "译文"</c>，仅支持双引号字符串与
-/// <c>\\ \" \n \r \t \uXXXX</c> 转义；空行与 # 注释被忽略。
-/// 构建期校验占位符集合、重复键与语法，运行期只做字典查找。
-/// </remarks>
+/// <summary>把 Locales/*.yml 生成为语言表</summary>
 [Generator(LanguageNames.CSharp)]
 public sealed class LocalizationGenerator : IIncrementalGenerator
 {
@@ -36,7 +31,6 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         DiagnosticSeverity.Warning, true);
 
     /// <summary>初始化生成器</summary>
-    /// <param name="context">增量生成上下文</param>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var files = context.AdditionalTextsProvider
@@ -76,9 +70,6 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(input, static (spc, source) => Emit(spc, source.Left.Left, source.Left.Right, source.Right));
     }
 
-    /// <summary>读取覆盖开关。未配置时返回 null，由程序集类型决定默认值</summary>
-    /// <param name="options">构建全局属性</param>
-    /// <returns>true 覆盖、false 不覆盖、null 未配置</returns>
     private static Boolean? GetOverwrite(AnalyzerConfigOptions options)
     {
         if (!options.TryGetValue("build_property.NewLifeLocalizationOverwrite", out var value) || String.IsNullOrEmpty(value)) return null;
@@ -144,7 +135,7 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
             tables[file.Culture] = table;
         }
 
-        // 应用（可执行程序集）默认覆盖同名译文，类库默认只补充新 key，避免任一依赖包全局改写 Core 消息
+        // 应用默认覆盖，类库只补充新 key
         var overwrite = options.Overwrite ?? project.IsExecutable;
 
         var source = String.Equals(project.AssemblyName, "NewLife.Core", StringComparison.Ordinal)
@@ -166,7 +157,6 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("public static partial class Localization");
         sb.AppendLine("{");
-        // 键表全语言共享，译文按“长度数组 + 连续译文”Deflate 压缩存储；只有真正用到的语言才解压建表
         var keys = GetKeyOrder(tables);
         AppendKeyArray(sb, keys);
         foreach (var item in tables)
@@ -208,9 +198,6 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    /// <summary>收集全部语言共享的键顺序</summary>
-    /// <param name="tables">语言表集合</param>
-    /// <returns>按首次出现顺序排列的键表</returns>
     private static List<String> GetKeyOrder(IDictionary<String, Dictionary<String, String>> tables)
     {
         var keys = new List<String>();
@@ -225,16 +212,8 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         return keys;
     }
 
-    /// <summary>语言表字段名，语言键中的连字符替换为下划线</summary>
-    /// <param name="culture">语言键</param>
-    /// <returns>合法的 C# 标识符</returns>
     private static String GetTableField(String culture) => "_t_" + culture.Replace('-', '_');
 
-    /// <summary>把语言表序列化为“长度数组 + 连续译文”，再 Deflate 压缩</summary>
-    /// <param name="table">语言表</param>
-    /// <param name="keys">全语言共享的键顺序</param>
-    /// <returns>压缩后的译文数据</returns>
-    /// <remarks>键表全语言共享，因此只压缩译文；缺失键的长度记为 -1，运行时按英文原文回退。</remarks>
     private static Byte[] CompressTable(IDictionary<String, String> table, IList<String> keys)
     {
         var values = new List<Byte[]>(keys.Count);
@@ -266,9 +245,6 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         return ms.ToArray();
     }
 
-    /// <summary>输出全语言共享的键表</summary>
-    /// <param name="sb">输出缓冲区</param>
-    /// <param name="keys">键表</param>
     private static void AppendKeyArray(StringBuilder sb, IList<String> keys)
     {
         sb.AppendLine("    private static readonly String[] _keys =");
@@ -281,11 +257,6 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine();
     }
 
-    /// <summary>输出压缩后的字节数组</summary>
-    /// <param name="sb">输出缓冲区</param>
-    /// <param name="name">字段名</param>
-    /// <param name="data">压缩数据</param>
-    /// <remarks>逐元素初始化的 Byte[] 由编译器落成 RVA 数据段，体积约等于原始字节数，不会按 IL 指令膨胀。</remarks>
     private static void AppendByteArray(StringBuilder sb, String name, Byte[] data)
     {
         sb.Append("    private static readonly Byte[] ").Append(name).AppendLine(" = new Byte[]");
@@ -339,7 +310,7 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
 
         sb.AppendLine("namespace NewLife");
         sb.AppendLine("{");
-        sb.AppendLine("    /// <summary>当前程序集的多语言表，由源生成器自动注册</summary>");
+        sb.AppendLine("    /// <summary>当前程序集的多语言表</summary>");
         sb.AppendLine("    internal static class LocalizationTable");
         sb.AppendLine("    {");
         sb.AppendLine("        private static readonly Dictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal)");
@@ -368,25 +339,15 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
             sb.AppendLine("    internal static class L");
             sb.AppendLine("    {");
             sb.AppendLine("        /// <summary>翻译指定文本</summary>");
-            sb.AppendLine("        /// <param name=\"template\">英文原文模板</param>");
-            sb.AppendLine("        /// <returns>本地化文本；缺少翻译时返回原文</returns>");
             sb.AppendLine("        public static String T(String template) => Localization.Translate(template);");
             sb.AppendLine();
             sb.AppendLine("        /// <summary>翻译并格式化指定文本</summary>");
-            sb.AppendLine("        /// <param name=\"template\">英文原文模板</param>");
-            sb.AppendLine("        /// <param name=\"args\">格式化参数</param>");
-            sb.AppendLine("        /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>");
             sb.AppendLine("        public static String T(String template, params Object?[]? args) => Localization.Translate(template, args);");
             sb.AppendLine();
             sb.AppendLine("        /// <summary>按日志语言翻译指定文本</summary>");
-            sb.AppendLine("        /// <param name=\"template\">英文原文模板</param>");
-            sb.AppendLine("        /// <returns>本地化文本；缺少翻译时返回原文</returns>");
             sb.AppendLine("        public static String TLog(String template) => Localization.TranslateForLog(template);");
             sb.AppendLine();
             sb.AppendLine("        /// <summary>按日志语言翻译并格式化指定文本</summary>");
-            sb.AppendLine("        /// <param name=\"template\">英文原文模板</param>");
-            sb.AppendLine("        /// <param name=\"args\">格式化参数</param>");
-            sb.AppendLine("        /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>");
             sb.AppendLine("        public static String TLog(String template, params Object?[]? args) => Localization.TranslateForLog(template, args);");
             sb.AppendLine("    }");
         }
