@@ -4,6 +4,7 @@ namespace NewLife;
 
 /// <summary>请求语言作用域。按 Accept-Language 设置当前 UI 文化，释放时还原</summary>
 /// <remarks>
+/// <see cref="Http.HttpServer"/> 默认对每个请求自动使用它；其它宿主可显式调用。
 /// 仅在 <see cref="Localization.Culture"/> 为空时生效，便于宿主固定全局语言。
 /// 从请求头中按 q 权重选择最高权重且存在译文表的语言；全部不支持时不改变当前 UI 文化。
 /// 只修改 <see cref="CultureInfo.CurrentUICulture"/>，不修改 <see cref="CultureInfo.CurrentCulture"/>，

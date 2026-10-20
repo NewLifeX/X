@@ -45,6 +45,14 @@
 - 路由 Key 会在注册时统一确保以 `/` 开头。
 - 后注册会覆盖先注册（`Routes[path] = handler`）。
 
+### 2.4 请求语言
+
+`HttpSession.ProcessRequest` 默认按请求 `Accept-Language` 设置本次请求的 `CultureInfo.CurrentUICulture`，处理器内可直接使用 `Localization.Translate` 输出对应语言。
+
+- 优先级：`Setting.Language`/`Localization.Culture` 固定语言 → `Accept-Language` 中 q 权重最高且受支持的语言 → 服务器当前语言；
+- 只改 UI 文化，数字与日期格式仍按 `CurrentCulture`；
+- 请求结束自动还原，不会串到其它请求；net45 因线程静态文化无法跨异步安全还原，保持宿主语言。
+
 ---
 
 ## 3. 会话与协议处理

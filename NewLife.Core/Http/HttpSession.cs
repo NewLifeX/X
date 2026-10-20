@@ -758,6 +758,10 @@ public class HttpSession : INetHandler, IDisposable
     {
         if (request?.RequestUri == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
+        // 默认按 Accept-Language 设置本次请求的 UI 文化，宿主固定 Localization.Culture 时保持不变。
+        // 请求语言不受支持时沿用服务器当前语言，避免把界面锁到无词表的小语种。
+        using var _ = RequestCultureScope.Create(request.Headers["Accept-Language"]);
+
         //// 提取路径（不含查询）。使用 AbsolutePath 而非手动截取，避免奇异 ? 位置问题
         //var rawUri = request.RequestUri;
         //var path = rawUri.AbsolutePath; // AbsolutePath 已经处理百分号编码解码语义由下游决定
