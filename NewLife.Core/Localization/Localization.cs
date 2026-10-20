@@ -63,6 +63,9 @@ public static partial class Localization
             _ => Merge(key, table, overwrite),
             (_, existing) => Merge(key, table, overwrite, existing));
         Volatile.Write(ref _overrideCount, _overrides.Count);
+
+        // 运行时新增的语言同时进入语言清单，供管理端下拉选择与配置归一化；内置语言无需登记
+        if (!IsBuiltinLanguage(culture.Name)) _extraLanguages.TryAdd(key, LanguageInfo.FromCulture(culture));
     }
 
     /// <summary>移除指定语言的覆盖表</summary>
@@ -76,6 +79,7 @@ public static partial class Localization
         if (key == null || !_overrides.TryRemove(key, out _)) return false;
 
         Volatile.Write(ref _overrideCount, _overrides.Count);
+        _extraLanguages.TryRemove(key, out _);
         return true;
     }
 
@@ -220,6 +224,28 @@ public static partial class Localization
         if (_cultureKeys.TryGetValue(name, out var key)) return key;
 
         key = GetCultureKey(culture);
+        _cultureKeys.TryAdd(name, key);
+        return key;
+    }
+
+    /// <summary>按语言名称获取词表语言键</summary>
+    /// <param name="name">语言名称，如 zh-CN、ta</param>
+    /// <returns>词表语言键，如 zh-Hans、ta；名称无效时返回 null</returns>
+    /// <remarks>供语言清单判断两种语言是否同一语言使用；不变全球化下具名区域性不可用，返回 null。</remarks>
+    internal static String? GetCultureKeyOf(String name)
+    {
+        if (name.IsNullOrEmpty()) return null;
+        if (_cultureKeys.TryGetValue(name, out var key)) return key;
+
+        try
+        {
+            key = GetCultureKey(CultureInfo.GetCultureInfo(name));
+        }
+        catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException)
+        {
+            return null;
+        }
+
         _cultureKeys.TryAdd(name, key);
         return key;
     }

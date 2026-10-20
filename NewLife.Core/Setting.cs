@@ -18,6 +18,17 @@ namespace NewLife;
 public class Setting : Config<Setting>
 {
     #region 属性
+    /// <summary>界面语言。留空跟随系统；设置后固定界面与日志语言，不再跟随请求语言</summary>
+    /// <remarks>
+    /// 内置可用值：zh-CN、zh-TW、en-US、es-ES、de-DE、ja-JP、fr-FR、pt-BR、ru-RU、ko-KR、ar-SA、
+    /// bn-BD、cs-CZ、da-DK、el-GR、fa-IR、fi-FI、he-IL、hi-IN、hu-HU、id-ID、it-IT、ms-MY、nb-NO、
+    /// nl-NL、pl-PL、ro-RO、sv-SE、th-TH、tr-TR、uk-UA、vi-VN。
+    /// 裸语言码（en、ja、de-AT）由 <see cref="Localization.NormalizeCulture"/> 归一化；
+    /// 运行时注册的语言同样可用，完整清单与显示名称见 <see cref="Localization.GetLanguages"/>。
+    /// </remarks>
+    [Description("UI language. Values: zh-CN, zh-TW, en-US, es-ES, de-DE, ja-JP, fr-FR, pt-BR, ru-RU, ko-KR, ar-SA, bn-BD, cs-CZ, da-DK, el-GR, fa-IR, fi-FI, he-IL, hi-IN, hu-HU, id-ID, it-IT, ms-MY, nb-NO, nl-NL, pl-PL, ro-RO, sv-SE, th-TH, tr-TR, uk-UA, vi-VN. Empty follows the system; a supported language fixes the UI and log language regardless of request culture.")]
+    public String Language { get; set; } = "";
+
     /// <summary>是否启用全局调试。默认启用</summary>
     [Description("Global debugging. Enables XTrace.Debug.")]
     public Boolean Debug { get; set; } = true;
@@ -109,6 +120,36 @@ public class Setting : Config<Setting>
         if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://x.newlifex.com/";
 
         base.OnLoaded();
+
+        ApplyLanguage();
+    }
+
+    /// <summary>保存配置后立即应用语言设置</summary>
+    public override void Save()
+    {
+        base.Save();
+
+        ApplyLanguage();
+    }
+
+    /// <summary>应用语言设置</summary>
+    /// <remarks>
+    /// 留空表示自动识别，不覆盖宿主显式设置的 <see cref="Localization.Culture"/> 与 <see cref="Localization.LogCulture"/>；
+    /// 语言不受支持时同样保持自动模式。
+    /// </remarks>
+    public void ApplyLanguage()
+    {
+        if (Language.IsNullOrWhiteSpace())
+        {
+            // 配置清空后撤销此前强制的语言，恢复自动识别；宿主自行设置的语言不受影响
+            if (Localization.ForcedLanguage != null) Localization.SetLanguage(null);
+            return;
+        }
+
+        // 配置的语言不受支持时保持自动模式，不覆盖宿主显式设置
+        if (Localization.NormalizeCulture(Language) == null) return;
+
+        Localization.SetLanguage(Language);
     }
 
     /// <summary>获取插件目录</summary>
