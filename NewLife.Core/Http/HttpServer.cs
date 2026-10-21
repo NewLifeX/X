@@ -17,7 +17,7 @@ namespace NewLife.Http;
 /// - 典型使用场景下，路由在启动阶段集中注册，运行期只读访问；
 /// - 若需要在运行期动态增删路由，应在外部自行序列化（加锁）调用 Map 方法。
 /// </remarks>
-[DisplayName("Http服务器")]
+[DisplayName("HTTP server")]
 public class HttpServer : NetServer, IHttpHost
 {
     #region 属性

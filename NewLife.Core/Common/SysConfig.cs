@@ -69,7 +69,7 @@ public class SysConfig : Config<SysConfig>
             Company = asmx?.Company ?? "新生命开发团队";
             //Address = "新生命开发团队";
 
-            if (DisplayName.IsNullOrEmpty()) DisplayName = "系统设置";
+            if (DisplayName.IsNullOrEmpty()) DisplayName = "System settings";
         }
 
         // 强制设置

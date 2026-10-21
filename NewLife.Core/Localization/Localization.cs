@@ -118,11 +118,10 @@ public static partial class Localization
         var key = GetCultureKeyCached(culture);
         if (key == null) return template;
 
-        // 无覆盖表时跳过覆盖查找；英文原文即 key，直接返回
+        // 无覆盖表时跳过覆盖查找
         if (Volatile.Read(ref _overrideCount) != 0 && _overrides.TryGetValue(key, out var overlay) && overlay.TryGetValue(template, out var text)) return text;
 
-        if (key == "en") return template;
-
+        // en 也可能带词表：元数据源文为其它语言时，用 en.yml 提供英文译文
         var table = GetTable(key);
         if (table != null && table.TryGetValue(template, out text)) return text;
 

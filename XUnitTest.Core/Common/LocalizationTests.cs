@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +60,36 @@ public class LocalizationTests
         // 元数据保持英文源文，下游反射读取后在展示层按语言翻译
         Assert.NotEqual(title, Localization.Translate(_zh, title!));
         Assert.NotEqual(description, Localization.Translate(_zh, description!));
+    }
+
+    [Fact(DisplayName = "属性元数据：可选键只在部分语言出现，缺失时回退源文")]
+    public void Translate_optional_metadata()
+    {
+        Assert.Equal("系统名称", Localization.Translate(_zh, "OS name"));
+        Assert.Equal("系統名稱", Localization.Translate(CultureInfo.GetCultureInfo("zh-TW"), "OS name"));
+
+        // 未提供译文的语言回退英文源文
+        Assert.Equal("OS name", Localization.Translate(CultureInfo.GetCultureInfo("de"), "OS name"));
+    }
+
+    [Fact(DisplayName = "语言名称：显式指定目标语言时按词表显示")]
+    public void Translate_language_names()
+    {
+        var de = Localization.GetLanguages().FirstOrDefault(e => e.Name == "de-DE");
+        Assert.NotNull(de);
+
+        var prev = CultureInfo.CurrentUICulture;
+        try
+        {
+            // 当前界面语言与目标语言不同，走词表而不是区域数据
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+            Assert.Equal("德语", de!.GetName(_zh));
+            Assert.Equal("德语 (Deutsch)", de.GetDisplayName(_zh));
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = prev;
+        }
     }
 
     [Fact(DisplayName = "空值：原样返回")]
