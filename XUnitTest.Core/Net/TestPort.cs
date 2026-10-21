@@ -44,8 +44,10 @@ internal static class TestPort
     /// <remarks>
     /// 候选段 = basePort + 宿主序号×1000，宽 50；各用例基址取 500 的倍数，任意“用例 × 宿主”候选段两两不相交。
     /// 本机 TCP 动态端口范围覆盖测试端口带（1024 起），本进程与其他进程的出站连接都可能随机占用候选端口，
-    /// 探测与服务器实际绑定之间存在竞争窗口，被抢占时服务器绑定抛 WSAEADDRINUSE。
-    /// 此处按候选段顺延重试，且每次都用新实例，避免复用半启动状态的服务器。
+    /// 探测与服务器实际绑定之间存在竞争窗口，被抢占时服务器绑定抛 WSAEADDRINUSE；
+    /// 而 <see cref="NetServer.Start"/> 在全部地址族都监听失败时抛的是普通 <see cref="Exception"/>，
+    /// 因此启动阶段任何异常都要顺延到下一个候选端口，不能只捕 <see cref="SocketException"/>。
+    /// 每次都用新实例，避免复用半启动状态的服务器。
     /// </remarks>
     /// <typeparam name="T">服务器类型</typeparam>
     /// <param name="basePort">用例专属基址</param>
@@ -55,6 +57,7 @@ internal static class TestPort
     public static T StartAny<T>(Int32 basePort, Func<Int32, T> factory, Action<T> start) where T : IDisposable
     {
         var begin = basePort + _host * 1000;
+        Exception? lastError = null;
         for (var port = begin; port < begin + 50; port++)
         {
             if (!CanBind(port, SocketType.Stream) || !CanBind(port, SocketType.Dgram)) continue;
@@ -65,13 +68,14 @@ internal static class TestPort
                 start(server);
                 return server;
             }
-            catch (SocketException)
+            catch (Exception ex)
             {
+                lastError = ex;
                 server.Dispose();
             }
         }
 
-        throw new InvalidOperationException($"从 {begin} 起的 50 个候选端口均无法同时用于 TCP/UDP");
+        throw new InvalidOperationException($"从 {begin} 起的 50 个候选端口均无法同时用于 TCP/UDP", lastError);
     }
 
     private static Int32 GetHostIndex()
