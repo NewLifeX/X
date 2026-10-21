@@ -311,7 +311,8 @@ public class HttpConfigProviderTests
         {
             ["test1"] = "ok",
         });
-        stub.GetAllDelay = 3_000;
+        stub.GetAllGate.Reset();
+        stub.GetAllWait = true;
 
         using var provider = new HttpConfigProvider
         {
@@ -324,7 +325,15 @@ public class HttpConfigProviderTests
 
         Assert.False(provider.LoadAll());
 
-        stub.GetAllDelay = 0;
+        // 放行首个请求并等待收尾，确保服务端不再被该请求占用
+        stub.GetAllWait = false;
+        stub.GetAllGate.Set();
+        Assert.True(TestWait.Until(() => stub.GetAllCalls >= 1, 10_000));
+
+        // 恢复后改用默认 15 秒超时的新客户端，避免满载并行下 300ms 超时造成假失败
+        provider.Client.TryDispose();
+        provider.Client = null;
+
         Assert.True(provider.LoadAll());
         Assert.Equal("ok", provider["test1"]);
     }
@@ -599,8 +608,11 @@ public class HttpConfigProviderTests
         /// <summary>GetAll 响应状态码，用于故障注入</summary>
         public HttpStatusCode GetAllStatus { get; set; } = HttpStatusCode.OK;
 
-        /// <summary>GetAll 响应延迟毫秒数，用于超时故障注入</summary>
-        public Int32 GetAllDelay { get; set; }
+        /// <summary>GetAll 是否等待放行门，用于超时故障注入</summary>
+        public Boolean GetAllWait { get; set; }
+
+        /// <summary>GetAll 阻塞门，测试放行后阻塞中的请求才会响应</summary>
+        public ManualResetEventSlim GetAllGate { get; } = new(true);
 
         public ConfigServerStub()
         {
@@ -655,8 +667,9 @@ public class HttpConfigProviderTests
 
         private void GetAll(IHttpContext context)
         {
-            var delay = GetAllDelay;
-            if (delay > 0) Thread.Sleep(delay);
+            // 条件阻塞而非固定 Sleep：测试先让客户端超时，再放行并等待请求收尾，
+            // 避免满载并行下阻塞请求长时间占用服务器线程或连接，污染恢复期的第二次加载
+            if (GetAllWait) GetAllGate.Wait(10_000);
 
             lock (_sync)
             {
