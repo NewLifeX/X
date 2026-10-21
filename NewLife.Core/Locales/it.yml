@@ -435,7 +435,7 @@
 "Timer.Add {0}": "Aggiungi Timer {0}"
 "Timer.Remove {0} reason:{1}": "Rimuovi Timer {0} motivo:{1}"
 "Tracer[{0}] Total={1:n0} Errors={2:n0} Speed={3:n2}tps Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms": "{0} Totale={1:n0} Errori={2:n0} Velocità={3:n2}tps Costo={4:n0}ms MaxCosto={5:n0}ms MinCosto={6:n0}ms"
-"{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss} {3}": "{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss} {3}"
+"{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss} {3}": "{0} v{1} compilato il {2:yyyy-MM-dd HH:mm:ss} {3}"
 "System settings": "Impostazioni di sistema"
 "System name": "Nome del sistema"
 "English name used to identify the system; must not contain spaces.": "Nome inglese che identifica il sistema; non deve contenere spazi."
