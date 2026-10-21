@@ -34,6 +34,21 @@ public class LocalizationGeneratorTests
         Assert.DoesNotContain("LocalizationTable", text);
     }
 
+    [Fact(DisplayName = "en 词表：源文非英文时生成英文译文表")]
+    public void EnglishTable()
+    {
+        // 元数据源文为中文时，en.yml 只放「中文 key → 英文译文」
+        const String en = """
+"用户": "User"
+""";
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "NewLife.Core", null,
+            new[] { ("Locales/zh-Hans.yml", Yaml), ("Locales/en.yml", en) });
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("case \"en\": return DecodeTable(_keys, _t_en)", text);
+    }
+
     [Fact(DisplayName = "下游模式：生成注册表、模块初始化器与 L 快捷入口")]
     public void DownstreamMode()
     {
