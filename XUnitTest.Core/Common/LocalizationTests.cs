@@ -62,14 +62,13 @@ public class LocalizationTests
         Assert.NotEqual(description, Localization.Translate(_zh, description!));
     }
 
-    [Fact(DisplayName = "属性元数据：可选键只在部分语言出现，缺失时回退源文")]
-    public void Translate_optional_metadata()
+    [Fact(DisplayName = "属性元数据：所有语言都有译文")]
+    public void Translate_metadata()
     {
         Assert.Equal("系统名称", Localization.Translate(_zh, "OS name"));
         Assert.Equal("系統名稱", Localization.Translate(CultureInfo.GetCultureInfo("zh-TW"), "OS name"));
-
-        // 未提供译文的语言回退英文源文
-        Assert.Equal("OS name", Localization.Translate(CultureInfo.GetCultureInfo("de"), "OS name"));
+        Assert.Equal("Betriebssystemname", Localization.Translate(CultureInfo.GetCultureInfo("de"), "OS name"));
+        Assert.Equal("Nom du système", Localization.Translate(CultureInfo.GetCultureInfo("fr"), "OS name"));
     }
 
     [Fact(DisplayName = "语言名称：显式指定目标语言时按词表显示")]

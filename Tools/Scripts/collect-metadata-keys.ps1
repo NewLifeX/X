@@ -1,16 +1,15 @@
-# 收集允许部分语言缺失的可选键（元数据、语言名等），写入 metadata-keys.json
-# 默认只输出「在部分语言中缺失」的键，并保留清单中已有的手工条目；
-# 加 -All 输出源码中扫描到的全部元数据键（用于人工筛查）。
+# 审计多语言元数据覆盖：扫描源码中的属性/程序集元数据键，报告各语言缺键与覆盖矩阵
+# 同时算出「非源码来源键」（词表里存在但源码找不到，如语言名），它们是 metadata-keys.json 的内容。
 #
 # 用法：
-#   pwsh -File Tools/Scripts/collect-metadata-keys.ps1
-#   pwsh -File Tools/Scripts/collect-metadata-keys.ps1 -LocaleDir src\Lib\Locales -SourceDir src\Lib\src
-#   pwsh -File Tools/Scripts/collect-metadata-keys.ps1 -Output metadata-keys.json -OutFile metadata-coverage.csv
+#   pwsh -File Tools/Scripts/collect-metadata-keys.ps1                     # 只审计，不写清单
+#   pwsh -File Tools/Scripts/collect-metadata-keys.ps1 -Update             # 重写 metadata-keys.json
+#   pwsh -File Tools/Scripts/collect-metadata-keys.ps1 -OutFile coverage.csv
 param(
     [String]$LocaleDir = "NewLife.Core\Locales",
     [String[]]$SourceDir = @("NewLife.Core", "NewLife.Core.SourceGenerator"),
     [String]$Output = "metadata-keys.json",
-    [Switch]$All,
+    [Switch]$Update,
     [String]$OutFile
 )
 
@@ -51,6 +50,8 @@ foreach ($file in ($sourceDirs | ForEach-Object { Get-ChildItem $_ -Recurse -Inc
     Where-Object { $_.FullName -notmatch '\\(obj|bin|Locales)\\' })) {
     if ($file.Extension -eq ".csproj") {
         $text = [IO.File]::ReadAllText($file.FullName)
+        # 构建期分析器（Roslyn 组件）不对用户展示，其程序集描述不参与本地化
+        if ($text.Contains("<IsRoslynComponent>true</IsRoslynComponent>")) { continue }
         foreach ($m in [regex]::Matches($text, '<(?:AssemblyTitle|Description)>([^<]+)</(?:AssemblyTitle|Description)>')) {
             $value = [System.Net.WebUtility]::HtmlDecode($m.Groups[1].Value.Trim())
             if ($value.Length -gt 0) { [void]$attributeKeys.Add($value) }
@@ -94,39 +95,28 @@ if ($null -eq $baseline) { $baseline = $tables[(Get-ChildItem $localeDir -Filter
 
 $missingInBaseline = @($attributeKeys | Where-Object { !$baseline.Contains($_) } | Sort-Object)
 
-# 默认输出的键：基准语言里有，但不是每个语言都有
-$partial = [Collections.Generic.SortedSet[String]]::new([StringComparer]::Ordinal)
-foreach ($key in $attributeKeys) {
-    if (!$baseline.Contains($key)) { continue }
-    foreach ($culture in $tables.Keys) {
-        if ($culture -eq "en") { continue }
-        if (!$tables[$culture].Contains($key)) { [void]$partial.Add($key); break }
-    }
+# 词表里存在、但源码中找不到的键：这些才是需要登记到 metadata-keys.json 的「非源码来源键」
+$sourceText = ($sourceDirs | ForEach-Object { Get-ChildItem $_ -Recurse -Include *.cs, *.csproj } |
+    Where-Object { $_.FullName -notmatch '\\(obj|bin|Locales)\\' } |
+    ForEach-Object { [IO.File]::ReadAllText($_.FullName) }) -join "`n"
+$registryKeys = [Collections.Generic.SortedSet[String]]::new([StringComparer]::Ordinal)
+foreach ($key in $baseline) {
+    $escaped = $key.Replace('\', '\\').Replace('"', '\"').Replace("`t", '\t').Replace("`r", '\r').Replace("`n", '\n')
+    if (!$sourceText.Contains($key) -and !$sourceText.Contains($escaped)) { [void]$registryKeys.Add($key) }
 }
 
-# 保留清单中已有的条目（语言名等非特性来源的可选键）
-$existing = [Collections.Generic.SortedSet[String]]::new([StringComparer]::Ordinal)
-if (Test-Path -LiteralPath $outputPath) {
-    foreach ($item in (Get-Content -LiteralPath $outputPath -Encoding UTF8 -Raw | ConvertFrom-Json).keys) {
-        if (![String]::IsNullOrEmpty($item)) { [void]$existing.Add($item) }
+if ($Update) {
+    $json = [ordered]@{
+        "comment" = "非源码来源键（语言名、外部元数据等），豁免孤儿键判定；词表仍要求全语言齐全。由 collect-metadata-keys.ps1 -Update 生成。"
+        "updated" = (Get-Date -Format "yyyy-MM-dd")
+        "keys"    = @($registryKeys)
     }
-}
-
-$keys = [Collections.Generic.SortedSet[String]]::new([StringComparer]::Ordinal)
-if ($All) {
-    foreach ($key in $attributeKeys) { [void]$keys.Add($key) }
+    [IO.File]::WriteAllText($outputPath, ($json | ConvertTo-Json -Depth 3), [Text.UTF8Encoding]::new($false))
+    Write-Host "已写入非源码来源键清单：$($registryKeys.Count) 条 → $outputPath"
 }
 else {
-    foreach ($key in $partial) { [void]$keys.Add($key) }
+    Write-Host "非源码来源键候选：$($registryKeys.Count) 条（加 -Update 写入清单）"
 }
-foreach ($key in $existing) { [void]$keys.Add($key) }
-
-$json = [ordered]@{
-    "comment" = "允许只出现在部分语言的可选键（元数据、语言名等）。由 collect-metadata-keys.ps1 生成，缺失时回退源文。"
-    "updated" = (Get-Date -Format "yyyy-MM-dd")
-    "keys"    = @($keys)
-}
-[IO.File]::WriteAllText($outputPath, ($json | ConvertTo-Json -Depth 3), [Text.UTF8Encoding]::new($false))
 
 if ($OutFile) {
     $rows = @()
@@ -139,9 +129,28 @@ if ($OutFile) {
     Write-Host "已导出覆盖矩阵：$OutFile"
 }
 
-Write-Host "可选键清单：$($keys.Count) 条 → $outputPath"
 Write-Host "源码元数据键：$($attributeKeys.Count) 条"
 if ($missingInBaseline.Count -gt 0) {
     Write-Host "基准语言缺少以下元数据键，请补入 $baselineName.yml：" -ForegroundColor Yellow
     foreach ($key in $missingInBaseline) { Write-Host "  $key" -ForegroundColor Yellow }
+}
+
+# 全语言覆盖检查：元数据键必须出现在每一种语言
+$incomplete = @{}
+foreach ($key in $attributeKeys) {
+    if (!$baseline.Contains($key)) { continue }
+    foreach ($culture in $tables.Keys) {
+        if ($culture -eq "en") { continue }
+        if (!$tables[$culture].Contains($key)) {
+            if (!$incomplete.ContainsKey($key)) { $incomplete[$key] = @() }
+            $incomplete[$key] += $culture
+        }
+    }
+}
+if ($incomplete.Count -gt 0) {
+    Write-Host "以下元数据键未覆盖全部语言：" -ForegroundColor Yellow
+    foreach ($key in ($incomplete.Keys | Sort-Object)) { Write-Host ("  {0} → 缺 {1}" -f $key, ($incomplete[$key] -join ',')) -ForegroundColor Yellow }
+}
+else {
+    Write-Host "元数据键全语言覆盖：通过（$($attributeKeys.Count) 条）"
 }

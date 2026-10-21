@@ -1,6 +1,6 @@
 # 多语言词表一致性校验：键集合、占位符、格式说明符、孤儿键
 # 以基准语言文件（默认 zh-Hans.yml）为准，所有语言必须提供完全相同的键集合；
-# 登记在 metadata-keys.json 的可选键（元数据、语言名等）允许只出现在部分语言，缺失时回退源文。
+# metadata-keys.json 登记的是「非源码来源键」（属性元数据、语言名等），它们同样要求全语言齐全，仅豁免孤儿键判定。
 # en.yml 为可选：只需列出源文非英文的键，缺失的消息键自动回退英文源文。
 #
 # 用法：
@@ -30,20 +30,20 @@ $pattern = '^\s*"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"\s*$'
 $placeholder = '\{(\d+)(?:,-?\d+)?(:[^}]*)?\}'
 $languageCode = '\b[a-z]{2}-[A-Za-z]{2,4}\b'
 
-# 可选键：只出现在部分语言也合法，缺失时回退源文（元数据、语言名等）
+# 非源码来源键：属性元数据、语言名等，豁免孤儿键判定（仍要求全语言齐全）
 if (!$MetadataKeys) {
     $candidate = Join-Path $localeDir "metadata-keys.json"
     if (Test-Path -LiteralPath $candidate) { $MetadataKeys = $candidate }
 }
-$optionalKeys = [Collections.Generic.HashSet[String]]::new([StringComparer]::Ordinal)
+$metadataKeys = [Collections.Generic.HashSet[String]]::new([StringComparer]::Ordinal)
 if ($MetadataKeys) {
     $metadataPath = if ([IO.Path]::IsPathRooted($MetadataKeys)) { $MetadataKeys } else { Join-Path $root $MetadataKeys }
     if (!(Test-Path -LiteralPath $metadataPath)) {
-        Write-Host "未找到可选键清单：$metadataPath" -ForegroundColor Red
+        Write-Host "未找到非源码来源键清单：$metadataPath" -ForegroundColor Red
         exit 1
     }
     foreach ($item in (Get-Content -LiteralPath $metadataPath -Encoding UTF8 -Raw | ConvertFrom-Json).keys) {
-        if (![String]::IsNullOrEmpty($item)) { [void]$optionalKeys.Add($item) }
+        if (![String]::IsNullOrEmpty($item)) { [void]$metadataKeys.Add($item) }
     }
 }
 
@@ -135,12 +135,12 @@ foreach ($file in Get-ChildItem $localeDir -Filter *.yml | Sort-Object Name) {
 
     if (!$isEnglish) {
         foreach ($key in $reference.Entries.Keys) {
-            if ($locale.Entries.Contains($key) -or $optionalKeys.Contains($key)) { continue }
+            if ($locale.Entries.Contains($key)) { continue }
             $allErrors += "$($file.Name): 缺少键 $key"
         }
     }
     foreach ($key in $locale.Entries.Keys) {
-        if (!$reference.Entries.Contains($key) -and !$optionalKeys.Contains($key)) {
+        if (!$reference.Entries.Contains($key)) {
             $allErrors += "$($file.Name): 多余键 $key"
             continue
         }
@@ -184,8 +184,8 @@ if (!$SkipOrphan) {
 
     $orphans = @()
     foreach ($key in $reference.Entries.Keys) {
-        # 可选键（元数据、语言名）由外部数据或其它来源引用，不参与源码归属判定
-        if ($optionalKeys.Contains($key)) { continue }
+        # 非源码来源键（元数据、语言名）由外部数据或其它来源引用，不参与源码归属判定
+        if ($metadataKeys.Contains($key)) { continue }
 
         # 源码中的字面量形式：制表符写作 \t，引号写作 \"
         $escaped = $key.Replace('\', '\\').Replace('"', '\"').Replace("`t", '\t').Replace("`r", '\r').Replace("`n", '\n')
