@@ -236,6 +236,9 @@ public class SpanWriterTests
     {
         var buffer = new Byte[10];
 
+        // 预热泛型实例化与首次调用路径，避免运行时一次性分配污染零分配断言
+        new SpanWriter(buffer).Write(new TestStruct());
+
         var memory = GC.GetAllocatedBytesForCurrentThread();
         var writer = new SpanWriter(buffer);
         writer.Write(new TestStruct { Value = 1 });
