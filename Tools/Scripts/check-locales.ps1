@@ -149,13 +149,14 @@ foreach ($e in $allErrors) { Write-Host $e -ForegroundColor Red }
 foreach ($w in $allWarnings) { Write-Host $w -ForegroundColor Yellow }
 
 # 孤儿键：基准表中的键在源码里完全找不到（改文案后遗留的死条目）
+# 源文范围含 .cs 与 .csproj：程序集标题/描述等元数据写在 csproj 中，同样是词表源文
 $orphans = @()
 if (!$SkipOrphan) {
     $sourceDirs = @($SourceDir | ForEach-Object {
         if ([IO.Path]::IsPathRooted($_)) { $_ } else { Join-Path $root $_ }
     } | Where-Object { Test-Path $_ })
 
-    $sourceText = ($sourceDirs | ForEach-Object { Get-ChildItem $_ -Recurse -Filter *.cs } |
+    $sourceText = ($sourceDirs | ForEach-Object { Get-ChildItem $_ -Recurse -Include *.cs, *.csproj } |
         Where-Object { $_.FullName -notmatch '\\(obj|bin|Locales)\\' } |
         ForEach-Object { [IO.File]::ReadAllText($_.FullName) }) -join "`n"
 

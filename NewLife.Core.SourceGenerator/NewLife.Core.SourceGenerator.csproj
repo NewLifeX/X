@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>NewLife.SourceGenerator</RootNamespace>
     <AssemblyName>NewLife.Core.SourceGenerator</AssemblyName>
-    <Description>Source generator of NewLife.Core for NativeAOT-friendly compile-time code generation. NewLife.Core 源生成器：随主包分发，为 IoC 注册与多语言词表等场景提供编译期代码生成（生成物为纯静态代码，天然 AOT 安全）。</Description>
+    <Description>Source generator of NewLife.Core for NativeAOT-friendly compile-time code generation. Ships with the main package and generates plain static code for IoC registration and localization tables, keeping the output AOT-safe.</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
     <VersionPrefix>12.0</VersionPrefix>

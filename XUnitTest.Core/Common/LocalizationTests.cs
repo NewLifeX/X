@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
@@ -44,6 +45,20 @@ public class LocalizationTests
         Assert.Equal("系统设置", Localization.Translate(_zh, "System settings"));
         Assert.Equal("日志等级。只输出大于等于该级别的日志，All/Debug/Info/Warn/Error/Fatal，默认Info", Localization.Translate(_zh, "Log level. Only logs at or above this level are output: All/Debug/Info/Warn/Error/Fatal. Default Info."));
         Assert.Equal("Paramètres système", Localization.Translate(CultureInfo.GetCultureInfo("fr"), "System settings"));
+    }
+
+    [Fact(DisplayName = "程序集元数据：英文源文在词表中有中文译文")]
+    public void Translate_assembly_metadata()
+    {
+        var asm = typeof(Localization).Assembly;
+        var title = asm.GetCustomAttribute<AssemblyTitleAttribute>()?.Title;
+        var description = asm.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description;
+        Assert.False(title.IsNullOrEmpty());
+        Assert.False(description.IsNullOrEmpty());
+
+        // 元数据保持英文源文，下游反射读取后在展示层按语言翻译
+        Assert.NotEqual(title, Localization.Translate(_zh, title!));
+        Assert.NotEqual(description, Localization.Translate(_zh, description!));
     }
 
     [Fact(DisplayName = "空值：原样返回")]

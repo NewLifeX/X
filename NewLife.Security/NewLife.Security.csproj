@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
-    <AssemblyTitle>NewLife.Security 兼容转发包</AssemblyTitle>
-    <Description>Compatibility shim for NewLife.Security. ECDSA and ECKey types have been merged into NewLife.Core; this package keeps type forwarding only, for binary compatibility of existing consumers. NewLife.Security 加密扩展（ECDSA/ECKey）已合并至 NewLife.Core，本包仅为二进制兼容保留的类型转发壳，新项目请直接引用 NewLife.Core。</Description>
+    <AssemblyTitle>NewLife.Security compatibility shim</AssemblyTitle>
+    <Description>Compatibility shim for NewLife.Security. ECDSA and ECKey types have been merged into NewLife.Core; this package keeps type forwarding only, for binary compatibility of existing consumers. Reference NewLife.Core directly in new projects.</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
     <VersionPrefix>12.0</VersionPrefix>

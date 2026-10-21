@@ -3,8 +3,8 @@
     <TargetFrameworks>net45;net461;net462;netstandard2.0;netstandard2.1;net6.0;net6.0-windows;net8.0;net8.0-windows;net10.0;net10.0-windows</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
-    <AssemblyTitle>NewLife核心组件库</AssemblyTitle>
-    <Description>Core library of the NewLife framework: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), networking (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler and plugin framework. NativeAOT-ready, with built-in runtime localization; targets 11 frameworks from .NET Framework 4.5 to .NET 10.0. 核心组件库：日志、配置、缓存、网络、序列化、APM 性能追踪、对象容器、并行模型、定时调度与插件框架；原生 AOT 就绪，内置运行时多语言消息；单包覆盖 .NET Framework 4.5 至 .NET 10.0 共 11 个目标框架。</Description>
+    <AssemblyTitle>NewLife Core Library</AssemblyTitle>
+    <Description>Core library of the NewLife framework: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), networking (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler and plugin framework. NativeAOT-ready, with built-in runtime localization; targets 11 frameworks from .NET Framework 4.5 to .NET 10.0.</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
     <VersionPrefix>12.0</VersionPrefix>
@@ -26,6 +26,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
+    <PackageDescription>Core library of the NewLife framework: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), networking (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler and plugin framework. NativeAOT-ready, with built-in runtime localization; targets 11 frameworks from .NET Framework 4.5 to .NET 10.0. 核心组件库：日志、配置、缓存、网络、序列化、APM 性能追踪、对象容器、并行模型、定时调度与插件框架；原生 AOT 就绪，内置运行时多语言消息；单包覆盖 .NET Framework 4.5 至 .NET 10.0 共 11 个目标框架。</PackageDescription>
     <Authors>$(Company)</Authors>
     <PackageProjectUrl>https://newlifex.com/core</PackageProjectUrl>
     <PackageIcon>leaf.png</PackageIcon>
