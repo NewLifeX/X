@@ -46,7 +46,7 @@ internal static class TestPort
     /// 本机 TCP 动态端口范围覆盖测试端口带（1024 起），本进程与其他进程的出站连接都可能随机占用候选端口，
     /// 探测与服务器实际绑定之间存在竞争窗口，被抢占时服务器绑定抛 WSAEADDRINUSE；
     /// 而 <see cref="NetServer.Start"/> 在全部地址族都监听失败时抛的是普通 <see cref="Exception"/>，
-    /// 因此启动阶段任何异常都要顺延到下一个候选端口，不能只捕 <see cref="SocketException"/>。
+    /// 且只抢占其中一个协议时会把该监听静默跳过、仍返回成功，因此启动后还要校验 TCP/UDP 双协议确实都已监听。
     /// 每次都用新实例，避免复用半启动状态的服务器。
     /// </remarks>
     /// <typeparam name="T">服务器类型</typeparam>
@@ -63,9 +63,20 @@ internal static class TestPort
             if (!CanBind(port, SocketType.Stream) || !CanBind(port, SocketType.Dgram)) continue;
 
             var server = factory(port);
+            var ns = server as NetServer;
+            var requireBoth = ns != null && ns.Local.Type is NetType.Unknown;
             try
             {
                 start(server);
+
+                // 单协议被抢占时 NetServer 会静默跳过该监听仍返回成功，必须自行校验双协议就位
+                if (requireBoth && !IsListeningBoth(ns!, port))
+                {
+                    lastError = new InvalidOperationException($"端口 {port} 未同时监听 TCP/UDP");
+                    server.Dispose();
+                    continue;
+                }
+
                 return server;
             }
             catch (Exception ex)
@@ -76,6 +87,23 @@ internal static class TestPort
         }
 
         throw new InvalidOperationException($"从 {begin} 起的 50 个候选端口均无法同时用于 TCP/UDP", lastError);
+    }
+
+    private static Boolean IsListeningBoth(NetServer server, Int32 port)
+    {
+        var tcp = false;
+        var udp = false;
+        foreach (var item in server.Servers)
+        {
+            if (!item.Active || item.Local.Port != port) continue;
+
+            if (item.Local.IsTcp)
+                tcp = true;
+            else if (!item.Local.IsUnix)
+                udp = true;
+        }
+
+        return tcp && udp;
     }
 
     private static Int32 GetHostIndex()

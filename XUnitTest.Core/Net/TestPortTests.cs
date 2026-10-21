@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
+using NewLife.Net;
 using Xunit;
 
 namespace XUnitTest.Net;
@@ -31,6 +33,55 @@ public class TestPortTests
         Assert.False(created[0].Started);
         Assert.True(server.Started);
         Assert.Same(created[1], server);
+    }
+
+    /// <summary>单协议被静默跳过时校验双协议并顺延，避免半可用服务端让整套用例假失败</summary>
+    [Fact(DisplayName = "单协议被静默跳过_校验双协议后顺延下一端口")]
+    public void StartAnyRetriesWhenSingleProtocolDropped()
+    {
+        TcpListener? blocker = null;
+        var fired = false;
+        var server = TestPort.StartAny(28500, port => new NetServer
+        {
+            Port = port,
+            AddressFamily = AddressFamily.InterNetwork,
+        }, e =>
+        {
+            if (!fired)
+            {
+                // 模拟探测通过后被出站连接抢占：TCP 只剩对手监听，NetServer 静默跳过它只启动 UDP
+                fired = true;
+                blocker = new TcpListener(IPAddress.Any, e.Port);
+                blocker.Start();
+            }
+
+            e.Start();
+        });
+
+        try
+        {
+            Assert.True(fired);
+            Assert.NotEqual(0, server.Port);
+
+            var tcp = false;
+            var udp = false;
+            foreach (var item in server.Servers)
+            {
+                if (!item.Active) continue;
+
+                if (item.Local.IsTcp)
+                    tcp = true;
+                else if (!item.Local.IsUnix)
+                    udp = true;
+            }
+            Assert.True(tcp);
+            Assert.True(udp);
+        }
+        finally
+        {
+            server.Dispose();
+            blocker?.Stop();
+        }
     }
 
     private class FakeServer(Int32 port) : IDisposable
