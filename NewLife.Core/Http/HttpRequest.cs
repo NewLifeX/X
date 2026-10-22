@@ -125,9 +125,12 @@ public class HttpRequest : HttpBase
             Host = host;
         }
 
-        // 构建头部
+        // 构建头部。相对 Uri 不支持 PathAndQuery，直接使用原始路径（代理转发场景）；空路径回退根路径
+        var path = uri.IsAbsoluteUri ? uri.PathAndQuery : uri.OriginalString;
+        if (path.IsNullOrEmpty()) path = "/";
+
         var sb = Pool.StringBuilder.Get();
-        sb.AppendFormat("{0} {1} HTTP/{2}\r\n", Method, uri.PathAndQuery, Version);
+        sb.AppendFormat("{0} {1} HTTP/{2}\r\n", Method, path, Version);
         if (!Host.IsNullOrEmpty()) sb.AppendFormat("Host: {0}\r\n", Host);
 
         // 内容长度
