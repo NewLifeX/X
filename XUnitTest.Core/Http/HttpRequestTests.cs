@@ -101,6 +101,22 @@ public class HttpRequestTests
         Assert.EndsWith("\r\n{\"name\":\"Stone\"}", text);
     }
 
+    [Fact(DisplayName = "Build 相对路径请求：不抛异常且保持 origin-form")]
+    public void Build_Request_RelativeUri()
+    {
+        // 代理转发会把绝对地址改写为相对路径，旧实现调用 PathAndQuery 会抛 InvalidOperationException
+        var req = new HttpRequest
+        {
+            Method = "GET",
+            RequestUri = new Uri("/api/info?x=1", UriKind.Relative),
+            Host = "example.com",
+            Version = "1.1",
+        };
+        var text = req.Build().ToStr();
+        Assert.StartsWith("GET /api/info?x=1 HTTP/1.1\r\n", text);
+        Assert.Contains("Host: example.com\r\n", text);
+    }
+
     [Fact]
     public void Parse_InvalidHeader_ReturnsFalse()
     {
