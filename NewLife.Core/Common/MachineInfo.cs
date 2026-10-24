@@ -390,6 +390,8 @@ public partial class MachineInfo : IExtend
     /// <returns></returns>
     [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "设备信息经 WMI/系统对象反射读取（运行时类型）；读取失败降级为空，不参与业务主链")]
 #if NET5_0_OR_GREATER
+    // 桌面/Linux/macOS 目标没有 Mono.Android 程序集，ILC 会对下面三条 Android 专用保留声明报 IL2035；仅 Android 目标有意义，按成员抑制
+    [UnconditionalSuppressMessage("Trimming", "IL2035", Justification = "Android 专用 DynamicDependency，非 Android 目标缺少 Mono.Android 属预期，保留声明供 Android 消费端使用")]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, "Android.OS.Build", "Mono.Android")]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicMethods, "Android.Provider.Settings/Secure", "Mono.Android")]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, "Android.App.Application", "Mono.Android")]

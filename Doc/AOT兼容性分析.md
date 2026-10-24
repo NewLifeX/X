@@ -46,6 +46,7 @@
   - **宽面反射入口**（IL2075/IL2070/IL2057）：运行时类型无法静态表达 → 提供泛型入口承载保留要求，非泛型重载显式声明；
   - **传导提示**（IL2067/IL2091/IL2095）：能静态表达的通过泛型入口/注解传导，调用方按提示保留元数据即可。
 - 说明：ILC 只认 `UnconditionalSuppressMessage`，**不认 `#pragma warning disable`**——库内声明一律用特性，才能同时消掉分析器与发布期告警。
+- Android 保留声明的目标差异（IL2035）：`MachineInfo.ReadDeviceInfo` 与 `GetAndroidBuildVersion` 用 `DynamicDependency(..., "Mono.Android")` 为 Android 消费端保留成员；桌面 / Linux / macOS 目标没有 `Mono.Android` 程序集，ILC 发布时会报“Unresolved assembly”误报。两处均以成员级 `UnconditionalSuppressMessage("Trimming", "IL2035")` 抑制，保留声明保持原样（Android 消费端行为不变），实测 win-x64 / linux-x64 原生发布 0 条 IL 告警。
 
 ---
 

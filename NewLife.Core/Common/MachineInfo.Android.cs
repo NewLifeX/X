@@ -89,6 +89,7 @@ public partial class MachineInfo
     }
 
     [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Android Build.VERSION 经运行时反射读取，读取失败降级为空")]
+    [UnconditionalSuppressMessage("Trimming", "IL2035", Justification = "Android 专用 DynamicDependency，非 Android 目标缺少 Mono.Android 属预期，保留声明供 Android 消费端使用")]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, "Android.OS.Build/VERSION", "Mono.Android")]
     private static String? GetAndroidBuildVersion(String name)
     {
