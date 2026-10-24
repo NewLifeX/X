@@ -324,7 +324,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### Release
 
-Push a `v`-prefixed tag (for example `v12.0.2026.0927`) to trigger `.github/workflows/publish.yml`. The workflow packs the package, publishes it to NuGet.org and GitHub Packages, and creates a GitHub Release whose notes are taken from the matching `ChangeLog.md` section (assets include nupkg and snupkg). A manual run only publishes packages and does not create a Release.
+Push a `v`-prefixed tag (for example `v12.0.2026.1024`) to trigger `.github/workflows/publish.yml`. The workflow packs the package, publishes it to NuGet.org and GitHub Packages, and creates a GitHub Release whose notes are taken from the matching `ChangeLog.md` section (assets include nupkg and snupkg). A manual run only publishes packages and does not create a Release.
 
 ### Development docs
 

@@ -326,7 +326,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### Publicación
 
-Envía una etiqueta con prefijo `v` (por ejemplo `v12.0.2026.0927`) para activar `.github/workflows/publish.yml`. El flujo empaqueta el paquete, lo publica en NuGet.org y GitHub Packages, y crea una GitHub Release cuyas notas se toman de la sección correspondiente de `ChangeLog.md` (los activos incluyen nupkg y snupkg). Una ejecución manual solo publica paquetes y no crea una Release.
+Envía una etiqueta con prefijo `v` (por ejemplo `v12.0.2026.1024`) para activar `.github/workflows/publish.yml`. El flujo empaqueta el paquete, lo publica en NuGet.org y GitHub Packages, y crea una GitHub Release cuyas notas se toman de la sección correspondiente de `ChangeLog.md` (los activos incluyen nupkg y snupkg). Una ejecución manual solo publica paquetes y no crea una Release.
 
 ### Documentación de desarrollo
 

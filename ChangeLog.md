@@ -1,37 +1,71 @@
 # NewLife.Core 版本更新记录
 
-## v12.0.2026.0927 (2026-09-27)
+## v12.0.2026.1024 (2026-10-24)
 
 ### 破坏性变更（升级须知）
-- **数据包所有权模型重写**：`OwnerPacket` 引入引用计数内核，`Slice` 返回具体类型并支持 `using` 释放；三参 `Slice`、`OwnerPacket.Free`、`Rent`/`Return` 兼容壳已按 v12 清单删除，基于旧版编译的调用方将抛 `MissingMethodException`，需随大版本重编译
-- **消息与协议契约重建**：`IMessage` 承载方向语义（`Kind`/`Reply`/`OneWay`/`CreateReply`），消息不再池化；帧读写归 `IFrameMessage`（`ReadFrame`/`Build`/`BuildHeader`），旧名桥 `Read`/`ToPacket`/`ToHeaderPacket` 删除；`WebSocketMessage` 独立化不再继承 `Message`
-- **编解码器单栈化**：`PacketCodec`/`PacketFramer` 与 `NewLife.Net.Handlers` 处理器体系（`StandardCodec` 等 6 个）整删，统一为 `MessagePump` 帧泵 + 无状态 `IMessageCodec`
-- **过时类型清理**（分三批）：`Packet` 类、`IPacketEncoder`、`NewLife.Net.Setting` 别名、`IAsyncEventBus` 等删除
+- **数据包所有权模型重写**：`OwnerPacket` 引入引用计数内核，`Slice` 返回具体类型并支持 `using` 释放；`OwnerPacket.Free`、`Rent`/`Return` 等兼容壳删除；三参 `Slice` 保留 `[Obsolete]` 壳（语义改为引用计数共享，`transferOwner` 被忽略），基于旧版编译且使用已删除成员的调用方需随大版本重编译
+- **消息与协议契约重建**：`IMessage` 承载方向语义（`Kind`/`Reply`/`OneWay`/`CreateReply`），消息不再池化；帧读写归 `IFrameMessage`（`ReadFrame`/`Build`/`BuildHeader`），旧名桥 `Read`/`ToPacket`/`ToHeaderPacket` 删除；`ISocketRemote.Add<T>()`/`SendFile`/`SendMessages` 删除，协议统一经 `Protocol` 属性设置
+- **编解码器单栈化**：`PacketCodec`/`PacketFramer` 与 `NewLife.Net.Handlers` 处理器体系整删，统一为 `MessagePump` 帧泵 + 无状态 `IMessageCodec`；旧 `Pipeline`/`Handler` 全家族同步退役
+- **目标框架精简**：删除 netcoreapp3.1、net5.0(-windows)、net7.0(-windows)、net9.0(-windows) 共 7 个 EOL 资产，保留 11 个 TFM（net45/net461/net462/netstandard2.0/netstandard2.1/net6.0(-windows)/net8.0(-windows)/net10.0(-windows)），包体由 14.6 MB 降至 9.8 MB；NuGet 会回退到最近兼容资产，但 net5/3.1 回退 ns2.1 会丢部分 JSON 类型，net7 回退 net6 会丢 `DataMemberResolver`/`ServiceTypeResolver`
+- **HTTP 契约调整**：`IHttpHandler.ProcessRequest` 改为 `Task ProcessRequestAsync`；`HttpClient` 收敛为内网 `TinyHttpClient`，删除 RPC、`JsonHost`/`JsonOptions`、`IgnoreServerCertificate`、`Tracer`、`Log` 等超出定位的能力，1xx 与不支持的 Transfer-Encoding 显式抛 `NotSupportedException`
+- **数据管道契约对齐 BCL**：读侧结束后再读改为抛 `InvalidOperationException`，新增 `PipeReader.Error`/`IsReaderCompleted`，`Complete()` 先提交已推进数据，`CancelPendingFlush()` 无挂起提交时暂存取消一次；连接故障不再伪装成优雅关闭
+- **二进制兼容性修正**：`PooledByteBufferWriter.WriteToStreamAsync` 低 TFM 返回类型统一为 `ValueTask`，`IBinary.ReadBytes(Span<Byte>)` 放宽为全 TFM 暴露，消除 ns2.0 资产在现代宿主的 `MissingMethodException` 与接口实现者跨资产类型加载风险
+- **Security 包合并**：`ECDsaHelper`/`ECKey`/`AlgorithmKeyBlob` 移入 `NewLife.Core`（命名空间不变），`NewLife.Security` 降级为类型转发壳，老消费者升级 Core 即可平滑迁移
+- **过时类型清理**：分三批删除 `Packet` 类、`IPacketEncoder`、`NewLife.Net.Setting` 别名、`IAsyncEventBus`、`Pipeline`/`Handler` 族及 2026-10 全生态零引用复核后的公开成员；按下游实际引用补回 9 组 v11 兼容成员（三参 `Slice`、`OwnerPacket(Int32)`、`Reflect.GetTypeEx`、`SpanReader.FreeCapacity`、`ObjectPool.AllIdleTime` 等），其余设计级删除不提供兼容壳
 
 ### 新增功能
-- **数据管道**：`Pipe`/`PipeReader`/`PipeWriter` 与 `LimitedReader`，对齐 System.IO.Pipelines 形态，支持背压水位与读饥饿让位
-- **帧泵与协议**：`MessagePump`（头到齐即交付、小帧零拷贝快路径、大帧流式体、`MaxCache` 残余防护）、`SequenceReader` 全 18 TFM 垫片、SRMP 服务端并行派发
-- **WebSocket**：分片自动重组（RFC 6455 §5.4）、握手异步化进入打开链路、服务端与客户端共用帧解析
-- **网络传输**：Unix 域套接字（UDS）、`AutoReceive` 接收模式二选一、发送泵异步化与背压感知发送 API
+#### 多语言本地化
+- **31 种内置语言**：异常、日志、界面提示与配置注释统一按 `CurrentUICulture` 本地化，英文为源文与兜底；内置 269 条运行时消息，`L.T`/`L.TLog` 零改动接入
+- **请求语言与配置**：`HttpServer`/`HttpSession` 默认按 `Accept-Language` 选择最高权重且受支持的语言，`RequestCultureScope` 支持请求级作用域，`Setting.Language` 可锁定全局语言；`GetLanguages()` 返回 31 种语言的配置键、自称与英文名，供管理端生成下拉框
+- **下游复用与源生成**：多语言源生成器随主包分发，下游声明 `Locales/*.yml` 即可复用与覆盖；语言表 Deflate 压缩、按需解压，单 DLL 且 AOT 安全（31 场景冒烟）
+- **元数据本地化**：程序集标题/描述英文化，配置属性注释、`[Description]`/`[DisplayName]` 与 `MachineInfo` 属性文案按语言表翻译
+
+#### NativeAOT 与源生成器
+- **AOT 源生成器**：新增 `NewLife.Core.SourceGenerator` 并随主包分发，覆盖 IoC 注册、JSON 成员访问、配置绑定、HTTP 控制器静态分发四条反射通道；未覆盖场景自动回退反射，JIT 下同样免反射/免表达式编译
+- **AOT 实测与 CI**：`AotSmoke/` 31 场景 JIT/AOT 双通，分析器与 ILC 告警由 164 条收敛至 0；AOT 冒烟矩阵纳入 CI，覆盖 win-x64/linux-x64/linux-arm64 阻断项与多 RID 观察项
+- **动态能力边界**：脚本、插件、DLR、表达式编译等动态能力以 `RequiresDynamicCode`/`RequiresUnreferencedCode` 声明 + 运行期守卫承接，AOT 下抛明确异常；新增 `Reflect` 泛型反射入口，`SystemJson` 支持透传 `JsonSerializerContext`
+
+#### 网络与协议
+- **数据管道**：新增 `Pipe`/`PipeReader`/`PipeWriter` 与 `LimitedReader`，对齐 `System.IO.Pipelines` 形态，支持背压水位与读饥饿让位，全 TFM 可用（含 net45）
+- **帧泵与协议**：`MessagePump` 头到齐即交付、小帧零拷贝快路径、大帧流式体、`MaxCache` 残余防护；`SequenceReader` 全 11 TFM 垫片；SRMP 服务端并行派发
+- **WebSocket**：分片自动重组（RFC 6455 §5.4）、握手异步化进入打开链路、服务端与客户端共用帧解析；新增 `MaxFrameSize` 整帧上限
+- **传输增强**：Unix 域套接字（UDS）、`AutoReceive` 接收模式二选一、发送泵异步化与背压感知发送 API、TCP 流式收发下沉会话、`SendFileAsync` 内核零拷贝文件发送
+- **UDP**：统一响应匹配并支持请求-响应等待，`ReceiveFromAsync` 省去每包包信息开销，新增 `SocketSetting.ReceiveBufferSize`
+- **HTTP**：请求体分块传输、在途请求停滞上限（慢速攻击防护）、`HttpSession` 发送队列、异步处理器契约、极简内网 `TinyHttpClient`
+- **网络辅助**：`NetHelper` 新增私网判定、网段匹配、可信代理与客户端 IP 解析（CIDR）
+
+#### 可观测性
+- **OpenTelemetry 双向适配**：`OpenTelemetryTracer` 把 NewLife 埋点桥接到标准 `Activity`，`OpenTelemetryCollector` 把第三方 `ActivitySource` 埋点采集进星尘（net6.0+）
+- **埋点热路径优化**：消除标识字符串、时间戳装箱与无采集方时的构建器分配
+
+#### 安全与平台
+- **ECDSA 合入核心**：`ECDsaHelper`/`ECKey`/`AlgorithmKeyBlob` 迁入核心库，`net45/net461/net462` 走 CNG 分支，其余走跨平台实现
+- **移动端**：补齐 `MachineInfo` 的 Android/iOS 平台信息，新增 Android `MobileConsole` 机器信息查看器与 NativeAOT/NDK 构建，移动端冒烟 21 用例
 
 ### 性能
-- UDP 会话查找改端点键缓存，服务端每包分配降低约 35%
-- 接收环复用 `OwnerPacket` 句柄，轮末回挂接收槽省去每轮新建
-- 压缩编解码器改为流式进出，消除冗余拷贝
+- UDP 会话查找改端点键缓存，服务端每包分配降低约 35%；接收环复用 `OwnerPacket` 句柄，轮末回挂接收槽
+- 压缩编解码器改为流式进出，消除冗余拷贝；帧层解析前先探测头部，半包时不再构造被丢弃的消息对象
+- 多语言表 Deflate 压缩 + 按需构建，单 DLL 体积减少约 34%；目标框架精简使包体由 14.6 MB 降至 9.8 MB
+- OpenTelemetry 埋点热路径零分配；配对队列清空后停止周期检查定时器；路径缓存写入改用独立原子计数
 
 ### Bug 修复
-- **[fix]** 安全：`SecurityHelper` 旧框架分支释放哈希算法实例与 `ICryptoTransform`
-- **[fix]** HTTP：非法 `Content-Length` 回 400、HEAD 不再发送实体、无实体响应不声明长度、分块解析消费 trailers、路径缓存独立原子计数
+- **[fix]** HTTP：参数化路由 `{param}` 段对齐（不再全部 404）、请求体按 `Content-Length` 截断、拒绝不支持的 `Transfer-Encoding`、相对 Uri 构建头部不再抛异常（#186）
 - **[fix]** WebSocket：握手校验失败不再静默接管连接、握手头按令牌列表解析、入站帧补齐 RFC 6455 校验（RSV/保留 opcode/掩码方向/控制帧长度）
 - **[fix]** 数据包：构造拒绝越界偏移、链式追加环检测、空首节点扩展头部不再产生负偏移
-- **[fix]** 管道：背压改按未检查记账（修复取消信号与完成异常丢失）、`SpanReader` 流式扩容池缓冲可归还、入站管道关闭释放读侧残余
+- **[fix]** 管道：`WriteTo` 跨段解码保持解码器状态（多字节字符不再被段边界解成替换字符）、背压改按未检查记账、`SpanReader` 流式扩容池缓冲可归还、入站管道关闭释放读侧残余
 - **[fix]** 会话：UDP 客户端模式关闭释放套接字、UDP 体绑定与并发信号量释放、接受环递归深度限制、HTTP 会话整包判空并清理悬空引用
 - **[fix]** 协议：长度字段非法值按损坏帧上报、帧泵区分已定界待整帧、压缩协议限制解压上限防解压炸弹
-- **[fix]** 其他：SSL 会话断线感知归一、`NetClient` 重连释放旧实例、升级检查遍历全部镜像地址、控制器仅暴露公开方法、网络变化只清自身缓存
+- **[fix]** 安全：`SecurityHelper` 旧框架分支释放哈希算法实例与 `ICryptoTransform`
+- **[fix]** 其他：SSL 会话断线感知归一、`NetClient` 重连释放旧实例、升级检查遍历全部镜像地址、控制器仅暴露公开方法、网络变化只清自身缓存；补齐捷克/波兰/德/丹麦/意等语言漏译
 
 ### 测试与质量
-- 补充协议契约、数据所有权、管道、WebSocket 校验、HTTP 边界等回归测试，全量 2984 项通过
-- 新增 NetLoadTest 压测程序与裸 Socket 性能报告（吞吐/延迟/分配基线）
+- RISC-V 与 s390x 全量均 3573 通过 / 5 跳过 / 0 失败，新增 riscv64/s390x 指令集矩阵与多 RID CI
+- 新增 AOT 冒烟工程、源生成器单测工程、包消费者冒烟与 API 兼容门禁；NetLoadTest 提供吞吐/延迟/分配基线
+- 移动端 Android/iOS 冒烟 21 用例；修复测试端口抢占、SpanWriter 零分配断言、配置超时用例在满载下的假失败
+
+### 文档与协作
+- README 多语言化并默认英文，补充 AOT、TFM、locales 徽章与生态版图
+- 新增/更新《AOT兼容性分析》《多语言本地化》《数据管道Pipe》《消息协议栈》《网络缓冲所有权架构》等文档，功能清单与架构设计同步到 v12 现状
 
 ---
 

@@ -326,7 +326,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### 發行
 
-推送 `v` 前綴標籤（例如 `v12.0.2026.0927`）觸發 `.github/workflows/publish.yml`。工作流程完成封裝後同時發佈到 NuGet.org 與 GitHub Packages，並建立同名 GitHub Release（說明取自 `ChangeLog.md` 對應段落，資產含 nupkg/snupkg）；手動觸發工作流程只發佈套件，不建立 Release。
+推送 `v` 前綴標籤（例如 `v12.0.2026.1024`）觸發 `.github/workflows/publish.yml`。工作流程完成封裝後同時發佈到 NuGet.org 與 GitHub Packages，並建立同名 GitHub Release（說明取自 `ChangeLog.md` 對應段落，資產含 nupkg/snupkg）；手動觸發工作流程只發佈套件，不建立 Release。
 
 ### 研發過程文件
 

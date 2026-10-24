@@ -326,7 +326,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### 发版
 
-推送 `v` 前缀 tag（如 `v12.0.2026.0927`）触发 `.github/workflows/publish.yml`。工作流完成打包后同时发布到 NuGet.org 与 GitHub Packages，并创建同名 GitHub Release（说明取自 `ChangeLog.md` 对应段落，资产含 nupkg/snupkg）；手工触发工作流只发包，不创建 Release。
+推送 `v` 前缀 tag（如 `v12.0.2026.1024`）触发 `.github/workflows/publish.yml`。工作流完成打包后同时发布到 NuGet.org 与 GitHub Packages，并创建同名 GitHub Release（说明取自 `ChangeLog.md` 对应段落，资产含 nupkg/snupkg）；手工触发工作流只发包，不创建 Release。
 
 ### 研发过程文档
 

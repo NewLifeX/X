@@ -324,7 +324,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### الإصدار
 
-ادفع وسمًا يبدأ بـ `v` (مثل `v12.0.2026.0927`) لتفعيل `.github/workflows/publish.yml`. يحزم سير العمل الحزمة وينشرها إلى NuGet.org وGitHub Packages، وينشئ GitHub Release مأخوذة ملاحظاته من القسم المقابل في `ChangeLog.md` (تتضمّن الملفات المرفقة nupkg وsnupkg). التشغيل اليدوي يقتصر على نشر الحزم ولا ينشئ Release.
+ادفع وسمًا يبدأ بـ `v` (مثل `v12.0.2026.1024`) لتفعيل `.github/workflows/publish.yml`. يحزم سير العمل الحزمة وينشرها إلى NuGet.org وGitHub Packages، وينشئ GitHub Release مأخوذة ملاحظاته من القسم المقابل في `ChangeLog.md` (تتضمّن الملفات المرفقة nupkg وsnupkg). التشغيل اليدوي يقتصر على نشر الحزم ولا ينشئ Release.
 
 ### وثائق التطوير
 

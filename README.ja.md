@@ -326,7 +326,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### リリース
 
-`v` で始まるタグ（例：`v12.0.2026.0927`）をプッシュすると `.github/workflows/publish.yml` が起動します。ワークフローはパッケージを作成して NuGet.org と GitHub Packages に公開し、`ChangeLog.md` の該当セクションからノートを取得した GitHub Release を作成します（アセットには nupkg と snupkg が含まれます）。手動実行ではパッケージの公開のみを行い、Release は作成しません。
+`v` で始まるタグ（例：`v12.0.2026.1024`）をプッシュすると `.github/workflows/publish.yml` が起動します。ワークフローはパッケージを作成して NuGet.org と GitHub Packages に公開し、`ChangeLog.md` の該当セクションからノートを取得した GitHub Release を作成します（アセットには nupkg と snupkg が含まれます）。手動実行ではパッケージの公開のみを行い、Release は作成しません。
 
 ### 開発ドキュメント
 

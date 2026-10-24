@@ -326,7 +326,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### Publication
 
-Poussez une étiquette préfixée par `v` (par exemple `v12.0.2026.0927`) pour déclencher `.github/workflows/publish.yml`. Le workflow empaquette le paquet, le publie sur NuGet.org et GitHub Packages, et crée une GitHub Release dont les notes proviennent de la section correspondante de `ChangeLog.md` (les artefacts incluent nupkg et snupkg). Une exécution manuelle publie uniquement les paquets et ne crée pas de Release.
+Poussez une étiquette préfixée par `v` (par exemple `v12.0.2026.1024`) pour déclencher `.github/workflows/publish.yml`. Le workflow empaquette le paquet, le publie sur NuGet.org et GitHub Packages, et crée une GitHub Release dont les notes proviennent de la section correspondante de `ChangeLog.md` (les artefacts incluent nupkg et snupkg). Une exécution manuelle publie uniquement les paquets et ne crée pas de Release.
 
 ### Documentation de développement
 

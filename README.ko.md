@@ -326,7 +326,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### 릴리스
 
-`v` 접두사 태그(예: `v12.0.2026.0927`)를 푸시하면 `.github/workflows/publish.yml`이 실행됩니다. 워크플로는 패키지를 만들어 NuGet.org와 GitHub Packages에 게시하고, `ChangeLog.md`의 해당 섹션에서 노트를 가져온 GitHub Release를 생성합니다(자산에는 nupkg와 snupkg가 포함됩니다). 수동 실행은 패키지만 게시하며 Release는 만들지 않습니다.
+`v` 접두사 태그(예: `v12.0.2026.1024`)를 푸시하면 `.github/workflows/publish.yml`이 실행됩니다. 워크플로는 패키지를 만들어 NuGet.org와 GitHub Packages에 게시하고, `ChangeLog.md`의 해당 섹션에서 노트를 가져온 GitHub Release를 생성합니다(자산에는 nupkg와 snupkg가 포함됩니다). 수동 실행은 패키지만 게시하며 Release는 만들지 않습니다.
 
 ### 개발 문서
 

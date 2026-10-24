@@ -326,7 +326,7 @@ dotnet test XUnitTest.Core -c Release
 
 ### Veröffentlichung
 
-Ein Tag mit Präfix `v` (zum Beispiel `v12.0.2026.0927`) löst `.github/workflows/publish.yml` aus. Der Workflow packt das Paket, veröffentlicht es auf NuGet.org und GitHub Packages und erstellt ein GitHub Release, dessen Hinweise aus dem passenden Abschnitt von `ChangeLog.md` stammen (Artefakte umfassen nupkg und snupkg). Ein manueller Lauf veröffentlicht nur Pakete und erstellt kein Release.
+Ein Tag mit Präfix `v` (zum Beispiel `v12.0.2026.1024`) löst `.github/workflows/publish.yml` aus. Der Workflow packt das Paket, veröffentlicht es auf NuGet.org und GitHub Packages und erstellt ein GitHub Release, dessen Hinweise aus dem passenden Abschnitt von `ChangeLog.md` stammen (Artefakte umfassen nupkg und snupkg). Ein manueller Lauf veröffentlicht nur Pakete und erstellt kein Release.
 
 ### Entwicklungsdokumentation
 
