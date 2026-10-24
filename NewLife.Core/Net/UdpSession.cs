@@ -1,8 +1,9 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 
 namespace NewLife.Net;
@@ -14,7 +15,8 @@ namespace NewLife.Net;
 /// <list type="bullet">
 /// <item>绑定到固定的远程地址</item>
 /// <item>共享UdpServer的底层Socket</item>
-/// <item>收到空数据包时自动结束会话</item>
+/// <item>不支持会话级拉取：Socket 为多会话共享，按会话过滤拉取会丢弃其他会话的数据报，<see cref="Receive()"/> 与 <see cref="ReceiveAsync(CancellationToken)"/> 直接抛 <see cref="NotSupportedException"/>；接收请订阅 <see cref="Received"/> 事件，拉取请使用 <see cref="UdpServer"/> 继承自 SessionBase 的 Receive/ReceiveAsync（需 AutoReceive=false）</item>
+/// <item>收到空数据包时自动结束会话。判定以收到的原始数据报为准，在进入事件链之前定下；业务在事件内释放或置空 <see cref="ReceivedEventArgs.Packet"/> 不影响判定，要主动结束会话请 <see cref="DisposeBase.Dispose()"/></item>
 /// </list>
 /// </remarks>
 public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
@@ -48,30 +50,34 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <remarks>通信的目标远程地址</remarks>
     public NetUri Remote { get; set; }
 
-    private Int32 _timeout;
     /// <summary>超时时间（毫秒）</summary>
-    /// <remarks>接收操作的超时时间，默认3000ms</remarks>
-    public Int32 Timeout
+    /// <remarks>仅为 <see cref="ITransport"/> 契约保留，不参与会话收发超时；接收超时由共享 Socket 的所属服务器下发——<see cref="UdpServer"/> 的 Timeout（默认3000ms）在打开时写入</remarks>
+    public Int32 Timeout { get; set; }
+
+    /// <summary>协议编解码器。非空时为协议模式：数据报按完整帧定界并构造消息分发（无粘包/半包处理，无需泵任务）</summary>
+    public IMessageCodec? Protocol { get; set; }
+
+    /// <summary>最大并发处理数。协议模式下消息处理并发度（随服务器下发）：1=串行（默认），大于1=并行派发（兼作并发上限）</summary>
+    /// <remarks>并行下同一会话的多个消息处理顺序不定（SRMP 按序列号配对）；并行要求业务处理器线程安全。</remarks>
+    public Int32 MaxConcurrency { get; set; } = 1;
+
+    /// <summary>请求-响应匹配队列。协议模式下等待响应时使用，首次等待时自动创建，可注入共享或自定义实现</summary>
+    /// <remarks>与流式会话共用同一匹配实现：数据报每包即完整帧，交付时直接配对，无粘包处理</remarks>
+    public IMatchQueue? MatchQueue
     {
-        get => _timeout;
-        set
-        {
-            _timeout = value;
-            if (Server?.Client != null)
-                Server.Client.ReceiveTimeout = _timeout;
-        }
+        get => _matcher.Queue;
+        set => _matcher.Queue = value;
     }
 
-    /// <summary>消息管道</summary>
-    /// <remarks>
-    /// <para>收发消息都经过管道处理器，进行协议编码解码。</para>
-    /// <para>处理顺序：</para>
-    /// <list type="number">
-    /// <item>接收数据解码时，从前向后通过管道处理器</item>
-    /// <item>发送数据编码时，从后向前通过管道处理器</item>
-    /// </list>
-    /// </remarks>
-    public IPipeline? Pipeline { get; set; }
+    /// <summary>请求-响应匹配等待超时（毫秒）。默认30_000</summary>
+    public Int32 MatchTimeout
+    {
+        get => _matcher.Timeout;
+        set => _matcher.Timeout = value;
+    }
+
+    /// <summary>响应匹配器。与流式会话共用：请求-响应配对在报文交付阶段完成</summary>
+    private readonly ResponseMatcher _matcher = new();
 
     /// <summary>Socket服务器</summary>
     /// <remarks>当前通讯所在的Socket服务器</remarks>
@@ -111,14 +117,13 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     {
         if (Disposed || Server == null) return;
 
-        Pipeline = Server.Pipeline;
+        Protocol = Server.Protocol;
+        MaxConcurrency = Server.MaxConcurrency;
+        MatchTimeout = Server.MatchTimeout;
 
         Server.Open();
 
         WriteLog("New {0}", Remote.EndPoint);
-
-        // 管道
-        Pipeline?.Open(Server.CreateContext(this));
     }
 
     private void Stop(String reason)
@@ -126,11 +131,6 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         if (Server == null) return;
 
         WriteLog("Close {0} {1}", Remote.EndPoint, reason);
-
-        // 管道
-        var ctx = Server?.CreateContext(this);
-        if (ctx != null)
-            Pipeline?.Close(ctx, reason);
 
         Server = null!;
     }
@@ -142,6 +142,13 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         base.Dispose(disposing);
 
         Stop(disposing ? "Dispose" : "GC");
+
+        // 取消挂起的请求-响应等待，避免调用方悬挂（与流式会话口径一致）
+        _matcher.Clear();
+
+        // 只释放、不置空：置空后 ??= 会为后续派发新建“满额”信号量，即便会话已销毁也放行消息进入处理链。
+        // 已派发的消息持有自己等待到的实例，其 Release 命中已释放实例抛 ObjectDisposedException，由调用点忽略（基类同样只释放不置空）
+        _concurrency?.Dispose();
 
         //// 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
         //Server = null;
@@ -202,152 +209,275 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         return Server.OnSend(data, Remote.EndPoint);
     }
 
-    /// <summary>发送消息，不等待响应</summary>
-    /// <param name="message">消息对象</param>
+    /// <summary>发送消息，不等待响应。经协议构建整帧后发送</summary>
+    /// <param name="message">消息对象（须实现 <see cref="IMessage"/>）</param>
     /// <returns>实际发送的字节数</returns>
-    /// <exception cref="InvalidOperationException">管道未设置</exception>
+    /// <exception cref="InvalidOperationException">未设置协议或消息类型不支持</exception>
     public virtual Int32 SendMessage(Object message)
     {
-        if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
+        // 协议模式：消息经协议构建整帧后发送
+        if (Protocol is { } codec && message is IMessage msg)
+        {
+            using var data = codec.Build(msg);
+            if (data == null) return 0;
 
-        using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
-        var ctx = Server.CreateContext(this);
+            return Send(data);
+        }
+
+        throw new InvalidOperationException(L.T("Protocol not set or message is not IMessage for session [{0}]", Name));
+    }
+
+    /// <summary>发送消息并等待匹配的响应（协议模式）。请求入匹配队列，响应数据报到达时完成</summary>
+    /// <param name="request">请求消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息；调用方负责消费负载并释放（<see cref="IDisposable.Dispose"/> 或读满负载）</returns>
+    /// <exception cref="InvalidOperationException">未设置协议</exception>
+    /// <exception cref="NotSupportedException">协议未实现请求-响应配对（<see cref="IMessageMatcher"/>）</exception>
+    /// <remarks>
+    /// <para>与流式会话共用同一响应匹配实现（<see cref="ResponseMatcher"/>）：数据报每包即完整帧，交付时直接配对，无粘包处理。
+    /// 响应消息先进入 <see cref="Received"/> 事件链（可观测），随后命中配对的交付本等待方；配对语义由协议的 <see cref="IMessageMatcher.Match"/> 决定。</para>
+    /// <para>等待超时为 <see cref="MatchTimeout"/>；UDP 不可靠，未收到响应即超时，重传与否由调用方决定。</para>
+    /// </remarks>
+    public virtual ValueTask<IMessage> SendMessageAsync(IMessage request, CancellationToken cancellationToken = default)
+    {
+        if (request == null) throw new ArgumentNullException(nameof(request));
+
+        var codec = Protocol ?? throw new InvalidOperationException(L.T("Protocol not set for session [{0}]", Name));
+        if (ResponseMatcher.Resolve(codec) == null) throw new NotSupportedException(L.T("Protocol [{0}] does not implement request/response matching (IMessageMatcher); cannot wait for a response.", codec.GetType().Name));
+
+        var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", request);
+        var source = _matcher.Register(this, request, span);
+
         try
         {
-            return (Int32)(Pipeline.Write(ctx, message) ?? -1);
+            SendMessage(request);
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, message);
-            throw;
+            // 请求未能入队或送出：异常交给等待方（await 时抛出），资源随 GetResult 归还
+            source.TrySetException(ex);
         }
-        finally
-        {
-            // 写入完成后归还上下文，避免池化对象泄漏
-            Server.ReturnContext(ctx);
-        }
+
+        source.RegisterCancellation(cancellationToken);
+        return source.ValueTask;
     }
 
-    /// <summary>发送消息并等待响应</summary>
-    /// <param name="message">消息对象</param>
+    /// <summary>发送消息并等待匹配的响应（协议模式）</summary>
+    /// <param name="message">消息对象（须实现 <see cref="IMessage"/>）</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>响应消息</returns>
-    /// <exception cref="InvalidOperationException">服务器或管道未设置</exception>
+    /// <exception cref="InvalidOperationException">未设置协议或消息类型不支持</exception>
     public virtual ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
     {
-        if (Server == null) throw new InvalidOperationException(nameof(Server));
-        if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
+        if (Protocol != null && message is IMessage msg) return SendMessageAsyncForObject(msg, cancellationToken);
 
-        var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
-        try
-        {
-            var ctx = Server.CreateContext(this);
-            var source = PooledValueTaskSource.Rent();
-            source.AttachSpan(span);
-            ctx["TaskSource"] = source;
-            ctx["Span"] = span;
-
-            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
-
-            if (rs < 0)
-                source.TrySetResult(TaskEx.CompletedTask);
-            else
-                source.RegisterCancellation(cancellationToken);
-
-            return source.ValueTask;
-        }
-        catch (Exception ex)
-        {
-            if (ex is TaskCanceledException)
-                span?.AppendTag(ex.Message);
-            else
-                span?.SetError(ex, message);
-            span?.Dispose();
-            throw;
-        }
+        throw new InvalidOperationException(L.T("Protocol not set or message is not IMessage for session [{0}]", Name));
     }
+
+    /// <summary>协议模式的响应等待包装（Object 版返回）</summary>
+    /// <param name="message">请求消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息</returns>
+    /// <remarks>
+    /// <para>ValueTask 为结构体且不可协变，<c>ValueTask&lt;IMessage&gt;</c> 无法直接转为 <c>ValueTask&lt;Object&gt;</c>，只能经 async 包装转换（同步完成时不装箱，无额外分配）。</para>
+    /// <para>独立成方法也让公开的 Object 重载保持非 async：协议未设或消息类型不支持时同步抛出异常，而不是把异常捕获进返回的 ValueTask，不 await 的调用方也能立刻发现用法错误。</para>
+    /// </remarks>
+    private async ValueTask<Object> SendMessageAsyncForObject(IMessage message, CancellationToken cancellationToken)
+        => await SendMessageAsync(message, cancellationToken).ConfigureAwait(false);
     #endregion
 
     #region 接收
-    /// <summary>同步接收数据</summary>
-    /// <returns>接收到的数据包</returns>
-    /// <exception cref="ObjectDisposedException">会话已销毁</exception>
-    /// <exception cref="InvalidOperationException">服务器未设置</exception>
-    public IOwnerPacket Receive()
-    {
-        if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
+    /// <summary>同步接收数据。UDP 会话共享服务器 Socket，不支持会话级拉取</summary>
+    /// <returns>无，本方法总是抛出异常</returns>
+    /// <exception cref="NotSupportedException">UDP 会话不支持拉取（共享 Socket 上按会话过滤会丢弃其他会话的数据报）</exception>
+    public IOwnerPacket Receive() => throw new NotSupportedException(NoPullMessage);
 
-        using var span = Tracer?.NewSpan($"net:{Name}:Receive");
-        try
-        {
-            var ep = Remote.EndPoint as EndPoint;
-            var pk = new OwnerPacket(Server.BufferSize);
-            var size = Server.Client.ReceiveFrom(pk.Buffer, ref ep);
-            span?.Value = size;
-
-            return pk.Resize(size);
-        }
-        catch (Exception ex)
-        {
-            span?.SetError(ex, null);
-            throw;
-        }
-    }
-
-    /// <summary>异步接收数据</summary>
+    /// <summary>异步接收数据。UDP 会话共享服务器 Socket，不支持会话级拉取</summary>
     /// <param name="cancellationToken">取消通知</param>
-    /// <returns>接收到的数据包</returns>
-    /// <exception cref="ObjectDisposedException">会话已销毁</exception>
-    /// <exception cref="InvalidOperationException">服务器未设置</exception>
-    public virtual async Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
-    {
-        if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
-
-        using var span = Tracer?.NewSpan($"net:{Name}:Receive");
-        try
-        {
-            var ep = Remote.EndPoint as EndPoint;
-            var pk = new OwnerPacket(Server.BufferSize);
-            var socket = Server.Client;
-#if NETFRAMEWORK || NETSTANDARD2_0
-            var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);
-            var size = ar.IsCompleted ?
-                socket.EndReceive(ar) :
-                await Task.Factory.FromAsync(ar, e => socket.EndReceiveFrom(e, ref ep)).ConfigureAwait(false);
-#elif NET7_0_OR_GREATER
-            var result = await socket.ReceiveFromAsync(pk.GetMemory(), ep, cancellationToken).ConfigureAwait(false);
-            var size = result.ReceivedBytes;
-#else
-            var result = await socket.ReceiveFromAsync(pk.Buffer, SocketFlags.None, ep).ConfigureAwait(false);
-            var size = result.ReceivedBytes;
-#endif
-            span?.Value = size;
-
-            return pk.Resize(size);
-        }
-        catch (Exception ex)
-        {
-            span?.SetError(ex, null);
-            throw;
-        }
-    }
+    /// <returns>无，本方法总是抛出异常</returns>
+    /// <exception cref="NotSupportedException">UDP 会话不支持拉取（共享 Socket 上按会话过滤会丢弃其他会话的数据报）</exception>
+    public virtual Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException(NoPullMessage);
 
     /// <summary>数据接收事件</summary>
     public event EventHandler<ReceivedEventArgs>? Received;
 
-    internal void OnReceive(ReceivedEventArgs e)
+    internal Boolean OnReceive(ReceivedEventArgs e)
     {
         LastTime = DateTime.Now;
+
+        // 协议模式：数据报即完整帧，定界后逐条分发；空数据报仍按停会话约定处理
+        if (Protocol is { } codec && e?.Packet is { Length: > 0 } pk)
+        {
+            ProcessDatagram(codec, pk);
+            return true;
+        }
+
+        // 我们约定，UDP收到空数据包时，结束会话。判定以收到的原始数据报为准，在进入事件链之前定下：
+        // 业务按契约在事件内消费/释放本轮句柄（交发送链路、或置空做标记）后 Length 已归零，
+        // 事件之后再判会把正常数据报当成空包，误停会话并清掉会话级状态。要主动结束会话，请 Dispose 会话。
+        var empty = e != null && e.Packet is not { Length: > 0 };
 
         if (e != null) Received?.Invoke(this, e);
 
         // 我们约定，UDP收到空数据包时，结束会话
-        if (e != null && (e.Packet == null || e.Packet.Length == 0))
+        if (empty)
         {
             Stop("Finish");
             Dispose();
+        }
+
+        return false;
+    }
+
+    /// <summary>处理协议数据报。一个数据报可能包含多个消息帧，逐条定界分发；坏帧截断丢弃</summary>
+    /// <param name="codec">协议编解码器</param>
+    /// <param name="pk">数据报（接收环轮内有效，消息体为零拷贝共享切片）</param>
+    private void ProcessDatagram(IMessageCodec codec, IPacket pk)
+    {
+        var seq = pk.AsReadOnlySequence();
+        var pos = 0L;
+        while (pos < seq.Length)
+        {
+            var rs = codec.TryParse(seq.Slice(pos));
+            if (rs == null) break;
+
+            // 损坏帧：数据报内已无法继续定界，丢弃本报文等下一包；
+            // 不能按异常处理，否则一个坏报文就会下线整个 UDP 服务
+            if (rs.Value.Invalid) break;
+
+            // 已定界但需整帧（装饰协议，如压缩）：数据报是原子单位，无法在包内补齐，丢弃本报文等下一包
+            if (rs.Value.NeedFullFrame) break;
+
+            // 无消息帧（心跳/空行/分隔符）：跳过字节后继续解析
+            if (rs.Value.Message == null)
+            {
+                var skip = rs.Value.HeaderSize;
+                if (skip <= 0) break;
+                pos += skip;
+                continue;
+            }
+
+            var message = rs.Value.Message;
+            var headerSize = rs.Value.HeaderSize;
+            var bodyLength = rs.Value.BodyLength;
+
+            // 零进展防护（协议契约“成功即有进展”）：产出消息却不消费任何字节会让本循环原地打转，丢弃本报文等下一包；
+            // 内置协议不会出现，防的是违反契约的自定义协议
+            if (headerSize + bodyLength <= 0)
+            {
+                message.Dispose();
+                break;
+            }
+
+            // 声明长度超出数据报窗口：坏帧截断丢弃
+            if (headerSize + bodyLength > seq.Length - pos)
+            {
+                message.Dispose();
+                break;
+            }
+
+            // 体绑定：协议未预绑定体时才从数据报窗口切零拷贝共享切片。
+            // 预绑定体（如压缩协议解压后重绑）必须保留，否则会把解压结果替换成线上压缩字节（静默交出错误数据）——与帧泵分支保持一致
+            if (message.Payload == null && bodyLength > 0)
+                message.SetBody(pk.Slice((Int32)pos + headerSize, (Int32)bodyLength));
+
+            // 并行模式：数据报体为零拷贝共享切片（天然独立），信号量约束后派发；处理顺序不定（SRMP 按序列号配对）
+            if (MaxConcurrency > 1)
+            {
+                // 等待信号量放到线程池上：接收环运行在 IOCP/线程池线程，就地阻塞会拖慢整条接收链并挤爆内核缓冲
+                var concurrency = Concurrency;
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await concurrency.WaitAsync().ConfigureAwait(false);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // 会话销毁：信号量已释放，消息无人处理，就地释放
+                        message.TryDispose();
+                        return;
+                    }
+
+                    ProcessMessage(message, concurrency);
+                });
+
+                pos += headerSize + bodyLength;
+                continue;
+            }
+
+            // 串行处理：与并行分支共用同一交付逻辑（信号量传 null，不涉及并发槽位）
+            ProcessMessage(message, null);
+
+            pos += headerSize + bodyLength;
+        }
+    }
+
+    /// <summary>处理单个消息：进入事件链并尝试交付配对，未命中则释放；并行派发时完成后释放并发信号量</summary>
+    /// <param name="message">消息（体为数据报内零拷贝共享切片，天然独立）</param>
+    /// <param name="concurrency">派发前等待到的信号量实例；串行分支为 null。归还必须用同一实例：会话首访并发时可能各建一个，重读属性会把槽位还到另一个满额实例并抛 <see cref="SemaphoreFullException"/></param>
+    private void ProcessMessage(IMessage message, SemaphoreSlim? concurrency)
+    {
+        var delivered = false;
+        try
+        {
+            OnMessage(message);
+
+            // 事件链（可观测）可能已在处理器内读空消息体；命中配对的等待方还要消费同一份体，
+            // 交付前把内存模式体复位到起点（与流式会话口径一致）
+            if (message.Body is { IsStreaming: false } body) body.Reset();
+
+            // 交付阶段配对：命中则交付等待方（由等待方释放）；未命中的按普通消息收尾
+            delivered = _matcher.TryMatch(this, Protocol, message);
+        }
+        catch (Exception ex)
+        {
+            OnError("OnMessage", ex);
+        }
+        finally
+        {
+            if (!delivered) message.TryDispose();
+
+            if (concurrency != null)
+            {
+                // 释放自己等待到的那个并发槽位（背压）；会话销毁时该实例已被释放，忽略该异常
+                try { concurrency.Release(); }
+                catch (ObjectDisposedException) { }
+            }
+        }
+    }
+
+    private SemaphoreSlim? _concurrency;
+
+    /// <summary>并发信号量。并行模式（<see cref="MaxConcurrency"/> 大于1）下约束同会话并发处理数，等待时形成背压</summary>
+    /// <remarks>
+    /// 多条接收槽线程并发首访时可能各建一个满额实例，字段只留最后一个。该竞态无害：每个消息只归还自己等待到的实例，
+    /// 不存在“等待在A、归还到B”的错位，最坏仅首访瞬间并发上限短暂放大。刻意不加 CAS/锁，不为极窄窗口引入原子操作。
+    /// </remarks>
+    private SemaphoreSlim Concurrency => _concurrency ??= new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
+
+    /// <summary>收到消息。构造接收事件参数并进入事件链（协议模式）</summary>
+    /// <param name="message">消息（头部字段就位、体已绑定）</param>
+    /// <remarks>事件参数的 <see cref="ReceivedEventArgs.Packet"/> 为消息负载视图；与消息同生命周期（处理器返回后失效）</remarks>
+    private void OnMessage(IMessage message)
+    {
+        var e = ReceivedEventArgs.Rent();
+        try
+        {
+            e.Local = Local.Address;
+            e.Remote = Remote.EndPoint;
+            e.Packet = message.Payload;
+            e.Message = message;
+
+            LastTime = DateTime.Now;
+            Received?.Invoke(this, e);
+
+            // 升格到服务器层：以服务器为接入点的场景（如 NetClient）经此收到消息
+            Server?.RaiseReceiveInternal(this, e);
+        }
+        finally
+        {
+            ReceivedEventArgs.Return(e);
         }
     }
 
@@ -365,7 +495,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <param name="ex">异常</param>
     protected virtual void OnError(String action, Exception ex)
     {
-        Log?.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex.Message);
+        Log?.ErrorPrefixed(LogPrefix, "{0}Error {1} {2}", action, this, ex.Message);
         Error?.Invoke(this, new ExceptionEventArgs(action, ex));
     }
     #endregion
@@ -380,6 +510,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         else
             return Local.ToString();
     }
+
+    /// <summary>拉取拒绝提示。UDP 会话共享服务器 Socket，按会话过滤拉取会丢弃其他会话的数据报</summary>
+    private String NoPullMessage => L.T("[{0}] A UDP session shares the server socket, so per-session pull is not supported (filtering per session would drop datagrams of other sessions). Subscribe to the Received event, or set AutoReceive=false before opening the server and use UdpServer.Receive/ReceiveAsync; on the client side use NetClient.", Name);
     #endregion
 
     #region ITransport接口
@@ -390,8 +523,21 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     #region 扩展接口
     private ConcurrentDictionary<String, Object?>? _items;
-    /// <summary>数据项</summary>
-    public IDictionary<String, Object?> Items => _items ??= new();
+
+    /// <summary>数据项。首次访问时创建</summary>
+    /// <remarks>并发首用时以 CAS 保证只保留一份实例：直接 ??= 会各自新建，败者刚写入的数据随之不可达而丢失</remarks>
+    public IDictionary<String, Object?> Items
+    {
+        get
+        {
+            var items = _items;
+            if (items != null) return items;
+
+            var created = new ConcurrentDictionary<String, Object?>();
+
+            return Interlocked.CompareExchange(ref _items, created, null) ?? created;
+        }
+    }
 
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key">键</param>
@@ -430,6 +576,6 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <summary>输出日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    public void WriteLog(String format, params Object?[] args) => Log.Info(LogPrefix + format, args);
+    public void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed(LogPrefix, format, args);
     #endregion
 }

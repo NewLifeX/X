@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net45;net461;net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net5.0;net6.0;net5.0-windows;net6.0-windows;net7.0;net7.0-windows;net8.0;net8.0-windows;net9.0;net9.0-windows;net10.0;net10.0-windows</TargetFrameworks>
+    <TargetFrameworks>net45;net461;net462;netstandard2.0;netstandard2.1;net6.0;net6.0-windows;net8.0;net8.0-windows;net10.0;net10.0-windows</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
-    <AssemblyTitle>NewLife核心组件库</AssemblyTitle>
-    <Description>Core library of NewLife framework. Provides high-performance infrastructure for building scalable applications: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), network (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler, plugin framework, and more. Supports .NET Framework 4.5 to .NET 10. 核心组件库，为构建可扩展应用程序提供高性能基础设施。提供日志（文件/网络）、配置（XML/JSON/HTTP）、缓存（内存/分布式）、网络（TCP/UDP/HTTP/WebSocket）、序列化（Binary/XML/JSON）、APM性能追踪、对象容器、并行模型、定时调度、插件框架等。支持.NET Framework 4.5至.NET 10全版本。</Description>
+    <AssemblyTitle>NewLife Core Library</AssemblyTitle>
+    <Description>Core library of the NewLife framework: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), networking (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler and plugin framework. NativeAOT-ready, with built-in runtime localization; targets 11 frameworks from .NET Framework 4.5 to .NET 10.0.</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
-    <VersionPrefix>11.19</VersionPrefix>
+    <VersionPrefix>12.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -26,19 +26,20 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
+    <PackageDescription>Core library of the NewLife framework: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), networking (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler and plugin framework. NativeAOT-ready, with built-in runtime localization; targets 11 frameworks from .NET Framework 4.5 to .NET 10.0. 核心组件库：日志、配置、缓存、网络、序列化、APM 性能追踪、对象容器、并行模型、定时调度与插件框架；原生 AOT 就绪，内置运行时多语言消息；单包覆盖 .NET Framework 4.5 至 .NET 10.0 共 11 个目标框架。</PackageDescription>
     <Authors>$(Company)</Authors>
     <PackageProjectUrl>https://newlifex.com/core</PackageProjectUrl>
     <PackageIcon>leaf.png</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>新增向量存储接口 IVectorStore/VectorRecord，支持 Top-K 相似度检索，为 AI 应用提供向量检索基础设施；增强 Murmur128 哈希与 GeoPoint 功能并补充单元测试；SysConfig 属性补充 Description 注解，日志文件命名统一为下划线分隔并移除 UTC 校正；修复 DSAHelper、Crc16/Crc32、PerfCounter、JwtBuilder、PinYin、CacheLock、MemoryCache、ProcessHelper、PKCS7、Asn1 等 20+ 处缺陷</PackageReleaseNotes>
+    <PackageTags>新生命团队;X组件;NewLife;AOT;NativeAOT;本地化;$(AssemblyName)</PackageTags>
+    <PackageReleaseNotes>v12 多语言版本：内置 31 种语言、269 条运行时消息，异常/日志经编译期词表按 CurrentUICulture 本地化，英文为源文与兜底；源生成器随主包分发，下游声明 Locales/*.yml 即可复用与覆盖；语言表 Deflate 压缩、按需解压，单 DLL 且 AOT 安全（冒烟 31 场景）。同时目标框架精简为 11 个（net45 ~ net10.0，含 Windows 变体），运行时消息统一英文化。升级须知与完整变更见 ChangeLog.md</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageReadmeFile>Readme.MD</PackageReadmeFile>
+    <PackageReadmeFile>README.nuget.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
@@ -46,33 +47,44 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  <!-- 源生成器：作为构建依赖（ReferenceOutputAssembly=false 不引用输出、不注入分析器），
+       SetTargetFramework 避免跨 TFM 协商；分析器程序集在主包打包时嵌入 analyzers/dotnet/cs，下游引用主包即自动获得 -->
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core.SourceGenerator\NewLife.Core.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" Private="false" />
+    <None Include="..\NewLife.Core.SourceGenerator\bin\$(Configuration)\netstandard2.0\NewLife.Core.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Locales\*.yml" />
+  </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='net45' or '$(TargetFramework)'=='net461' or '$(TargetFramework)'=='net462' or '$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows' or '$(TargetFramework)'=='net7.0-windows' or '$(TargetFramework)'=='net8.0-windows' or '$(TargetFramework)'=='net9.0-windows' or '$(TargetFramework)'=='net10.0-windows'">
-    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
+  <!-- net8.0+（含 -windows 形态）常驻启用 AOT/裁剪分析器：0 告警成为构建期硬约束，与 AOT 支持基线一致。
+       注意 SDK 会将 IsTrimmable 一并置真，这些目标的程序集会嵌入 IsTrimmable 元数据 -->
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net5.0-windows'">
-    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" TargetingPackVersion="5.0.0" />
-  </ItemGroup>
+  <!-- net6.0 的桌面引用包钉在较低补丁版本（历史决策：降低消费者所需 WindowsDesktop 运行时最低版本），
+       但 SDK 对已 EOL 的目标只按“已知最新补丁”下载引用包，解析请求 6.0.0 时报 NETSDK1127。
+       这里显式下载对应版本的引用包，使 packs 目录没有 6.x（未安装 net6 SDK）的机器也能编译。 -->
   <ItemGroup Condition="'$(TargetFramework)'=='net6.0-windows'">
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" TargetingPackVersion="6.0.0" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net7.0-windows'">
-    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" TargetingPackVersion="7.0.0" />
+    <PackageDownload Include="Microsoft.WindowsDesktop.App.Ref" Version="[6.0.0]" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net8.0-windows'">
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" TargetingPackVersion="8.0.0" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net9.0-windows'">
-    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" TargetingPackVersion="9.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net10.0-windows'">
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" TargetingPackVersion="10.0.0" />
   </ItemGroup>
 
-  <!-- net*-windows 使用 System.Management 进行标准 WMI 查询（反射调用，避免核心库直接暴露该类型） -->
-  <ItemGroup Condition="'$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows' or '$(TargetFramework)'=='net7.0-windows' or '$(TargetFramework)'=='net8.0-windows' or '$(TargetFramework)'=='net9.0-windows' or '$(TargetFramework)'=='net10.0-windows'">
-    <PackageReference Include="System.Management" Version="9.0.5" />
+  <!-- net*-windows 使用 System.Management 进行标准 WMI 查询（反射调用，避免核心库直接暴露该类型）。
+       System.Management 采用滚动支持窗口（每个版本只支持发布时在役的 TFM），按"各 TFM 支持窗口内的最高版本"引用；
+       使用更高版本只会回退 netstandard2.0 资产，并触发 "doesn't support" 构建警告 -->
+  <ItemGroup Condition="'$(TargetFramework)'=='net6.0-windows'">
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net8.0-windows' or '$(TargetFramework)'=='net10.0-windows'">
+    <PackageReference Include="System.Management" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
@@ -88,6 +100,7 @@
     <PackageReference Include="System.Memory" Version="4.6.3" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
   </ItemGroup>
+  <!-- net45/net461 选用 4.5.x 线（各包 4.6.x 线最低支持 net462）：避免回退 netstandard2.0 资产与 "doesn't support" 构建警告 -->
   <ItemGroup Condition="'$(TargetFramework)'=='net461'">
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
@@ -111,18 +124,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Agent\**" />
-    <Compile Remove="Applications\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove="Agent\**" />
-    <EmbeddedResource Remove="Applications\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Agent\**" />
-    <None Remove="Applications\**" />
-  </ItemGroup>
+  <!-- 历史遗留资料：旧文档与类图，仅在项目树中排除显示（不影响编译与打包） -->
   <ItemGroup>
     <None Remove="Remoting\ApiClient.cd" />
     <None Remove="Remoting\ApiServer.cd" />
@@ -134,10 +136,11 @@
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Readme.MD">
+    <None Include="..\README.nuget.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <Content Include="NuGet\NewLife.Core.props" Pack="true" PackagePath="build\" Visible="false" />
   </ItemGroup>
 
 </Project>

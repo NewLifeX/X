@@ -118,7 +118,7 @@ public static class EventBusExtensions
 
         if (cancellationToken.CanBeCanceled)
         {
-            cancellationToken.Register(() =>
+            var reg = cancellationToken.Register(() =>
             {
                 bus.Unsubscribe(clientId);
 #if NET45
@@ -127,6 +127,13 @@ public static class EventBusExtensions
                 tcs.TrySetCanceled(cancellationToken);
 #endif
             });
+
+            // 等待结束后释放注册：长生命周期令牌上的注册会持续持有闭包与总线引用，逐次累积。
+            // 续体不用 ExecuteSynchronously：令牌取消时本续体会在注册回调内部执行，
+            // 此时 Dispose 会等自己完成而自锁
+            _ = tcs.Task.ContinueWith(
+                static (t, state) => ((CancellationTokenRegistration)state!).Dispose(),
+                reg, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
         }
 
         return tcs.Task;

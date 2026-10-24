@@ -33,7 +33,7 @@ public class DelegateEventHandler<TEvent>(Delegate method) : IEventHandler<TEven
         else if (_method is Action<TEvent, IEventContext?> act2)
             act2(@event, context);
         else
-            throw new NotSupportedException($"不支持的委托类型: {_method.GetType().FullName}");
+            throw new NotSupportedException(L.T("Unsupported delegate type: {0}", _method.GetType().FullName));
 
         return TaskEx.CompletedTask;
     }

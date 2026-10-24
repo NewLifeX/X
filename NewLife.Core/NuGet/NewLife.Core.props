@@ -1,0 +1,13 @@
+<Project>
+  <!-- 构建期通过 build_property.* 读取以下开关；NuGet 引用主包时自动导入 -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="NewLifeLocalizationGenerateL" />
+    <CompilerVisibleProperty Include="NewLifeLocalizationOverwrite" />
+  </ItemGroup>
+
+  <!-- 下游把 Locales/*.yml 放进项目即可自动作为 AdditionalFiles，无需改 csproj。
+       若同名目录另有用途，在项目中加 <AdditionalFiles Remove="Locales\*.yml" /> 取消。 -->
+  <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)\Locales')">
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\Locales\*.yml" />
+  </ItemGroup>
+</Project>

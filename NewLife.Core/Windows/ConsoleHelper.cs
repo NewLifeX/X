@@ -70,15 +70,5 @@ public class ConsoleHelper
         RemoveMenu(closeMenu, SC_CLOSE, 0x0);
     }
 
-    /// <summary>
-    /// 关闭控制台
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    protected static void CloseConsole(Object sender, ConsoleCancelEventArgs e)
-    {
-        Environment.Exit(0);
-    }
-
     #endregion 设置控制台标题 禁用关闭按钮
 }

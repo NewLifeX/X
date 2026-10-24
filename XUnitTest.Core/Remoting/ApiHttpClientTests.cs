@@ -6,6 +6,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using Xunit;
+using XUnitTest.Net;
 
 namespace XUnitTest.Remoting;
 
@@ -17,16 +18,23 @@ public class ApiHttpClientTests : DisposeBase
 
     public ApiHttpClientTests()
     {
-        // 使用动态端口避免冲突
-        _Server = new ApiServer(0)
+        // 双协议（SRMP TCP+UDP）服务器用显式端口探测，避免 Port=0 跨协议继承落入另一协议保留段（见 TestPort）
+        // HTTP 入口需显式开启（默认关闭），0 表示自动取 SRMP 端口+1
+        _Server = TestPort.StartAny(28000, port => new ApiServer(port)
         {
+            ReuseAddress = true,
+            HttpPort = 0,
+
             //Log = XTrace.Log,
             //EncoderLog = XTrace.Log,
-        };
-        _Server.Handler = new TokenApiHandler { Host = _Server };
-        _Server.Start();
+        }, server =>
+        {
+            server.Handler = new TokenApiHandler { Host = server };
+            server.Start();
+        });
 
-        _Address = $"http://127.0.0.1:{_Server.Port}";
+        // 拆端口后 Http 使用独立端口
+        _Address = $"http://127.0.0.1:{_Server.HttpPort}";
 
         //_Client = new ApiHttpClient();
         //_Client.Add("addr1", new Uri("http://127.0.0.1:12347"));
@@ -86,7 +94,8 @@ public class ApiHttpClientTests : DisposeBase
         Assert.NotNull(ex);
         Assert.Equal(404, ex.Code);
         //Assert.True(ex.Message.EndsWith("无法找到名为[api/info3]的服务！"));
-        Assert.EndsWith("无法找到名为[api/info3]的服务！", ex.Message);
+        // 消息由 NewLife.Remoting 词表按当前界面语言本地化，测试程序集固定英文，不能写死中文
+        Assert.Equal(Localization.Translate("Cannot find service named [{0}]!", "api/info3"), ex.Message);
     }
 
     [Fact(DisplayName = "同步调用测试")]
@@ -208,44 +217,15 @@ public class ApiHttpClientTests : DisposeBase
         Assert.NotNull(infs);
     }
 
-    [Fact(Skip = "依赖外部网络服务 star.newlifex.com")]
-    public async Task SlaveAsyncTest()
-    {
-        var filter = new TokenHttpFilter
-        {
-            UserName = "test",
-            Password = "",
-        };
-        var client = new ApiHttpClient("http://127.0.0.1:10001,http://127.0.0.1:20001,http://star.newlifex.com:6600")
-        {
-            Filter = filter,
-            Timeout = 3_000
-        };
-
-        var rs = await client.PostAsync<Object>("config/getall", new { appid = "starweb" });
-        Assert.NotNull(rs);
-
-        var ss = client.Services;
-        Assert.Equal(3, ss.Count);
-        Assert.Equal(1, ss[0].Times);
-        Assert.Equal(1, ss[0].Errors);
-        Assert.Equal(1, ss[1].Times);
-        Assert.Equal(1, ss[1].Errors);
-        Assert.Equal(1, ss[2].Times);
-        Assert.Equal(0, ss[2].Errors);
-    }
-
     [Fact(DisplayName = "加权轮询测试")]
     public async Task RoundRobinTest()
     {
-#pragma warning disable CS0618 // 类型或成员已过时
         var client = new ApiHttpClient("test1=3*http://127.0.0.1:10000,test2=7*http://127.0.0.1:20000,")
         {
-            RoundRobin = true,
+            LoadBalanceMode = LoadBalanceMode.RoundRobin,
             Timeout = 3_000,
             Log = XTrace.Log,
         };
-#pragma warning restore CS0618 // 类型或成员已过时
 
         Assert.Equal(2, client.Services.Count);
 
@@ -563,29 +543,8 @@ public class ApiHttpClientTests : DisposeBase
     }
     #endregion
 
-    #region Filter测试
-    [Fact(Skip = "依赖外部网络服务 star.newlifex.com")]
-    public async Task FilterTest()
-    {
-        var filter = new TokenHttpFilter
-        {
-            UserName = "test",
-            Password = "",
-        };
-
-        var client = new ApiHttpClient("http://star.newlifex.com:6600")
-        {
-            Filter = filter,
-
-            Log = XTrace.Log,
-        };
-
-        var rs = await client.PostAsync<Object>("config/getall", new { appid = "starweb" });
-
-        Assert.NotNull(rs);
-        Assert.NotNull(filter.Token);
-    }
-    #endregion
+    // 外部服务 star.newlifex.com 的 TokenHttpFilter 联测已移除：测试只依赖本机 ApiServer，
+    // 需要令牌过滤器覆盖时用本地 ApiServer + 自定义登录端点构造。
 
     #region CodeName/DataName测试
     [Fact(DisplayName = "自定义CodeName测试")]

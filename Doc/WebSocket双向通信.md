@@ -1,5 +1,7 @@
 # WebSocket双向通信
 
+> ⚠️ **部分过时（v12）**：文中“管道（Pipeline）”机制已整删；`WebSocketMessage` 已改为 `WsMessage`（`Messaging/WsMessage`，帧模型语义延续）；`WebSocketClient` 现以 `Protocol = new WebSocketCodec()` 协议模式运行（见《消息协议栈》《WebSocket迁移设计》）。收发 API（`SendText/SendBinary/ReceiveMessageAsync` 等）与握手细节仍然有效。
+
 ## 概述
 
 NewLife.Core 支持 WebSocket 协议的客户端与服务端实现，基于原有的管道（Pipeline）和 TCP 连接层进行封装。`WebSocketClient` 继承自 `TcpSession`，内置 `WebSocketCodec` 编解码器，自动完成握手、心跳（Ping/Pong）、帧编解码等底层细节，应用层只需处理消息收发。
@@ -131,6 +133,9 @@ public class WebSocketClient : TcpSession
     /// <summary>发送二进制消息</summary>
     public Task SendBinaryAsync(IPacket data, CancellationToken cancellationToken = default);
 
+    /// <summary>发送关闭帧（可带状态码与描述）后关闭连接，会话转为断开状态</summary>
+    public Task CloseAsync(Int32 closeStatus, String? statusDescription = null, CancellationToken cancellationToken = default);
+
     /// <summary>握手（建立 WebSocket 升级请求），Open 阶段自动调用</summary>
     public static Boolean Handshake(ISocketClient client, Uri uri);
 }
@@ -167,7 +172,9 @@ public class WebSocketCodec : Handler
   |  [WebSocket双向帧传输]                |
 ```
 
-握手完全由 `WebSocketCodec.Open` 和 `WebSocketSession.HandeShake` 自动处理，无需应用层介入。
+握手由服务端 `WebSocket.Handshake`（`HttpSession` 命中路由后调用，四要素校验见 RFC 6455 §4.2）与客户端 `WebSocketClient.HandshakeAsync`（Open 阶段自动调用）完成，无需应用层介入。
+
+> **升级请求同段的帧不丢失**：RFC 6455 §4.1 允许客户端发完握手请求就直接发帧，两者常落在同一个 TCP 段／同一轮接收里。服务端处理升级请求时会把头部之后的字节一并交给 WebSocket 解析（与客户端侧把 101 响应之后的字节投递进管道的处理对称）；此前这部分字节被直接丢弃，表现为"连上了但第一条消息没到"。
 
 ## 使用场景
 
@@ -250,6 +257,11 @@ server.Received += (sender, e) =>
 - **Payload 零拷贝，生命周期短**：`WebSocketMessage.Payload` 直接切片自接收缓冲区，不能跨异步调用持有。需要延迟使用时，先 `payload.ToArray()` 深拷贝。
 - **掩码破坏性操作**：客户端服务端的帧带掩码，解帧时原地 XOR 解码，不要对同一缓冲重复解析。
 - **`KeepAlive` 默认 120 秒**：若服务器配置了更短的连接超时，应缩小 `KeepAlive` 以防断连。
-- **wss:// 需要 TLS 支持**：在 .NET Framework 上需要确保 TLS 可用（`SslStream`），且服务器证书有效。
+- **拉取收消息与关闭**：`ReceiveMessageAsync` 在连接关闭或取消时返回 null；关闭与等待登记之间有互斥保护，恰好在关闭瞬间发起的等待同样立即返回，不会永久挂起（不传取消令牌也成立）。
+- **收到 Close 自动回写**：RFC 6455 §5.5.1 要求收到对端 Close 时回写关闭帧。客户端自动应答（可发送码回显同码同描述、保留码回 `1002`、无状态码回空负载关闭帧）并关闭连接；拉取 API 仍会先交付该 Close 消息（含状态码），随后返回 null。应用主动 `CloseAsync` 与自动回写并发时只发出第一帧关闭帧，不重复发送。
+- **wss:// 自动启用 TLS**：`wss://` 方案即语义，客户端按地址方案自动启用 TLS（协议版本交给运行时协商，可用 TLS1.3）；需要固定版本时显式设置 `SslProtocol`。证书有效性与 .NET Framework 上的 `SslStream` 可用性仍需自行确认。
 - **服务端会话隔离**：每条连接对应一个 `WebSocketSession` 实例，不要在多个 Session 之间共享状态，否则需加锁。
-- **消息分片**：当前实现中 `Fin=false` 的分片帧会被丢弃，仅处理完整帧（FIN=1）；应用层发送时无需分片。
+- **消息分片**：`Fin=false` 的数据帧按 RFC 6455 §5.4 累积，末片（FIN=1）合并为完整消息后交付；控制帧不可分片。应用层发送时无需自行分片。
+- **帧校验**：服务端与客户端两侧对称——服务端方向，客户端帧必须带掩码，控制帧必须 `Fin=true` 且负载不超过 125 字节；客户端方向，服务端帧不得带掩码（RFC 6455 §5.1），控制帧约束相同。违规帧按协议错误以 1002 失败连接，客户端侧违规帧不进入事件链与拉取队列；RSV1~RSV3 非零或保留 opcode 视为损坏帧，连接以 1002 关闭。
+- **关闭码按 RFC 口径区分**：协议错误（含孤立续片）回 `1002`、文本消息负载非法 UTF-8 回 `1007`、单帧或分片消息超上限回 `1009`；服务端的单帧上限（`WebSocket.MaxFrameSize`，默认 16M，0 为不限）对"整帧一次到达"的帧同样生效，客户端含 `WebSocketClient` 同口径。
+- **心跳与销毁**：`WebSocketClient` 的心跳 Ping 由 `TimerX` 驱动（`KeepAlive`，默认 120 秒；`PongTimeout` 大于 0 时检测 Pong 超时），连接关闭或客户端 `Dispose` 都会释放该定时器，释放后不再发送 Ping。

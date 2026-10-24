@@ -331,7 +331,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
     public virtual IDisposable? AcquireLock(String key, Int32 msTimeout)
     {
         var rlock = new CacheLock(this, key);
-        if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
+        if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException(L.T("Lock [{0}] failed! msTimeout={1}", key, msTimeout));
 
         return rlock;
     }
@@ -360,7 +360,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         var rlock = new CacheLock(this, key);
         if (!rlock.Acquire(msTimeout, msExpire))
         {
-            if (throwOnFailure) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
+            if (throwOnFailure) throw new InvalidOperationException(L.T("Lock [{0}] failed! msTimeout={1}", key, msTimeout));
 
             return null;
         }
@@ -414,7 +414,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
     public virtual Int64 Bench(Boolean rand = false, Int32 batch = 0)
     {
         var cpu = Environment.ProcessorCount;
-        XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，批大小[{batch}]，逻辑处理器 {cpu:n0} 个");
+        XTrace.WriteLine("{0} performance test [{1}], batch size [{2}], logical processors {3:n0}", Name, rand ? L.TLog("random") : L.TLog("sequential"), batch, cpu);
 
         var rs = 0L;
         var times = GetTimesPerThread(rand, batch);
@@ -475,7 +475,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         if (threads <= 0) threads = Environment.ProcessorCount;
         if (times <= 0) times = threads * 1_000;
 
-        XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
+        XTrace.WriteLine("Testing {0:n0} items with {1,3:n0} threads", times, threads);
 
         var rs = 3L;
 
@@ -560,8 +560,10 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         }
         sw.Stop();
 
-        var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"读取 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
+        var ms = sw.ElapsedMilliseconds;
+        // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
+        var speed = times * 1000 / (ms > 0 ? ms : 1);
+        XTrace.WriteLine("Read: {0,7:n0} ms, {1,11:n0} ops", ms, speed);
 
         return times + 1;
     }
@@ -635,8 +637,10 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         }
         sw.Stop();
 
-        var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"赋值 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
+        var ms = sw.ElapsedMilliseconds;
+        // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
+        var speed = times * 1000 / (ms > 0 ? ms : 1);
+        XTrace.WriteLine("Set: {0,7:n0} ms, {1,11:n0} ops", ms, speed);
 
         return times + 1;
     }
@@ -707,8 +711,10 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         }
         sw.Stop();
 
-        var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"删除 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
+        var ms = sw.ElapsedMilliseconds;
+        // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
+        var speed = times * 1000 / (ms > 0 ? ms : 1);
+        XTrace.WriteLine("Delete: {0,7:n0} ms, {1,11:n0} ops", ms, speed);
 
         return times + 1;
     }
@@ -759,8 +765,10 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
         }
         sw.Stop();
 
-        var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"累加 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
+        var ms = sw.ElapsedMilliseconds;
+        // 耗时不足1ms时按1ms计，避免整毫秒作除数时除零
+        var speed = times * 1000 / (ms > 0 ? ms : 1);
+        XTrace.WriteLine("Increment: {0,7:n0} ms, {1,11:n0} ops", ms, speed);
 
         return times + 1;
     }

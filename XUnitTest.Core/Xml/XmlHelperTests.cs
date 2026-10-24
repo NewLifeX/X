@@ -6,6 +6,9 @@ namespace XUnitTest.Xml;
 
 public class XmlHelperTests
 {
+    /// <summary>本进程专属的临时目录。固定名字会被并行运行的多个目标框架相互删改，故带上进程级随机后缀</summary>
+    private static readonly String _tempDir = Path.Combine(Path.GetTempPath(), "XmlHelperTests_" + Guid.NewGuid().ToString("N")[..8]);
+
     #region 测试实体
     public class TestModel
     {
@@ -144,7 +147,7 @@ public class XmlHelperTests
     [Fact(DisplayName = "序列化到文件并反序列化回来")]
     public void ToXmlFile_RoundTrip()
     {
-        var dir = Path.Combine(Path.GetTempPath(), "XmlHelperTests");
+        var dir = _tempDir;
         var file = Path.Combine(dir, "test_model.xml");
 
         try
@@ -234,7 +237,7 @@ public class XmlHelperTests
     [Fact(DisplayName = "字典文件序列化")]
     public void DictionaryToXmlFile()
     {
-        var dir = Path.Combine(Path.GetTempPath(), "XmlHelperTests");
+        var dir = _tempDir;
         var file = Path.Combine(dir, "dic.xml");
 
         try

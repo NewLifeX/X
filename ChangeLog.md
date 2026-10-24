@@ -1,5 +1,40 @@
 # NewLife.Core 版本更新记录
 
+## v12.0.2026.0927 (2026-09-27)
+
+### 破坏性变更（升级须知）
+- **数据包所有权模型重写**：`OwnerPacket` 引入引用计数内核，`Slice` 返回具体类型并支持 `using` 释放；三参 `Slice`、`OwnerPacket.Free`、`Rent`/`Return` 兼容壳已按 v12 清单删除，基于旧版编译的调用方将抛 `MissingMethodException`，需随大版本重编译
+- **消息与协议契约重建**：`IMessage` 承载方向语义（`Kind`/`Reply`/`OneWay`/`CreateReply`），消息不再池化；帧读写归 `IFrameMessage`（`ReadFrame`/`Build`/`BuildHeader`），旧名桥 `Read`/`ToPacket`/`ToHeaderPacket` 删除；`WebSocketMessage` 独立化不再继承 `Message`
+- **编解码器单栈化**：`PacketCodec`/`PacketFramer` 与 `NewLife.Net.Handlers` 处理器体系（`StandardCodec` 等 6 个）整删，统一为 `MessagePump` 帧泵 + 无状态 `IMessageCodec`
+- **过时类型清理**（分三批）：`Packet` 类、`IPacketEncoder`、`NewLife.Net.Setting` 别名、`IAsyncEventBus` 等删除
+
+### 新增功能
+- **数据管道**：`Pipe`/`PipeReader`/`PipeWriter` 与 `LimitedReader`，对齐 System.IO.Pipelines 形态，支持背压水位与读饥饿让位
+- **帧泵与协议**：`MessagePump`（头到齐即交付、小帧零拷贝快路径、大帧流式体、`MaxCache` 残余防护）、`SequenceReader` 全 18 TFM 垫片、SRMP 服务端并行派发
+- **WebSocket**：分片自动重组（RFC 6455 §5.4）、握手异步化进入打开链路、服务端与客户端共用帧解析
+- **网络传输**：Unix 域套接字（UDS）、`AutoReceive` 接收模式二选一、发送泵异步化与背压感知发送 API
+
+### 性能
+- UDP 会话查找改端点键缓存，服务端每包分配降低约 35%
+- 接收环复用 `OwnerPacket` 句柄，轮末回挂接收槽省去每轮新建
+- 压缩编解码器改为流式进出，消除冗余拷贝
+
+### Bug 修复
+- **[fix]** 安全：`SecurityHelper` 旧框架分支释放哈希算法实例与 `ICryptoTransform`
+- **[fix]** HTTP：非法 `Content-Length` 回 400、HEAD 不再发送实体、无实体响应不声明长度、分块解析消费 trailers、路径缓存独立原子计数
+- **[fix]** WebSocket：握手校验失败不再静默接管连接、握手头按令牌列表解析、入站帧补齐 RFC 6455 校验（RSV/保留 opcode/掩码方向/控制帧长度）
+- **[fix]** 数据包：构造拒绝越界偏移、链式追加环检测、空首节点扩展头部不再产生负偏移
+- **[fix]** 管道：背压改按未检查记账（修复取消信号与完成异常丢失）、`SpanReader` 流式扩容池缓冲可归还、入站管道关闭释放读侧残余
+- **[fix]** 会话：UDP 客户端模式关闭释放套接字、UDP 体绑定与并发信号量释放、接受环递归深度限制、HTTP 会话整包判空并清理悬空引用
+- **[fix]** 协议：长度字段非法值按损坏帧上报、帧泵区分已定界待整帧、压缩协议限制解压上限防解压炸弹
+- **[fix]** 其他：SSL 会话断线感知归一、`NetClient` 重连释放旧实例、升级检查遍历全部镜像地址、控制器仅暴露公开方法、网络变化只清自身缓存
+
+### 测试与质量
+- 补充协议契约、数据所有权、管道、WebSocket 校验、HTTP 边界等回归测试，全量 2984 项通过
+- 新增 NetLoadTest 压测程序与裸 Socket 性能报告（吞吐/延迟/分配基线）
+
+---
+
 ## v11.19.2026.0901 (2026-09-01)
 
 ### 新增功能

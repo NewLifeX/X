@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+  <PropertyGroup>
+    <!-- net6.0 是库支持的最低现代 TFM：net8/9/10 的测试矩阵覆盖不到它，单独建项目复用 XUnitTest.Core 的重要用例 -->
+    <TargetFrameworks>net6.0;net6.0-windows</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>XUnitTest</RootNamespace>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+    <OutputPath>..\Bin\UnitTest6</OutputPath>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <IsTestProject>true</IsTestProject>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
+    <NoWarn>1701;1702;CA1416;CS8632</NoWarn>
+    <!-- Test.Sdk 17.12 提供 netcoreapp3.1 testhost，需允许向上滚动到已安装的 .NET 6 运行时 -->
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 直接编译 XUnitTest.Core 的单元测试源码（不含 Integration/Net/Http/Remoting 等重型区域），保持单一副本 -->
+    <Compile Include="..\XUnitTest.Core\GeoArea.cs" Link="GeoArea.cs" />
+    <Compile Include="..\XUnitTest.Core\PropertyInfo.cs" Link="PropertyInfo.cs" />
+    <Compile Include="..\XUnitTest.Core\Algorithms\**\*.cs" LinkBase="Algorithms" />
+    <Compile Include="..\XUnitTest.Core\Buffers\**\*.cs" LinkBase="Buffers" />
+    <Compile Include="..\XUnitTest.Core\Caching\**\*.cs" LinkBase="Caching" />
+    <Compile Include="..\XUnitTest.Core\Collections\**\*.cs" LinkBase="Collections" />
+    <Compile Include="..\XUnitTest.Core\Common\**\*.cs" LinkBase="Common" />
+    <Compile Include="..\XUnitTest.Core\Compatibility\**\*.cs" LinkBase="Compatibility" />
+    <!-- TarFileTests 使用 System.Formats.Tar（net7.0+），net6.0 下不可用 -->
+    <Compile Include="..\XUnitTest.Core\Compression\**\*.cs" Exclude="..\XUnitTest.Core\Compression\TarFileTests.cs" LinkBase="Compression" />
+    <Compile Include="..\XUnitTest.Core\Configuration\**\*.cs" LinkBase="Configuration" />
+    <Compile Include="..\XUnitTest.Core\Data\**\*.cs" LinkBase="Data" />
+    <Compile Include="..\XUnitTest.Core\Event\**\*.cs" LinkBase="Event" />
+    <Compile Include="..\XUnitTest.Core\Exceptions\**\*.cs" LinkBase="Exceptions" />
+    <Compile Include="..\XUnitTest.Core\Extension\**\*.cs" LinkBase="Extension" />
+    <Compile Include="..\XUnitTest.Core\IO\**\*.cs" LinkBase="IO" />
+    <Compile Include="..\XUnitTest.Core\Log\**\*.cs" LinkBase="Log" />
+    <Compile Include="..\XUnitTest.Core\Messaging\**\*.cs" LinkBase="Messaging" />
+    <Compile Include="..\XUnitTest.Core\Model\**\*.cs" LinkBase="Model" />
+    <Compile Include="..\XUnitTest.Core\Reflection\**\*.cs" LinkBase="Reflection" />
+    <Compile Include="..\XUnitTest.Core\Security\**\*.cs" LinkBase="Security" />
+    <Compile Include="..\XUnitTest.Core\Serialization\**\*.cs" LinkBase="Serialization" />
+    <Compile Include="..\XUnitTest.Core\Threading\**\*.cs" LinkBase="Threading" />
+    <Compile Include="..\XUnitTest.Core\Web\**\*.cs" LinkBase="Web" />
+    <Compile Include="..\XUnitTest.Core\Xml\**\*.cs" LinkBase="Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\XUnitTest.Core\appsettings.json" Link="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\XUnitTest.Core\xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\XUnitTest.Core\Algorithms\sampled.csv" Link="Algorithms\sampled.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\XUnitTest.Core\Algorithms\source.csv" Link="Algorithms\source.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\XUnitTest.Core\Algorithms\source2.csv" Link="Algorithms\source2.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\XUnitTest.Core\Serialization\StarAgent.config" Link="Serialization\StarAgent.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\XUnitTest.Core\certs\newlifex.com.pem" Link="certs\newlifex.com.pem" />
+    <EmbeddedResource Include="..\XUnitTest.Core\certs\newlifex.com.pfx" Link="certs\newlifex.com.pfx" />
+    <EmbeddedResource Include="..\XUnitTest.Core\certs\newlifex.com.privatekey.pem" Link="certs\newlifex.com.privatekey.pem" />
+    <EmbeddedResource Include="..\XUnitTest.Core\IO\excel.xlsx" Link="IO\excel.xlsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="6.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <!-- ReflectTests/XmlTest 使用 NewLife.IoT 与 NewLife.Modbus 的类型做反射与序列化验证（与 XUnitTest.Core 保持同一依赖） -->
+    <PackageReference Include="NewLife.Modbus" Version="2.1.2026.902-beta1359" />
+    <PackageReference Include="NewLife.UnitTest" Version="1.1.2026.301-beta0617" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <!-- System.Management：NewLife.Core 传递引入的 9.0.5 只带 netstandard2.0 占位实现（WMI 调用在 net6.0 下抛 PlatformNotSupported），
+       显式改用带 net6.0 实现的 6.0.2；库侧仅通过反射调用 WMI，运行时以本项目版本为准，故此处的版本降级告警可忽略 -->
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+    <PackageReference Include="System.Management" Version="6.0.2" NoWarn="NU1605" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+</Project>

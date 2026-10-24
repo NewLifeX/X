@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Security.Cryptography;
 using NewLife.Log;
@@ -126,7 +127,9 @@ public class HttpConfigProvider : ConfigProvider
         }
         catch (Exception ex)
         {
+            // 远端拉取失败：保留不抛异常语义，由调用方按返回值判断；同时输出警告，避免故障被静默掩盖
             if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+            XTrace.Log.Warn("[{0}] Failed to pull configuration from the configuration center at {1}: {2}", AppId, Server, ex.Message);
 
             return null;
         }
@@ -225,10 +228,10 @@ public class HttpConfigProvider : ConfigProvider
                 SaveCache(dic);
             }
 
-            // 自动更新
+            // 自动更新。即使本次拉取失败也保持定时器，等待服务恢复
             if (Period > 0) InitTimer();
 
-            return true;
+            return dic != null;
         }
         catch (Exception ex)
         {
@@ -317,7 +320,7 @@ public class HttpConfigProvider : ConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    public override void Bind<T>(T model, Boolean autoReload = true, String? path = null)
+    public override void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, Boolean autoReload = true, String? path = null)
     {
         base.Bind(model, autoReload, path);
 
@@ -347,13 +350,14 @@ public class HttpConfigProvider : ConfigProvider
     protected void DoRefresh(Object? state)
     {
         var dic = GetAll();
+        // 远端拉取失败（GetAll 已输出警告），保留现有配置树，等待下次刷新
         if (dic == null) return;
 
         var changed = DetectChanges(dic);
 
         if (changed.Count > 0)
         {
-            XTrace.WriteLine("[{0}]配置改变，重新加载如下键：{1}", AppId, changed.ToJson());
+            XTrace.WriteLine("[{0}] Configuration changed; reloading keys: {1}", AppId, changed.ToJson());
 
             Root = Build(dic);
 

@@ -72,7 +72,9 @@ namespace XUnitTest.Model
                 var set = NewLife.Setting.Current;
                 if (set.IsNew)
                 {
-                    set.DataPath = "../Data";
+                    // 仅模拟“首次运行初始化配置并落盘”，不能改写 DataPath 等决定全局工作目录的字段：
+                    // 它们会被保存进 Core.config 并被后续用例（如 SevenZip/TarFile）读取，
+                    // 一旦指向输出目录之外，多个目标框架并行运行时会共用同一批临时文件而互相破坏
                     set.Save();
                 }
 

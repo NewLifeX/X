@@ -158,8 +158,8 @@ public class XmlConfigProvider : FileConfigProvider
         {
             if (item.Key.IsNullOrEmpty()) continue;
 
-            // 写注释
-            if (!item.Comment.IsNullOrEmpty()) writer.WriteComment(item.Comment);
+            // 写注释，按当前语言翻译英文源文
+            if (!item.Comment.IsNullOrEmpty()) writer.WriteComment(item.Comment.LocalizeComment());
 
             var cs = item.Childs;
             if (cs != null)

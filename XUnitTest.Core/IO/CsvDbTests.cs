@@ -25,6 +25,13 @@ public class CsvDbTests
         return db;
     }
 
+    /// <summary>事务用例使用的文件路径</summary>
+    /// <remarks>
+    /// 派生类 <see cref="CsvDbWithTransactionTests"/> 会并行重跑本类的全部用例，
+    /// 文件名必须按实际类型区分，否则两个实例会对同一文件又删又建而互相破坏断言
+    /// </remarks>
+    protected virtual String GetTxnPath(String name) => $"data/{name}_{GetType().Name}.csv".GetFullPath();
+
     private GeoArea GetModel()
     {
         var model = new GeoArea
@@ -442,7 +449,7 @@ public class CsvDbTests
     [Fact]
     public void Transaction_CommitOnDispose()
     {
-        var file = "data/TxnCommit.csv".GetFullPath();
+        var file = GetTxnPath("TxnCommit");
         if (File.Exists(file)) File.Delete(file);
         var db = new CsvDb<GeoArea>((a,b)=>a.Code==b.Code){ FileName = file };
         db.BeginTransaction();
@@ -457,7 +464,7 @@ public class CsvDbTests
     [Fact]
     public void Transaction_Rollback()
     {
-        var file = "data/TxnRollback.csv".GetFullPath();
+        var file = GetTxnPath("TxnRollback");
         if (File.Exists(file)) File.Delete(file);
         var db = new CsvDb<GeoArea>((a,b)=>a.Code==b.Code){ FileName = file };
         db.BeginTransaction();
@@ -470,7 +477,7 @@ public class CsvDbTests
     [Fact]
     public void Transaction_ClearThenCommit()
     {
-        var file = "data/TxnClear.csv".GetFullPath();
+        var file = GetTxnPath("TxnClear");
         if (File.Exists(file)) File.Delete(file);
         var db = new CsvDb<GeoArea>((a,b)=>a.Code==b.Code){ FileName = file };
         db.BeginTransaction();

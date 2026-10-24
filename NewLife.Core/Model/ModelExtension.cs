@@ -1,4 +1,5 @@
 ﻿using NewLife.Data;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NewLife.Model;
 
@@ -28,7 +29,7 @@ public static class ModelExtension
         if (provider == null) throw new ArgumentNullException(nameof(provider));
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
-        return provider.GetService(serviceType) ?? throw new InvalidOperationException($"Unregistered type {serviceType.FullName}");
+        return provider.GetService(serviceType) ?? throw new InvalidOperationException(L.T("Unregistered type {0}", serviceType.FullName));
     }
 
     /// <summary>获取必要的服务，不存在时抛出异常</summary>
@@ -47,6 +48,7 @@ public static class ModelExtension
     /// <param name="provider">服务提供者</param>
     /// <param name="serviceType">服务类型</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "服务提供者按运行时类型解析服务；AOT 下请使用泛型 GetService<T>()")]
     public static IEnumerable<Object> GetServices(this IServiceProvider provider, Type serviceType)
     {
         //var sp = provider as ServiceProvider;

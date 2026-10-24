@@ -75,7 +75,7 @@ public class ICacheContractTests
         cache.Set(key, "will_expire", 1); // 1 秒过期
         Assert.Equal("will_expire", cache.Get<String>(key));
 
-        await Task.Delay(1500);
+        await Task.Delay(1100);
         // 已过期，不应返回值
         var val = cache.Get<String>(key);
         Assert.Null(val);

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Mobile.Stardust</RootNamespace>
+    <AssemblyName>Mobile.Stardust.Core</AssemblyName>
+    <Description>可选星尘接入：复用 NewLife.Core MachineInfo，适配 StarAgent.Mobile 的移动代理</Description>
+    <OutputPath>..\..\Bin\Mobile.Stardust.Core</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <IsTrimmable>false</IsTrimmable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NewLife.Stardust" Version="3.10.2026.1018-beta1738" />
+    <!-- 显式提升 Remoting，匹配 NewLife.Core 12.0；Stardust 3.10.2026.901 默认依赖 3.9.2026.901（Core 11.19），
+         与本地 Core 12.0 混用会在 ApiHost 虚方法签名上触发 TypeLoadException -->
+    <PackageReference Include="NewLife.Remoting" Version="3.9.2026.1019-beta1013" />
+    <ProjectReference Include="..\..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+</Project>

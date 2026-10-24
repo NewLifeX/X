@@ -1,9 +1,9 @@
 ﻿using System.Net.Http.Headers;
 using System.Diagnostics;
+using System.Threading;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
 using NewLife.Web;
 
 namespace NewLife.Http;
@@ -42,6 +42,15 @@ public class TokenHttpFilter : IHttpFilter
     private DateTime _refresh;
     private readonly Object _lock = new();
 
+    /// <summary>本异步流是否正处于"申请/刷新令牌"过程。用于识别自身令牌请求，避免重入与自我等待</summary>
+#if NET45
+    // net45 无 AsyncLocal，退回线程本地（与 IHttpContext.Current 同一降级口径）。
+    // 异步续体切线程后标记可能丢失，此时仍由 IsTokenAction 的路径匹配兜底
+    private readonly ThreadLocal<Boolean> _inTokenCall = new();
+#else
+    private readonly AsyncLocal<Boolean> _inTokenCall = new();
+#endif
+
     /// <summary>清空令牌的错误码。默认401和403</summary>
     public IList<Int32> ErrorCodes { get; set; } = [ApiCode.Unauthorized, ApiCode.Forbidden];
     #endregion
@@ -71,9 +80,13 @@ public class TokenHttpFilter : IHttpFilter
     {
         if (request.Headers.Authorization != null) return;
 
+        // 申请/刷新令牌的内部请求（同一异步流重入）直接放行：否则会自己给自己取令牌，并与外层申请互等 3 秒
+        if (_inTokenCall.Value) return;
+
         var uri = request.RequestUri;
+        // Action 可能带/不带前导斜杠，请求路径可能是相对或绝对地址，统一规范化后比较
         var path = client.BaseAddress == null ? uri?.AbsoluteUri : uri?.OriginalString;
-        if (path.StartsWithIgnoreCase(Action.EnsureStart("/"))) return;
+        if (IsTokenAction(path)) return;
 
         // 申请令牌。没有令牌，或者令牌已过期
         var now = DateTime.Now;
@@ -83,6 +96,8 @@ public class TokenHttpFilter : IHttpFilter
             // 防止并发申请令牌：Interlocked 原子操作确保只有一个线程执行网络调用
             if (Interlocked.CompareExchange(ref _acquiring, 1, 0) == 0)
             {
+                // 标记本异步流处于取令牌过程中，内层请求（SendAuth 发出的令牌请求）直接放行
+                _inTokenCall.Value = true;
                 try
                 {
                     token = await SendAuth(client, cancellationToken).ConfigureAwait(false);
@@ -100,16 +115,17 @@ public class TokenHttpFilter : IHttpFilter
                 }
                 finally
                 {
+                    _inTokenCall.Value = false;
                     _acquiring = 0;
                 }
             }
             else
             {
-                // 另一线程正在申请令牌，短暂等待后读取
+                // 另一线程正在申请令牌，短暂等待后读取。异步等待，不阻塞线程
                 var sw = Stopwatch.StartNew();
                 while (_acquiring != 0 && sw.ElapsedMilliseconds < 3000)
                 {
-                    Thread.Sleep(50);
+                    await Task.Delay(50).ConfigureAwait(false);
                 }
                 token = Token;
             }
@@ -121,6 +137,7 @@ public class TokenHttpFilter : IHttpFilter
             // 防止并发刷新
             if (Interlocked.CompareExchange(ref _refreshing, 1, 0) == 0)
             {
+                _inTokenCall.Value = true;
                 try
                 {
                     token = await SendRefresh(client, cancellationToken).ConfigureAwait(false);
@@ -138,11 +155,13 @@ public class TokenHttpFilter : IHttpFilter
                 }
                 catch (Exception ex)
                 {
-                    XTrace.WriteLine("刷新令牌异常 {0}", token?.ToJson());
+                    // 令牌凭据不得进日志：只记录令牌类型/到期时间/长度指纹，避免 access_token/refresh_token 明文泄露
+                    XTrace.WriteLine("Token refresh error: type={0} expire={1} accessLen={2} refreshLen={3}", token?.GetType().Name, Expire, token?.AccessToken?.Length ?? 0, token?.RefreshToken?.Length ?? 0);
                     XTrace.WriteException(ex);
                 }
                 finally
                 {
+                    _inTokenCall.Value = false;
                     _refreshing = 0;
                 }
             }
@@ -155,6 +174,20 @@ public class TokenHttpFilter : IHttpFilter
             if (type.IsNullOrEmpty() || type.EqualIgnoreCase("Token", "JWT")) type = "Bearer";
             request.Headers.Authorization = new AuthenticationHeaderValue(type, token.AccessToken);
         }
+    }
+
+    /// <summary>判断请求路径是否指向申请令牌的动作</summary>
+    /// <remarks>Action 可带或不带前导斜杠，请求路径可能是相对地址或完整 Url，逐种形态规范化比较</remarks>
+    /// <param name="path">请求路径</param>
+    /// <returns></returns>
+    protected virtual Boolean IsTokenAction(String? path)
+    {
+        if (path.IsNullOrEmpty() || Action.IsNullOrEmpty()) return false;
+
+        var action = Action.EnsureStart("/");
+        return path.StartsWithIgnoreCase(action)
+            || path.TrimStart('/').StartsWithIgnoreCase(action.TrimStart('/'))
+            || path.EndsWithIgnoreCase(action);
     }
 
     /// <summary>发起密码认证请求</summary>

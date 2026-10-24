@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Reflection;
 
 namespace NewLife.Configuration;
@@ -56,31 +57,31 @@ public interface IConfigProvider
     Boolean SaveAll();
 
     /// <summary>加载配置到模型</summary>
-    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射</typeparam>
+    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射。AOT 下该类型的公开属性与字段将按需保留</typeparam>
     /// <param name="path">路径/命名空间。配置树位置，配置中心等多对象混合使用时</param>
     /// <returns>模型实例；未找到对应配置时返回默认实例或 null（由实现决定）</returns>
-    T? Load<T>(String? path = null) where T : new();
+    T? Load<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(String? path = null) where T : new();
 
     /// <summary>保存模型实例</summary>
-    /// <typeparam name="T">模型类型</typeparam>
+    /// <typeparam name="T">模型类型。AOT 下该类型的公开属性与字段将按需保留</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">路径/命名空间。配置树位置，配置中心等多对象混合使用时</param>
     /// <returns>true 表示保存成功；false 表示失败</returns>
-    Boolean Save<T>(T model, String? path = null);
+    Boolean Save<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, String? path = null);
 
     /// <summary>绑定模型以实现热更新：配置数据变化时同步修改模型属性</summary>
-    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射</typeparam>
+    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射。AOT 下该类型的公开属性与字段将按需保留</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新（默认 true）</param>
     /// <param name="path">路径/命名空间。配置树位置，配置中心等多对象混合使用时</param>
-    void Bind<T>(T model, Boolean autoReload = true, String? path = null);
+    void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, Boolean autoReload = true, String? path = null);
 
     /// <summary>绑定模型以实现热更新：配置变化时回调自定义逻辑</summary>
-    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射</typeparam>
+    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射。AOT 下该类型的公开属性与字段将按需保留</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">路径/命名空间。配置树位置，配置中心等多对象混合使用时</param>
     /// <param name="onChange">配置改变时执行的委托</param>
-    void Bind<T>(T model, String path, Action<IConfigSection> onChange);
+    void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, String path, Action<IConfigSection> onChange);
 }
 
 /// <summary>配置提供者基类</summary>
@@ -186,6 +187,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
 
     #region 加载/保存
     /// <summary>从数据源加载数据到配置树</summary>
+    /// <returns>是否加载成功。返回 false 时保持未加载状态，下次访问将重试</returns>
     public virtual Boolean LoadAll() => true;
 
     private volatile Boolean _loaded;
@@ -198,16 +200,15 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         {
             if (_loaded) return;
 
-            LoadAll();
-
-            _loaded = true;
+            // 仅在加载成功时标记，失败保持未加载状态以便下次访问重试；并发重复加载可接受
+            _loaded = LoadAll();
         }
     }
 
     /// <summary>加载配置到模型</summary>
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    public virtual T? Load<T>(String? path = null) where T : new()
+    public virtual T? Load<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(String? path = null) where T : new()
     {
         EnsureLoad();
 
@@ -236,7 +237,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <typeparam name="T">模型</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置</param>
-    public virtual Boolean Save<T>(T model, String? path = null)
+    public virtual Boolean Save<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, String? path = null)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
@@ -259,7 +260,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-    public virtual void Bind<T>(T model, Boolean autoReload = true, String? path = null)
+    public virtual void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, Boolean autoReload = true, String? path = null)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
@@ -287,7 +288,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
     /// <param name="onChange">配置改变时执行的委托</param>
-    public virtual void Bind<T>(T model, String path, Action<IConfigSection> onChange)
+    public virtual void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, String path, Action<IConfigSection> onChange)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
@@ -345,6 +346,17 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
 
     static ConfigProvider()
     {
+        // 先注册内建提供者，再解析默认提供者名称。
+        // 解析过程会初始化 Runtime，其中的 Type.GetType 会触发程序集解析回调，
+        // 回调可能同步递归访问配置；若此时注册表为空，递归调用会抛出“找不到内建提供者”，
+        // 且被毒化的 Config<T> 类型初始化永久失败
+        Register<IniConfigProvider>("ini");
+        Register<XmlConfigProvider>("xml");
+        Register<JsonConfigProvider>("json");
+        Register<HttpConfigProvider>("http");
+
+        Register<XmlConfigProvider>("config");
+
         // 支持从命令行参数和环境变量设定默认配置提供者
         var str = "";
         var args = Environment.GetCommandLineArgs();
@@ -358,13 +370,6 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         }
         if (str.IsNullOrEmpty()) str = NewLife.Runtime.GetEnvironmentVariable("DefaultConfig");
         if (!str.IsNullOrEmpty()) DefaultProvider = str;
-
-        Register<IniConfigProvider>("ini");
-        Register<XmlConfigProvider>("xml");
-        Register<JsonConfigProvider>("json");
-        Register<HttpConfigProvider>("http");
-
-        Register<XmlConfigProvider>("config");
     }
 
     private static readonly ConcurrentDictionary<String, Type> _providers = new(StringComparer.OrdinalIgnoreCase);
@@ -388,7 +393,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         var p = name.LastIndexOf('.');
         var ext = p >= 0 ? name[(p + 1)..] : name;
         if (!_providers.TryGetValue(ext, out _)) ext = DefaultProvider;
-        if (!_providers.TryGetValue(ext, out var type)) throw new Exception($"Unable to find an appropriate configuration provider for [{name}]");
+        if (!_providers.TryGetValue(ext, out var type)) throw new Exception(L.T("Unable to find an appropriate configuration provider for [{0}]", name));
 
         var config = type.CreateInstance() as IConfigProvider;
 

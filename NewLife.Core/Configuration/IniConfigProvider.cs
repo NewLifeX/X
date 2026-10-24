@@ -77,23 +77,23 @@ public class IniConfigProvider : FileConfigProvider
             {
                 // 段前空一行
                 sb.AppendLine();
-                // 注释
-                if (!item.Comment.IsNullOrEmpty()) sb.AppendLine("; " + item.Comment);
+                // 注释，按当前语言翻译英文源文
+                if (!item.Comment.IsNullOrEmpty()) sb.AppendLine("; " + item.Comment.LocalizeComment());
                 sb.AppendLine($"[{item.Key}]");
 
                 // 写入当前段
                 foreach (var elm in item.Childs.ToArray())
                 {
-                    // 注释
-                    if (!elm.Comment.IsNullOrEmpty()) sb.AppendLine("; " + elm.Comment);
+                    // 注释，按当前语言翻译英文源文
+                    if (!elm.Comment.IsNullOrEmpty()) sb.AppendLine("; " + elm.Comment.LocalizeComment());
 
                     sb.AppendLine($"{elm.Key} = {elm.Value}");
                 }
             }
             else
             {
-                // 注释
-                if (!item.Comment.IsNullOrEmpty()) sb.AppendLine("; " + item.Comment);
+                // 注释，按当前语言翻译英文源文
+                if (!item.Comment.IsNullOrEmpty()) sb.AppendLine("; " + item.Comment.LocalizeComment());
 
                 sb.AppendLine($"{item.Key} = {item.Value}");
             }
@@ -102,7 +102,3 @@ public class IniConfigProvider : FileConfigProvider
         return sb.ToString();
     }
 }
-
-/// <summary>Ini文件配置提供者</summary>
-[Obsolete("请使用 IniConfigProvider")]
-public class InIConfigProvider : IniConfigProvider { }

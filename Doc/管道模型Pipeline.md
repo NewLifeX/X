@@ -1,5 +1,7 @@
 # 管道模型Pipeline
 
+> ⚠️ **旧栈文档（v12 已退役）**：`IPipeline`/`Pipeline`/`Handler`/`IHandlerContext` 全家族已整删。现行数据流：协议模式经 `MessagePump` + `Received` 事件；需要旁路处理时使用会话 `INetHandler`（见《消息协议栈》§5.2）。
+
 ## 概述
 
 `IPipeline`/`Pipeline` 是 NewLife.Core 网络与消息处理的核心扩展机制，基于责任链模式将编解码、压缩、加密等逻辑拆分为独立的处理器节点，通过双向链表串联。每条连接对应独立的管道实例，收包（`Read`）沿头部到尾部正向传递，发包（`Write`）沿尾部到头部逆向传递。

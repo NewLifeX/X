@@ -2,7 +2,7 @@
 
 ## 概述
 
-`IPacketEncoder` 是 NewLife.Core 中对象与数据包（`IPacket`）之间双向转换的编码器接口。与 `PacketCodec`（网络粘包处理）不同，`IPacketEncoder` 关注的是"对象 ↔ 字节包"的序列化转换，支持多种类型的自动编码策略选择。
+`IPacketEncoder` 是 NewLife.Core 中对象与数据包（`IPacket`）之间双向转换的编码器接口。与 `PacketCodec`（网络粘包处理，v12 已退役）不同，`IPacketEncoder` 关注的是“对象 ↔ 字节包”的序列化转换，支持多种类型的自动编码策略选择。
 
 **命名空间**：`NewLife.Data`  
 **文档地址**：https://newlifex.com/core/packet_encoder

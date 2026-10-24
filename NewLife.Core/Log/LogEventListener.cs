@@ -46,7 +46,7 @@ public class LogEventListener : EventListener
         {
             _hash2.Add(eventSource.Name);
 
-            XTrace.WriteLine($"Source={eventSource.Name}");
+            XTrace.WriteLine("Source={0}", eventSource.Name);
         }
     }
 
@@ -68,25 +68,25 @@ public class LogEventListener : EventListener
         };
 
 #if NET45
-        XTrace.WriteLine($"#{eventData.EventSource?.Name} ID = {eventData.EventId}");
+        XTrace.WriteLine("#{0} ID = {1}", eventData.EventSource?.Name, eventData.EventId);
         for (var i = 0; i < eventData.Payload.Count; i++)
         {
-            XTrace.WriteLine($"\tValue = \"{eventData.Payload[i]}\"");
+            XTrace.WriteLine("\tValue = \"{0}\"", eventData.Payload[i]);
         }
 #elif NETFRAMEWORK || NETSTANDARD2_0
-        XTrace.WriteLine($"#{eventData.EventSource?.Name} ID = {eventData.EventId} Name = {eventData.EventName}");
+        XTrace.WriteLine("#{0} ID = {1} Name = {2}", eventData.EventSource?.Name, eventData.EventId, eventData.EventName);
         for (var i = 0; i < eventData.Payload.Count; i++)
         {
-            XTrace.WriteLine($"\tName = \"{eventData.PayloadNames[i]}\" Value = \"{eventData.Payload[i]}\"");
+            XTrace.WriteLine("\tName = \"{0}\" Value = \"{1}\"", eventData.PayloadNames[i], eventData.Payload[i]);
         }
 #else
-        XTrace.WriteLine($"#{eventData.EventSource?.Name} ThreadID = {eventData.OSThreadId} ID = {eventData.EventId} Name = {eventData.EventName}");
+        XTrace.WriteLine("#{0} ThreadID = {1} ID = {2} Name = {3}", eventData.EventSource?.Name, eventData.OSThreadId, eventData.EventId, eventData.EventName);
         var names = eventData.PayloadNames;
         if (eventData.Payload != null && names != null)
         {
             for (var i = 0; i < eventData.Payload.Count && i < names.Count; i++)
             {
-                XTrace.WriteLine($"\tName = \"{names[i]}\" Value = \"{eventData.Payload[i]}\"");
+                XTrace.WriteLine("\tName = \"{0}\" Value = \"{1}\"", names[i], eventData.Payload[i]);
             }
         }
 #endif

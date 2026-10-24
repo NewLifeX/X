@@ -196,17 +196,11 @@ public class Binary : FormatterBase, IBinary
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
         Stream.Write(buffer);
 #else
-        var array = ArrayPool<Byte>.Shared.Rent(buffer.Length);
-        try
-        {
-            buffer.CopyTo(array);
+        using var array = Pool.Rent(buffer.Length);
 
-            Stream.Write(array, 0, buffer.Length);
-        }
-        finally
-        {
-            ArrayPool<Byte>.Shared.Return(array);
-        }
+        buffer.CopyTo(array);
+
+        Stream.Write(array, 0, buffer.Length);
 #endif
         Total += buffer.Length;
     }
@@ -263,7 +257,7 @@ public class Binary : FormatterBase, IBinary
     public virtual Object? Read(Type type)
     {
         Object? value = null;
-        if (!TryRead(type, ref value)) throw new Exception($"Read failed, type {type} is not supported!");
+        if (!TryRead(type, ref value)) throw new Exception(L.T("Read failed, type {0} is not supported!", type));
 
         return value;
     }
@@ -327,13 +321,13 @@ public class Binary : FormatterBase, IBinary
     /// <returns></returns>
     public virtual Byte ReadByte()
     {
-        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+        if (EndOfStream) throw new EndOfStreamException(L.T("The data stream is out of range!"));
 
         var b = Stream.ReadByte();
         if (b < 0)
         {
             EndOfStream = true;
-            throw new EndOfStreamException("The data stream is out of range!");
+            throw new EndOfStreamException(L.T("The data stream is out of range!"));
         }
 
         // 探测数据流是否已经到达末尾
@@ -377,7 +371,7 @@ public class Binary : FormatterBase, IBinary
     {
         if (count == 0) return [];
 
-        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+        if (EndOfStream) throw new EndOfStreamException(L.T("The data stream is out of range!"));
 
         // 如果是-1，则读取全部剩余数据
         if (count < 0)
@@ -417,7 +411,6 @@ public class Binary : FormatterBase, IBinary
         return buffer;
     }
 
-#if NETCOREAPP || NETSTANDARD2_1
     /// <summary>从当前流中读取字节数组</summary>
     /// <param name="span">字节数组</param>
     /// <returns></returns>
@@ -425,12 +418,12 @@ public class Binary : FormatterBase, IBinary
     {
         if (span.Length == 0) return 0;
 
-        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+        if (EndOfStream) throw new EndOfStreamException(L.T("The data stream is out of range!"));
 
         var totalRead = 0;
         while (totalRead < span.Length)
         {
-            var bytesRead = Stream.Read(span.Slice(totalRead));
+            var bytesRead = ReadToSpan(Stream, span.Slice(totalRead));
             if (bytesRead <= 0)
             {
                 Total += totalRead;
@@ -448,7 +441,6 @@ public class Binary : FormatterBase, IBinary
 
         return totalRead;
     }
-#endif
 
     /// <summary>从当前流中读取字节数组</summary>
     /// <param name="buffer">字节数组</param>
@@ -459,7 +451,7 @@ public class Binary : FormatterBase, IBinary
     {
         if (count == 0) return 0;
 
-        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+        if (EndOfStream) throw new EndOfStreamException(L.T("The data stream is out of range!"));
 
         var totalRead = 0;
         while (totalRead < count)
@@ -669,7 +661,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 16) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 16) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return rs;
     }
@@ -690,7 +682,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 32) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return rs;
     }
@@ -711,7 +703,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 64) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return rs;
     }
@@ -732,7 +724,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 16) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 16) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return true;
     }
@@ -753,7 +745,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 32) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return true;
     }
@@ -774,7 +766,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
+            if (n >= 64) throw new FormatException(L.T("The number value is too large to read in compressed format!"));
         }
         return true;
     }
@@ -850,7 +842,8 @@ public class Binary : FormatterBase, IBinary
     /// <param name="max"></param>
     public void WriteBCD(String value, Int32 max)
     {
-        var buf = Pool.Shared.Rent(max);
+        using var buf = Pool.Rent(max);
+
         for (Int32 i = 0, j = 0; i < max && j + 1 < value.Length; i++, j += 2)
         {
             var a = (Byte)(value[j] - '0');
@@ -859,7 +852,6 @@ public class Binary : FormatterBase, IBinary
         }
 
         Write(buf, 0, max);
-        Pool.Shared.Return(buf);
     }
 
     /// <summary>写入定长字符串。多余截取，少则补零</summary>
@@ -868,15 +860,14 @@ public class Binary : FormatterBase, IBinary
     public void WriteFixedString(String? value, Int32 max)
     {
         var len = 0;
-        var buf = Pool.Shared.Rent(max);
+        using var buf = Pool.Rent(max);
+
         if (!value.IsNullOrEmpty()) len = Encoding.GetBytes(value, 0, value.Length, buf, 0);
 
         // 清空空白部分，避免出现脏数据
         if (len < max) Array.Clear(buf, len, max - len);
 
         Write(buf, 0, max);
-
-        Pool.Shared.Return(buf);
     }
 
     /// <summary>读取定长字符串。多余截取，少则补零</summary>
@@ -905,6 +896,27 @@ public class Binary : FormatterBase, IBinary
     #endregion
 
     #region 辅助
+#if NETCOREAPP || NETSTANDARD2_1
+    /// <summary>从流读取到 Span（BCL 直读）</summary>
+    /// <param name="stream">目标流</param>
+    /// <param name="span">目标字节数组</param>
+    /// <returns>实际读取的字节数</returns>
+    private static Int32 ReadToSpan(Stream stream, Span<Byte> span) => stream.Read(span);
+#else
+    /// <summary>从流读取到 Span。低 TFM 无 Stream.Read(Span&lt;Byte&gt;) 重载，经池化缓冲中转</summary>
+    /// <param name="stream">目标流</param>
+    /// <param name="span">目标字节数组</param>
+    /// <returns>实际读取的字节数</returns>
+    private static Int32 ReadToSpan(Stream stream, Span<Byte> span)
+    {
+        using var buffer = Pool.Rent(span.Length);
+        var n = stream.Read(buffer, 0, span.Length);
+        if (n > 0) buffer.Span.Slice(0, n).CopyTo(span);
+
+        return n;
+    }
+#endif
+
     ///// <summary>是否已达到末尾</summary>
     ///// <returns></returns>
     //public Boolean EndOfStream() => Stream.Position >= Stream.Length;
@@ -922,27 +934,43 @@ public class Binary : FormatterBase, IBinary
         {
             // 不支持Seek的流直接使用流模式。
             // 注意：SpanReader可能批量预读多余字节导致流位置超前，仅适用于整帧全部交由ISpanSerializable处理的场景
+            // 以 ref 传给 Read，不能用 using 变量声明，显式 try/finally 归还扩容借出的池缓冲
             var reader0 = new SpanReader(Stream)
             {
                 IsLittleEndian = IsLittleEndian,
                 EncodeInt = EncodeInt,
                 FullTime = FullTime,
             };
-            target.Read(ref reader0);
-            // 总消费量 = 已缓入span的总字节数 - 未消费剩余量；_total为私有，用 Available 间接推算
-            // reader0.Position 仅在未触发二次EnsureSpace时等于总消费量，此处以此为近似值
-            Total += reader0.Position;
+            try
+            {
+                target.Read(ref reader0);
+                // 总消费量 = 已缓入span的总字节数 - 未消费剩余量；_total为私有，用 Available 间接推算
+                // reader0.Position 仅在未触发二次EnsureSpace时等于总消费量，此处以此为近似值
+                Total += reader0.Position;
+            }
+            finally
+            {
+                reader0.Dispose();
+            }
+
             return;
         }
 
         var startPos = Stream.Position;
         var reader = new SpanReader(Stream) { IsLittleEndian = IsLittleEndian };
-        target.Read(ref reader);
+        try
+        {
+            target.Read(ref reader);
 
-        // SpanReader流模式可能预读了多余字节，需要回退未消费部分
-        var available = reader.Available;
-        if (available > 0) Stream.Seek(-available, SeekOrigin.Current);
-        Total += (Int32)(Stream.Position - startPos);
+            // SpanReader流模式可能预读了多余字节，需要回退未消费部分
+            var available = reader.Available;
+            if (available > 0) Stream.Seek(-available, SeekOrigin.Current);
+            Total += (Int32)(Stream.Position - startPos);
+        }
+        finally
+        {
+            reader.Dispose();
+        }
     }
     #endregion
 

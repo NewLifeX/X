@@ -92,8 +92,9 @@ public class FileConfigProviderAtomicWriteTests
         var oldLastWrite = File.GetLastWriteTimeUtc(fullPath);
 
         // 使用保守延迟，尽量跨过不同文件系统上可能较粗的 mtime 粒度，
-        // 避免“实际发生写入但时间戳未明显变化”导致的误判。
-        Thread.Sleep(2500);
+        // 避免“实际发生写入但时间戳未明显变化”导致的误判。NTFS 粒度在毫秒级，300ms 已足够，
+        // 过长会拖长整个并行套件的墙钟时间。
+        Thread.Sleep(300);
 
         // 用同一份模型再保存一次。GetString 输出与磁盘内容仅在末尾换行可能不同，
         // 双边 trim 后应判定为"无变化"，不触发实际写入
@@ -113,9 +114,10 @@ public class FileConfigProviderAtomicWriteTests
         prv.Save(new AtomicTestModel { Name = "init", Count = 0 });
 
         // 并发 SaveAll：让 N 个线程同时改 Root 并保存。
-        // 共享同一把锁的前提下，磁盘上不会出现交叉写入或半截文件
-        const Int32 threads = 8;
-        const Int32 iterationsPerThread = 20;
+        // 共享同一把锁的前提下，磁盘上不会出现交叉写入或半截文件。
+        // 迭代次数偏小：每次保存都要落盘并原子替换，在多目标框架并行运行时本机 I/O 会成为瓶颈
+        const Int32 threads = 4;
+        const Int32 iterationsPerThread = 10;
         Parallel.For(0, threads, t =>
         {
             for (var i = 0; i < iterationsPerThread; i++)

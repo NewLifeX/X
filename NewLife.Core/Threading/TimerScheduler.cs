@@ -71,7 +71,7 @@ public class TimerScheduler : IDisposable, ILogFeature
         if (_disposing) return;
         _disposing = true;
 
-        WriteLog("正在销毁定时调度器：{0}", Name);
+        WriteLog("Destroying timer scheduler: {0}", Name);
 
         // 先设置退出标志，然后唤醒调度线程
         Wake();
@@ -85,7 +85,7 @@ public class TimerScheduler : IDisposable, ILogFeature
 #if NETFRAMEWORK
                 try
                 {
-                    WriteLog("调度线程未能在5秒内退出，强制终止");
+                    WriteLog("The scheduler thread did not exit within 5 seconds; forcing termination.");
                     // 在.NET Framework中可以使用Abort，但在现代.NET中已移除
                     th.Abort();
                 }
@@ -162,7 +162,7 @@ public class TimerScheduler : IDisposable, ILogFeature
                 };
                 thread.Start();
 
-                WriteLog("启动定时调度器：{0}", Name);
+                WriteLog("Starting timer scheduler: {0}", Name);
             }
 
             Wake();
@@ -226,7 +226,7 @@ public class TimerScheduler : IDisposable, ILogFeature
                 {
                     if (Timers.Length == 0 && _period == 60_000)
                     {
-                        WriteLog("没有可用任务，销毁线程");
+                        WriteLog("No tasks available; destroying the thread.");
 
                         thread = null;
 
@@ -282,7 +282,7 @@ public class TimerScheduler : IDisposable, ILogFeature
             if (_period > 0) _waitForTimer.WaitOne(_period, true);
         }
 
-        WriteLog("调度线程已退出：{0}", Name);
+        WriteLog("Scheduler thread exited: {0}", Name);
     }
 
     /// <summary>检查定时器是否到期</summary>
@@ -296,7 +296,7 @@ public class TimerScheduler : IDisposable, ILogFeature
         if (p is < 10 and > 0)
         {
             // 周期0表示只执行一次
-            if (p is < 10 and > 0) XTrace.WriteLine("为了避免占用过多CPU资源，TimerX禁止小于{1}ms<10ms的任务调度，关闭任务{0}", timer, p);
+            if (p is < 10 and > 0) XTrace.WriteLine("To avoid excessive CPU usage, TimerX rejects task scheduling with intervals below 10 ms ({1} ms); task {0} is disabled.", timer, p);
             timer.Dispose();
             return false;
         }
@@ -335,7 +335,7 @@ public class TimerScheduler : IDisposable, ILogFeature
             var target = timer.Target.Target;
             if (target == null && !timer.Method.IsStatic)
             {
-                Remove(timer, "委托已不存在（GC回收委托所在对象）");
+                Remove(timer, "The delegate target has been collected by GC");
                 timer.Dispose();
                 return;
             }
@@ -381,7 +381,7 @@ public class TimerScheduler : IDisposable, ILogFeature
             var target = timer.Target.Target;
             if (target == null && !timer.Method.IsStatic)
             {
-                Remove(timer, "委托已不存在（GC回收委托所在对象）");
+                Remove(timer, "The delegate target has been collected by GC");
                 timer.Dispose();
                 return;
             }
@@ -409,7 +409,7 @@ public class TimerScheduler : IDisposable, ILogFeature
     {
         timer.Cost = timer.Cost == 0 ? ms : (timer.Cost + ms) / 2;
 
-        if (ms > MaxCost && !timer.Async && !timer.IsAsyncTask) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms，建议使用异步任务Async=true", timer, ms);
+        if (ms > MaxCost && !timer.Async && !timer.IsAsyncTask) XTrace.WriteLine("Task {0} took too long ({1:n0} ms); consider using an async task (Async=true).", timer, ms);
 
         timer.Timers++;
         OnFinish(timer);
@@ -452,6 +452,6 @@ public class TimerScheduler : IDisposable, ILogFeature
     /// <summary>日志</summary>
     public ILog Log { get; set; } = Logger.Null;
 
-    private void WriteLog(String format, params Object?[] args) => Log?.Info(Name + format, args);
+    private void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed(Name, format, args);
     #endregion
 }

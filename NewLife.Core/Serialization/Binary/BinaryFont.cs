@@ -1,4 +1,4 @@
-﻿#if __WIN__
+#if WINDOWS || NETFRAMEWORK
 using System;
 using System.Drawing;
 
@@ -48,7 +48,7 @@ public class BinaryFont : BinaryHandlerBase
         var size = Host.ReadSize();
         if (size == 0) return true;
 
-        if (size != 1) WriteLog("读取引用应该是1，而实际是{0}", size);
+        if (size != 1) WriteLog("The read reference count should be 1, but was {0}", size);
 
         var font = new Font(Host.Read<String>() ?? String.Empty, Host.Read<Single>(), (FontStyle)Host.ReadByte());
         value = font;

@@ -1,5 +1,6 @@
 using System.Buffers;
 using BenchmarkDotNet.Attributes;
+using NewLife;
 using NewLife.Data;
 
 namespace Benchmark.PacketBenchmarks;
@@ -48,11 +49,40 @@ public class OwnerPacketBenchmark
         return pk.TryGetArray(out _);
     }
 
-    [Benchmark(Description = "Slice")]
-    public IPacket SliceTest()
+    [Benchmark(Description = "无主源切片+双方释放")]
+    public void SliceDispose()
     {
         var pk = new OwnerPacket(_data, 0, _data.Length, false);
-        return pk.Slice(10, Size / 2, false);
+        var slice = pk.Slice(10, Size / 2);
+        slice.TryDispose();
+        pk.TryDispose();
+    }
+
+    [Benchmark(Description = "切片+遗弃（未释放，观察终结代价）")]
+    public IPacket SliceAbandon()
+    {
+        var pk = new OwnerPacket(_data, 0, _data.Length, false);
+        return pk.Slice(10, Size / 2);
+    }
+
+    [Benchmark(Description = "共享切片+双方释放")]
+    public void SliceThenDispose()
+    {
+        using var pk = new OwnerPacket(Size);
+        var slice = pk.Slice(10, Size - 10);
+        slice.TryDispose();
+    }
+
+    [Benchmark(Description = "链式共享切片+释放")]
+    public void ChainSliceDispose()
+    {
+        var first = new OwnerPacket(Size / 2);
+        var second = new OwnerPacket(Size / 2);
+        first.Next = second;
+
+        var slice = first.Slice(Size / 4, Size - Size / 4);
+        slice.TryDispose();
+        first.TryDispose();
     }
 
     [Benchmark(Description = "Resize")]
@@ -130,8 +160,16 @@ public class OwnerPacketConcurrencyBenchmark
             for (var i = 0; i < 1000; i++)
             {
                 var pk = new OwnerPacket(_data, 0, _data.Length, false);
-                _ = pk.Slice(10, Size / 2, false);
+                _ = pk.Slice(10, Size / 2);
             }
         });
     }
+}
+
+/// <summary>Server GC 下的多线程性能对照（与 OwnerPacketConcurrencyBenchmark 同方法集）</summary>
+[MemoryDiagnoser]
+[GcServer(true)]
+[SimpleJob(iterationCount: 20)]
+public class OwnerPacketConcurrencyServerGcBenchmark : OwnerPacketConcurrencyBenchmark
+{
 }

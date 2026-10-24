@@ -1,12 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
+    <!-- net9.0 已无对应 lib 资产：本工程的 net9 job 因此走 net8.0 资产的回退路径，
+         等于一条免费的回退兼容回归测试，勿因"看起来不匹配"而删除 -->
     <TargetFrameworks>net8.0;net9.0;net10.0;net8.0-windows;net10.0-windows</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <RootNamespace>XUnitTest</RootNamespace>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
-    <DefineConstants Condition="$(TargetFramework.Contains('-windows'))">$(DefineConstants);__WIN__</DefineConstants>
     <OutputPath>..\Bin\UnitTest</OutputPath>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -14,7 +15,10 @@
     <IsTestProject>true</IsTestProject>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
-    <NoWarn>1701;1702;CA1416;CS8632</NoWarn>
+    <NoWarn>1701;1702;CA1416;CS8632;CS0436</NoWarn>
+    <!-- CS0436：本工程通过 InternalsVisibleTo 能看到 NewLife.Core 的 internal L，而源生成器又按
+         "只认源码内自带 L" 的规则生成了一个同名 internal L；源码优先，告警无实际影响。
+         DownstreamLocalizationTests 正是要验证生成的 L 快捷入口，故保留生成并在此抑制。 -->
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Applications\**" />
@@ -43,6 +47,8 @@
     <None Remove="IO\excel.xlsx" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Remoting 组件拆分至独立仓库后，本仓仅保留与核心库 ApiHttpClient/ApiHelper 相关的联测文件（走 NuGet 引用外部 ApiServer）；
+         ApiTest/ApiHelperTest/ApiDownTests 属外部组件用例，已在 NewLife.Remoting 仓库维护，本工程保持排除 -->
     <Compile Include="Remoting\ApiHttpClientRaceTests.cs" />
     <Compile Include="Remoting\ApiHttpClientTests.cs" />
     <Compile Include="Remoting\ApiHttpClientUnitTests.cs" />
@@ -60,22 +66,24 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
-    <PackageReference Include="NewLife.Modbus" Version="2.0.2026.610" />
-    <PackageReference Include="NewLife.Remoting" Version="3.8.2026.706" />
-    <PackageReference Include="NewLife.UnitTest" Version="1.1.2026.102" />
+    <PackageReference Include="NewLife.Modbus" Version="2.1.2026.902-beta1359" />
+    <PackageReference Include="NewLife.Remoting" Version="3.9.2026.1019-beta1013" />
+    <PackageReference Include="NewLife.UnitTest" Version="1.1.2026.301-beta0617" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-  <!-- System.Management 仅 net*-windows TFM 需要，用于测试 WMI 查询直接引用 -->
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
-    <PackageReference Include="System.Management" Version="9.0.5" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
-    <ProjectReference Include="..\NewLife.Security\NewLife.Security.csproj" />
+    <!-- 源码直连 Core 时分析器不会随项目引用传递，需显式挂载生成器；走 NuGet 包引用则自动生效 -->
+    <ProjectReference Include="..\NewLife.Core.SourceGenerator\NewLife.Core.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 下游共享回归：本测试程序集自带 Locales\ta.yml，由源生成器生成 LocalizationTable + L 并在模块初始化时注册。
+         用于验证"下游组件只需声明 yml 即可复用词表与 L.T"的完整链路，勿删 -->
+    <AdditionalFiles Include="Locales\*.yml" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Algorithms\sampled.csv">

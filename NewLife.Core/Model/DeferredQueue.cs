@@ -221,7 +221,7 @@ public class DeferredQueue : DisposeBase
     {
         if (_count < MaxEntity) return;
 
-        using var span = Tracer?.NewError("MaxQueueOverflow", $"延迟队列[{Name}]超过上限{MaxEntity:n0}");
+        using var span = Tracer?.NewError("MaxQueueOverflow", L.T("Deferred queue [{0}] exceeded the limit of {1:n0}", Name, MaxEntity));
 
         // 通知外部发生溢出
         try { Overflow?.Invoke(_count); } catch { /* 忽略业务侧异常 */ }
@@ -236,7 +236,7 @@ public class DeferredQueue : DisposeBase
             t -= 100;
         }
 
-        throw new InvalidOperationException($"The existing data amount [{_count:n0}] exceeds the maximum data amount [{MaxEntity:n0}]");
+        throw new InvalidOperationException(L.T("The existing data amount [{0:n0}] exceeds the maximum data amount [{1:n0}]", _count, MaxEntity));
     }
 
     /// <summary>提交对象的修改，外部不再使用该对象</summary>
@@ -285,7 +285,7 @@ public class DeferredQueue : DisposeBase
         if (list.Count >= TraceCount)
         {
             var sp = ms == 0 ? 0 : (Int32)(times * 1000 / ms);
-            WriteLog($"保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {Speed:n0}tps\t次数 {times:n0}\t速度 {sp:n0}tps\t成功 {total:n0}");
+            WriteLog("Saved {0:n0} items\telapsed {1:n0} ms\tspeed {2:n0} tps\trounds {3:n0}\tspeed {4:n0} tps\tsucceeded {5:n0}", list.Count, ms, Speed, times, sp, total);
         }
 
         // 更新定时器周期
@@ -350,6 +350,6 @@ public class DeferredQueue : DisposeBase
     /// <summary>写日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    protected void WriteLog(String format, params Object?[] args) => Log?.Info($"延迟队列[{Name}]\t{format}", args);
+    protected void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed("DeferredQueue[" + Name + "]\t", format, args);
     #endregion
 }

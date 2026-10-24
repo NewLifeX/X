@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace NewLife;
@@ -14,7 +15,7 @@ public static class EnumHelper
     /// <exception cref="ArgumentException">当两个枚举类型不匹配时</exception>
     public static Boolean Has(this Enum value, Enum flag)
     {
-        if (value.GetType() != flag.GetType()) throw new ArgumentException("Enumeration identification judgment must be of the same type", nameof(flag));
+        if (value.GetType() != flag.GetType()) throw new ArgumentException(L.T("Enumeration identification judgment must be of the same type"), nameof(flag));
 
         var num = Convert.ToUInt64(flag);
         // 特殊处理：当flag为0时，只有当value也为0时才返回true
@@ -32,7 +33,7 @@ public static class EnumHelper
     /// <exception cref="ArgumentException">当枚举类型不匹配时</exception>
     public static T Set<T>(this Enum source, T flag, Boolean value)
     {
-        if (source is not T) throw new ArgumentException("Enumeration identification judgment must be of the same type", nameof(source));
+        if (source is not T) throw new ArgumentException(L.T("Enumeration identification judgment must be of the same type"), nameof(source));
 
         var s = Convert.ToUInt64(source);
         var f = Convert.ToUInt64(flag);
@@ -81,6 +82,7 @@ public static class EnumHelper
     /// <summary>获取枚举类型的所有字段描述</summary>
     /// <param name="enumType">枚举类型</param>
     /// <returns>包含枚举值（Int32）与其描述的字典</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "按运行时枚举类型反射读取描述；AOT 下请使用泛型入口 GetDescriptions<T>()")]
     public static Dictionary<Int32, String> GetDescriptions(Type enumType)
     {
         var result = new Dictionary<Int32, String>();

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>NewLife.SourceGenerator</RootNamespace>
+    <AssemblyName>NewLife.Core.SourceGenerator</AssemblyName>
+    <Description>Source generator of NewLife.Core for NativeAOT-friendly compile-time code generation. Ships with the main package and generates plain static code for IoC registration and localization tables, keeping the output AOT-safe.</Description>
+    <Company>新生命开发团队</Company>
+    <Copyright>©2002-2026 NewLife</Copyright>
+    <VersionPrefix>12.0</VersionPrefix>
+    <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
+    <Version>$(VersionPrefix).$(VersionSuffix)</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- 本地化诊断描述符由源生成器内部定义并直接报告，无需 AnalyzerReleases 版本清单 -->
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
+    <!-- 不独立打包：分析器程序集随主包 NewLife.Core 的 analyzers/dotnet/cs 目录分发 -->
+    <IsPackable>false</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

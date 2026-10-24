@@ -51,7 +51,7 @@ public class EventContext : IEventContext, IExtend
 /// 若需严格的事务性保证，可设置 <see cref="ThrowOnHandlerError"/> = true，任何订阅者异常都会立即中断分发。</para>
 /// <para>线程安全：订阅集合基于 <see cref="ConcurrentDictionary{TKey,TValue}"/>；分发期间的订阅变化不保证本轮可见。</para>
 /// </remarks>
-public class EventBus<TEvent> : DisposeBase, IEventBus, IEventBus<TEvent>, IAsyncEventBus<TEvent>, ILogFeature
+public class EventBus<TEvent> : DisposeBase, IEventBus, IEventBus<TEvent>, ILogFeature
 {
     #region 属性
     private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
@@ -114,7 +114,7 @@ public class EventBus<TEvent> : DisposeBase, IEventBus, IEventBus<TEvent>, IAsyn
                 }
                 catch (Exception ex)
                 {
-                    Log?.Error("事件处理器 [{0}] 处理事件时发生异常: {1}", item.Key, ex.Message);
+                    Log?.Error("Event handler [{0}] threw while processing an event: {1}", item.Key, ex.Message);
                     if (ThrowOnHandlerError) throw;
                 }
             }

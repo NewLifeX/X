@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using NewLife.Log;
 
 namespace NewLife.Web;
@@ -16,9 +17,15 @@ public static class PluginHelper
     /// <param name="linkName">链接名。要在下载页面中搜索的链接名</param>
     /// <param name="urls">提供下载地址的多个目标页面</param>
     /// <returns></returns>
+    [RequiresDynamicCode("插件动态加载依赖运行时加载程序集，NativeAOT 下不可用")]
+    [RequiresUnreferencedCode("插件类型经反射加载，裁剪下类型成员可能缺失")]
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "插件目录扫描依赖程序集物理位置；单文件/AOT 下 Location 为空即视为无插件，属设计性不支持（见分析稿 §5）")]
     public static Type? LoadPlugin(String typeName, String? disname, String? dll, String? linkName, String? urls = null)
     {
         if (typeName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(typeName));
+
+        // NativeAOT 等环境明确报错，避免下载/加载后类型不可用
+        DynamicCodeHelper.ThrowIfNotSupported("NativeAOT/trimmed environments do not support plugin dynamic loading. Use static registration or an alternative implementation.");
 
         //var type = typeName.GetTypeEx(true);
         var type = Type.GetType(typeName);
@@ -73,7 +80,7 @@ public static class PluginHelper
             // 如果本地没有数据库，则从网络下载
             if (!File.Exists(file))
             {
-                XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", !disname.IsNullOrEmpty() ? disname : dll, urls);
+                XTrace.WriteLine("{0} does not exist or has an incompatible platform version; downloading {1}", !disname.IsNullOrEmpty() ? disname : dll, urls);
 
                 //var client = new WebClientX()
                 //{
@@ -86,7 +93,7 @@ public static class PluginHelper
             }
             if (!File.Exists(file))
             {
-                XTrace.WriteLine("未找到 {0} {1}", disname, dll);
+                XTrace.WriteLine("{0} {1} not found", disname, dll);
                 return null;
             }
 

@@ -260,7 +260,7 @@ class OrcasNamer
                 else if (type.DeclaringType != null)
                     writer.Write("`");
                 else
-                    throw new InvalidOperationException("Generic parameter not on type or method.");
+                    throw new InvalidOperationException(L.T("Generic parameter not on type or method."));
                 writer.Write(type.GenericParameterPosition);
             }
             else

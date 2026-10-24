@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Security.Cryptography;
 using NewLife.Security;
 using NewLife.Collections;
@@ -57,7 +57,7 @@ public class SM4 : SymmetricAlgorithm
                 transform = new CbcTransform(transform, rgbIV, encryptMode);
                 break;
             default:
-                throw new NotSupportedException("Only CBC/ECB is supported");
+                throw new NotSupportedException(L.T("Only CBC/ECB is supported"));
         }
 
         switch (PaddingValue)
@@ -73,7 +73,7 @@ public class SM4 : SymmetricAlgorithm
                 transform = new ZerosPaddingTransform(transform, encryptMode);
                 break;
             default:
-                throw new NotSupportedException("Only PKCS#7 padding is supported");
+                throw new NotSupportedException(L.T("Only PKCS#7 padding is supported"));
         }
 
         return transform;
@@ -237,8 +237,8 @@ public class SM4Transform : ICryptoTransform
     /// <exception cref="ArgumentException"></exception>
     public SM4Transform(Byte[] key, Byte[]? iv, Boolean encryptMode)
     {
-        if (key == null || key.Length != 16) throw new ArgumentException(nameof(key), "Key must be a 16-byte array.");
-        if (iv != null && iv.Length != 16) throw new ArgumentException(nameof(iv), "IV must be a 16-byte array.");
+        if (key == null || key.Length != 16) throw new ArgumentException(NewLife.L.T("Key must be a 16-byte array."), nameof(key));
+        if (iv != null && iv.Length != 16) throw new ArgumentException(NewLife.L.T("IV must be a 16-byte array."), nameof(iv));
 
         ExpandKey(encryptMode, key);
 
@@ -289,7 +289,7 @@ public class SM4Transform : ICryptoTransform
     /// <exception cref="ArgumentException"></exception>
     public Int32 TransformBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount, Byte[] outputBuffer, Int32 outputOffset)
     {
-        if (inputCount % BLOCK_SIZE != 0) throw new ArgumentException(nameof(inputCount), "Input count must be equal to block size.");
+        if (inputCount % BLOCK_SIZE != 0) throw new ArgumentException(NewLife.L.T("Input count must be equal to block size."), nameof(inputCount));
 
         var blocks = inputCount / InputBlockSize;
         while (blocks > 0)

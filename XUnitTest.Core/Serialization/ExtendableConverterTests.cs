@@ -229,7 +229,12 @@ public class ExtendableConverterTests
         using var writer = new Utf8JsonWriter(stream);
 
         var addr = new AddressModel { City = "Hangzhou", Street = "West Lake" };
+#if NET9_0_OR_GREATER
         converter.Write(writer, addr, JsonSerializerOptions.Default);
+#else
+        // JsonSerializerOptions.Default 自 net9.0 起提供，旧框架用等价的可变实例
+        converter.Write(writer, addr, new JsonSerializerOptions());
+#endif
         writer.Flush();
 
         var json = Encoding.UTF8.GetString(stream.ToArray());

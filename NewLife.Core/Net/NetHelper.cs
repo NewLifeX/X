@@ -15,7 +15,9 @@ namespace NewLife;
 public static class NetHelper
 {
     #region 属性
-    private static readonly ICache _Cache = MemoryCache.Instance;
+    // 私有缓存实例：网络变化时只清自己的 DNS/IP 缓存，不用全局 MemoryCache.Instance。
+    // 否则插拔网线/VPN 切换会清空整个应用的业务缓存，引发缓存击穿甚至雪崩
+    private static readonly MemoryCache _Cache = new();
     #endregion
 
     #region 构造
@@ -56,7 +58,7 @@ public static class NetHelper
 #endif
         {
             UInt32 dummy = 0;
-            var inOptionValues = Pool.Shared.Rent(Marshal.SizeOf(dummy) * 3);
+            using var inOptionValues = Pool.Rent(Marshal.SizeOf(dummy) * 3);
 
             // 是否启用Keep-Alive
             BitConverter.GetBytes((UInt32)(isKeepAlive ? 1 : 0)).CopyTo(inOptionValues, 0);
@@ -66,8 +68,6 @@ public static class NetHelper
             BitConverter.GetBytes((UInt32)interval * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
 
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-
-            Pool.Shared.Return(inOptionValues);
 
             return;
         }
@@ -102,6 +102,10 @@ public static class NetHelper
     }
 
     /// <summary>分析网络终结点</summary>
+    /// <remarks>
+    /// 地址可带协议前缀与路径（自动剥离），可不带端口；支持域名、IPv4、IPv6（含方括号形态）。
+    /// 格式非法（坏端口、方括号不闭合等）返回 null；域名解析失败沿用 <see cref="NetUri.ParseAddress"/> 的抛异常口径。
+    /// </remarks>
     /// <param name="address">地址，可以不带端口</param>
     /// <param name="defaultPort">地址不带端口时指定的默认端口</param>
     /// <returns></returns>
@@ -112,20 +116,46 @@ public static class NetHelper
         var p = address.IndexOf("://");
         if (p >= 0) address = address[(p + 3)..];
 
-        var port = 0;
-        p = address.LastIndexOf(':');
-        IPAddress? addr = null;
-        if (p > 0)
+        // 去掉路径、查询与片段，只保留主机部分
+        p = address.IndexOfAny(['/', '?', '#']);
+        if (p >= 0) address = address[..p];
+
+        var port = defaultPort;
+        var host = address;
+
+        if (address.StartsWith("["))
         {
-            addr = address[..p].ParseAddress();
-            port = Int32.Parse(address[(p + 1)..]);
+            // [IPv6] 或 [IPv6]:port
+            var end = address.IndexOf(']');
+            if (end < 0) return null;
+
+            host = address[1..end];
+            var rest = address[(end + 1)..];
+            if (rest.StartsWith(":"))
+            {
+                if (!Int32.TryParse(rest[1..], out port)) return null;
+            }
+            else if (!rest.IsNullOrEmpty())
+            {
+                return null;
+            }
         }
         else
         {
-            addr = address.ParseAddress();
-            port = defaultPort;
+            // 冒号唯一才是"主机:端口"；多冒号视为不带端口的裸 IPv6
+            var idx = address.IndexOf(':');
+            if (idx > 0 && idx == address.LastIndexOf(':'))
+            {
+                host = address[..idx];
+                if (!Int32.TryParse(address[(idx + 1)..], out port)) return null;
+            }
         }
+
+        var addr = host.ParseAddress();
         if (addr == null) return null;
+
+        // 端口越界（含默认端口）属于格式非法，构造 IPEndPoint 前拦截，避免抛 ArgumentOutOfRangeException
+        if (port is < 0 or > 65535) return null;
 
         return new IPEndPoint(addr, port);
     }
@@ -176,6 +206,124 @@ public static class NetHelper
     /// <param name="address"></param>
     /// <returns></returns>
     public static Boolean IsLocal(this IPAddress address) => IPAddress.IsLoopback(address) || GetIPsWithCache().Any(ip => ip.Equals(address));
+
+    /// <summary>是否私有网段IPv4地址。覆盖 10/8、172.16/12、192.168/16、127/8、169.254/16，常用于内网来源判定与可信代理自动学习</summary>
+    /// <param name="ip">IPv4地址</param>
+    /// <returns>是否私有网段</returns>
+    public static Boolean IsPrivateIp(this String? ip)
+    {
+        var n = ParseIpv4(ip);
+        if (n < 0) return false;
+
+        return (n & 0xFF000000L) == 0x0A000000L          // 10.0.0.0/8
+            || (n & 0xFFF00000L) == 0xAC100000L          // 172.16.0.0/12
+            || (n & 0xFFFF0000L) == 0xC0A80000L          // 192.168.0.0/16
+            || (n & 0xFF000000L) == 0x7F000000L          // 127.0.0.0/8
+            || (n & 0xFFFF0000L) == 0xA9FE0000L;         // 169.254.0.0/16
+    }
+
+    /// <summary>IPv4 CIDR网段匹配</summary>
+    /// <param name="ip">IPv4地址</param>
+    /// <param name="cidr">网段，如 10.0.0.0/8</param>
+    /// <returns>是否属于该网段</returns>
+    public static Boolean IsMatchCidr(this String? ip, String? cidr)
+    {
+        if (ip.IsNullOrEmpty() || cidr.IsNullOrEmpty()) return false;
+
+        var ss = cidr.Split('/');
+        if (ss.Length != 2) return false;
+
+        var mask = ss[1].ToInt();
+        if (mask is < 0 or > 32) return false;
+
+        var ip1 = ParseIpv4(ip);
+        var ip2 = ParseIpv4(ss[0]);
+        if (ip1 < 0 || ip2 < 0) return false;
+
+        if (mask == 0) return true;
+
+        var bits = (~((1L << (32 - mask)) - 1)) & 0xFFFFFFFFL;
+        return (ip1 & bits) == (ip2 & bits);
+    }
+
+    /// <summary>是否匹配可信代理列表。列表项支持精确地址、*通配和IPv4 CIDR网段</summary>
+    /// <param name="ip">待判断地址</param>
+    /// <param name="trusted">可信代理列表</param>
+    /// <returns>是否可信</returns>
+    public static Boolean IsTrustedProxy(this String? ip, String?[]? trusted)
+    {
+        if (ip.IsNullOrEmpty() || trusted == null || trusted.Length == 0) return false;
+
+        foreach (var item in trusted)
+        {
+            var t = item?.Trim();
+            if (t.IsNullOrEmpty()) continue;
+
+            if (t == "*") return true;
+
+            if (t.Contains('/'))
+            {
+                if (ip!.IsMatchCidr(t)) return true;
+            }
+            else if (t.IsMatch(ip))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>解析转发链中的客户端地址。未配置可信代理时兼容旧行为信任全部转发头并取链首；配置可信代理后，仅当直连来源可信才采信转发链，从链尾向左跳过可信代理取第一个不可信地址</summary>
+    /// <param name="remoteIp">直连来源地址。TCP层地址，不可伪造</param>
+    /// <param name="forwarded">转发头链值，逗号分隔，如 "1.2.3.4, 10.0.0.5"</param>
+    /// <param name="trusted">可信代理列表，支持精确、通配与CIDR；为空时信任全部转发头</param>
+    /// <returns>客户端地址</returns>
+    public static String? ResolveClientIp(this String? remoteIp, String? forwarded, String?[]? trusted)
+    {
+        if (forwarded.IsNullOrEmpty()) return remoteIp;
+
+        // 未配置可信代理，兼容旧行为信任全部转发头；多层反代时取链首地址，并折叠为单一IP
+        if (trusted == null || trusted.Length == 0)
+        {
+            var first = forwarded.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()).FirstOrDefault(e => e.Length > 0);
+            return first.IsNullOrEmpty() ? remoteIp : first;
+        }
+
+        // 直连来源不可信时，转发头可被伪造，直接使用直连地址
+        if (remoteIp.IsNullOrEmpty() || !remoteIp!.IsTrustedProxy(trusted)) return remoteIp;
+
+        // 从链尾向左跳过可信代理，取第一个不可信地址作为客户端地址
+        var ips = forwarded.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()).Where(e => e.Length > 0).ToList();
+        for (var i = ips.Count - 1; i >= 0; i--)
+        {
+            if (!ips[i].IsTrustedProxy(trusted)) return ips[i];
+        }
+
+        return ips.Count > 0 ? ips[0] : remoteIp;
+    }
+
+    /// <summary>解析IPv4地址为整数，非法返回-1</summary>
+    /// <param name="ip">IPv4地址</param>
+    /// <returns>整型地址</returns>
+    private static Int64 ParseIpv4(String? ip)
+    {
+        if (ip.IsNullOrEmpty()) return -1;
+
+        var ss = ip.Split('.');
+        if (ss.Length != 4) return -1;
+
+        var n = 0L;
+        foreach (var item in ss)
+        {
+            var b = item.ToInt();
+            if (b is < 0 or > 255) return -1;
+
+            n = (n << 8) | (UInt32)b;
+        }
+
+        return n;
+    }
 
     /// <summary>获取相对于指定远程地址的本地地址</summary>
     /// <param name="address"></param>
@@ -252,22 +400,25 @@ public static class NetHelper
     }
 
     /// <summary>检查该协议的地址端口是否已经被使用</summary>
+    /// <remarks>Unix域套接字不使用端口，由服务器启动时实测探测</remarks>
     /// <param name="uri"></param>
     /// <returns></returns>
-    public static Boolean CheckPort(this NetUri uri) => uri.Address.CheckPort(uri.Type, uri.Port);
+    public static Boolean CheckPort(this NetUri uri) => !uri.IsUnix && uri.Address.CheckPort(uri.Type, uri.Port);
 
-    /// <summary>获取所有Tcp连接，带进程Id</summary>
+    /// <summary>获取所有Tcp连接（无参重载，仅为兼容旧二进制保留）</summary>
     /// <returns></returns>
-    [Obsolete]
+    [Obsolete("请改用 GetAllTcpConnections(processId)")]
     public static TcpConnectionInformation2[] GetAllTcpConnections() => GetAllTcpConnections(-1);
 
     /// <summary>获取所有Tcp连接，带进程Id</summary>
-    /// <returns></returns>
+    /// <remarks>Windows 走扩展Tcp表，Linux 解析 /proc/net/tcp；macOS 等其它平台暂无实现，返回空数组</remarks>
+    /// <returns>连接数组；不支持的平台返回空数组</returns>
     public static TcpConnectionInformation2[] GetAllTcpConnections(Int32 processId = -1)
     {
-        var rs = !Runtime.Windows ?
-            TcpConnectionInformation2.GetLinuxTcpConnections(processId) :
-            TcpConnectionInformation2.GetWindowsTcpConnections();
+        // Linux 之外的类 Unix 平台（macOS 等）没有 /proc，不能走 GetLinuxTcpConnections，否则读文件直接抛异常
+        var rs = Runtime.Windows ?
+            TcpConnectionInformation2.GetWindowsTcpConnections() :
+            Runtime.Linux ? TcpConnectionInformation2.GetLinuxTcpConnections(processId) : [];
 
         if (processId <= 0) return rs;
 
@@ -558,12 +709,28 @@ public static class NetHelper
 
     private static void Wake(String mac)
     {
+        var bts = BuildWakePacket(mac);
+
+        using var client = new UdpClient
+        {
+            EnableBroadcast = true
+        };
+        client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+        //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+    }
+
+    /// <summary>构造网络唤醒魔包。6 字节 FF + 16 次重复 MAC</summary>
+    /// <param name="mac">MAC 地址，支持横线或冒号分隔</param>
+    /// <returns>魔包字节</returns>
+    internal static Byte[] BuildWakePacket(String mac)
+    {
         mac = mac.Replace("-", null).Replace(":", null);
-        var buffer = Pool.Shared.Rent(mac.Length / 2);
+        using var buffer = Pool.Rent(mac.Length / 2);
+        var bts = new Byte[6 + 16 * buffer.Length];
+
         for (var i = 0; i < buffer.Length; i++)
             buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
 
-        var bts = Pool.Shared.Rent(6 + 16 * buffer.Length);
         for (var i = 0; i < 6; i++)
             bts[i] = 0xFF;
         for (Int32 i = 6, k = 0; i < bts.Length; i++, k++)
@@ -573,16 +740,7 @@ public static class NetHelper
             bts[i] = buffer[k];
         }
 
-        var client = new UdpClient
-        {
-            EnableBroadcast = true
-        };
-        client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
-        client.Close();
-        //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
-
-        Pool.Shared.Return(bts);
-        Pool.Shared.Return(buffer);
+        return bts;
     }
     #endregion
 
@@ -643,9 +801,9 @@ public static class NetHelper
     /// <returns></returns>
     public static String? GetAddress(this IPAddress addr)
     {
-        if (addr.IsAny()) return "任意地址";
-        if (IPAddress.IsLoopback(addr)) return "本地环回";
-        if (addr.IsLocal()) return "本机地址";
+        if (addr.IsAny()) return L.T("Any address");
+        if (IPAddress.IsLoopback(addr)) return L.T("Loopback address");
+        if (addr.IsLocal()) return L.T("Local address");
 
         //if (IpProvider == null) IpProvider = new MyIpProvider();
 
@@ -686,13 +844,15 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Local = local },
                 NetType.Udp => new UdpServer { Local = local },
-                _ => throw new NotSupportedException($"The {local.Type} protocol is not supported"),
+                NetType.Unix => new TcpSession { Local = local },
+                _ => throw new NotSupportedException(L.T("The {0} protocol is not supported", local.Type)),
             };
     }
 
     /// <summary>根据远程网络标识创建客户端</summary>
     /// <param name="remote"></param>
     /// <returns></returns>
+    /// <remarks>启用 TLS 由地址语义（<see cref="NetUri.IsSecure"/> 或 <see cref="NetType.Https"/>）决定，不按端口号猜测</remarks>
     public static ISocketClient CreateRemote(this NetUri remote)
     {
         return remote == null
@@ -701,29 +861,48 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-                NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-                _ => throw new NotSupportedException($"The {remote.Type} protocol is not supported"),
+                NetType.Unix => new TcpSession { Remote = remote },
+                NetType.Http or NetType.Https => new TcpSession { Remote = remote, SslProtocol = remote.IsSecure || remote.Type == NetType.Https ? DefaultSslProtocols : SslProtocols.None },
+                NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.IsSecure ? DefaultSslProtocols : SslProtocols.None },
+                _ => throw new NotSupportedException(L.T("The {0} protocol is not supported", remote.Type)),
             };
     }
 
     /// <summary>根据Uri创建客户端，主要支持Http/WebSocket</summary>
     /// <param name="uri"></param>
     /// <returns></returns>
+    /// <remarks>ws 为明文，wss 由 <see cref="WebSocketClient"/> 依据地址方案自动启用 TLS</remarks>
     /// <exception cref="NotSupportedException"></exception>
     public static ISocketClient CreateRemote(this Uri uri)
     {
-        return uri.Scheme switch
-        {
-            "wss" => new WebSocketClient(uri) { SslProtocol = SslProtocols.Tls12 },
-            "ws" => new WebSocketClient(uri),
-            _ => throw new NotSupportedException($"The {uri.Scheme} protocol is not supported"),
-        };
+        return uri.Scheme is "ws" or "wss"
+            ? new WebSocketClient(uri)
+            : throw new NotSupportedException(L.T("The {0} protocol is not supported", uri.Scheme));
     }
+
+    /// <summary>启用 TLS 时使用的协议集合。固定 Tls12 会丢失 TLS1.3 与后续版本，现代框架交给运行时协商，旧框架仅 Tls12</summary>
+    internal static readonly SslProtocols DefaultSslProtocols =
+#if NETFRAMEWORK || NETSTANDARD
+        SslProtocols.Tls12;
+#else
+        SslProtocols.Tls12 | SslProtocols.Tls13;
+#endif
 
     internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
     internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+
+    /// <summary>创建Unix域套接字</summary>
+    /// <remarks>使用文件系统路径作为地址，仅支持本机进程间通信</remarks>
+    /// <returns></returns>
+    internal static Socket CreateUnix()
+    {
+#if NETFRAMEWORK || NETSTANDARD2_0
+        throw new PlatformNotSupportedException(L.T("Unix domain sockets require a target framework of .NET Standard 2.1 or later."));
+#else
+        return new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+#endif
+    }
 
     /// <summary>创建已绑定本地随机端口的 UdpClient，可安全地在并发任务中同时执行 SendAsync 和 ReceiveAsync</summary>
     /// <remarks>

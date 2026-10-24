@@ -66,21 +66,26 @@ public class WebClientX : DisposeBase
     public virtual HttpClient EnsureCreate()
     {
         var http = _client;
-        if (http == null)
-        {
-            http = DefaultTracer.Instance.CreateHttpClient();
-            http.Timeout = TimeSpan.FromMilliseconds(Timeout);
-            http.SetUserAgent();
+        if (http != null) return http;
 
-            // 原子发布，并发创建时释放多余客户端，避免泄漏
-            if (Interlocked.CompareExchange(ref _client, http, null) != null)
-                http.Dispose();
+        http = DefaultTracer.Instance.CreateHttpClient();
+        http.Timeout = TimeSpan.FromMilliseconds(Timeout);
+        http.SetUserAgent();
+
+        // 原子发布，并发创建时释放多余客户端，避免泄漏。
+        // 返回 CompareExchange 取回的实例而非字段：字段可空，直接返回会让调用方拿到可能为空的引用
+        if (Interlocked.CompareExchange(ref _client, http, null) is { } existed)
+        {
+            http.Dispose();
+
+            return existed;
         }
 
-        return _client;
+        return http;
     }
 
     /// <summary>发送请求，获取响应</summary>
+    /// <remarks>返回的 <see cref="HttpContent"/> 所有权移交调用方，由调用方负责释放（内含连接归还语义）</remarks>
     /// <param name="address"></param>
     /// <param name="content"></param>
     /// <param name="cancellationToken"></param>
@@ -175,7 +180,7 @@ public class WebClientX : DisposeBase
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
+        using var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
         return await rs.ReadAsStringAsync().ConfigureAwait(false);
     }
 
@@ -187,7 +192,7 @@ public class WebClientX : DisposeBase
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
+        using var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
 
         // 使用系统临时目录生成随机临时文件名，跨平台可用
         var tempFile = Path.GetTempFileName();
@@ -277,7 +282,7 @@ public class WebClientX : DisposeBase
     /// <returns>返回已下载的文件，无效时返回空</returns>
     public String DownloadLink(String urls, String name, String destdir)
     {
-        Log.Info("下载链接：{0}，目标：{1}", urls, name);
+        Log.Info("Download link: {0}, target: {1}", urls, name);
 
         var names = name.Split(",", ";");
 
@@ -303,13 +308,13 @@ public class WebClientX : DisposeBase
                 //    if (link != null) break;
                 //}
                 ls = ls.Where(e => e.Name.EqualIgnoreCase(names) || e.FullName.EqualIgnoreCase(names)).ToArray();
-                Log.Info("在页面[{0}]个链接中找到[{1}]个：{2}", total, ls.Length, ls.Join(",", e => e.FullName));
+                Log.Info("Found {1} matching links among {0} links on the page: {2}", total, ls.Length, ls.Join(",", e => e.FullName));
 
                 if (MinVersion != null)
                     ls = ls.Where(e => e.Version >= MinVersion).ToArray();
                 link = ls.OrderByDescending(e => e.Version).ThenByDescending(e => e.Time).FirstOrDefault();
 
-                if (link != null) Log.Info("选择：{0}", link);
+                if (link != null) Log.Info("Selected: {0}", link);
             }
             //catch (WebException ex)
             //{
@@ -346,7 +351,7 @@ public class WebClientX : DisposeBase
         // 验证本地已有文件。已经提前检查过，这里几乎不可能有文件存在
         if (File.Exists(file2) && ValidLocal(linkName, link, file2)) return file2;
 
-        Log.Info("分析得到文件 {0}，准备下载 {1}，保存到 {2}", linkName, link.Url, file2);
+        Log.Info("Resolved file {0}, preparing to download {1}, saving to {2}", linkName, link.Url, file2);
         // 开始下载文件，注意要提前建立目录，否则会报错
         file2 = file2.EnsureDirectory();
 
@@ -356,7 +361,7 @@ public class WebClientX : DisposeBase
 
         if (File.Exists(file2))
         {
-            Log.Info("下载完成，共{0:n0}字节，耗时{1:n0}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
+            Log.Info("Download completed. Total {0:n0} bytes, elapsed {1:n0} ms", file2.AsFile().Length, sw.ElapsedMilliseconds);
             file = file2;
         }
 
@@ -369,7 +374,7 @@ public class WebClientX : DisposeBase
         var p = linkName.LastIndexOf("_");
         if (p > 0 && (p + 8 + 1 == linkName.Length || p + 14 + 1 == linkName.Length))
         {
-            Log.Info("分析得到文件：{0}，目标文件已存在，无需下载：{1}", linkName, link.Url);
+            Log.Info("Resolved file: {0}. Target file already exists; no download needed: {1}", linkName, link.Url);
             return true;
         }
         // 校验哈希是否一致
@@ -378,7 +383,7 @@ public class WebClientX : DisposeBase
             var hash = file.AsFile().MD5().ToHex();
             if (link.Hash.EqualIgnoreCase(hash))
             {
-                Log.Info("分析得到文件：{0}，目标文件已存在，且MD5哈希一致", linkName, link.Url);
+                Log.Info("Resolved file: {0}. Target file already exists and the MD5 hash matches.", linkName, link.Url);
                 return true;
             }
         }
@@ -388,7 +393,7 @@ public class WebClientX : DisposeBase
             var hash = SHA512.Create().ComputeHash(fs).ToHex();
             if (link.Hash.EqualIgnoreCase(hash))
             {
-                Log.Info("分析得到文件：{0}，目标文件已存在，且SHA512哈希一致", linkName, link.Url);
+                Log.Info("Resolved file: {0}. Target file already exists and the SHA512 hash matches.", linkName, link.Url);
                 return true;
             }
         }
@@ -396,7 +401,7 @@ public class WebClientX : DisposeBase
         // 本地文件
         if (link.Hash.IsNullOrEmpty() && File.Exists(file))
         {
-            Log.Info("分析得到文件：{0}，下载失败，使用已存在的目标文件", linkName, link.Url);
+            Log.Info("Resolved file: {0}. Download failed; using the existing target file.", linkName, link.Url);
             return true;
         }
 
@@ -439,7 +444,7 @@ public class WebClientX : DisposeBase
         // 解压缩
         try
         {
-            Log.Info("解压缩到 {0}", destdir);
+            Log.Info("Extracting to {0}", destdir);
             file.AsFile().Extract(destdir, overwrite);
 
             //// 删除zip

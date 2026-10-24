@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text;
 using NewLife.Data;
 using NewLife.Log;
@@ -18,7 +19,7 @@ namespace NewLife.IO;
 /// 本设计不支持线程安全，务必确保单线程操作。
 /// </remarks>
 /// <typeparam name="T">实体类型</typeparam>
-public class CsvDb<T> : DisposeBase where T : new()
+public class CsvDb<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T> : DisposeBase where T : new()
 {
     #region 静态缓存（反射开销优化）
     // 只反射一次，降低读写频率较高场景的成本

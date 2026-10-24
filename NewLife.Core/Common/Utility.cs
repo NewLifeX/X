@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Buffers.Binary;
+using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
 
@@ -241,8 +242,8 @@ public class DefaultConvert
         {
             if (Int32.TryParse(str, out var n)) return n;
 
-            // 拷贝而来的逗号分隔整数
-            Span<Char> tmp = stackalloc Char[str.Length];
+            // 拷贝而来的逗号分隔整数。数字文本长度有上限，栈上固定缓冲即可
+            Span<Char> tmp = stackalloc Char[MaxNumberLength];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
@@ -266,7 +267,7 @@ public class DefaultConvert
             //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
             // 保存时间日期由Int32改为UInt32，原截止2038年的范围扩大到2106年
             var n = (dt - _dt1970).TotalSeconds;
-            return n >= Int32.MaxValue ? throw new InvalidDataException("Time too long, value exceeds Int32.MaxValue") : (Int32)n;
+            return n >= Int32.MaxValue ? throw new InvalidDataException(L.T("Time too long, value exceeds Int32.MaxValue")) : (Int32)n;
         }
         if (value is DateTimeOffset dto)
         {
@@ -274,7 +275,7 @@ public class DefaultConvert
 
             //return (Int32)(dto - _dto1970).TotalSeconds;
             var n = (dto - _dto1970).TotalSeconds;
-            return n >= Int32.MaxValue ? throw new InvalidDataException("Time too long, value exceeds Int32.MaxValue") : (Int32)n;
+            return n >= Int32.MaxValue ? throw new InvalidDataException(L.T("Time too long, value exceeds Int32.MaxValue")) : (Int32)n;
         }
 
         if (value is Byte[] buf)
@@ -284,9 +285,9 @@ public class DefaultConvert
             switch (buf.Length)
             {
                 case 1: return buf[0];
-                case 2: return BitConverter.ToInt16(buf, 0);
+                case 2: return BinaryPrimitives.ReadInt16LittleEndian(buf);
                 case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
-                case 4: return BitConverter.ToInt32(buf, 0);
+                case 4: return BinaryPrimitives.ReadInt32LittleEndian(buf);
             }
         }
 
@@ -327,8 +328,8 @@ public class DefaultConvert
         {
             if (Int64.TryParse(str, out var n)) return n;
 
-            // 拷贝而来的逗号分隔整数
-            Span<Char> tmp = stackalloc Char[str.Length];
+            // 拷贝而来的逗号分隔整数。数字文本长度有上限，栈上固定缓冲即可
+            Span<Char> tmp = stackalloc Char[MaxNumberLength];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
@@ -362,10 +363,10 @@ public class DefaultConvert
             switch (buf.Length)
             {
                 case 1: return buf[0];
-                case 2: return BitConverter.ToInt16(buf, 0);
+                case 2: return BinaryPrimitives.ReadInt16LittleEndian(buf);
                 case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
-                case 4: return BitConverter.ToInt32(buf, 0);
-                case 8: return BitConverter.ToInt64(buf, 0);
+                case 4: return BinaryPrimitives.ReadInt32LittleEndian(buf);
+                case 8: return BinaryPrimitives.ReadInt64LittleEndian(buf);
             }
         }
 
@@ -406,7 +407,7 @@ public class DefaultConvert
         {
             if (Double.TryParse(str, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var n)) return n;
 
-            Span<Char> tmp = stackalloc Char[str.Length];
+            Span<Char> tmp = stackalloc Char[MaxNumberLength];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
@@ -421,20 +422,14 @@ public class DefaultConvert
         if (value is Byte[] buf)
         {
             if (buf.Length == 0) return defaultValue;
-            if (buf.Length >= 8) return BitConverter.ToDouble(buf, 0);
+            if (buf.Length >= 8) return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(buf));
 
             // 兼容不足 8 字节的场景（例如来自网络/存储的裁剪值），按小端补零
-            var tmp8 = Pool.Shared.Rent(8);
-            try
-            {
-                Array.Clear(tmp8, 0, 8);
-                Buffer.BlockCopy(buf, 0, tmp8, 0, buf.Length);
-                return BitConverter.ToDouble(tmp8, 0);
-            }
-            finally
-            {
-                Pool.Shared.Return(tmp8);
-            }
+            Span<Byte> tmp8 = stackalloc Byte[8];
+            tmp8.Clear();
+            buf.AsSpan().CopyTo(tmp8);
+
+            return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(tmp8));
         }
 
         try
@@ -474,7 +469,7 @@ public class DefaultConvert
         {
             if (Decimal.TryParse(str, NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var n)) return n;
 
-            Span<Char> tmp = stackalloc Char[str.Length];
+            Span<Char> tmp = stackalloc Char[MaxNumberLength];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
@@ -491,16 +486,16 @@ public class DefaultConvert
             switch (buf.Length)
             {
                 case 1: return buf[0];
-                case 2: return BitConverter.ToInt16(buf, 0);
+                case 2: return BinaryPrimitives.ReadInt16LittleEndian(buf);
                 case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
-                case 4: return BitConverter.ToInt32(buf, 0);
+                case 4: return BinaryPrimitives.ReadInt32LittleEndian(buf);
                 case 16:
                     {
-                        // 按 Decimal 内部 4*Int32 bits 构造（lo, mid, hi, flags）。仅在 flags 合法时采纳，否则回退。
-                        var lo = BitConverter.ToInt32(buf, 0);
-                        var mid = BitConverter.ToInt32(buf, 4);
-                        var hi = BitConverter.ToInt32(buf, 8);
-                        var flags = BitConverter.ToInt32(buf, 12);
+                        // 按 Decimal 内部 4*Int32 bits 构造（lo, mid, hi, flags），字节按小端解释。仅在 flags 合法时采纳，否则回退。
+                        var lo = BinaryPrimitives.ReadInt32LittleEndian(buf.AsSpan(0, 4));
+                        var mid = BinaryPrimitives.ReadInt32LittleEndian(buf.AsSpan(4, 4));
+                        var hi = BinaryPrimitives.ReadInt32LittleEndian(buf.AsSpan(8, 4));
+                        var flags = BinaryPrimitives.ReadInt32LittleEndian(buf.AsSpan(12, 4));
                         var scale = (flags >> 16) & 0xFF;
                         var reserved = flags & 0x7F00FFFF; // 除去符号位与比例位，其余应为0
                         if (scale <= 28 && reserved == 0)
@@ -514,13 +509,14 @@ public class DefaultConvert
                     // 凑够8字节，使用 Double 近似解析
                     if (buf.Length < 8)
                     {
-                        var bts = Pool.Shared.Rent(8);
-                        Buffer.BlockCopy(buf, 0, bts, 0, buf.Length);
-                        var dec = BitConverter.ToDouble(bts, 0).ToDecimal();
-                        Pool.Shared.Return(bts);
-                        return dec;
+                        // 不足 8 字节按小端补零，高位补 0
+                        Span<Byte> bts = stackalloc Byte[8];
+                        bts.Clear();
+                        buf.AsSpan().CopyTo(bts);
+
+                        return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(bts)).ToDecimal();
                     }
-                    return BitConverter.ToDouble(buf, 0).ToDecimal();
+                    return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64LittleEndian(buf)).ToDecimal();
             }
         }
 
@@ -729,10 +725,13 @@ public class DefaultConvert
         }
     }
 
+    /// <summary>数字文本最大长度。Int64 最多 20 位、Decimal 最多 29 位，含符号/小数点/指数，256 字符足够</summary>
+    private const Int32 MaxNumberLength = 256;
+
     /// <summary>清理整数字符串，去掉常见分隔符，替换全角数字为半角数字</summary>
-    /// <param name="input"></param>
-    /// <param name="output"></param>
-    /// <returns></returns>
+    /// <param name="input">原始文本</param>
+    /// <param name="output">输出缓冲，容量不足时返回 0，不会越界写入</param>
+    /// <returns>清理后的字符数量；遇到非法字符或输出缓冲不足时返回 0</returns>
     private static Int32 TrimNumber(ReadOnlySpan<Char> input, Span<Char> output)
     {
         var idx = 0;
@@ -758,12 +757,18 @@ public class DefaultConvert
 
             // 数字和小数点 以外字符，认为非数字
             if (ch is '.' or '-' or not < '0' and not > '9')
+            {
+                if (idx >= output.Length) return 0;
+
                 output[idx++] = ch;
+            }
             else
             {
                 // 支持科学计数法：e/E 后可选正负号，之后至少跟一个数字
                 if (ch is 'e' or 'E' && idx > 0)
                 {
+                    if (idx + 2 > output.Length) return 0;
+
                     output[idx++] = ch;
                     if (i + 1 < input.Length && (input[i + 1] is '+' or '-'))
                     {

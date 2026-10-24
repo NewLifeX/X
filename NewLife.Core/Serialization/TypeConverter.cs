@@ -15,11 +15,7 @@ public class TypeConverter : JsonConverter<Type>
     /// <param name="typeToConvert"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-#if NETCOREAPP3_1
-    public override Type Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetString()!.GetTypeEx()!;
-#else
     public override Type? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetString()?.GetTypeEx();
-#endif
 
     /// <summary>写入类型</summary>
     /// <param name="writer"></param>

@@ -6,6 +6,7 @@ using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
+using XUnitTest.Net;
 using Xunit;
 
 namespace XUnitTest.Integration;
@@ -21,15 +22,13 @@ public class NetworkServerFixture : IDisposable
 
     public NetworkServerFixture()
     {
-        var server = new MyNetServer
+        Server = TestPort.StartAny(27500, port => new MyNetServer
         {
-            Port = 0,
+            Port = port,
             AddressFamily = AddressFamily.InterNetwork,
             Log = ServerLog,
             SessionLog = ServerLog,
-        };
-        Server = server;
-        Server.Start();
+        }, e => e.Start());
     }
 
     public void Dispose() => Server?.Stop("IntegrationTestDone");
@@ -84,6 +83,14 @@ public class MyNetSession : NetSession<MyNetServer>
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClassFixture<NetworkServerFixture>
 {
+    /// <summary>轮询等待条件成立。并行满载时固定等待不够用（典型：服务端建会话滞后）</summary>
+    private static async Task WaitUntilAsync(Func<Boolean> condition, Int32 timeoutMs = 10_000)
+    {
+        var end = Environment.TickCount64 + timeoutMs;
+        while (!condition() && Environment.TickCount64 < end)
+            await Task.Delay(20);
+    }
+
     [Fact(DisplayName = "01-服务端已启动且端口已分配")]
     public void Test01_ServerStarted()
     {
@@ -107,8 +114,7 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         ns.ReadTimeout = 5_000;
 
         // 等待服务端完成会话建立（轮询避免偶发时序问题）
-        for (var i = 0; i < 20 && fixture.Server.SessionCount < sessionsBefore + 1; i++)
-            await Task.Delay(50);
+        await WaitUntilAsync(() => fixture.Server.SessionCount >= sessionsBefore + 1);
 
         // 连接后：SessionCount 精确 +1；MaxSessionCount 同步更新（只增不减）
         Assert.Equal(sessionsBefore + 1, fixture.Server.SessionCount);
@@ -142,13 +148,14 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         Assert.True(await fixture.ServerLog.WaitForAsync("收到"), "服务端日志应包含接收记录");
 
         // 5. 服务端队列：精确多了1条（不是「大于」）
+        await WaitUntilAsync(() => fixture.Server.ReceivedMessages.Count >= priorCount + 1);
         Assert.Equal(priorCount + 1, fixture.Server.ReceivedMessages.Count);
         Assert.Contains(msg, fixture.Server.ReceivedMessages);
 
         // 主动关闭连接，等待服务端清理会话
         client.Close();
         client.Dispose();
-        await Task.Delay(150);
+        await WaitUntilAsync(() => fixture.Server.SessionCount <= sessionsBefore);
 
         // 断开后：SessionCount 精确回到原值；MaxSessionCount 保持不减
         Assert.Equal(sessionsBefore, fixture.Server.SessionCount);
@@ -172,8 +179,7 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         await udp.SendAsync(msgBytes, msgBytes.Length, endpoint);
 
         // 等待服务端完成 UDP 会话建立（轮询避免偶发时序问题）
-        for (var i = 0; i < 20 && fixture.Server.SessionCount < sessionsBefore + 1; i++)
-            await Task.Delay(50);
+        await WaitUntilAsync(() => fixture.Server.SessionCount >= sessionsBefore + 1);
 
         // 首包触发 UDP 会话建立：SessionCount 精确 +1；MaxSessionCount 同步更新
         Assert.Equal(sessionsBefore + 1, fixture.Server.SessionCount);
@@ -199,14 +205,16 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         Assert.Equal("efiLweN olleH", reply);
 
         // 4. 服务端队列：精确包含该消息（UDP 会话无断开语义，不检查 -1）
-        await Task.Delay(50);
+        await WaitUntilAsync(() => fixture.Server.ReceivedMessages.Contains(msg));
         Assert.Contains(msg, fixture.Server.ReceivedMessages);
 
         // 5. 服务端日志有接收记录
         Assert.True(fixture.ServerLog.Contains("收到"), "服务端日志应有接收记录");
 
-        // 发送空包触发服务端断开会话
+        // 发送空包触发服务端断开会话，并等待会话真正释放，避免残留会话影响后续用例的会话计数
         await udp.SendAsync([], 0, endpoint);
+        await WaitUntilAsync(() => fixture.Server.SessionCount <= sessionsBefore);
+        Assert.Equal(sessionsBefore, fixture.Server.SessionCount);
     }
 
     [Fact(DisplayName = "04-ISocketClient(TCP) 全流程：连接→欢迎→发送→精确回显→服务端确认断开")]
@@ -222,11 +230,11 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         client.Name = "集成测试Tcp客户";
         client.Log = XTrace.Log;
 
-        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        if (client is TcpSession tcp) tcp.AutoReceive = false;
         client.Open();  // 明确触发 TCP 连接，确保服务端在断言前建立会话
 
-        // 等待服务端完成会话建立
-        await Task.Delay(50);
+        // 等待服务端完成会话建立（轮询避免偶发时序问题）
+        await WaitUntilAsync(() => fixture.Server.SessionCount >= sessionsBefore + 1);
         Assert.Equal(sessionsBefore + 1, fixture.Server.SessionCount);
         var expectedMax = Math.Max(maxBefore, sessionsBefore + 1);
         Assert.Equal(expectedMax, fixture.Server.MaxSessionCount);
@@ -256,7 +264,7 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         client.Close("Test04Done");
 
         // 4. 服务端队列：精确多了1条（不是「大于」）
-        await Task.Delay(50);
+        await WaitUntilAsync(() => fixture.Server.ReceivedMessages.Count >= priorCount + 1);
         Assert.Equal(priorCount + 1, fixture.Server.ReceivedMessages.Count);
         Assert.Contains(msg, fixture.Server.ReceivedMessages);
 
@@ -264,7 +272,7 @@ public class NetworkServerIntegrationTests(NetworkServerFixture fixture) : IClas
         Assert.True(await fixture.ServerLog.WaitForAsync("断开"), "服务端日志应包含断开连接记录");
 
         // 断开后：SessionCount 精确回到原值；MaxSessionCount 保持不减
-        await Task.Delay(150);
+        await WaitUntilAsync(() => fixture.Server.SessionCount <= sessionsBefore);
         Assert.Equal(sessionsBefore, fixture.Server.SessionCount);
         Assert.Equal(expectedMax, fixture.Server.MaxSessionCount);
     }

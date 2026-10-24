@@ -18,7 +18,7 @@ public sealed class SafeInt64Converter : JsonConverter<Int64>
         {
             JsonTokenType.Number => reader.GetInt64(),
             JsonTokenType.String => Int64.Parse(reader.GetString()!, System.Globalization.CultureInfo.InvariantCulture),
-            _ => throw new JsonException("Invalid token for Int64")
+            _ => throw new JsonException(L.T("Invalid token for Int64"))
         };
     }
 
@@ -44,7 +44,7 @@ public sealed class SafeUInt64Converter : JsonConverter<UInt64>
         {
             JsonTokenType.Number => reader.GetUInt64(),
             JsonTokenType.String => UInt64.Parse(reader.GetString()!, System.Globalization.CultureInfo.InvariantCulture),
-            _ => throw new JsonException("Invalid token for UInt64")
+            _ => throw new JsonException(L.T("Invalid token for UInt64"))
         };
     }
 

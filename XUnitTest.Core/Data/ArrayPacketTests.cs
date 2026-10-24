@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,52 @@ namespace XUnitTest.Buffer;
 
 public class ArrayPacketTests
 {
+    [Fact]
+    [DisplayName("切片_负偏移_拒绝而不是向前扩窗")]
+    public void Slice_NegativeOffset_Throws()
+    {
+        var pk = new ArrayPacket("Stone".GetBytes(), 2, 3);
+
+        // 负偏移会向前多取字节（越窗读到本包之前的活数据）；向前借位请用 ExpandHeader
+        Assert.Throws<ArgumentOutOfRangeException>(() => pk.Slice(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => pk.Slice(-1, 1));
+    }
+
+    [Fact]
+    [DisplayName("构造_偏移越界_抛参数异常而不是产生负长度")]
+    public void Ctor_OffsetBeyondBuffer_Throws()
+    {
+        var buf = "Stone".GetBytes();
+
+        // 越界偏移若放过，“到末尾”的长度推导会得到负值，形成 Length 为负的坏包
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, buf.Length + 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, -1));
+
+        // 偏移等于长度是合法的空窗口
+        Assert.Equal(0, new ArrayPacket(buf, buf.Length).Length);
+    }
+
+    [Fact]
+    [DisplayName("构造_长度越窗_抛参数异常而不是产生虚高长度的坏包")]
+    public void Ctor_CountBeyondBuffer_Throws()
+    {
+        var buf = "Stone".GetBytes();
+
+        // count 越窗若放过，GetSpan/GetMemory 会在构造 Span 时延迟抛异常，或按虚高长度参与 Total/Slice 计算
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, 0, buf.Length + 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, 2, buf.Length - 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, buf.Length, 1));
+
+        // Int32.MaxValue 这类极端值不能靠 offset + count 相加溢出绕过校验
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPacket(buf, 1, Int32.MaxValue));
+
+        // 恰好取到末尾是合法边界；负长度仍表示到末尾
+        Assert.Equal(buf.Length, new ArrayPacket(buf, 0, buf.Length).Length);
+        Assert.Equal(1, new ArrayPacket(buf, buf.Length - 1, 1).Length);
+        Assert.Equal(0, new ArrayPacket(buf, buf.Length, 0).Length);
+        Assert.Equal(buf.Length - 2, new ArrayPacket(buf, 2).Length);
+    }
+
     [Fact]
     public void CtorTest()
     {
@@ -213,7 +260,7 @@ public class ArrayPacketTests
         var pk2 = pk.Slice(5, 5);
         Assert.Equal("World", pk2.ToStr());
 
-        // Slice(int,int) 默认 transferOwner=true，对 ArrayPacket 无影响
+        // 切片为共享/视图语义；结构体实现返回视图，不涉及所有权转移
         var pk3 = pk.Slice(0, 5);
         Assert.Equal("Hello", pk3.ToStr());
     }

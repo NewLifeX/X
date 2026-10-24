@@ -1,10 +1,14 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using NewLife.Log;
 using NewLife.Windows;
 using NewLife.Serialization;
 using System.Runtime.Versioning;
+
+// 本文件为 Windows 系统信息探测（注册表/WMI/性能计数器/COM），属动态能力边界：
+// AOT 下这些分支不受支持并按空值降级；相关 AOT 语义在每个方法上显式声明
 
 #if NETFRAMEWORK || NET5_0_OR_GREATER
 using Microsoft.Win32;
@@ -41,7 +45,12 @@ public partial class MachineInfo
 
         internal UInt64 ullAvailExtendedVirtual;
 
-        internal void Init() => dwLength = checked((UInt32)Marshal.SizeOf(typeof(MEMORYSTATUSEX)));
+        internal void Init() =>
+#if NET45
+            dwLength = checked((UInt32)Marshal.SizeOf(typeof(MEMORYSTATUSEX)));
+#else
+            dwLength = checked((UInt32)Marshal.SizeOf<MEMORYSTATUSEX>());
+#endif
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
@@ -126,11 +135,13 @@ public partial class MachineInfo
         reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
         if (reg != null) Processor = reg.GetValue("ProcessorNameString") + "";
 
-        // 旧版系统（如win2008）没有UUID的注册表项，需要用wmic查询。也可能因为过去的某个BUG，导致GUID跟UUID相等
+        // 旧版系统（如win2008）没有UUID的注册表项，需要用WMI查询。也可能因为过去的某个BUG，导致GUID跟UUID相等
         if (UUID.IsNullOrEmpty() || UUID == Guid || Vendor.IsNullOrEmpty())
         {
-            var csproduct = ReadWmic("csproduct", "Name", "UUID", "Vendor");
-            if (csproduct != null)
+            // 优先进程内 WMI（System.Management/COM），wmic 进程兜底；wmic 自 Windows 11 24H2/Server 2025 起默认不再安装
+            var csproduct = ReadWmiComMulti("csproduct", "Name", "UUID", "Vendor");
+            if (csproduct.Count == 0) csproduct = ReadWmic("csproduct", "Name", "UUID", "Vendor");
+            if (csproduct.Count > 0)
             {
                 if (csproduct.TryGetValue("Name", out str) && !str.IsNullOrEmpty() && Product.IsNullOrEmpty()) Product = str;
                 if (csproduct.TryGetValue("UUID", out str) && !str.IsNullOrEmpty()) UUID = str;
@@ -161,10 +172,14 @@ public partial class MachineInfo
         return dic;
     }
 
-    /// <summary>通过WMIC命令读取信息</summary>
+    /// <summary>通过 WMIC 命令读取信息（末位兜底）</summary>
+    /// <remarks>
+    /// wmic 自 Windows 11 24H2 / Server 2025 起默认不再随系统安装（可作按需功能手动恢复）。
+    /// 命令缺失时返回空字典并记录调试日志，不抛异常；获取系统信息建议优先使用 ReadWmiComMulti/GetInfo（含 System.Management、WMI COM 多级降级）。
+    /// </remarks>
     /// <param name="type">WMI类型</param>
     /// <param name="keys">查询字段</param>
-    /// <returns>解析后的字典</returns>
+    /// <returns>解析后的字典；命令缺失或查询失败时为空字典</returns>
     public static IDictionary<String, String> ReadWmic(String type, params String[] keys)
     {
         var dic = new Dictionary<String, IList<String>>(StringComparer.OrdinalIgnoreCase);
@@ -211,7 +226,7 @@ public partial class MachineInfo
         { "win32_battery", "Win32_Battery" },
     };
 
-    /// <summary>通过 WMI 查询多属性（自动选择 COM/wmic）。优先使用 COM 避免开进程</summary>
+    /// <summary>通过 WMI 查询多属性。优先进程内 WMI（System.Management/COM），极端场景回退 wmic 进程</summary>
     /// <param name="type">WMI 类型，支持 wmic 格式如 "csproduct"、"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature"</param>
     /// <param name="keys">查询字段</param>
     /// <returns>属性字典</returns>
@@ -256,7 +271,7 @@ public partial class MachineInfo
         return dic;
     }
 
-    /// <summary>通过 WMI 查询单个属性（自动回退 wmic）。优先使用 COM 避免开进程</summary>
+    /// <summary>通过 WMI 查询单个属性（内部经 ReadWmiComMulti 的多级降级链）</summary>
     /// <param name="type">WMI 类型</param>
     /// <param name="property">属性名</param>
     /// <returns>属性值，失败返回 null</returns>
@@ -346,7 +361,7 @@ public partial class MachineInfo
             }
             else
             {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature information is unavailable.");
                 _excludes.Add(nameof(Temperature));
                 Temperature = 0;
             }
@@ -363,18 +378,19 @@ public partial class MachineInfo
             }
             else
             {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery information is unavailable.");
                 _excludes.Add(nameof(Battery));
                 Battery = 0;
             }
         }
     }
 
-    /// <summary>获取WMI信息。net*-windows反射System.Management并回退COM；其它运行时用COM并回退wmic</summary>
+    /// <summary>获取WMI信息。net*-windows 优先反射 System.Management 再回退 WMI COM；其它运行时用 WMI COM；wmic 进程为末位兜底（自 Windows 11 24H2 / Server 2025 起默认不再安装）</summary>
     /// <param name="path">WMI路径</param>
     /// <param name="property">属性名</param>
     /// <param name="nameSpace">命名空间，默认 root\cimv2</param>
     /// <returns>查询结果</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     public static String GetInfo(String path, String property, String? nameSpace = null)
     {
         // 规范化命名空间：WMI 要求反斜杠分隔，调用者可能传入 root/wmi 等正斜杠格式
@@ -382,7 +398,7 @@ public partial class MachineInfo
 
         var ns = nameSpace ?? "root\\cimv2";
 
-#if __WIN__
+#if WINDOWS
         // net*-windows：优先反射 System.Management 走标准 WMI，失败回退 COM；两者均失败降级 wmic 兜底
         {
             var value = QueryWmiSystemManagement(path, property, ns);
@@ -393,22 +409,22 @@ public partial class MachineInfo
 
             // 两种 WMI 路径均失败（如 WMI 服务异常），降级到 wmic 进程兜底
             if (XTrace.Log.Level <= LogLevel.Debug)
-                XTrace.WriteLine("WMI 均失败，回退 wmic: {0}.{1}", path, property);
+                XTrace.WriteLine("All WMI attempts failed; falling back to wmic: {0}.{1}", path, property);
         }
 #else
-        // 其它运行时（netstandard/net*非windows）：优先 COM，失败回退 wmic
+        // 其它运行时（netstandard/net*非windows）：WMI 仅 Windows 主机支持，其它平台直接返回空
 #if NET5_0_OR_GREATER
-        if (OperatingSystem.IsWindows())
+        if (!OperatingSystem.IsWindows()) return "";
 #else
-        if (Runtime.Windows)
-#endif
-        {
-            var value = QueryWmiCom(path, property, ns);
-            if (value != null) return value;
-        }
+        if (!Runtime.Windows) return "";
 #endif
 
-        // wmic 兜底（__WIN__ 降级 + 其它运行时）。不带命名空间时也要用 path 前缀以支持完整类名
+        var value = QueryWmiCom(path, property, ns);
+        if (value != null) return value;
+#endif
+
+        // wmic 兜底（WINDOWS 分支两条 WMI 路径均失败，以及其它运行时）。wmic 自 Windows 11 24H2/Server 2025 起默认不再安装，此时快速返回空结果
+        // 不带命名空间时也要用 path 前缀以支持完整类名
         var type = !ns.EqualIgnoreCase("root\\cimv2") ? $"/namespace:\\\\{ns} path {path}" : $"path {path}";
         var dic = ReadWmic(type, property);
         return dic.TryGetValue(property, out var v) ? v : "";
@@ -427,6 +443,9 @@ public partial class MachineInfo
 #if NET5_0_OR_GREATER
     [SupportedOSPlatform("windows")]
 #endif
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     internal static String? QueryWmiSystemManagement(String wmiClass, String property, String nameSpace, Boolean throwOnError = false)
     {
         try
@@ -485,7 +504,7 @@ public partial class MachineInfo
             if (throwOnError) throw;
             if (XTrace.Log.Level <= LogLevel.Debug)
             {
-                XTrace.WriteLine("QueryWmiSystemManagement 失败: {0}.{1} @ {2}", wmiClass, property, nameSpace);
+                XTrace.WriteLine("QueryWmiSystemManagement failed: {0}.{1} @ {2}", wmiClass, property, nameSpace);
                 XTrace.WriteException(ex is TargetInvocationException tie ? tie.InnerException! : ex);
             }
         }
@@ -507,6 +526,8 @@ public partial class MachineInfo
 #if NET5_0_OR_GREATER
     [SupportedOSPlatform("windows")]
 #endif
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "经 WMI moniker 动态绑定 COM 服务；AOT 下不受支持并降级为空值（见分析稿 §5）")]
     internal static String? QueryWmiCom(String wmiClass, String property, String nameSpace, Boolean throwOnError = false)
     {
         Object? services = null;
@@ -551,7 +572,7 @@ public partial class MachineInfo
             if (throwOnError) throw;
             if (XTrace.Log.Level <= LogLevel.Debug)
             {
-                XTrace.WriteLine("QueryWmiCom 失败: {0}.{1} @ {2}", wmiClass, property, nameSpace);
+                XTrace.WriteLine("QueryWmiCom failed: {0}.{1} @ {2}", wmiClass, property, nameSpace);
                 XTrace.WriteException(ex is TargetInvocationException tie ? tie.InnerException! : ex);
             }
         }

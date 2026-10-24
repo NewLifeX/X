@@ -217,49 +217,6 @@ public static class XmlHelper
     //private static Encoding _utf32Encoding;
     //private static Encoding _unicodeEncoding;
 
-    internal static Boolean CanXmlConvert(this Type type)
-    {
-        if (type.IsBaseType()) return true;
-
-        if (!type.IsValueType) return false;
-
-        if (type == typeof(Guid) || type == typeof(DateTimeOffset) || type == typeof(TimeSpan)) return true;
-
-        return false;
-    }
-
-    internal static String? XmlConvertToString(Object value)
-    {
-        if (value == null) return null;
-
-        var type = value.GetType();
-        var code = type.GetTypeCode();
-        if (code == TypeCode.String) return value.ToString();
-        if (code == TypeCode.DateTime) return XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.RoundtripKind);
-
-        //var method = Reflect.GetMethodEx(typeof(XmlConvert), "ToString", type);
-        var method = typeof(XmlConvert).GetMethodEx("ToString", type);
-        if (method == null) throw new XException("Type {0} does not support converting to Xml strings. Please use the CanXmlConvert method first to determine!", type);
-
-        return (String?)"".Invoke(method, value);
-    }
-
-    internal static T? XmlConvertFromString<T>(String xml) => (T?)XmlConvertFromString(typeof(T), xml);
-
-    internal static Object? XmlConvertFromString(Type type, String xml)
-    {
-        if (xml == null) return null;
-
-        var code = type.GetTypeCode();
-        if (code == TypeCode.String) return xml;
-        if (code == TypeCode.DateTime) return XmlConvert.ToDateTime(xml, XmlDateTimeSerializationMode.RoundtripKind);
-
-        //var method = Reflect.GetMethodEx(typeof(XmlConvert), "To" + type.Name, typeof(String));
-        var method = typeof(XmlConvert).GetMethodEx("To" + type.Name, typeof(String));
-        if (method == null) throw new XException("Type {0} does not support converting from Xml strings. Please use the CanXmlConvert method first!", type);
-
-        return "".Invoke(method, xml);
-    }
     #endregion
 
     #region Xml转字典

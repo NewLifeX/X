@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Model;
@@ -82,7 +83,7 @@ public partial class ApiHttpClient
             }
 
             if (selectedService == null || selectedResponse == null)
-                throw new InvalidOperationException("No available service nodes!");
+                throw new InvalidOperationException(L.T("No available service nodes!"));
 
             // 取消其它任务，不等待清理
             raceCts.Cancel();
@@ -97,22 +98,30 @@ public partial class ApiHttpClient
                 using var request = BuildRequest(HttpMethod.Get, requestUri, null, null);
 
                 response = await SendOnServiceAsync(request, selectedService, client, false, cancellationToken).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
             }
 
             _currentService = selectedService;
             Source = selectedService.Name;
 
+            try
+            {
+                // HEAD 模式重新发起的 GET 需要确认状态码（GET 模式选取时已按成功状态过滤）
+                if (useHeadCheck) response.EnsureSuccessStatusCode();
+
 #if NET5_0_OR_GREATER
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 #else
-            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
 
-            await HttpHelper.SaveFileAsync(stream, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
-            Current = selectedService;
-
-            response.Dispose();
+                await HttpHelper.SaveFileAsync(stream, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
+                Current = selectedService;
+            }
+            finally
+            {
+                // 保存或校验失败也必须释放响应，避免连接池资源泄漏
+                response.Dispose();
+            }
         }
         catch (Exception ex)
         {
@@ -294,7 +303,7 @@ public partial class ApiHttpClient
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual async Task<TResult?> InvokeRaceAsync<TResult>(HttpMethod method, String action, Object? args = null, CancellationToken cancellationToken = default)
+    public virtual async Task<TResult?> InvokeRaceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TResult>(HttpMethod method, String action, Object? args = null, CancellationToken cancellationToken = default)
     {
         // 获取可用服务列表
         var available = await GetRaceServicesAsync(cancellationToken).ConfigureAwait(false);
@@ -336,7 +345,7 @@ public partial class ApiHttpClient
             }
 
             if (selectedService == null || selectedResponse == null)
-                throw new InvalidOperationException("No available service nodes!");
+                throw new InvalidOperationException(L.T("No available service nodes!"));
 
             // 取消其它任务，不等待
             raceCts.Cancel();
@@ -355,8 +364,8 @@ public partial class ApiHttpClient
             }
             finally
             {
-                // 释放选中的响应，避免连接池资源泄漏
-                selectedResponse.Dispose();
+                // 释放选中的响应，避免连接池资源泄漏；调用方索取原始响应时所有权移交，不在此销毁
+                if (typeof(TResult) != typeof(HttpResponseMessage)) selectedResponse.Dispose();
             }
         }
         catch (Exception ex)
@@ -377,7 +386,7 @@ public partial class ApiHttpClient
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public Task<TResult?> InvokeRaceAsync<TResult>(String action, Object? args = null, CancellationToken cancellationToken = default)
+    public Task<TResult?> InvokeRaceAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TResult>(String action, Object? args = null, CancellationToken cancellationToken = default)
     {
         var method = HttpMethod.Post;
 #if NETCOREAPP || NETSTANDARD2_1

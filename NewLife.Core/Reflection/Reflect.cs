@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace NewLife.Reflection;
@@ -56,6 +57,8 @@ public static class Reflect
     /// <summary>根据名称获取类型。可搜索当前目录DLL，自动加载</summary>
     /// <param name="typeName">类型名</param>
     /// <returns></returns>
+    /// <remarks>字符串类型名在目标类型被静态引用时可用；AOT 下按需保留由调用方负责</remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "字符串类型名加载：目标类型被静态引用时可用；AOT 下按需保留由调用方负责（见 Doc/AOT兼容性分析.md §4）")]
     public static Type? GetTypeEx(this String typeName)
     {
         if (String.IsNullOrEmpty(typeName)) return null;
@@ -66,20 +69,12 @@ public static class Reflect
         return Provider.GetType(typeName, false);
     }
 
-    /// <summary>根据名称获取类型。可搜索当前目录DLL，自动加载</summary>
+    /// <summary>根据名称获取类型（旧版重载，仅为兼容旧二进制保留）</summary>
     /// <param name="typeName">类型名</param>
-    /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
+    /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。<b>已忽略</b></param>
     /// <returns></returns>
     [Obsolete("不再支持isLoadAssembly")]
-    public static Type? GetTypeEx(this String typeName, Boolean isLoadAssembly)
-    {
-        if (String.IsNullOrEmpty(typeName)) return null;
-
-        var type = Type.GetType(typeName);
-        if (type != null) return type;
-
-        return Provider.GetType(typeName, isLoadAssembly);
-    }
+    public static Type? GetTypeEx(this String typeName, Boolean isLoadAssembly) => GetTypeEx(typeName);
 
     /// <summary>获取方法</summary>
     /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
@@ -96,6 +91,13 @@ public static class Reflect
 
         return Provider.GetMethod(type, name, paramTypes);
     }
+
+    /// <summary>获取方法。泛型入口，编译期已知类型，AOT 下 T 的公开与非公开方法按需保留</summary>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="name">名称</param>
+    /// <param name="paramTypes">参数类型数组</param>
+    /// <returns></returns>
+    public static MethodInfo? GetMethodEx<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(String name, params Type[] paramTypes) => typeof(T).GetMethodEx(name, paramTypes);
 
     /// <summary>获取指定名称的方法集合，支持指定参数个数来匹配过滤</summary>
     /// <param name="type"></param>
@@ -120,6 +122,13 @@ public static class Reflect
 
         return Provider.GetProperty(type, name, ignoreCase);
     }
+
+    /// <summary>获取属性。泛型入口，编译期已知类型，AOT 下 T 的公开与非公开属性按需保留</summary>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="name">名称</param>
+    /// <param name="ignoreCase">忽略大小写</param>
+    /// <returns></returns>
+    public static PropertyInfo? GetPropertyEx<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.NonPublicProperties)] T>(String name, Boolean ignoreCase = false) => typeof(T).GetPropertyEx(name, ignoreCase);
 
     /// <summary>获取字段。搜索私有、静态、基类，优先返回大小写精确匹配成员</summary>
     /// <param name="type">类型</param>
@@ -166,6 +175,7 @@ public static class Reflect
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
     [DebuggerHidden]
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "按运行时 Type 反射创建实例；AOT 下请使用 CreateInstance<T>() 泛型入口")]
     public static Object? CreateInstance(this Type type, params Object?[] parameters)
     {
         if (type == null) throw new ArgumentNullException(nameof(type));
@@ -187,6 +197,11 @@ public static class Reflect
         var dp = _directProvider;
         return dp != null ? dp.CreateInstanceCore(type, parameters) : Provider.CreateInstance(type, parameters!);
     }
+
+    /// <summary>反射创建指定类型的实例。泛型入口，编译期已知类型，AOT 下 T 的公开无参构造与非公开构造按需保留</summary>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <returns></returns>
+    public static T? CreateInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>() => (T?)typeof(T).CreateInstance();
 
     /// <summary>反射调用指定对象的方法。target为类型时调用其静态方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
@@ -316,7 +331,7 @@ public static class Reflect
         if (!throwOnError) return null;
 
         var type = GetType(target);
-        throw new ArgumentException($"The [{name}] property or field does not exist in class [{type.FullName}].");
+        throw new ArgumentException(L.T("The [{0}] property or field does not exist in class [{1}].", name, type.FullName));
     }
 
     /// <summary>获取目标对象指定名称的属性/字段值</summary>
@@ -716,13 +731,6 @@ public static class Reflect
     /// <param name="baseType">基类或接口</param>
     /// <returns></returns>
     public static IEnumerable<Type> GetAllSubclasses(this Type baseType) => Provider.GetAllSubclasses(baseType);
-
-    ///// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
-    ///// <param name="baseType">基类或接口</param>
-    ///// <param name="isLoadAssembly">是否加载为加载程序集</param>
-    ///// <returns></returns>
-    //[Obsolete]
-    //public static IEnumerable<Type> GetAllSubclasses(this Type baseType, Boolean isLoadAssembly) => Provider.GetAllSubclasses(baseType, isLoadAssembly);
     #endregion
 
     #region 辅助方法

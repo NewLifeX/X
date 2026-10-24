@@ -53,6 +53,11 @@ public class DeferredQueueTests
         // 再次获取应返回同一对象
         var obj2 = queue.GetOrAdd<TestObj>("key1");
         Assert.Same(obj, obj2);
+
+        // GetOrAdd 借出的对象用完必须 Commit，否则销毁时等待 WaitForBusy。
+        // 两次 GetOrAdd 各借出一次，需按调用次数提交
+        queue.Commit("key1");
+        queue.Commit("key1");
     }
 
     [Fact(DisplayName = "GetOrAdd使用工厂方法")]
@@ -63,6 +68,9 @@ public class DeferredQueueTests
         var obj = queue.GetOrAdd<TestObj>("key1", k => new TestObj { Name = k });
         Assert.NotNull(obj);
         Assert.Equal("key1", obj!.Name);
+
+        // GetOrAdd 借出的对象用完必须 Commit，否则销毁时等待 WaitForBusy
+        queue.Commit("key1");
     }
 
     [Fact(DisplayName = "Commit提交")]
@@ -97,6 +105,9 @@ public class DeferredQueueTests
         queue.GetOrAdd<TestObj>("c");
 
         Assert.True(queue.Times >= 3);
+
+        // GetOrAdd 借出的对象用完必须 Commit，否则销毁时等待 WaitForBusy
+        queue.Commit("c");
     }
 
     [Fact(DisplayName = "Name默认值")]

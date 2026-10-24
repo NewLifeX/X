@@ -24,6 +24,18 @@ public class HttpRequest : HttpBase
     public FormFile[]? Files { get; set; }
     #endregion
 
+    /// <summary>是否严格校验头部行。请求侧强制：字段名含空白、或续行折叠一律拒绝（RFC 7230 §3.2.4）</summary>
+    protected override Boolean StrictHeader => true;
+
+    /// <summary>未声明长度时是否把头部之后的字节按实体处理</summary>
+    /// <remarks>
+    /// <para>RFC 9112 §6.3：请求无 Content-Length 且无 Transfer-Encoding 时没有实体，头部之后的字节属于同连接的
+    /// 下一个请求（HTTP/1.1 流水线）；一律当实体吞掉会让第二个请求静默丢失（不回响应也不关连接，客户端挂到超时）。</para>
+    /// <para>例外保留：HTTP/1.0 的 POST/PUT/PATCH——老式客户端以“连接关闭”定界实体、不发 Content-Length，
+    /// 兼容语义不能一并去掉。</para>
+    /// </remarks>
+    protected override Boolean BodyWithoutLength => Version != "1.1" && Method.EqualIgnoreCase("POST", "PUT", "PATCH");
+
     /// <summary>分析第一行</summary>
     /// <param name="firstLine"></param>
     protected override Boolean OnParse(String firstLine)
@@ -33,13 +45,13 @@ public class HttpRequest : HttpBase
         var ss = firstLine.Split(' ');
         if (ss.Length < 3) return false;
 
-        // 分析请求方法 GET / HTTP/1.1
-        if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
-        {
-            Method = ss[0];
-            RequestUri = new Uri(ss[1], UriKind.RelativeOrAbsolute);
-            Version = ss[2].TrimPrefix("HTTP/");
-        }
+        // 分析请求方法 GET / HTTP/1.1。第三段必须以 HTTP/ 开头：
+        // 畸形请求行（如 GET /x FOO/1.1）此前会被当成解析成功，Method 与 Version 留空后仍进入业务处理
+        if (!ss[2].StartsWithIgnoreCase("HTTP/")) return false;
+
+        Method = ss[0];
+        RequestUri = new Uri(ss[1], UriKind.RelativeOrAbsolute);
+        Version = ss[2].TrimPrefix("HTTP/");
 
         Host = Headers["Host"];
 
@@ -55,19 +67,29 @@ public class HttpRequest : HttpBase
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>快速分析请求头，只分析第一行</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
+    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。首行可跨节点（链式帧）：跨段查找换行定位首行末端。</remarks>
+    /// <param name="pk">数据包</param>
+    /// <returns>是否解析成功</returns>
     public Boolean FastParse(IPacket pk)
     {
-        var data = pk.GetSpan();
-        if (!FastValidHeader(data)) return false;
+        // 快速验证：请求行以谓语开头（最多10字节内出现空格；跨段前缀拼读）
+        Span<Byte> fastBuf = stackalloc Byte[10];
+        if (!FastValidHeader(pk.GetPrefix(fastBuf, 10))) return false;
 
-        var p = data.IndexOf(NewLine);
+        // 首行可能跨节点：跨段查找换行定位首行末端
+        var p = pk.IndexOf(NewLine);
         if (p < 0) return false;
 
-        var line = data.Slice(0, p).ToStr();
+        var line = pk.Slice(0, p).ToStr();
 
-        Body = pk.Slice(p + 2, -1, true);
+        // 主体：共享切片独立持有引用；入参句柄由调用方释放
+        // 旧主体可能是上一次解析的拥有句柄，覆盖前先归还（同 HttpBase.Parse）
+        Body.TryDispose();
+
+        Body = pk.Slice(p + 2, -1);
+
+        // 本方法不解析头部，故整表清空：同实例复用时不把上一条请求的头部（如 Host）残留给本次
+        Headers.Clear();
 
         // 分析第一行
         if (!OnParse(line)) return false;
@@ -120,7 +142,7 @@ public class HttpRequest : HttpBase
         foreach (var item in Headers)
         {
             if (!item.Key.EqualIgnoreCase("Host"))
-                sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
+                sb.AppendFormat("{0}: {1}\r\n", SanitizeHeaderText(item.Key), SanitizeHeaderText(item.Value));
         }
 
         sb.Append("\r\n");
@@ -129,6 +151,7 @@ public class HttpRequest : HttpBase
     }
 
     /// <summary>分析表单数据</summary>
+    /// <remarks>主体支持链式（跨接收段）：按链扫描定位段边界并共享切片，不做整体物化；文件数据为源包的共享切片（引用计数），随表单对象存活，应由使用方显式释放。</remarks>
     public virtual IDictionary<String, Object> ParseFormData()
     {
         var dic = new Dictionary<String, Object>();
@@ -137,10 +160,25 @@ public class HttpRequest : HttpBase
         var boundary = ContentType.Substring("boundary=", null);
         if (boundary.IsNullOrEmpty()) return dic;
 
+        // 兼容带引号或带后续参数的 boundary
+        var p = boundary.IndexOf(';');
+        if (p > 0) boundary = boundary[..p];
+        boundary = boundary.Trim().Trim('"');
+        if (boundary.IsNullOrEmpty()) return dic;
+
         var body = Body;
-        if (body == null || body.Length == 0) return dic;
-        var data = body.GetSpan();
-        var idx = 0;
+        if (body == null || body.Total == 0) return dic;
+
+        // 段分隔标记与段结束标记（上一段数据尾部 + 分隔标记）
+        var bd = ("--" + boundary).GetBytes();
+        var bd2 = ("\r\n--" + boundary).GetBytes();
+
+        var total = body.Total;
+        // 头部跨段拼读缓冲，循环外分配一次
+        Span<Byte> hbuf = stackalloc Byte[256];
+
+        // 首个分隔标记之前可含前导内容，按链扫描定位；其后各段位置由段结束标记推导
+        var pos = body.IndexOf(bd);
 
         /*
          * ------WebKitFormBoundary3ZXeqQWNjAzojVR7
@@ -157,46 +195,75 @@ public class HttpRequest : HttpBase
          * 
          */
 
-        // 前面加两个横杠，作为分隔符。最后一行分隔符的末尾也有两个横杠
-        var bd = ("--" + boundary + "\r\n").GetBytes();
-        var bd2 = ("\r\n--" + boundary).GetBytes();
-        do
+        // 前面加两个横杠，作为段分隔标记。末段分隔标记的末尾也有两个横杠
+        while (pos >= 0)
         {
-            // 找到边界
-            var (s, e) = data.IndexOf(bd, bd2);
-            if (e < 0) break;
+            // 分隔行以 CRLF 结尾才有后续数据；末段为“--boundary--”，到此结束
+            var p1 = pos + bd.Length;
+            if (p1 + 2 > total || body[p1] != (Byte)'\r' || body[p1 + 1] != (Byte)'\n') break;
 
-            // 截取一段，剩下的以bd开头作为新的data。这一段的开头结尾都有\r\n
-            var part = data.Slice(s, e);
-            data = data[(s + e)..];
+            var start = p1 + 2;
+            var next = -1;
 
-            var pHeader = part.IndexOf(NewLine2);
-            if (pHeader < 0) break; // 异常表单，跳出
-            var lines = part[..pHeader].ToStr().SplitAsDictionary(":", "\r\n");
-            if (lines.TryGetValue("Content-Disposition", out var str))
+            // 段内容（头部+数据）为共享切片，结尾的 CRLF 与分隔标记不属于数据
+            var part = body.Slice(start, -1);
+            try
             {
-                var ss = str.SplitAsDictionary("=", ";", true);
-                var file = new FormFile
+                // 段结束标记界定数据终点
+                var q = part.IndexOf(bd2);
+                if (q < 0) break;
+
+                // 空行分隔头部与数据
+                var ph = part.IndexOf(NewLine2);
+                if (ph < 0 || ph + NewLine2.Length > q) break;
+
+                // 头部区：首节点足够时零拷贝直读，跨段时拼入缓冲
+                ReadOnlySpan<Byte> head = ph <= hbuf.Length
+                    ? part.GetPrefix(hbuf, ph)
+                    : part.GetPrefix(new Byte[ph], ph);
+                var lines = head[..ph].ToStr().SplitAsDictionary(":", "\r\n");
+                if (lines.TryGetValue("Content-Disposition", out var str))
                 {
-                    Name = ss["name"],
-                    FileName = ss["filename"],
-                    ContentDisposition = ss["[0]"],
-                };
+                    var ss = str.SplitAsDictionary("=", ";", true);
+                    var name = ss["name"];
+                    var fileName = ss["filename"];
+                    if (!name.IsNullOrEmpty())
+                    {
+                        var offset = ph + NewLine2.Length;
+                        var count = q - offset;
+                        if (fileName.IsNullOrEmpty())
+                        {
+                            // 文本字段：直接解码为字符串；链式时跨段整体读取，避免多字节字符被段边界截断
+                            dic[name] = part.Next == null
+                                ? part.GetSpan().Slice(offset, count).ToStr()
+                                : part.ReadBytes(offset, count).AsSpan().ToStr();
+                        }
+                        else
+                        {
+                            var file = new FormFile
+                            {
+                                Name = name,
+                                FileName = fileName,
+                                ContentDisposition = ss["[0]"],
+                                ContentType = lines.TryGetValue("Content-Type", out var ct) ? ct : null,
+                            };
+                            // 文件数据为源包的共享切片（引用计数）：随表单对象存活，应由使用方显式释放；开发期（DEBUG）未释放时由析构兜底归还池化缓冲
+                            file.Data = part.Slice(offset, count);
+                            dic[name] = file;
+                        }
+                    }
+                }
 
-                if (lines.TryGetValue("Content-Type", out str))
-                    file.ContentType = str;
-
-                var fileData = part[(pHeader + NewLine2.Length)..];
-                file.Data = body.Slice(idx + s + pHeader + NewLine2.Length, fileData.Length, false);
-
-                if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? fileData.ToStr() : file;
+                // 下一段从段结束标记之后继续，+2 跳过 CRLF
+                next = start + q + 2;
+            }
+            finally
+            {
+                part.TryDispose();
             }
 
-            // 判断是否最后一个分隔符
-            if (data.Length >= bd2.Length + 2 && data.Slice(bd2.Length, 2).ToStr() == "--") break;
-            idx += s + e;
-
-        } while (data.Length > 0);
+            pos = next;
+        }
 
         return dic;
     }

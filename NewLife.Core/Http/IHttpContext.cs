@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Net;
@@ -102,11 +103,20 @@ public class DefaultHttpContext : IHttpContext
     #endregion
 
     #region 静态
-    [ThreadStatic]
-    private static IHttpContext? _current;
+#if NET45
+    // net45 无 AsyncLocal，退回线程本地（与 TimerX.Current 同一降级口径）
+    private static readonly ThreadLocal<IHttpContext?> _current = new();
+#else
+    private static readonly AsyncLocal<IHttpContext?> _current = new();
+#endif
 
     /// <summary>当前上下文</summary>
-    public static IHttpContext? Current { get => _current; set => _current = value; }
+    /// <remarks>
+    /// <para>随异步上下文流动：中间件 <c>await</c> 之后、处理器内 <c>Task.Run</c> 派生的任务里都能取到本请求的上下文。
+    /// 此前用 <c>[ThreadStatic]</c>，异步续体切到别的线程后取到 null（同一请求内"随机"丢失）。</para>
+    /// <para>由 <c>HttpSession</c> 在请求开始置位、请求结束（含异常路径）清空；net45 为线程本地语义。</para>
+    /// </remarks>
+    public static IHttpContext? Current { get => _current.Value; set => _current.Value = value; }
     #endregion
 }
 
@@ -172,7 +182,9 @@ public static class HttpContextExtensions
 
         contentType ??= MimeHelper.GetContentType(fi.Extension) ?? "application/octet-stream";
 
-        using var fs = fi.OpenRead();
-        context.Response.SetResult(fs, contentType);
+        // 流式发送文件内容：流所有权移交响应（发送完成后释放），大文件不物化到内存
+        var fs = fi.OpenRead();
+        context.Response.ContentType = contentType;
+        context.Response.BodyStream = fs;
     }
 }

@@ -78,16 +78,8 @@ public class TimerX : ITimer, IDisposable
     /// <summary>平均耗时。毫秒</summary>
     public Int32 Cost { get; internal set; }
 
-    /// <summary>判断任务是否执行的委托。一般跟异步配合使用，避免频繁从线程池借出线程</summary>
-    [Obsolete("该委托容易造成内存泄漏，故取消", true)]
-    public Func<Boolean>? CanExecute { get; set; }
-
     /// <summary>Cron表达式集合。实现复杂的定时逻辑</summary>
     public Cron[]? Crons => _crons;
-
-    /// <summary>Cron表达式。实现复杂的定时逻辑</summary>
-    [Obsolete("=>Crons")]
-    public Cron? Cron => _crons?.FirstOrDefault();
 
     /// <summary>链路追踪器。追踪每一次定时事件</summary>
     public ITracer? Tracer { get; set; }
@@ -188,7 +180,9 @@ public class TimerX : ITimer, IDisposable
         var next = startTime;
         while (next < now) next = next.AddMilliseconds(period);
 
-        var ms = (Int64)(next - now).TotalMilliseconds;
+        // 向上取整并保底 1ms，确保首次触发严格晚于当前时刻
+        var ms = (Int64)Math.Ceiling((next - now).TotalMilliseconds);
+        if (ms <= 0) ms = 1;
         _AbsolutelyNext = next;
         Init(ms);
     }
@@ -215,7 +209,9 @@ public class TimerX : ITimer, IDisposable
         var next = startTime;
         while (next < now) next = next.AddMilliseconds(period);
 
-        var ms = (Int64)(next - now).TotalMilliseconds;
+        // 向上取整并保底 1ms，确保首次触发严格晚于当前时刻
+        var ms = (Int64)Math.Ceiling((next - now).TotalMilliseconds);
+        if (ms <= 0) ms = 1;
         _AbsolutelyNext = next;
         Init(ms);
     }
@@ -234,7 +230,7 @@ public class TimerX : ITimer, IDisposable
         foreach (var item in cronExpression.Split(";"))
         {
             var cron = new Cron();
-            if (!cron.Parse(item)) throw new ArgumentException($"Invalid Cron expression[{item}]", nameof(cronExpression));
+            if (!cron.Parse(item)) throw new ArgumentException(L.T("Invalid Cron expression[{0}]", item), nameof(cronExpression));
 
             list.Add(cron);
         }
@@ -265,7 +261,7 @@ public class TimerX : ITimer, IDisposable
         foreach (var item in cronExpression.Split(";"))
         {
             var cron = new Cron();
-            if (!cron.Parse(item)) throw new ArgumentException($"Invalid Cron expression[{item}]", nameof(cronExpression));
+            if (!cron.Parse(item)) throw new ArgumentException(L.T("Invalid Cron expression[{0}]", item), nameof(cronExpression));
 
             list.Add(cron);
         }
@@ -378,7 +374,9 @@ public class TimerX : ITimer, IDisposable
 
             // 即使基准时间改变，也不影响绝对时间定时器的执行时刻
             _AbsolutelyNext = next;
-            var ts = (Int32)Math.Round((next - now).TotalMilliseconds);
+            // 向上取整并保底 1ms，避免落在绝对网格点前侧提前触发，以及同一网格点重复触发
+            var ts = (Int32)Math.Ceiling((next - now).TotalMilliseconds);
+            if (ts <= 0) ts = 1;
             SetNextTick(ts);
 
             return ts > 0 ? ts : period;
@@ -424,6 +422,7 @@ public class TimerX : ITimer, IDisposable
 
     private static TimerX? _NowTimer;
     private static DateTime _Now;
+    private static readonly Object _NowLock = new();
 
     /// <summary>当前时间。定时读取系统时间，避免频繁读取系统时间造成性能瓶颈</summary>
     public static DateTime Now
@@ -432,7 +431,9 @@ public class TimerX : ITimer, IDisposable
         {
             if (_NowTimer == null)
             {
-                lock (TimerScheduler.Default)
+                // 专用锁对象：初始化期间不得占用调度器监视器。构造 TimerX 会读取开机滴答（可能触发 Runtime 类初始化），
+                // 一旦同时持有调度器监视器，就会与“持有 Runtime 类初始化锁又需要调度器监视器”的线程互等死锁
+                lock (_NowLock)
                 {
                     if (_NowTimer == null)
                     {

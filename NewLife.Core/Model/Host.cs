@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Log;
 
 namespace NewLife.Model;
@@ -30,6 +31,7 @@ public static class HostedServiceExtensions
     /// <typeparam name="THostedService">主机服务类型</typeparam>
     /// <param name="services">对象容器</param>
     /// <returns>对象容器</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "宿主服务注册依赖容器反射构造服务类型；AOT 下请显式注册服务工厂")]
     public static IObjectContainer AddHostedService<THostedService>(this IObjectContainer services) where THostedService : class, IHostedService
     {
         services.AddSingleton<IHostedService, THostedService>();
@@ -119,16 +121,26 @@ public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
     #region 构造
     static Host()
     {
-        AppDomain.CurrentDomain.ProcessExit += OnExit;
-        Console.CancelKeyPress += OnExit;
+        // Android/iOS 等移动平台对进程退出/信号钩子的支持不完整，逐个注册并忽略不支持的情况
+        TryRegisterExitHook(() => AppDomain.CurrentDomain.ProcessExit += OnExit);
+        TryRegisterExitHook(() => Console.CancelKeyPress += OnExit);
 #if NETCOREAPP
-        System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnExit(ctx, EventArgs.Empty);
+        TryRegisterExitHook(() => System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnExit(ctx, EventArgs.Empty));
 #endif
 #if NET6_0_OR_GREATER
-        PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
-        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
-        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
+        TryRegisterExitHook(() => PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty)));
+        TryRegisterExitHook(() => PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty)));
+        TryRegisterExitHook(() => PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx.Signal + "", EventArgs.Empty)));
 #endif
+    }
+
+    private static void TryRegisterExitHook(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (PlatformNotSupportedException) { }
     }
 
     /// <summary>销毁资源</summary>
@@ -212,7 +224,7 @@ public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
                 }
             }
 
-            throw new AggregateException("启动主机服务失败", errors);
+            throw new AggregateException(L.T("Failed to start host service."), errors);
         }
     }
 

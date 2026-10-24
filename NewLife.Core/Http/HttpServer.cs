@@ -1,5 +1,6 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Net;
 
 namespace NewLife.Http;
@@ -16,7 +17,7 @@ namespace NewLife.Http;
 /// - 典型使用场景下，路由在启动阶段集中注册，运行期只读访问；
 /// - 若需要在运行期动态增删路由，应在外部自行序列化（加锁）调用 Map 方法。
 /// </remarks>
-[DisplayName("Http服务器")]
+[DisplayName("HTTP server")]
 public class HttpServer : NetServer, IHttpHost
 {
     #region 属性
@@ -137,14 +138,14 @@ public class HttpServer : NetServer, IHttpHost
     public void MapDelete<TModel, TResult>(String path, Func<TModel, TResult> handler) => SetRoute(path, new MethodFilterHandler("DELETE", new DelegateHandler { Callback = handler }));
 
     /// <summary>映射控制器</summary>
-    /// <typeparam name="TController">控制器类型</typeparam>
+    /// <typeparam name="TController">控制器类型。AOT 下其公开构造与公开方法将按需保留</typeparam>
     /// <param name="path">可选起始路径，默认 /{ControllerName}</param>
-    public void MapController<TController>(String? path = null) => MapController(typeof(TController), path);
+    public void MapController<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TController>(String? path = null) => MapController(typeof(TController), path);
 
     /// <summary>映射控制器</summary>
-    /// <param name="controllerType">控制器类型</param>
+    /// <param name="controllerType">控制器类型。AOT 下其公开构造与公开方法将按需保留</param>
     /// <param name="path">可选起始路径，默认 /{ControllerName}</param>
-    public void MapController(Type controllerType, String? path = null)
+    public void MapController([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] Type controllerType, String? path = null)
     {
         if (controllerType == null) throw new ArgumentNullException(nameof(controllerType));
 
@@ -153,7 +154,10 @@ public class HttpServer : NetServer, IHttpHost
         // 移除尾部 /* 防止重复通配，再统一追加
         path = path.EndsWith("/*") ? path[..^2] : path;
         var path2 = path.EnsureStart("/").EnsureEnd("/*");
-        SetRoute(path2, new ControllerHandler { ControllerType = controllerType });
+
+        // 挂载前缀交给处理器：多段前缀（如 /api/user）下，处理器需先剪掉前缀才能取出操作方法名
+        var handler = new ControllerHandler { ControllerType = controllerType, Path = path.EnsureStart("/").EnsureEnd("/") };
+        SetRoute(path2, handler);
     }
 
     /// <summary>映射静态文件目录</summary>
@@ -263,19 +267,11 @@ public class HttpServer : NetServer, IHttpHost
     /// <returns>可等待的任务</returns>
     internal Task ExecutePipeline(IHttpContext context, IHttpHandler? finalHandler)
     {
-        // 无中间件时直接执行处理器
-        if (_middlewares.Count == 0)
-        {
-            finalHandler?.ProcessRequest(context);
-            return TaskEx.CompletedTask;
-        }
+        // 无中间件时直接执行处理器（热路径，不构造管道闭包）
+        if (_middlewares.Count == 0) return InvokeHandlerAsync(finalHandler, context);
 
         // 构建管道链：middleware1 → middleware2 → ... → finalHandler
-        Func<Task> handler = () =>
-        {
-            finalHandler?.ProcessRequest(context);
-            return TaskEx.CompletedTask;
-        };
+        Func<Task> handler = () => InvokeHandlerAsync(finalHandler, context);
 
         // 反向构建：最内层是 handler，往外逐层包装中间件
         for (var i = _middlewares.Count - 1; i >= 0; i--)
@@ -287,6 +283,13 @@ public class HttpServer : NetServer, IHttpHost
 
         return handler();
     }
+
+    /// <summary>调用处理器</summary>
+    /// <param name="handler">处理器</param>
+    /// <param name="context">Http上下文</param>
+    /// <returns>处理任务</returns>
+    private static Task InvokeHandlerAsync(IHttpHandler? handler, IHttpContext context)
+        => handler == null ? TaskEx.CompletedTask : handler.ProcessRequestAsync(context);
     #endregion
 
     #region 路由匹配
@@ -294,7 +297,51 @@ public class HttpServer : NetServer, IHttpHost
     private readonly HttpRouter _router = new();
 
     /// <summary>路径匹配缓存。Key 为请求路径，Value 为匹配到的路由键</summary>
-    private readonly IDictionary<String, String> _pathCache = new ConcurrentDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+    /// <remarks>只缓存通配符/短路径的命中结果，且容量有上限，避开动态 URL 让缓存无界增长</remarks>
+    /// <remarks>声明为 ConcurrentDictionary 而非 IDictionary：TryAdd 是具体类型成员，低版本 TFM 下 IDictionary 没有该扩展方法</remarks>
+    private readonly ConcurrentDictionary<String, String> _pathCache = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>路径匹配缓存上限，默认 4096。超过后不再写入</summary>
+    public Int32 MaxPathCacheSize { get; set; } = 4096;
+
+    /// <summary>路径缓存当前条目数。独立计数：ConcurrentDictionary.Count 会取全部桶锁，不能放在写入热路径上</summary>
+    private Int32 _pathCacheCount;
+
+    /// <summary>写入路径缓存（容量受限）。达到上限后静默不写，后续请求走正常路由匹配</summary>
+    /// <param name="path">请求路径</param>
+    /// <param name="key">匹配到的路由键</param>
+    private void CachePath(String path, String key)
+    {
+        // 并发下计数可能略超上限（多写几个条目），换来热路径免锁判断
+        if (Interlocked.Increment(ref _pathCacheCount) > MaxPathCacheSize)
+        {
+            Interlocked.Decrement(ref _pathCacheCount);
+            return;
+        }
+
+        if (!_pathCache.TryAdd(path, key)) Interlocked.Decrement(ref _pathCacheCount);
+    }
+
+    /// <summary>判断通配路由命中的路径是否值得写入缓存</summary>
+    /// <param name="path">请求路径</param>
+    /// <param name="handler">命中的处理器</param>
+    /// <returns>是否缓存</returns>
+    /// <remarks>
+    /// 缓存记录的是“具体 URL → 通配键”，段数不受限的 URL 会让缓存无界增长。
+    /// 控制器路由的方法名与参数段数量有限，按剪掉挂载前缀后的剩余段数判断，
+    /// 避免多段前缀（如 /api/user）因为总段数偏大而永不缓存；其它通配路由沿用总段数上限。
+    /// </remarks>
+    private static Boolean IsCacheablePath(String path, IHttpHandler handler)
+    {
+        if (handler is ControllerHandler controller && !controller.Path.IsNullOrEmpty() &&
+            path.StartsWith(controller.Path, StringComparison.OrdinalIgnoreCase))
+        {
+            var rest = path[controller.Path.Length..].TrimStart('/');
+            return rest.Length > 0 && rest.IndexOf('/') < 0;
+        }
+
+        return path.Split('/').Length <= 3;
+    }
 
     /// <summary>匹配处理器（兼容 IHttpHost 接口）</summary>
     /// <param name="path">已规范化后的请求路径（不含查询字符串）</param>
@@ -326,8 +373,8 @@ public class HttpServer : NetServer, IHttpHost
         handler = _router.Match(path, parameters);
         if (handler != null)
         {
-            // 参数化路由结果也缓存
-            if (path.Split('/').Length <= 3) _pathCache[path] = path;
+            // 参数化路由不写缓存：命中依赖具体参数（缓存值只能是路径自身），
+            // 而 Routes 里没有该键，查缓存永远取不到处理器，只会随每个不同 URL 无界增长
             return handler;
         }
 
@@ -340,8 +387,8 @@ public class HttpServer : NetServer, IHttpHost
 
             if (Routes.TryGetValue(key, out handler))
             {
-                // 大于3段的路径不做缓存，避免动态Url引起缓存膨胀
-                if (handler is StaticFilesHandler || path.Split('/').Length <= 3) _pathCache[path] = key;
+                // 只缓存段数有限且非静态文件的路径：静态文件按每个具体 URL 缓存（如 /img/1.png、/img/2.png）同样会无界增长
+                if (handler is not StaticFilesHandler && IsCacheablePath(path, handler)) CachePath(path, key);
                 return handler;
             }
         }

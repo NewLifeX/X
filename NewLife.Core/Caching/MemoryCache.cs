@@ -351,6 +351,10 @@ public class MemoryCache : Cache
     }
 
     /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
+    /// <remarks>
+    /// 与值重载语义对齐：命中且未过期时直接返回旧值；命中但已过期时执行 callback 重建并回填，返回新值。
+    /// 并发访问同一过期键时，工厂可能被重复执行（与既有语义一致），最终以最后回填的值为准。
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
     /// <param name="key"></param>
     /// <param name="callback"></param>
@@ -364,7 +368,15 @@ public class MemoryCache : Cache
         CacheItem? item = null;
         do
         {
-            if (_cache.TryGetValue(key, out item) && item != null) return item.Visit<T>();
+            if (_cache.TryGetValue(key, out item) && item != null)
+            {
+                // 未过期直接返回；已过期则重建并回填，避免调用方拿到过期旧值
+                if (!item.Expired) return item.Visit<T>();
+
+                item.Set(callback(key), expire);
+
+                return item.Visit<T>();
+            }
 
             item ??= new CacheItem(callback(key), expire);
         } while (!_cache.TryAdd(key, item));
@@ -450,7 +462,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new List<T>());
         return item.Visit<IList<T>>() ??
-         throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IList<T>).FullName}");
+         throw new InvalidCastException(L.T("Unable to convert the value of [{0}] from {1} to {2}", key, item.TypeCode, typeof(IList<T>).FullName));
     }
 
     /// <summary>获取哈希</summary>
@@ -461,7 +473,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new ConcurrentDictionary<String, T>());
         return item.Visit<IDictionary<String, T>>() ??
-         throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IDictionary<String, T>).FullName}");
+         throw new InvalidCastException(L.T("Unable to convert the value of [{0}] from {1} to {2}", key, item.TypeCode, typeof(IDictionary<String, T>).FullName));
     }
 
     /// <summary>获取队列</summary>
@@ -472,7 +484,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new MemoryQueue<T>());
         return item.Visit<IProducerConsumer<T>>() ??
-            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IProducerConsumer<T>).FullName}");
+            throw new InvalidCastException(L.T("Unable to convert the value of [{0}] from {1} to {2}", key, item.TypeCode, typeof(IProducerConsumer<T>).FullName));
     }
 
     /// <summary>获取栈</summary>
@@ -483,7 +495,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new MemoryQueue<T>(new ConcurrentStack<T>()));
         return item.Visit<IProducerConsumer<T>>() ??
-            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IProducerConsumer<T>).FullName}");
+            throw new InvalidCastException(L.T("Unable to convert the value of [{0}] from {1} to {2}", key, item.TypeCode, typeof(IProducerConsumer<T>).FullName));
     }
 
     /// <summary>获取Set</summary>
@@ -495,7 +507,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new HashSet<T>());
         return item.Visit<ICollection<T>>() ??
-            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(ICollection<T>).FullName}");
+            throw new InvalidCastException(L.T("Unable to convert the value of [{0}] from {1} to {2}", key, item.TypeCode, typeof(ICollection<T>).FullName));
     }
 
     /// <summary>获取事件总线，可发布消息或订阅消息</summary>
@@ -510,7 +522,7 @@ public class MemoryCache : Cache
             GetOrAddItem(key, k => new EventBus<TEvent>()) :
             GetOrAddItem(key, k => new QueueEventBus<TEvent>(this, topic));
         return item.Visit<IEventBus<TEvent>>() ??
-            throw new InvalidCastException($"Unable to convert the value of [{topic}] from {item.TypeCode} to {typeof(IEventBus<TEvent>).FullName}");
+            throw new InvalidCastException(L.T("Unable to convert the value of [{0}] from {1} to {2}", topic, item.TypeCode, typeof(IEventBus<TEvent>).FullName));
     }
 
     /// <summary>获取 或 添加 缓存项</summary>
@@ -790,7 +802,7 @@ public class MemoryCache : Cache
                 }
             }
 
-            XTrace.WriteLine("[{0}]满，{1:n0}>{2:n0}，删除[{3:n0}]个", Name, _count, Capacity, toDels.Count);
+            XTrace.WriteLine("[{0}] is full: {1:n0}>{2:n0}; removing [{3:n0}] items", Name, _count, Capacity, toDels.Count);
         }
 
         // 确认删除。若 OnExpire 取消删除，需要补回计数
@@ -905,7 +917,7 @@ public class MemoryCache : Cache
         _ = bn.Read<Byte>();
 
         // 版本兼容
-        if (ver > _Ver) throw new InvalidDataException($"MemoryCache[ver={_Ver}] Unable to support newer versions [{ver}]");
+        if (ver > _Ver) throw new InvalidDataException(L.T("MemoryCache[ver={0}] Unable to support newer versions [{1}]", _Ver, ver));
 
         var count = bn.ReadSize();
         while (count-- > 0)
@@ -923,7 +935,7 @@ public class MemoryCache : Cache
             }
             else if (code != TypeCode.Object)
             {
-                var type = Type.GetType("System." + code);
+                var type = TypeCodeHelper.GetType(code);
                 if (type != null) value = bn.Read(type);
             }
             else

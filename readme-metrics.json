@@ -1,0 +1,12 @@
+{
+  "updated": "2026-10-18",
+  "doc": "Doc/README多语言规范.md",
+  "values": {
+    "aotSmoke": "31/31",
+    "aotScenarios": 31,
+    "tfmCount": 11,
+    "localeCount": 31,
+    "readmeLocaleCount": 11,
+    "nugetTotal": "6.48M"
+  }
+}

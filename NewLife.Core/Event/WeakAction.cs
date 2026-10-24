@@ -64,7 +64,7 @@ public class WeakAction<TArgs>
         }
         else
         {
-            if (!method.IsStatic) throw new InvalidOperationException("Illegal event, no specified class instance and not a static method!");
+            if (!method.IsStatic) throw new InvalidOperationException(L.T("Illegal event, no specified class instance and not a static method!"));
         }
 
         Method = method;

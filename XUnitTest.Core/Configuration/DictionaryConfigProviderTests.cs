@@ -41,7 +41,7 @@ public class DictionaryConfigProviderTests
                 <mode>MODE_BACKTEST</mode>
               </Settings>
             </Root>
-            """, txt);
+            """.NormalizeNewline(), txt.NormalizeNewline());
 
         var m2 = prv.Load<DictionaryModel>();
         Assert.NotNull(m2);
@@ -84,7 +84,7 @@ public class DictionaryConfigProviderTests
                 <adjust>0</adjust>
               </Settings>
             </Root>
-            """, txt);
+            """.NormalizeNewline(), txt.NormalizeNewline());
 
         var m2 = prv.Load<DictionaryIntModel>();
         Assert.NotNull(m2);

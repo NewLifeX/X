@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Mobile.AndroidHost</RootNamespace>
+    <AssemblyName>Mobile.Android</AssemblyName>
+    <ApplicationId>com.newlife.mobile</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+    <TrimMode>full</TrimMode>
+    <OutputPath>..\..\Bin\Mobile.Android</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IncludeStardust)' == 'true'">
+    <DefineConstants>$(DefineConstants);STARDUST</DefineConstants>
+    <!-- 星尘依赖反射/序列化，使用 partial 裁剪保留业务程序集；Android 10 真机要求 AOT，避免 JIT 冷启动 n_onCreate 未注册 -->
+    <TrimMode>partial</TrimMode>
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(NativeAot)' == 'true'">
+    <PublishAot>true</PublishAot>
+    <UseMonoRuntime>false</UseMonoRuntime>
+    <RunAOTCompilation>false</RunAOTCompilation>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mobile.Core\Mobile.Core.csproj" />
+    <ProjectReference Include="..\Mobile.Stardust.Core\Mobile.Stardust.Core.csproj" Condition="'$(IncludeStardust)' == 'true'" />
+  </ItemGroup>
+</Project>

@@ -1,8 +1,5 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Runtime.CompilerServices;
-#if NETFRAMEWORK || NETSTANDARD2_0
-using ValueTask = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Buffers;
 
@@ -122,7 +119,15 @@ public sealed class PooledByteBufferWriter : IBufferWriter<Byte>, IDisposable
     /// <summary>写入到数据流（异步）</summary>
     /// <param name="destination">目标流</param>
     /// <param name="cancellationToken">取消令牌</param>
-    public ValueTask WriteToStreamAsync(Stream destination, CancellationToken cancellationToken) => destination.WriteAsync(WrittenMemory, cancellationToken);
+    public ValueTask WriteToStreamAsync(Stream destination, CancellationToken cancellationToken)
+    {
+#if NETFRAMEWORK || NETSTANDARD2_0
+        // 低 TFM 无 Stream.WriteAsync(ReadOnlyMemory<Byte>) 重载，SpanHelper 兜底扩展返回 Task，包装为 ValueTask 以保持跨资产签名一致
+        return new ValueTask(destination.WriteAsync(WrittenMemory, cancellationToken));
+#else
+        return destination.WriteAsync(WrittenMemory, cancellationToken);
+#endif
+    }
     #endregion
 
     #region 内部实现
@@ -161,7 +166,7 @@ public sealed class PooledByteBufferWriter : IBufferWriter<Byte>, IDisposable
             // 使用精确需求大小再尝试一次
             newSize = currentLength + sizeHint;
             if ((UInt32)newSize > MaxArrayLength)
-                throw new OutOfMemoryException($"BufferMaximumSizeExceeded({newSize})");
+                throw new OutOfMemoryException(L.T("The buffer exceeds the maximum allowed size ({0} bytes).", newSize));
         }
 
         var old = _rentedBuffer;

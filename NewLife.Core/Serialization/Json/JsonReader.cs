@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Model;
@@ -74,7 +75,7 @@ public class JsonReader
 
             if (vlist.Count == 0) return target;
 
-            throw new InvalidCastException($"Json array cannot be converted to target type [{type.FullName}], only arrays and List<T>/IList<T>are supported");
+            throw new InvalidCastException(L.T("Json array cannot be converted to target type [{0}], only arrays and List<T>/IList<T>are supported", type.FullName));
         }
 
         if (type != null && jobj.GetType() != type)
@@ -90,6 +91,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "按运行时类型动态构造集合；AOT 下请使用泛型读写入口")]
     private IList? ParseList(IList<Object> vlist, Type type, Object? target)
     {
         var elmType = type.GetGenericArguments().FirstOrDefault();
@@ -121,6 +123,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "按运行时类型动态构造数组；AOT 下请使用泛型读写入口")]
     private Array ParseArray(IList<Object> list, Type type, Object? target)
     {
         var elmType = type?.GetElementTypeEx();
@@ -152,6 +155,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "按运行时类型动态构造字典；AOT 下请使用泛型读写入口")]
     private IDictionary? ParseDictionary(IDictionary<String, Object> dic, Type type, IDictionary? target)
     {
         var types = type.GetGenericArguments();
@@ -203,7 +207,8 @@ public class JsonReader
         // 扩展属性
 
         // 遍历所有可用于序列化的属性
-        var props = target.GetType().GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
+        var targetType = target.GetType();
+        var props = targetType.GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
         foreach (var item in dic)
         {
             var v = item.Value;
@@ -230,17 +235,17 @@ public class JsonReader
 
             var pt = pi.PropertyType;
             if (pt.IsBaseType())
-                target.SetValue(pi, ChangeType(v, pt));
+                MemberAccessorTable.SetValue(target, targetType, pi, ChangeType(v, pt));
             else
             {
-                var orig = target.GetValue(pi);
+                var orig = MemberAccessorTable.GetValue(target, targetType, pi);
                 var val = ToObject(v, pt, orig);
                 if (val != orig)
                 {
                     if (target is IModel dst)
                         dst[pi.Name] = val;
                     else
-                        target.SetValue(pi, val);
+                        MemberAccessorTable.SetValue(target, targetType, pi, val);
                 }
             }
         }
@@ -284,6 +289,7 @@ public class JsonReader
         return sb.Return(true);
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "类型名来自 JSON 文本中的 $type 描述，属运行时加载；AOT 下目标类型若被静态引用或声明上下文则可用")]
     private Object? ChangeType(Object value, Type type)
     {
         // 支持可空类型
@@ -297,7 +303,8 @@ public class JsonReader
         if (type == typeof(Int32)) return value.ToInt();
         if (type == typeof(Int64)) return value.ToLong();
         if (type == typeof(String)) return value + "";
-        if (type == typeof(Type) && value is String str) return Type.GetType(str) ?? Type.GetType("System." + str);
+        if (type == typeof(Type) && value is String str)
+            return Type.GetType(str) ?? (Enum.TryParse<TypeCode>(str, true, out var code) ? TypeCodeHelper.GetType(code) : null);
 
         if (type.IsEnum) return Enum.Parse(type, value + "");
         if (type == typeof(DateTime)) return CreateDateTime(value);
@@ -319,15 +326,6 @@ public class JsonReader
 
             return new ArrayPacket(Convert.FromBase64String(value + ""));
         }
-#pragma warning disable CS0618 // 类型或成员已过时
-        if (type == typeof(Packet))
-        {
-            if (value is Packet v) return v;
-
-            return new Packet(Convert.FromBase64String(value + ""));
-        }
-#pragma warning restore CS0618 // 类型或成员已过时
-
         if (type == typeof(TimeSpan)) return TimeSpan.Parse(value + "");
 
         if (value is String str2) return str2.ChangeType(type);

@@ -257,7 +257,9 @@ public class ObjectPoolTests
 
         Assert.Equal(1, ex.BusyCount);
         Assert.Equal(1, ex.Max);
-        Assert.True(sw.ElapsedMilliseconds < 50, $"WaitTimeout=0 应立即抛异常，实际等待 {sw.ElapsedMilliseconds}ms");
+        // 并行满载时异步获取可能被线程池调度推迟数十毫秒，只断言"没有进入等待"：
+        // 若误用默认 15s 超时，这里会达到秒级
+        Assert.True(sw.ElapsedMilliseconds < 2000, $"WaitTimeout=0 应立即抛异常，实际等待 {sw.ElapsedMilliseconds}ms");
 
         pool.Return(obj);
     }
@@ -300,8 +302,17 @@ public class ObjectPoolTests
         // 等待超过 MaxLifetime（1s），给足余量
         Thread.Sleep(1500);
 
-        // 再次借出时，旧连接因超 MaxLifetime 被惰性回收，应创建新连接
+        // 过期回收由后台定时器执行，多目标框架并行满载时定时器回调可能被推迟，轮询等待其完成
         var obj2 = pool.Get();
+        var end = Environment.TickCount64 + 10_000;
+        while (ReferenceEquals(obj1, obj2) && Environment.TickCount64 < end)
+        {
+            pool.Return(obj2);
+            Thread.Sleep(50);
+            obj2 = pool.Get();
+        }
+
+        // 旧连接因超 MaxLifetime 被回收，应创建新连接
         Assert.NotSame(obj1, obj2);
 
         pool.Return(obj2);
@@ -381,12 +392,214 @@ public class ObjectPoolTests
         pool.Clear();
     }
 
+    [Fact(DisplayName = "OnGet持续返回false时有界失败不挂起")]
+    public void OnGet_AlwaysFalse_ThrowsInsteadOfHanging()
+    {
+        using var pool = new RejectablePool
+        {
+            Max = 2,
+            WaitTimeout = TimeSpan.Zero,
+            MaxRetry = 10,
+            RejectFree = true,
+            FreshEnabled = false,
+        };
+
+        var sw = Stopwatch.StartNew();
+        Assert.Throws<InvalidOperationException>(() => pool.Get());
+        sw.Stop();
+
+        // 新建实例校验失败立即抛，不会反复重建
+        Assert.Equal(1, pool.CreateCount);
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(10), $"有界失败耗时过长：{sw.Elapsed}");
+    }
+
+    [Fact(DisplayName = "异步OnGet持续返回false时有界失败不挂起")]
+    public async Task OnGetAsync_AlwaysFalse_ThrowsInsteadOfHanging()
+    {
+        using var pool = new RejectablePool
+        {
+            Max = 2,
+            WaitTimeout = TimeSpan.Zero,
+            MaxRetry = 10,
+            RejectFree = true,
+            FreshEnabled = false,
+        };
+
+        var sw = Stopwatch.StartNew();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => pool.GetAsync());
+        sw.Stop();
+
+        Assert.Equal(1, pool.CreateCount);
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(10), $"有界失败耗时过长：{sw.Elapsed}");
+    }
+
+    [Fact(DisplayName = "旧实例连续失效达到MaxRetry后强制新建")]
+    public void OnGet_StaleFreeItems_ForceCreateAfterMaxRetry()
+    {
+        using var pool = new RejectablePool { Max = 10, WaitTimeout = TimeSpan.Zero, MaxRetry = 3 };
+
+        // 预置5个旧实例（Fresh=false）
+        var list = new List<RejectableResource>();
+        for (var i = 0; i < 5; i++)
+        {
+            var obj = pool.Get();
+            obj.Fresh = false;
+            list.Add(obj);
+        }
+        foreach (var obj in list) pool.Return(obj);
+
+        pool.RejectFree = true;
+        pool.ResetCounters();
+
+        var result = pool.Get();
+
+        // 丢弃3个旧实例后强制新建，新实例可用
+        Assert.True(result.Fresh);
+        Assert.Equal(3, pool.DisposeCount);
+        Assert.Equal(1, pool.CreateCount);
+        Assert.True(pool.BusyCount + pool.FreeCount <= pool.Max, $"总连接数超过上限：Busy={pool.BusyCount}, Free={pool.FreeCount}, Max={pool.Max}");
+
+        pool.Return(result);
+    }
+
+    [Fact(DisplayName = "MaxRetry为0时旧实例全失效仍能终止")]
+    public void OnGet_MaxRetryZero_Terminates()
+    {
+        using var pool = new RejectablePool { Max = 10, WaitTimeout = TimeSpan.Zero, MaxRetry = 0 };
+
+        var list = new List<RejectableResource>();
+        for (var i = 0; i < 3; i++)
+        {
+            var obj = pool.Get();
+            obj.Fresh = false;
+            list.Add(obj);
+        }
+        foreach (var obj in list) pool.Return(obj);
+
+        pool.RejectFree = true;
+        pool.ResetCounters();
+
+        var result = pool.Get();
+
+        // 不限制重试次数时仍会耗尽空闲项后新建，不会死循环
+        Assert.True(result.Fresh);
+        Assert.Equal(3, pool.DisposeCount);
+        Assert.Equal(1, pool.CreateCount);
+
+        pool.Return(result);
+    }
+
+    [Fact(DisplayName = "新建实例校验失败立即抛异常")]
+    public void OnGet_NewItemInvalid_ThrowsImmediately()
+    {
+        using var pool = new RejectablePool
+        {
+            Max = 2,
+            WaitTimeout = TimeSpan.Zero,
+            MaxRetry = 10,
+            RejectFree = true,
+            FreshEnabled = false,
+        };
+
+        Assert.Throws<InvalidOperationException>(() => pool.Get());
+        Assert.Equal(1, pool.CreateCount);
+        Assert.Equal(1, pool.DisposeCount);
+    }
+
+    [Fact(DisplayName = "借出失败后信号量槽位不泄漏")]
+    public void Get_Failure_ReleasesSlot()
+    {
+        using var pool = new RejectablePool
+        {
+            Max = 1,
+            WaitTimeout = TimeSpan.Zero,
+            MaxRetry = 10,
+            RejectFree = true,
+            FreshEnabled = false,
+        };
+
+        Assert.Throws<InvalidOperationException>(() => pool.Get());
+
+        // 槽位已释放：改为可成功后应能立即借出，而不是 PoolFullException
+        pool.FreshEnabled = true;
+        var obj = pool.Get();
+        Assert.NotNull(obj);
+        pool.Return(obj);
+    }
+
+    [Fact(DisplayName = "异步借出失败后信号量槽位不泄漏")]
+    public async Task GetAsync_Failure_ReleasesSlot()
+    {
+        using var pool = new RejectablePool
+        {
+            Max = 1,
+            WaitTimeout = TimeSpan.Zero,
+            MaxRetry = 10,
+            RejectFree = true,
+            FreshEnabled = false,
+        };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => pool.GetAsync());
+
+        pool.FreshEnabled = true;
+        var obj = await pool.GetAsync();
+        Assert.NotNull(obj);
+        pool.Return(obj);
+    }
+
     #region 辅助类
     class TestResource : IDisposable
     {
         public Boolean Disposed { get; private set; }
 
         public void Dispose() => Disposed = true;
+    }
+
+    class RejectableResource : IDisposable
+    {
+        /// <summary>是否为新创建实例。用于区分旧实例失效与新建实例校验失败</summary>
+        public Boolean Fresh { get; set; }
+
+        public void Dispose() { }
+    }
+
+    class RejectablePool : ObjectPool<RejectableResource>
+    {
+        /// <summary>为真时旧实例（Fresh=false）校验失败</summary>
+        public Boolean RejectFree { get; set; }
+
+        /// <summary>新建实例是否可用</summary>
+        public Boolean FreshEnabled { get; set; } = true;
+
+        public Int32 CreateCount { get; private set; }
+
+        public Int32 DisposeCount { get; private set; }
+
+        public void ResetCounters()
+        {
+            CreateCount = 0;
+            DisposeCount = 0;
+        }
+
+        protected override RejectableResource? OnCreate()
+        {
+            CreateCount++;
+            return new RejectableResource { Fresh = FreshEnabled };
+        }
+
+        protected override Boolean OnGet(RejectableResource value) => !RejectFree || value.Fresh;
+
+        protected override async Task<Boolean> OnGetAsync(RejectableResource value, CancellationToken cancellationToken = default)
+        {
+            await Task.Yield();
+            return OnGet(value);
+        }
+
+        protected override void OnDispose(RejectableResource? value)
+        {
+            DisposeCount++;
+            base.OnDispose(value);
+        }
     }
 
     class AsyncResource { }

@@ -79,12 +79,12 @@ static class ClientTest
         XTrace.WriteLine("");
         XTrace.WriteLine("Tcp会话开始连接！");
 
-        // 创建客户端，关闭默认的异步模式（MaxAsync=0）
+        // 创建客户端，改为拉取模式（AutoReceive=false）
         var uri = new NetUri("tcp://127.0.0.4:12345");
         var client = uri.CreateRemote();
         client.Name = "小tcp客户";
         client.Log = XTrace.Log;
-        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        if (client is TcpSession tcp) tcp.AutoReceive = false;
 
         // 接收服务端握手。内部自动建立连接
         using var rs = await client.ReceiveAsync(default);
@@ -110,12 +110,12 @@ static class ClientTest
         XTrace.WriteLine("");
         XTrace.WriteLine("Udp会话开始连接！");
 
-        // 创建客户端，关闭默认的异步模式（MaxAsync=0）
+        // 创建客户端，改为拉取模式（AutoReceive=false）
         var uri = new NetUri("udp://127.0.0.4:12345");
         var client = uri.CreateRemote();
         client.Name = "小udp客户";
         client.Log = XTrace.Log;
-        if (client is UdpServer udp) udp.MaxAsync = 0;
+        if (client is UdpServer udp) udp.AutoReceive = false;
 
         // 发送数据。服务端收到第一个包才建立会话
         var str = "Hello NewLife";

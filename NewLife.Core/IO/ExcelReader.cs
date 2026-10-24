@@ -112,7 +112,7 @@ public class ExcelReader : DisposeBase
         if (sheet.IsNullOrEmpty()) sheet = Sheets.FirstOrDefault();
         if (sheet.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sheet));
 
-        if (!_entries.TryGetValue(sheet, out var entry)) throw new ArgumentOutOfRangeException(nameof(sheet), "Unable to find worksheet");
+        if (!_entries.TryGetValue(sheet, out var entry)) throw new ArgumentOutOfRangeException(nameof(sheet), L.T("Unable to find worksheet"));
 
         using var esheet = entry.Open(); // 及时释放单个 sheet 流
         var doc = XDocument.Load(esheet);

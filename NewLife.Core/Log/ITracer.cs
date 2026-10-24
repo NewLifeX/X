@@ -121,13 +121,16 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>Span构建器集合</summary>
     protected ConcurrentDictionary<String, ISpanBuilder> _builders = new();
 
+    /// <summary>构建器工厂。预先缓存委托，避免热路径上反复分配委托对象</summary>
+    private readonly Func<String, ISpanBuilder> _builderFactory;
+
     /// <summary>采样定时器</summary>
     protected TimerX? _timer;
     #endregion
 
     #region 构造
     /// <summary>实例化</summary>
-    public DefaultTracer() { }
+    public DefaultTracer() => _builderFactory = OnBuildSpan;
 
     /// <summary>销毁</summary>
     /// <param name="disposing"></param>
@@ -213,7 +216,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         var p = name.IndexOfAny(_seps);
         if (p > 0) name = name[..p];
 
-        return _builders.GetOrAdd(name, k => OnBuildSpan(k));
+        return _builders.GetOrAdd(name, _builderFactory);
     }
 
     /// <summary>实例化Span构建器</summary>
@@ -326,7 +329,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         // 设置结束时间
         foreach (var item in bs2)
         {
-            item.EndTime = Runtime.UtcNow.ToLong();
+            item.EndTime = Runtime.UtcNow.ToUnixTimeMilliseconds();
         }
 
         return bs2;
@@ -470,6 +473,39 @@ public static class TracerExtension
         span.SetTag(tag);
 
         span.Dispose();
+
+        return span;
+    }
+
+    /// <summary>开始一个服务端片段，并从请求头继承上游链路</summary>
+    /// <remarks>
+    /// <para>星尘等跟踪器的片段标识是可变字段，先创建片段再 <c>Detach(headers)</c> 就能吸收上游链路；
+    /// 而 OpenTelemetry 的活动一旦启动就无法再指定父级，必须在创建时就传入上游上下文。
+    /// 本方法屏蔽这一差异，供服务端中间件统一调用。</para>
+    /// <para>OpenTelemetry 只认 W3C 的 traceparent（含 NewLife RPC 使用的 TraceId 头，其值同为 traceparent 格式）；
+    /// Request-Id、Eagleeye-Traceid 等历史格式不支持跨进程继承。</para>
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// using var span = Tracer.NewServerSpan(action, req.Headers);
+    /// span.Tag = $"{ctx.GetUserHost()} {req.Method} {req.GetRawUrl()}";
+    /// </code>
+    /// </example>
+    /// <param name="tracer">跟踪器</param>
+    /// <param name="name">操作名称</param>
+    /// <param name="headers">请求头，用于提取上游链路标识</param>
+    /// <returns>片段实例，使用完毕需要 Dispose</returns>
+    public static ISpan? NewServerSpan<T>(this ITracer? tracer, String name, IDictionary<String, T>? headers)
+    {
+        if (tracer == null) return null;
+
+#if NET6_0_OR_GREATER
+        // OpenTelemetry 的父级只能在活动创建时指定
+        if (tracer is OpenTelemetryTracer otel) return otel.NewSpanFromHeaders(name, headers);
+#endif
+
+        var span = tracer.NewSpan(name);
+        if (span != null && headers != null) span.Detach(headers);
 
         return span;
     }

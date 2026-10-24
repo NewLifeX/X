@@ -20,12 +20,10 @@ public interface ISocketSession : ISocketRemote
 }
 
 /// <summary>会话事件参数</summary>
-public class SessionEventArgs : EventArgs
+/// <remarks>实例化</remarks>
+/// <param name="session"></param>
+public class SessionEventArgs(ISocketSession session) : EventArgs
 {
     /// <summary>会话</summary>
-    public ISocketSession Session { get; set; }
-
-    /// <summary>实例化</summary>
-    /// <param name="session"></param>
-    public SessionEventArgs(ISocketSession session) => Session = session;
+    public ISocketSession Session { get; set; } = session;
 }

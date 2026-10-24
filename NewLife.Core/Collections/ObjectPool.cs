@@ -1,8 +1,7 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace NewLife.Collections;
@@ -13,11 +12,12 @@ namespace NewLife.Collections;
 /// <para>空闲存储：双集合仅是缓存组织方式，不参与限流。ConcurrentStack（热栈，LIFO 复用，保留 Min 个最热连接） + ConcurrentQueue（冷队列，FIFO，存放 Min 以外的溢出连接便于清理）。</para>
 /// <para>清理：TimerX 定时扫描冷队列（IdleTime + MaxLifetime）和热栈（Pop-All→过滤→Push-Back）。空闲连接不持有信号量，销毁它们不释放槽位。</para>
 /// <para>钩子：OnCreate/OnGet/OnReturn/OnDispose 虚方法可重写，支持异步（OnCreateAsync/OnGetAsync）。钩子抛出异常时信号量会被安全释放，不会泄漏槽位。</para>
+/// <para>借出校验：OnGet/OnGetAsync 返回 false 时丢弃该实例并继续；单次借出丢弃达到 MaxRetry 后强制新建，新建实例仍校验失败则抛异常，避免后端不可用时无限循环。</para>
 /// <para>注意：Max 在首次借出时按当前值确定信号量容量，之后修改无效，请在使用前设定。</para>
 /// <para>文档：https://newlifex.com/core/object_pool</para>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
+public class ObjectPool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : DisposeBase, IPool<T> where T : notnull
 {
     #region 属性
     /// <summary>名称</summary>
@@ -40,14 +40,17 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <summary>空闲清理时间。最小个数之上的资源超过空闲时间时被清理，默认60s</summary>
     public Int32 IdleTime { get; set; } = 60;
 
-    /// <summary>
-    /// 完全空闲清理时间。已废弃，不再支持。后续版本将移除。
-    /// </summary>
-    [Obsolete("不再支持，后续版本将移除。请使用 IdleTime 控制空闲清理。")]
-    public Int32 AllIdleTime { get; set; }
+    /// <summary>所有连接的空闲时间（旧版名称，仅为兼容旧二进制保留）</summary>
+    /// <remarks>与 <see cref="IdleTime"/> 是同一设置项的读写代理</remarks>
+    [Obsolete("请改用 IdleTime")]
+    public Int32 AllIdleTime { get => IdleTime; set => IdleTime = value; }
 
     /// <summary>借出等待超时。默认15s，池满时阻塞等待。TimeSpan.Zero表示不等待，池满时立即抛出PoolFullException。</summary>
     public TimeSpan WaitTimeout { get; set; } = TimeSpan.FromSeconds(15);
+
+    /// <summary>借出校验最大重试次数。默认10，单次借出连续丢弃无效或过期实例达到上限后强制新建；
+    /// 新建实例仍校验失败时立即抛出异常，避免无限重建。小于等于0表示不限制（仍受空闲项数量与新建实例校验失败保护）。</summary>
+    public Int32 MaxRetry { get; set; } = 10;
 
     /// <summary>最大生命周期。从创建时刻算起的绝对存活时间，超过后强制回收。默认0s表示不启用。适用于数据库主从切换、连接代理滚动更新等场景。</summary>
     public Int32 MaxLifetime { get; set; }
@@ -154,6 +157,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     }
 
     /// <summary>借出</summary>
+    /// <remarks>若 OnGet 持续返回 false，单次借出最多丢弃 MaxRetry 个实例后强制新建；新建实例仍校验失败则抛异常，不会无限重试。</remarks>
     /// <returns></returns>
     public virtual T Get()
     {
@@ -168,24 +172,39 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         // 已持有槽位。循环内 OnCreate/OnGet 若抛异常，catch 释放槽位避免泄漏；成功 return 不释放，归还时才还
         try
         {
+            var discarded = 0;
             while (true)
             {
-                // 获取一个 Item（优先从空闲池复用，否则新建）
-                if (!TryAcquireFree(out var pi))
+                Item pi;
+                var created = false;
+
+                // 达到重试上限后强制新建，避免在大量无效空闲项上反复消耗
+                var forceCreate = MaxRetry > 0 && discarded >= MaxRetry;
+                if (!forceCreate && TryAcquireFree(out var free))
+                {
+                    pi = free;
+                }
+                else
                 {
                     pi = new Item { Value = OnCreate(), CreatedTime = TimerX.Now };
                     // 创建失败时抛异常，由外层 catch 释放槽位，避免无限循环并永久占用槽位
                     if (pi.Value == null)
-                        throw new InvalidOperationException($"[ObjectPool:{Name}] Unable to create instance of [{typeof(T).FullName}]");
+                        throw new InvalidOperationException(L.T("[ObjectPool:{0}] Unable to create instance of [{1}]", Name, typeof(T).FullName));
+                    created = true;
                 }
 
                 // 空闲池中可能残留 null 项，跳过重试
-                if (pi.Value == null) continue;
+                if (pi.Value == null)
+                {
+                    discarded++;
+                    continue;
+                }
 
                 // 生命周期检查（新建项 CreatedTime=now，不会误淘汰）
                 if (MaxLifetime > 0 && pi.CreatedTime.AddSeconds(MaxLifetime) < TimerX.Now)
                 {
                     OnDispose(pi.Value);
+                    discarded++;
                     continue;
                 }
 
@@ -193,6 +212,11 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
                     return FinishAcquire(pi);
 
                 OnDispose(pi.Value);
+                discarded++;
+
+                // 新建实例仍不可用，说明后端无法提供可用资源，继续重建没有意义
+                if (created)
+                    throw new InvalidOperationException(L.T("[ObjectPool:{0}] Unable to create instance of [{1}]", Name, typeof(T).FullName));
             }
         }
         catch
@@ -203,11 +227,14 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     }
 
     /// <summary>借出时是否可用</summary>
+    /// <remarks>返回 false 表示丢弃该实例并继续取下一个；单次借出丢弃达到 MaxRetry 后强制新建，
+    /// 新建实例仍返回 false 时由基类抛异常。实现应避免对新建实例持续返回 false。</remarks>
     /// <param name="value"></param>
     /// <returns></returns>
     protected virtual Boolean OnGet(T value) => true;
 
     /// <summary>异步借出；内部使用 <see cref="OnCreateAsync"/> 和 <see cref="OnGetAsync"/> ，适用于需要异步初始化的连接池场景</summary>
+    /// <remarks>若 OnGetAsync 持续返回 false，单次借出最多丢弃 MaxRetry 个实例后强制新建；新建实例仍校验失败则抛异常，不会无限重试。</remarks>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public virtual async Task<T> GetAsync(CancellationToken cancellationToken = default)
@@ -223,26 +250,41 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         // 已持有槽位。循环内取消或 OnCreateAsync/OnGetAsync 抛异常时，catch 释放槽位避免泄漏；成功 return 不释放
         try
         {
+            var discarded = 0;
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // 获取一个 Item（优先从空闲池复用，否则新建）
-                if (!TryAcquireFree(out var pi))
+                Item pi;
+                var created = false;
+
+                // 达到重试上限后强制新建，避免在大量无效空闲项上反复消耗
+                var forceCreate = MaxRetry > 0 && discarded >= MaxRetry;
+                if (!forceCreate && TryAcquireFree(out var free))
+                {
+                    pi = free;
+                }
+                else
                 {
                     pi = new Item { Value = await OnCreateAsync(cancellationToken).ConfigureAwait(false), CreatedTime = TimerX.Now };
                     // 创建失败时抛异常，由外层 catch 释放槽位，避免无限循环并永久占用槽位
                     if (pi.Value == null)
-                        throw new InvalidOperationException($"[ObjectPool:{Name}] Unable to create instance of [{typeof(T).FullName}]");
+                        throw new InvalidOperationException(L.T("[ObjectPool:{0}] Unable to create instance of [{1}]", Name, typeof(T).FullName));
+                    created = true;
                 }
 
                 // 空闲池中可能残留 null 项，跳过重试
-                if (pi.Value == null) continue;
+                if (pi.Value == null)
+                {
+                    discarded++;
+                    continue;
+                }
 
                 // 生命周期检查（新建项 CreatedTime=now，不会误淘汰）
                 if (MaxLifetime > 0 && pi.CreatedTime.AddSeconds(MaxLifetime) < TimerX.Now)
                 {
                     OnDispose(pi.Value);
+                    discarded++;
                     continue;
                 }
 
@@ -250,6 +292,11 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
                     return FinishAcquire(pi);
 
                 OnDispose(pi.Value);
+                discarded++;
+
+                // 新建实例仍不可用，说明后端无法提供可用资源，继续重建没有意义
+                if (created)
+                    throw new InvalidOperationException(L.T("[ObjectPool:{0}] Unable to create instance of [{1}]", Name, typeof(T).FullName));
             }
         }
         catch
@@ -260,6 +307,8 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     }
 
     /// <summary>异步检查借出时资源是否可用；默认调用同步 <see cref="OnGet"/>，子类可重写以支持异步检查（如 Ping 连接存活性）</summary>
+    /// <remarks>返回 false 表示丢弃该实例并继续取下一个；单次借出丢弃达到 MaxRetry 后强制新建，
+    /// 新建实例仍返回 false 时由基类抛异常。实现应避免对新建实例持续返回 false。</remarks>
     /// <param name="value"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -355,9 +404,10 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     #endregion
 
     #region 重载
-    /// <summary>创建实例</summary>
-    /// <returns></returns>
-    protected virtual T? OnCreate() => (T?)typeof(T).CreateInstance();
+    /// <summary>创建实例。默认使用 AOT 安全的泛型工厂创建，可在子类中重写以自定义创建策略。</summary>
+    /// <returns>新建对象实例；允许返回 null（将抛出异常）</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "无工厂委托时使用无参构造创建对象；AOT 下裁剪可能移除无参构造，应传入工厂委托")]
+    protected virtual T? OnCreate() => Activator.CreateInstance<T>();
 
     /// <summary>异步创建实例；默认调用同步 <see cref="OnCreate"/>，子类可重写以支持异步初始化</summary>
     /// <param name="cancellationToken"></param>
@@ -463,7 +513,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
 /// <param name="poolName">池名称</param>
 /// <param name="busyCount">当前繁忙数</param>
 /// <param name="max">最大容量</param>
-public class PoolFullException(String poolName, Int32 busyCount, Int32 max) : InvalidOperationException($"{poolName} 申请失败，已有 {busyCount:n0} 达到或超过最大值 {max:n0}")
+public class PoolFullException(String poolName, Int32 busyCount, Int32 max) : InvalidOperationException(L.T("Failed to acquire from pool '{0}': {1:n0} busy items reached or exceeded the maximum of {2:n0}.", poolName, busyCount, max))
 {
     /// <summary>当前繁忙数</summary>
     public Int32 BusyCount { get; } = busyCount;

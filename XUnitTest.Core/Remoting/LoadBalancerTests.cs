@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using NewLife.Remoting;
 using Xunit;
 
@@ -149,7 +149,7 @@ public class LoadBalancerTests
     public async Task Race_GetAllAvailableServices()
     {
         var services = CreateServices(3);
-        var lb = new RaceLoadBalancer();
+        var lb = CreateRaceBalancer();
 
         var all = await lb.GetAllServicesAsync(services, false, default);
 
@@ -165,7 +165,7 @@ public class LoadBalancerTests
     public async Task Race_SkipShieldedNode()
     {
         var services = CreateServices(3);
-        var lb = new RaceLoadBalancer();
+        var lb = CreateRaceBalancer();
 
         // 屏蔽第二个节点
         services[1].NextTime = DateTime.Now.AddSeconds(60);
@@ -180,7 +180,7 @@ public class LoadBalancerTests
     public async Task Race_SortByRtt()
     {
         var services = CreateServices(3);
-        var lb = new RaceLoadBalancer();
+        var lb = CreateRaceBalancer();
 
         // 标记不同的RTT
         lb.MarkSuccess(services[2], TimeSpan.FromMilliseconds(50));  // 最快
@@ -205,7 +205,7 @@ public class LoadBalancerTests
         services[1].Category = EndpointCategory.InternalIPv4;    // 内网IPv4（优先）
         services[2].Category = EndpointCategory.ExternalIPv4;    // 外网IPv4
 
-        var lb = new RaceLoadBalancer();
+        var lb = CreateRaceBalancer();
         var all = await lb.GetAllServicesAsync(services, false, default);
 
         // 验证按类别排序：InternalIPv4 < ExternalIPv4 < ExternalDomain
@@ -219,7 +219,7 @@ public class LoadBalancerTests
     public void Race_MarkSuccessUpdatesRtt()
     {
         var services = CreateServices(1);
-        var lb = new RaceLoadBalancer();
+        var lb = CreateRaceBalancer();
 
         // 首次标记
         lb.MarkSuccess(services[0], TimeSpan.FromMilliseconds(100));
@@ -235,7 +235,7 @@ public class LoadBalancerTests
     public void Race_MarkFailureClearsRtt()
     {
         var services = CreateServices(1);
-        var lb = new RaceLoadBalancer();
+        var lb = CreateRaceBalancer();
 
         // 先标记成功
         lb.MarkSuccess(services[0], TimeSpan.FromMilliseconds(100));
@@ -251,7 +251,7 @@ public class LoadBalancerTests
     public async Task Race_ScoreFieldCorrectlySet()
     {
         var services = CreateServices(3);
-        var lb = new RaceLoadBalancer();
+        var lb = CreateRaceBalancer();
 
         var all = await lb.GetAllServicesAsync(services, false, default);
 
@@ -291,23 +291,6 @@ public class LoadBalancerTests
         Assert.Equal(LoadBalanceMode.Race, client.LoadBalanceMode);
     }
 
-    [Fact(DisplayName = "ApiHttpClient_兼容RoundRobin属性")]
-    public void ApiHttpClient_RoundRobinPropertyCompatibility()
-    {
-        var client = new ApiHttpClient("http://127.0.0.1:10001,http://127.0.0.1:10002");
-
-        // 测试设置
-#pragma warning disable CS0618
-        client.RoundRobin = true;
-        Assert.Equal(LoadBalanceMode.RoundRobin, client.LoadBalanceMode);
-        Assert.True(client.RoundRobin);
-
-        client.RoundRobin = false;
-        Assert.Equal(LoadBalanceMode.Failover, client.LoadBalanceMode);
-        Assert.False(client.RoundRobin);
-#pragma warning restore CS0618
-    }
-
     [Fact(DisplayName = "ApiHttpClient_屏蔽时间设置")]
     public void ApiHttpClient_ShieldingTimeSettings()
     {
@@ -316,24 +299,6 @@ public class LoadBalancerTests
         client.ShieldingTime = 120;
 
         Assert.Equal(120, client.ShieldingTime);
-    }
-
-    [Fact(DisplayName = "ApiHttpClient_Service类型别名兼容")]
-    public void ApiHttpClient_ServiceTypeAliasCompatibility()
-    {
-        // 测试旧的 ApiHttpClient.Service 类型别名仍然可用
-#pragma warning disable CS0618
-        var service = new ApiHttpClient.Service
-        {
-            Name = "test",
-            Weight = 2
-        };
-        service.SetAddress(new Uri("http://127.0.0.1:8080"));
-#pragma warning restore CS0618
-
-        Assert.Equal("test", service.Name);
-        Assert.Equal(2, service.Weight);
-        Assert.Equal("http://127.0.0.1:8080", service.UriName);
     }
     #endregion
 
@@ -404,6 +369,16 @@ public class LoadBalancerTests
             services.Add(svc);
         }
         return services;
+    }
+    /// <summary>创建竞速负载均衡器。探测注入确定性桩：默认探测会真实访问服务地址并异步改写端点状态（Rtt/Errors），
+    /// 与排序断言存在竞态窗口，用例只测排序与错峰逻辑，全程不触网</summary>
+    /// <returns>竞速负载均衡器</returns>
+    private static RaceLoadBalancer CreateRaceBalancer()
+    {
+        var lb = new RaceLoadBalancer();
+        lb.ProbeAsync = (_, _) => Task.FromResult<TimeSpan?>(TimeSpan.FromMilliseconds(1));
+
+        return lb;
     }
     #endregion
 }

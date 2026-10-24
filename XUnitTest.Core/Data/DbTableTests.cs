@@ -586,4 +586,256 @@ public class DbTableTests
 
         Assert.Equal(bytes1.ToHex(), bytes2.ToHex());
     }
+
+    [Fact]
+    [DisplayName("ReadData 从 IDataReader 读取列并映射 DBNull 为类型默认值")]
+    public void ReadData_FromReader_MapsColumnsAndDefaults()
+    {
+        var types = new[]
+        {
+            typeof(Boolean), typeof(Char), typeof(SByte), typeof(Byte), typeof(Int16), typeof(UInt16),
+            typeof(Int32), typeof(UInt32), typeof(Int64), typeof(UInt64), typeof(Single), typeof(Double),
+            typeof(Decimal), typeof(DateTime), typeof(String), typeof(Object),
+        };
+        var names = types.Select((t, i) => $"C{i}_{t.Name}").ToArray();
+        var values = types.Select(_ => (Object?)DBNull.Value).ToArray();
+        var reader = new FakeDataReader(names, types, values);
+
+        var dt = new DbTable();
+        dt.Read(reader);
+
+        Assert.Equal(names, dt.Columns);
+        Assert.Equal(types, dt.Types);
+        Assert.Single(dt.Rows);
+        Assert.Equal(1, dt.Total);
+
+        var row = dt.Rows[0]!;
+        Assert.Equal(false, row[0]);
+        Assert.Equal((Char)0, row[1]);
+        Assert.Equal((SByte)0, row[2]);
+        Assert.Equal((Byte)0, row[3]);
+        Assert.Equal((Int16)0, row[4]);
+        Assert.Equal((UInt16)0, row[5]);
+        Assert.Equal(0, row[6]);
+        Assert.Equal((UInt32)0, row[7]);
+        Assert.Equal(0L, row[8]);
+        Assert.Equal((UInt64)0, row[9]);
+        Assert.Equal((Single)0, row[10]);
+        Assert.Equal((Double)0, row[11]);
+        Assert.Equal((Decimal)0, row[12]);
+        Assert.Equal(DateTime.MinValue, row[13]);
+        Assert.Null(row[14]);
+        Assert.Null(row[15]);
+    }
+
+    [Fact]
+    [DisplayName("ReadData 按 fields 映射读取指定列")]
+    public void ReadData_WithFields_MapsProjection()
+    {
+        var reader = new FakeDataReader(["Id", "Name"], [typeof(Int32), typeof(String)], [7, "Stone"]);
+
+        var dt = new DbTable
+        {
+            Columns = ["Name", "Id"],
+            Types = [typeof(String), typeof(Int32)],
+        };
+        dt.ReadData(reader, [1, 0]);
+
+        Assert.Single(dt.Rows);
+        Assert.Equal("Stone", dt.Rows[0]![0]);
+        Assert.Equal(7, dt.Rows[0]![1]);
+        Assert.Equal(1, dt.Total);
+    }
+
+    [Fact]
+    [DisplayName("Csv 保存与加载往返保留列名与文本值")]
+    public void Csv_RoundTrip()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "dbtable_csv_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var file = Path.Combine(dir, "data.csv");
+            var dt = new DbTable
+            {
+                Columns = ["Id", "Name", "Remark"],
+                Rows =
+                [
+                    [1, "Stone", "含,逗号"],
+                    [2, "大石头", "含\"引号\""],
+                    [3, "新生命", "含\n换行"],
+                ],
+            };
+
+            dt.SaveCsv(file);
+
+            var dt2 = new DbTable();
+            dt2.LoadCsv(file);
+
+            Assert.Equal(dt.Columns, dt2.Columns);
+            Assert.Equal(dt.Rows.Count, dt2.Rows.Count);
+            for (var i = 0; i < dt.Rows.Count; i++)
+            {
+                Assert.Equal(dt.Rows[i][0] + "", dt2.Rows[i][0]);
+                Assert.Equal(dt.Rows[i][1], dt2.Rows[i][1]);
+                Assert.Equal(dt.Rows[i][2], dt2.Rows[i][2]);
+            }
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [Fact]
+    [DisplayName("Binary 文件往返保留列类型与多类型数据")]
+    public void Binary_File_RoundTrip()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "dbtable_bin_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var file = Path.Combine(dir, "data.bin");
+            var time = new DateTime(2025, 1, 2, 3, 4, 5, 678);
+            var dt = new DbTable
+            {
+                Columns = ["Id", "Name", "Amount", "Enable", "Time"],
+                Types = [typeof(Int32), typeof(String), typeof(Decimal), typeof(Boolean), typeof(DateTime)],
+                Rows =
+                [
+                    [11, "Stone", 12.34m, true, time],
+                    [22, null, 0m, false, DateTime.MinValue],
+                ],
+            };
+
+            dt.SaveFile(file, false);
+
+            var dt2 = new DbTable();
+            dt2.LoadFile(file, false);
+
+            Assert.Equal(dt.Columns, dt2.Columns);
+            Assert.Equal(dt.Types, dt2.Types);
+            Assert.Equal(dt.Rows.Count, dt2.Rows.Count);
+            Assert.Equal(11, dt2.Rows[0][0]);
+            Assert.Equal("Stone", dt2.Rows[0][1]);
+            Assert.Equal(12.34m, dt2.Rows[0][2]);
+            Assert.Equal(true, dt2.Rows[0][3]);
+            Assert.Equal(time, dt2.Rows[0][4]);
+            // Binary 对 null 字符串按空串写入，读取后为 ""
+            Assert.Equal("", dt2.Rows[1][1]);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [Fact]
+    [DisplayName("Clone 复制列与行列表但按文档共享行数组")]
+    public void Clone_CopiesStructure()
+    {
+        var dt = new DbTable
+        {
+            Columns = ["Id", "Name"],
+            Types = [typeof(Int32), typeof(String)],
+            Rows = [[1, "A"], [2, "B"]],
+            Total = 2,
+        };
+
+        var clone = dt.Clone();
+
+        Assert.NotSame(dt.Columns, clone.Columns);
+        Assert.NotSame(dt.Types, clone.Types);
+        Assert.NotSame(dt.Rows, clone.Rows);
+        // 文档约定：行数组引用共享
+        Assert.Same(dt.Rows[0], clone.Rows[0]);
+
+        clone.Columns[0] = "Changed";
+        clone.Types[0] = typeof(String);
+        clone.Rows.RemoveAt(0);
+        clone.Rows.Add([3, "C"]);
+
+        Assert.Equal("Id", dt.Columns[0]);
+        Assert.Equal(typeof(Int32), dt.Types[0]);
+        Assert.Equal(2, dt.Rows.Count);
+        Assert.Equal(1, dt.Rows[0][0]);
+        Assert.Equal(2, dt.Rows[1][0]);
+
+        var clone2 = ((ICloneable)dt).Clone();
+        Assert.IsType<DbTable>(clone2);
+    }
+
+    /// <summary>最小内存行集 IDataReader，用于驱动 DbTable 的读取路径</summary>
+    private sealed class FakeDataReader : IDataReader
+    {
+        private readonly String[] _names;
+        private readonly Type[] _types;
+        private readonly List<Object?[]> _rows;
+        private Int32 _index = -1;
+
+        public FakeDataReader(String[] names, Type[] types, params Object?[][] rows)
+        {
+            _names = names;
+            _types = types;
+            _rows = [.. rows];
+        }
+
+        public Int32 FieldCount => _names.Length;
+        public Int32 Depth => 0;
+        public Boolean IsClosed => false;
+        public Int32 RecordsAffected => -1;
+
+        public Object this[Int32 i] => _rows[_index][i] ?? DBNull.Value;
+        public Object this[String name] => this[GetOrdinal(name)];
+
+        public Boolean Read() => ++_index < _rows.Count;
+        public Boolean NextResult() => false;
+        public void Close() { }
+        public void Dispose() { }
+
+        public String GetName(Int32 i) => _names[i];
+        public Type GetFieldType(Int32 i) => _types[i];
+        public String GetDataTypeName(Int32 i) => _types[i].Name;
+
+        public Int32 GetOrdinal(String name)
+        {
+            var index = Array.FindIndex(_names, e => String.Equals(e, name, StringComparison.OrdinalIgnoreCase));
+            if (index < 0) throw new IndexOutOfRangeException(name);
+
+            return index;
+        }
+
+        public Object GetValue(Int32 i) => this[i];
+        public Boolean IsDBNull(Int32 i) => this[i] is DBNull;
+
+        public Int32 GetValues(Object[] values)
+        {
+            var count = Math.Min(values.Length, FieldCount);
+            for (var i = 0; i < count; i++)
+            {
+                values[i] = this[i];
+            }
+
+            return count;
+        }
+
+        public DataTable? GetSchemaTable() => null;
+        public IDataReader GetData(Int32 i) => throw new NotSupportedException();
+
+        public Boolean GetBoolean(Int32 i) => Convert.ToBoolean(this[i]);
+        public Byte GetByte(Int32 i) => Convert.ToByte(this[i]);
+        public Char GetChar(Int32 i) => Convert.ToChar(this[i]);
+        public DateTime GetDateTime(Int32 i) => Convert.ToDateTime(this[i]);
+        public Decimal GetDecimal(Int32 i) => Convert.ToDecimal(this[i]);
+        public Double GetDouble(Int32 i) => Convert.ToDouble(this[i]);
+        public Single GetFloat(Int32 i) => Convert.ToSingle(this[i]);
+        public Guid GetGuid(Int32 i) => (Guid)this[i];
+        public Int16 GetInt16(Int32 i) => Convert.ToInt16(this[i]);
+        public Int32 GetInt32(Int32 i) => Convert.ToInt32(this[i]);
+        public Int64 GetInt64(Int32 i) => Convert.ToInt64(this[i]);
+        public String GetString(Int32 i) => Convert.ToString(this[i])!;
+
+        public Int64 GetBytes(Int32 i, Int64 fieldOffset, Byte[]? buffer, Int32 bufferoffset, Int32 length) => throw new NotSupportedException();
+        public Int64 GetChars(Int32 i, Int64 fieldoffset, Char[]? buffer, Int32 bufferoffset, Int32 length) => throw new NotSupportedException();
+    }
 }

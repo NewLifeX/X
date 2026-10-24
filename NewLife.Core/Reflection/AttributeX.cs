@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel;
 using System.Reflection;
 using NewLife.Reflection;
@@ -85,6 +86,7 @@ public static class AttributeX
     /// <param name="target">目标对象</param>
     /// <param name="inherit">是否递归</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2090", Justification = "泛型实参未有保留注解；AOT 下请直接读取特性实例属性")]
     public static TResult? GetCustomAttributeValue<TAttribute, TResult>(this MemberInfo target, Boolean inherit = true) where TAttribute : Attribute
     {
         if (target == null) return default;

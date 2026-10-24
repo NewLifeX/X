@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using NewLife;
+using NewLife.Log;
 using NewLife.Security;
 using Xunit;
 
@@ -15,6 +16,14 @@ namespace XUnitTest.Security
         [InlineData(4096)]
         public void GenerateKey(Int32 keySize)
         {
+            // macOS 的 RSA 密钥生成要求 ≥1024 位，512 位被系统框架拒绝（平台差异），跳过并留痕
+            if (Runtime.OSX && keySize < 1024)
+            {
+                XTrace.WriteLine("macOS 不支持 512 位 RSA 密钥生成，跳过当前用例");
+
+                return;
+            }
+
             var ks = RSAHelper.GenerateKey(keySize);
             Assert.NotNull(ks);
             Assert.Equal(2, ks.Length);

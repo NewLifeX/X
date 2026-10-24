@@ -7,12 +7,13 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Net;
 
 /// <summary>NetServer网络服务器单元测试</summary>
+[Collection("Net.B")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetServerTests
 {
@@ -65,23 +66,40 @@ public class NetServerTests
     [Fact]
     public void TcpUdpServerStartStop()
     {
-        using var server = new NetServer
+        // 显式指定端口（生产即如此使用）：避免 Port=0 时先启动协议选中的端口对另一协议不可绑
+        using var server = TestPort.StartAny(26000, port => new NetServer
         {
-            Port = 0,
+            Port = port,
             ProtocolType = NetType.Unknown,
             AddressFamily = AddressFamily.InterNetwork,
             Log = XTrace.Log,
-        };
-
-        server.Start();
+        }, e => e.Start());
 
         Assert.True(server.Active);
         Assert.True(server.Port > 0);
         Assert.Equal(2, server.Servers.Count); // TCP + UDP
+        Assert.All(server.Servers, e => Assert.Equal(server.Port, e.Port));
 
         server.Stop("Test");
 
         Assert.False(server.Active);
+    }
+
+    /// <summary>测试HTTPS只监听TCP</summary>
+    [Fact]
+    public void HttpsServerCreatesTcpOnly()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Https,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+
+        // HTTPS 不在 UDP 上提供服务，不应额外创建 UDP 服务器
+        var _ = server.Server;
+        Assert.Single(server.Servers);
+        Assert.IsType<TcpServer>(server.Servers[0]);
     }
 
     /// <summary>测试服务器配置属性</summary>
@@ -171,7 +189,7 @@ public class NetServerTests
     }
 
     /// <summary>测试UDP数据收发</summary>
-    [Fact]
+    [Fact(DisplayName = "UDP_数据收发双向字节一致")]
     public void UdpDataTransfer()
     {
         var receivedData = new List<Byte[]>();
@@ -207,17 +225,26 @@ public class NetServerTests
 
         // 客户端发送
         using var client = new UdpClient();
+        var serverEp = new IPEndPoint(IPAddress.Loopback, server.Port);
         var sendData = "Hello UDP"u8.ToArray();
-        client.Send(sendData, sendData.Length, new IPEndPoint(IPAddress.Loopback, server.Port));
 
-        // 等待接收
-        var received = receivedEvent.Wait(5000);
-        if (received)
+        // 回环UDP必须收到，未收到即失败。UDP 不可靠且满载下接收环可能被调度滞后，采用“重发轮询”触达；
+        // 断言口径不变（收到内容仍逐字节校验，重发的多个副本也必须是同一报文）
+        var end = Environment.TickCount64 + 15_000;
+        while (!receivedEvent.IsSet && Environment.TickCount64 < end)
         {
-            Assert.Single(receivedData);
-            Assert.Equal(sendData, receivedData[0]);
+            client.Send(sendData, sendData.Length, serverEp);
+            receivedEvent.Wait(500);
         }
-        // 如果未收到数据，不抛出断言失败，因为UDP在某些测试环境下可能有问题
+        Assert.True(receivedEvent.IsSet, "未在超时内收到UDP数据");
+        Assert.NotEmpty(receivedData);
+        Assert.All(receivedData, d => Assert.Equal(sendData, d));
+
+        // 客户端读取Echo回复，验证双向
+        client.Client.ReceiveTimeout = 10000;
+        var echoEp = new IPEndPoint(IPAddress.Any, 0);
+        var echo = client.Receive(ref echoEp);
+        Assert.Equal(sendData, echo);
     }
 
     /// <summary>测试多次数据发送</summary>
@@ -258,9 +285,8 @@ public class NetServerTests
             Thread.Sleep(100);
         }
 
-        // 等待接收（可能由于粘包合并为较少次数接收）
-        Thread.Sleep(1000);
-        Assert.True(receivedCount >= 1);
+        // 等待接收（可能由于粘包合并为较少次数接收）。条件轮询等待，超时仅作防挂起兜底
+        Assert.True(TestWait.Until(() => Volatile.Read(ref receivedCount) >= 1, 10_000), "未在超时内收到数据");
     }
     #endregion
 
@@ -388,6 +414,10 @@ public class NetServerTests
 
         Thread.Sleep(500);
 
+        // 并行满载时服务端建会话可能滞后，轮询等待 5 个会话全部到位
+        var end = Environment.TickCount64 + 10_000;
+        while (sessionIds.Count < 5 && Environment.TickCount64 < end) Thread.Sleep(10);
+
         // 验证ID唯一性
         Assert.Equal(5, sessionIds.Count);
         Assert.Equal(sessionIds.Count, sessionIds.Distinct().Count());
@@ -424,9 +454,10 @@ public class NetServerTests
     #region 管道测试
     /// <summary>测试标准编解码器</summary>
     [Fact]
-    public void StandardCodecTest()
+    public async Task StandardCodecTest()
     {
         var receivedMessage = new ManualResetEventSlim(false);
+        var replied = new TaskCompletionSource<Boolean>(TaskCreationOptions.RunContinuationsAsynchronously);
         Object? received = null;
 
         using var server = new NetServer
@@ -436,14 +467,29 @@ public class NetServerTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
-        server.Received += (s, e) =>
+        server.Protocol = new SrmpCodec();
+        server.Received += async (s, e) =>
         {
-            received = e.Message ?? e.Packet;
-            receivedMessage.Set();
+            // async void 处理器的异常无人观察，会直接终止测试宿主；
+            // 且处理器在事件返回后才完成，必须把完成/异常交给用例等待，销毁服务器前不得仍在执行
+            try
+            {
+                received = e.Message ?? e.Packet;
+                receivedMessage.Set();
 
-            if (s is INetSession session && e.Packet != null)
-                session.SendMessage(e.Packet);
+                if (s is INetSession session && e.Message is DefaultMessage m)
+                {
+                    var reply = m.CreateReply();
+                    if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                    session.SendMessage(reply);
+                }
+
+                replied.TrySetResult(true);
+            }
+            catch (Exception ex)
+            {
+                replied.TrySetException(ex);
+            }
         };
 
         server.Start();
@@ -451,22 +497,26 @@ public class NetServerTests
         // 客户端
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Open();
 
-        var sendData = "Hello StandardCodec"u8.ToArray();
-        client.SendMessage(new ArrayPacket(sendData));
+        var request = new DefaultMessage();
+        request.SetBody(new ArrayPacket("Hello StandardCodec"u8.ToArray()));
+        client.SendMessage(request);
 
         // 等待接收
         Assert.True(receivedMessage.Wait(3000));
         Assert.NotNull(received);
 
+        // 等处理器写完回复再收尾，避免销毁服务器后处理器继续执行
+        await replied.Task.WaitAsync(TimeSpan.FromSeconds(3));
+
         client.Close("Test");
     }
 
-    /// <summary>测试管道处理器添加</summary>
+    /// <summary>测试协议属性设置</summary>
     [Fact]
-    public void PipelineHandlerAdd()
+    public void ProtocolPropertySet()
     {
         using var server = new NetServer
         {
@@ -475,13 +525,13 @@ public class NetServerTests
             Log = XTrace.Log,
         };
 
-        // 初始时管道为空
-        Assert.Null(server.Pipeline);
+        // 初始无协议
+        Assert.Null(server.Protocol);
 
-        // 添加处理器后管道自动创建
-        server.Add<StandardCodec>();
+        // 设置协议编解码器
+        server.Protocol = new SrmpCodec();
 
-        Assert.NotNull(server.Pipeline);
+        Assert.NotNull(server.Protocol);
     }
 
     /// <summary>测试SplitDataCodec发送数据时追加分割字节</summary>
@@ -497,13 +547,15 @@ public class NetServerTests
             AddressFamily = AddressFamily.InterNetwork,
             Log = XTrace.Log,
         };
-        server.Add<SplitDataCodec>();
-        server.Received += (s, e) =>
+        server.Protocol = new SplitDataCodec();
+        server.Received += async (s, e) =>
         {
-            if (s is INetSession session && e.Packet != null)
+            if (s is INetSession session && e.Message is Message m)
             {
                 // 服务端收到消息后回送，SplitDataCodec.Write 会追加分割字节
-                session.SendMessage(e.Packet);
+                var reply = new Message();
+                if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                session.SendMessage(reply);
                 serverReceived.Set();
             }
         };
@@ -524,13 +576,74 @@ public class NetServerTests
         // 等待服务端处理完成后再读取回送数据
         Assert.True(serverReceived.Wait(3000));
 
-        var buf = new Byte[64];
-        var n = stream.Read(buf, 0, buf.Length);
-        var received = buf[..n];
+        // 回送为直发同步写出：循环读满预期长度（读超时为 3 秒，未到即失败）
+        var expected = payload.Length + splitData.Length;
+        var received = new Byte[expected];
+        var read = 0;
+        while (read < expected)
+        {
+            var n = stream.Read(received, read, received.Length - read);
+            if (n <= 0) break;
+
+            read += n;
+        }
 
         // 服务端回送的数据末尾应包含分割字节
-        Assert.True(received.Length >= splitData.Length);
-        Assert.Equal(splitData, received[^splitData.Length..]);
+        Assert.True(read >= splitData.Length);
+        Assert.Equal(splitData, received[(read - splitData.Length)..read]);
+    }
+
+    /// <summary>SplitDataCodec 行帧交付：同步消费直接可用；跨轮带出经 Slice 后帧释放仍可读</summary>
+    [Fact]
+    public void SplitDataCodec_FrameDeliveredSyncSliceOutlives()
+    {
+        var all = new ManualResetEventSlim(false);
+        var lines = new List<String>();
+        IPacket? escaped = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Protocol = new SplitDataCodec();
+        server.Received += (s, e) =>
+        {
+            if (e.Message is not IMessage msg || msg.Payload == null) return;
+            var pk = msg.Payload;
+
+            // 同步消费：帧在本轮同步链路内直接可用（消息体为行内容，不含分隔符）
+            var text = pk.ToStr();
+            // 跨轮带出：切出共享切片（引用计数），帧同步归还后切片仍保活
+            if (text.StartsWith("keep")) escaped = pk.Slice(0, -1);
+
+            lock (lines)
+            {
+                lines.Add(text.TrimEnd('\r', '\n'));
+                if (lines.Count >= 2) all.Set();
+            }
+        };
+        server.Start();
+
+        // 裸 TCP 客户端发送两行（避免 SplitDataCodec.Write 追加分隔符影响输入侧）
+        using var client = new TcpClient();
+        client.Connect(IPAddress.Loopback, server.Port);
+        var stream = client.GetStream();
+        var data = "hello\r\nkeep\r\n"u8.ToArray();
+        stream.Write(data, 0, data.Length);
+
+        Assert.True(all.Wait(3000));
+
+        lock (lines)
+        {
+            Assert.Equal(new[] { "hello", "keep" }, lines);
+        }
+
+        // 帧已由 Read 在同步消费后归还池引用；跨轮切片独立保活数据
+        Assert.NotNull(escaped);
+        Assert.Equal("keep", escaped!.ToStr());
+        escaped.TryDispose();
     }
     #endregion
 
@@ -614,11 +727,11 @@ public class NetServerTests
 
     #region 群发测试
     /// <summary>测试群发消息</summary>
-    [Fact]
+    [Fact(DisplayName = "群发_全部客户端收到相同字节")]
     public async Task BroadcastMessage()
     {
-        var receiveCounts = new Int32[3];
-        var allReceived = new ManualResetEventSlim(false);
+        var sessionEvent = new ManualResetEventSlim(false);
+        var sessionCount = 0;
 
         using var server = new NetServer
         {
@@ -627,6 +740,7 @@ public class NetServerTests
             UseSession = true,
             Log = XTrace.Log,
         };
+        server.NewSession += (s, e) => { if (Interlocked.Increment(ref sessionCount) >= 3) sessionEvent.Set(); };
 
         server.Start();
 
@@ -643,29 +757,27 @@ public class NetServerTests
         }
 
         // 等待所有会话创建
-        Thread.Sleep(500);
+        Assert.True(sessionEvent.Wait(5000), "未创建 3 个会话");
 
-        // 群发数据
+        // 群发数据：3 个会话都应发送成功
         var sendData = "Broadcast Message"u8.ToArray();
-        await server.SendAllAsync(new ArrayPacket(sendData));
+        var count = await server.SendAllAsync(new ArrayPacket(sendData));
+        Assert.Equal(3, count);
 
-        // 等待接收
-        Thread.Sleep(500);
-
-        // 验证每个客户端都收到数据
+        // 逐个客户端限时读满：3 个都必须收到且内容一致
         for (var i = 0; i < 3; i++)
         {
-            var stream = streams[i];
-            if (stream.DataAvailable)
+            streams[i].ReadTimeout = 5000;
+            var buf = new Byte[64];
+            var total = 0;
+            while (total < sendData.Length)
             {
-                var buf = new Byte[1024];
-                var len = stream.Read(buf, 0, buf.Length);
-                if (len > 0) receiveCounts[i] = len;
+                var len = streams[i].Read(buf, total, buf.Length - total);
+                Assert.True(len > 0, $"客户端{i}未收到群发数据");
+                total += len;
             }
+            Assert.Equal(sendData, buf[..total]);
         }
-
-        // 至少有一个客户端收到数据
-        Assert.Contains(receiveCounts, c => c > 0);
 
         // 清理
         foreach (var client in clients)
@@ -673,9 +785,12 @@ public class NetServerTests
     }
 
     /// <summary>测试带条件的群发</summary>
-    [Fact]
+    [Fact(DisplayName = "群发_条件筛选_精确计数")]
     public async Task BroadcastWithPredicate()
     {
+        var sessionEvent = new ManualResetEventSlim(false);
+        var sessions = new List<INetSession>();
+
         using var server = new NetServer
         {
             Port = 0,
@@ -688,7 +803,14 @@ public class NetServerTests
         {
             // 为会话设置标记，通过Session的Items属性
             if (e.Session is NetSession ns)
+            {
                 ns.Session["Tag"] = ns.ID % 2 == 0 ? "Even" : "Odd";
+                lock (sessions)
+                {
+                    sessions.Add(ns);
+                    if (sessions.Count >= 4) sessionEvent.Set();
+                }
+            }
         };
 
         server.Start();
@@ -702,20 +824,105 @@ public class NetServerTests
             clients.Add(client);
         }
 
-        Thread.Sleep(500);
+        // 等待 4 个会话全部创建
+        Assert.True(sessionEvent.Wait(5000), "未创建 4 个会话");
 
-        // 只向偶数会话发送
+        // 只向偶数会话发送，发送数应精确等于偶数会话数
         var sendData = "Even Only"u8.ToArray();
+        Int32 evenCount;
+        lock (sessions) evenCount = sessions.Count(s => s is NetSession ns && ns.Session["Tag"]?.ToString() == "Even");
+        Assert.InRange(evenCount, 1, 4);
         var count = await server.SendAllAsync(
             new ArrayPacket(sendData),
             session => session is NetSession ns && ns.Session["Tag"]?.ToString() == "Even");
 
-        // 验证发送数量
-        Assert.True(count >= 0);
+        Assert.Equal(evenCount, count);
 
         // 清理
         foreach (var client in clients)
             client.Dispose();
+    }
+
+    /// <summary>强断言群发：每个存活客户端都收到完全相同的字节流；已踢出会话不干扰其余会话</summary>
+    [Fact(DisplayName = "群发_多会话_逐客户端字节一致_踢出会话容错")]
+    public async Task SendAllAsync_StrongAssert_AliveClientsReceiveExact()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            UseSession = true,
+            Log = XTrace.Log,
+        };
+
+        var sessions = new List<INetSession>();
+        server.NewSession += (s, e) => { lock (sessions) sessions.Add(e.Session); };
+        server.Start();
+
+        // 4 个客户端顺序接入
+        var clients = new List<TcpClient>();
+        for (var i = 0; i < 4; i++)
+        {
+            var client = new TcpClient();
+            client.Connect(IPAddress.Loopback, server.Port);
+            client.ReceiveTimeout = 3_000;
+            clients.Add(client);
+        }
+
+        // 等待全部会话建立
+        for (var i = 0; i < 100; i++)
+        {
+            lock (sessions) { if (sessions.Count >= 4) break; }
+            Thread.Sleep(20);
+        }
+        lock (sessions) Assert.True(sessions.Count >= 4, $"应建立4个会话，实际 {sessions.Count}");
+
+        // 踢出最后一个会话（Close 应断开底层连接），按其远端端口与客户端对应
+        INetSession kicked;
+        lock (sessions) kicked = sessions[^1];
+        kicked.Close("kick");
+        Thread.Sleep(200);
+        var kickedPort = ((IPEndPoint)kicked.Session.Remote.EndPoint).Port;
+
+        // 群发随机报价，逐字节校验
+        var payload = new Byte[256];
+        Random.Shared.NextBytes(payload);
+        var count = await server.SendAllAsync(new ArrayPacket(payload));
+
+        // 存活会话全部送达；已断开会话的 Send 返回 -1 仍计入（既有语义）
+        Assert.InRange(count, 3, 4);
+
+        foreach (var client in clients)
+        {
+            var stream = client.GetStream();
+            var isKicked = ((IPEndPoint)client.Client.LocalEndPoint!).Port == kickedPort;
+            if (isKicked)
+            {
+                // 被踢出的客户端不应收到群发数据
+                Thread.Sleep(500);
+                Assert.False(stream.DataAvailable, "被踢出的客户端不应收到群发数据");
+                continue;
+            }
+
+            // 等待数据完整到达
+            var buf = new Byte[1024];
+            var total = 0;
+            for (var k = 0; k < 100 && total < payload.Length; k++)
+            {
+                while (total < payload.Length && stream.DataAvailable)
+                {
+                    var len = stream.Read(buf, total, buf.Length - total);
+                    if (len <= 0) break;
+                    total += len;
+                }
+                if (total < payload.Length) Thread.Sleep(20);
+            }
+
+            Assert.Equal(payload.Length, total);
+            Assert.Equal(payload, buf[..total]);
+        }
+
+        foreach (var client in clients) client.Dispose();
     }
     #endregion
 
@@ -738,7 +945,7 @@ public class NetServerTests
 
     #region 地址重用测试
     /// <summary>测试地址重用</summary>
-    [Fact]
+    [Fact(DisplayName = "地址重用_监听器停止后同端口立即重启")]
     public void ReuseAddressTest()
     {
         var port = 0;
@@ -766,16 +973,9 @@ public class NetServerTests
             Log = XTrace.Log,
         };
 
-        // 这可能成功也可能失败，取决于系统
-        try
-        {
-            server2.Start();
-            Assert.True(server2.Active);
-        }
-        catch
-        {
-            // 某些系统可能仍然不允许立即重用
-        }
+        // 启用地址重用后，监听器停止后可立即在同端口重启
+        server2.Start();
+        Assert.True(server2.Active);
     }
     #endregion
 
@@ -912,12 +1112,13 @@ public class NetServerTests
         // 创建连接
         using var client = new TcpClient();
         client.Connect(IPAddress.Loopback, server.Port);
-        Thread.Sleep(200);
 
-        // 获取统计
-        var stat = server.GetStat();
+        // 会话受理后统计才会出现最高会话数（满载下受理可能滞后），条件等待替代固定睡眠
+        var stat = "";
+        Assert.True(TestWait.Until(() => !(stat = server.GetStat()).IsNullOrEmpty(), 10_000), "未在超时内产出统计信息");
+
         Assert.NotEmpty(stat);
-        Assert.Contains("在线", stat);
+        Assert.Contains("Online", stat);
     }
     #endregion
 
@@ -1193,7 +1394,9 @@ public class NetServerTests
             clients.Add(client);
         }
 
-        Thread.Sleep(500);
+        // 并行满载时服务端建会话可能滞后，轮询等待 5 个会话全部到位
+        var end = Environment.TickCount64 + 10_000;
+        while (server.MaxSessionCount < 5 && Environment.TickCount64 < end) Thread.Sleep(10);
 
         // 记录最高会话数
         var maxCount = server.MaxSessionCount;
@@ -1227,7 +1430,6 @@ public class NetServerTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
         server.Start();
 
         // 创建客户端
@@ -1241,7 +1443,7 @@ public class NetServerTests
 
         Thread.Sleep(500);
 
-        // 群发消息
+        // 群发消息（无协议模式：直接字节群发）
         var count = server.SendAllMessage(new ArrayPacket("Broadcast"u8.ToArray()));
 
         Assert.True(count >= 0);

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using NewLife;
 using NewLife.Data;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Data;
@@ -140,5 +140,46 @@ public class DefaultMatchQueueTests
         var matched2 = queue.Match("owner2", "resp2", tcs2, (req, resp) =>
             req?.ToString() == "req2");
         Assert.True(matched2);
+    }
+
+    [Fact]
+    [DisplayName("队列清空后停止检查定时器_再次入队重新启动")]
+    public async Task Timer_StopsWhenEmpty_AndRestarts()
+    {
+        var queue = new DefaultMatchQueue(16);
+
+        // 入队即启动周期检查定时器（请求超时取消依赖它）
+        var first = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
+        queue.Add(null, "req1", 11, first);
+        Assert.NotNull(queue.Timer);
+
+        // 首轮请求超时被清理后队列归空：实现应停掉定时器，空闲队列不再每秒空转占用调度器
+        // 检查定时器周期为 1 秒且回调在线程池执行，机器繁忙时会明显延后，故轮询等待而不是固定睡眠
+        Assert.True(await WaitUntil(() => first.Task.IsCanceled, 10_000), "首次请求未被超时取消");
+        Assert.True(await WaitUntil(() => queue.Timer == null, 10_000), "队列归空后未停止定时器");
+
+        // 停表后再次入队必须重新启动，否则该请求永远等不到超时取消，等待方悬挂
+        var second = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
+        queue.Add(null, "req2", 11, second);
+        Assert.NotNull(queue.Timer);
+
+        Assert.True(await WaitUntil(() => second.Task.IsCanceled, 10_000), "停表后未重新启动定时器：第二次请求未被超时取消");
+    }
+
+    /// <summary>轮询等待条件成立。定时器回调依赖线程池，机器繁忙时会明显延后，固定睡眠易误判</summary>
+    /// <param name="condition">条件</param>
+    /// <param name="msTimeout">最长等待毫秒数</param>
+    /// <returns>等待期间条件是否成立</returns>
+    private static async Task<Boolean> WaitUntil(Func<Boolean> condition, Int32 msTimeout)
+    {
+        var start = Runtime.TickCount64;
+        while (!condition())
+        {
+            if (Runtime.TickCount64 - start > msTimeout) return false;
+
+            await Task.Delay(50);
+        }
+
+        return true;
     }
 }

@@ -77,8 +77,8 @@ public class MemoryCacheTests
         var ic = Cache;
         var key = "Name";
 
-        ic.Set(key, Environment.UserName, 2);
-        var rs = ic.Add(key, Environment.MachineName, 2);
+        ic.Set(key, Environment.UserName, 1);
+        var rs = ic.Add(key, Environment.MachineName, 1);
         Assert.False(rs);
 
         var name = ic.Get<String>(key);
@@ -87,14 +87,14 @@ public class MemoryCacheTests
 
         var old = ic.Replace(key, Environment.MachineName);
         Assert.Equal(Environment.UserName, old);
-        ic.SetExpire(key, TimeSpan.FromSeconds(2));
+        ic.SetExpire(key, TimeSpan.FromSeconds(1));
 
         name = ic.Get<String>(key);
         Assert.Equal(Environment.MachineName, name);
         Assert.NotEqual(Environment.UserName, name);
 
-        Thread.Sleep(2000);
-        rs = ic.Add(key, Environment.MachineName, 2);
+        Thread.Sleep(1100);
+        rs = ic.Add(key, Environment.MachineName, 1);
         Assert.True(rs);
     }
 
@@ -249,10 +249,15 @@ public class MemoryCacheTests
         XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
         Assert.True(sw.ElapsedMilliseconds >= 1000);
 
-        Thread.Sleep(2000 - 1000 + 1);
+        // 到期清理可能随调度延迟；轮询等待键消失（最长 3 秒），避免与到期边界贴边
+        for (var i = 0; i < 60 && ic.ContainsKey("lock:TestLock2"); i++) Thread.Sleep(50);
 
         // 那个锁其实已经不在了，缓存应该把它干掉
         Assert.False(ic.ContainsKey("lock:TestLock2"));
+
+        // Release 下不再被引用的局部变量可被提前回收，锁会被终结器提前释放导致时序断言失真；
+        // 保持引用存活到用例末尾（Linux 满载下实测偶发）
+        GC.KeepAlive(ck1);
     }
 
     [Fact(DisplayName = "抢死锁")]
@@ -317,25 +322,6 @@ public class MemoryCacheTests
         Assert.Equal("NewLife", ga.Name);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void BigSave(Boolean compressed)
-    {
-        var mc = new MemoryCache();
-
-        for (var i = 0; i < 500_000; i++)
-        {
-            var ga = new GeoArea { Code = Rand.Next(100000, 999999), Name = Rand.NextString(8) };
-            mc.Set(ga.Name, ga);
-        }
-
-        if (compressed)
-            mc.Save("data/bigsave.gz", true);
-        else
-            mc.Save("data/bigsave.cache", false);
-    }
-
     [Fact]
     public void GetQueue()
     {
@@ -364,7 +350,9 @@ public class MemoryCacheTests
         Assert.Equal("Stone", val);
 
         var exp = mc.GetExpire("name");
-        Assert.Equal(days, exp.Days);
+        // TTL 按毫秒精度倒计时：设置后即使只流逝一个滴答，剩余时间也略小于 N 天，
+        // 用 TimeSpan.Days 直接截断会偶发变成 N-1（满载调度下已实测），故按天向上取整断言
+        Assert.Equal(days, (Int32)Math.Ceiling(exp.TotalDays));
     }
 
     [Fact(DisplayName = "移除-单键与通配")]

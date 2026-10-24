@@ -1,0 +1,518 @@
+using System.Buffers;
+using System.ComponentModel;
+using System.Text;
+using NewLife;
+using NewLife.Data;
+using NewLife.Http;
+using NewLife.Messaging;
+using Xunit;
+
+namespace XUnitTest.Messaging;
+
+/// <summary>WebSocket 消息编解码器（WebSocketCodec）测试</summary>
+public class WebSocketCodecTests
+{
+    #region 工具
+    private static readonly WebSocketCodec _serverCodec = new() { IsServer = true };
+    private static readonly WebSocketCodec _clientCodec = new() { IsServer = false };
+
+    private static Byte[] MakePayload(Int32 count, Byte seed = 0x5A)
+    {
+        var buf = new Byte[count];
+        for (var i = 0; i < count; i++) buf[i] = (Byte)(i * 13 + seed);
+
+        return buf;
+    }
+    #endregion
+
+    #region 解析
+    [Fact]
+    [DisplayName("WS编解码_帧长度非法_标记损坏而非等待更多数据")]
+    public void TryParse_NegativeLength_MarksInvalid()
+    {
+        // 0x81 = FIN + 文本帧；0xFF = 掩码位 + 长度127，随后 8 字节大端长度最高位为 1 ⇒ 负数
+        var frame = new Byte[] { 0x81, 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+        var rs = _serverCodec.TryParse(new ReadOnlySequence<Byte>(frame));
+
+        // 必须标记损坏：当作“数据不足”会让连接永久等待一个永远不会完整的帧
+        Assert.NotNull(rs);
+        Assert.True(rs!.Value.Invalid);
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_头部未到齐_返回空等待更多数据")]
+    public void TryParse_IncompleteHeader_ReturnsNull()
+    {
+        // 0xFE = 掩码位 + 长度126，还需 2 字节扩展长度
+        var frame = new Byte[] { 0x81, 0xFE };
+
+        var rs = _serverCodec.TryParse(new ReadOnlySequence<Byte>(frame));
+
+        Assert.Null(rs);
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_帧头未到齐_返回空且不产生对象")]
+    public void TryParse_IncompleteHeader_NoAllocation()
+    {
+        // 1 字节：帧头至少 2 字节
+        var one = new ReadOnlySequence<Byte>(new Byte[] { 0x81 });
+        Assert.Null(_serverCodec.TryParse(one));
+
+        var memory = GC.GetAllocatedBytesForCurrentThread();
+        var rs = _serverCodec.TryParse(one);
+        var used = GC.GetAllocatedBytesForCurrentThread() - memory;
+
+        Assert.Null(rs);
+        Assert.True(used == 0, $"帧头未到齐时不应产生对象，本次分配 {used} 字节");
+
+        // 掩码帧：长度字符与掩码键均未到齐
+        var masked = new ReadOnlySequence<Byte>(new Byte[] { 0x81, 0x85, 0x11, 0x22 });
+        Assert.Null(_serverCodec.TryParse(masked));
+
+        var memory2 = GC.GetAllocatedBytesForCurrentThread();
+        var rs2 = _serverCodec.TryParse(masked);
+        var used2 = GC.GetAllocatedBytesForCurrentThread() - memory2;
+
+        Assert.Null(rs2);
+        Assert.True(used2 == 0, $"掩码键未到齐时不应产生对象，本次分配 {used2} 字节");
+    }
+
+    [Fact]
+    [DisplayName("WS消息_实例解析_字段就位且失败路径无副作用")]
+    public void TryParse_Instance_FillsFields()
+    {
+        // 掩码文本帧头：FIN+Text + MASK+len5 + key
+        var frame = new ReadOnlySequence<Byte>(new Byte[] { 0x81, 0x85, 0x11, 0x22, 0x33, 0x44 });
+        var msg = new WsMessage();
+        Assert.True(msg.TryParse(frame, out var bodyLength, out var headerSize, out var invalid));
+        Assert.False(invalid);
+        Assert.Equal(6, headerSize);
+        Assert.Equal(5L, bodyLength);
+        Assert.True(msg.Fin);
+        Assert.Equal(WebSocketMessageType.Text, msg.Type);
+        Assert.Equal(new Byte[] { 0x11, 0x22, 0x33, 0x44 }, msg.MaskKey);
+
+        // 扩展长度未到齐：不写入实例
+        var keep = new WsMessage { Fin = true, Type = WebSocketMessageType.Ping, MaskKey = new Byte[] { 1, 2, 3, 4 } };
+        Assert.False(keep.TryParse(new ReadOnlySequence<Byte>(new Byte[] { 0x82, 0x7E }), out _, out _, out var invalid1));
+        Assert.False(invalid1);
+        Assert.Equal(WebSocketMessageType.Ping, keep.Type);
+        Assert.Equal(new Byte[] { 1, 2, 3, 4 }, keep.MaskKey);
+
+        // 保留 opcode：标记损坏，同样不写入实例
+        Assert.False(keep.TryParse(new ReadOnlySequence<Byte>(new Byte[] { 0x83, 0x00 }), out _, out _, out var invalid2));
+        Assert.True(invalid2);
+        Assert.Equal(WebSocketMessageType.Ping, keep.Type);
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_文本帧无掩码_定界")]
+    public void TryParse_TextFrame()
+    {
+        var frame = new Byte[] { 0x81, 0x05, (Byte)'h', (Byte)'e', (Byte)'l', (Byte)'l', (Byte)'o' };
+
+        var rs = _serverCodec.TryParse(new ArrayPacket(frame).AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var ws = Assert.IsType<WsMessage>(rs.Value.Message);
+        Assert.True(ws.Fin);
+        Assert.Equal(WebSocketMessageType.Text, ws.Type);
+        Assert.Null(ws.MaskKey);
+        Assert.Equal(2, rs.Value.HeaderSize);
+        Assert.Equal(5L, rs.Value.BodyLength);
+
+        // 头不足：等待（不产生对象）
+        Assert.Null(_serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x81 }).AsReadOnlySequence()));
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_掩码帧_密钥随头部消费")]
+    public void TryParse_MaskedFrame()
+    {
+        // 客户端帧：FIN+Text + MASK+len5 + key(4) + 掩码负载
+        var key = new Byte[] { 0x11, 0x22, 0x33, 0x44 };
+        var payload = Encoding.UTF8.GetBytes("hello");
+        var masked = new Byte[payload.Length];
+        for (var i = 0; i < payload.Length; i++) masked[i] = (Byte)(payload[i] ^ key[i % 4]);
+
+        var frame = new Byte[] { 0x81, 0x85, key[0], key[1], key[2], key[3], masked[0], masked[1], masked[2], masked[3], masked[4] };
+
+        var rs = _serverCodec.TryParse(new ArrayPacket(frame).AsReadOnlySequence());
+        Assert.NotNull(rs);
+        var ws = Assert.IsType<WsMessage>(rs.Value.Message);
+        Assert.Equal(key, ws.MaskKey);
+        Assert.Equal(6, rs.Value.HeaderSize);
+        Assert.Equal(5L, rs.Value.BodyLength);
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_扩展长度_2字节与8字节")]
+    public void TryParse_ExtendedLength()
+    {
+        // 126 → 2 字节大端（200）
+        var f2 = new Byte[] { 0x82, 0x7E, 0x00, 0xC8 };
+        var rs2 = _serverCodec.TryParse(new ArrayPacket(f2).AsReadOnlySequence());
+        Assert.NotNull(rs2);
+        Assert.Equal(4, rs2.Value.HeaderSize);
+        Assert.Equal(200L, rs2.Value.BodyLength);
+
+        // 127 → 8 字节大端（70000）
+        var f8 = new Byte[] { 0x82, 0x7F, 0, 0, 0, 0, 0, 0x01, 0x11, 0x70 };
+        var rs8 = _serverCodec.TryParse(new ArrayPacket(f8).AsReadOnlySequence());
+        Assert.NotNull(rs8);
+        Assert.Equal(10, rs8.Value.HeaderSize);
+        Assert.Equal(70000L, rs8.Value.BodyLength);
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_非法帧_返回失败")]
+    public void TryParse_Invalid()
+    {
+        // 分片帧（FIN=0）：照常解析（Fin=false），重组由消费侧（WebSocket/WebSocketClient）完成
+        var frag = _serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x01, 0x03, 0x61 }).AsReadOnlySequence());
+        Assert.NotNull(frag);
+        var fragMsg = (WsMessage)frag.Value.Message!;
+        Assert.False(fragMsg.Fin);
+        Assert.Equal(WebSocketMessageType.Text, fragMsg.Type);
+        fragMsg.Dispose();
+
+        // 8 字节长度最高位为 1（负数）：损坏帧，须标记 Invalid 而不是当作"数据不足"继续等
+        var neg = new Byte[] { 0x82, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+        var negRs = _serverCodec.TryParse(new ArrayPacket(neg).AsReadOnlySequence());
+        Assert.NotNull(negRs);
+        Assert.True(negRs!.Value.Invalid);
+
+        // 掩码位已置但密钥不齐：等待
+        Assert.Null(_serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x81, 0x85, 0x11, 0x22 }).AsReadOnlySequence()));
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_RSV位非零或保留opcode_标记损坏")]
+    public void TryParse_ReservedBitsOrOpcode_MarksInvalid()
+    {
+        // RSV1 置位（0xC1 = FIN + RSV1 + opcode=1）：未协商扩展时必须为 0
+        var rsv = _serverCodec.TryParse(new ArrayPacket(new Byte[] { 0xC1, 0x00 }).AsReadOnlySequence());
+        Assert.NotNull(rsv);
+        Assert.True(rsv!.Value.Invalid);
+
+        // 保留 opcode 3（0x83 = FIN + opcode=3）
+        var op = _serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x83, 0x00 }).AsReadOnlySequence());
+        Assert.NotNull(op);
+        Assert.True(op!.Value.Invalid);
+
+        // 合法帧不受影响：空文本帧（0x81 + 长度 0）
+        var ok = _serverCodec.TryParse(new ArrayPacket(new Byte[] { 0x81, 0x00 }).AsReadOnlySequence());
+        Assert.NotNull(ok);
+        Assert.False(ok!.Value.Invalid);
+        ok.Value.Message?.Dispose();
+    }
+    #endregion
+
+    #region 构建
+    [Fact]
+    [DisplayName("WS编解码_服务端构建_无掩码字节与解析一致")]
+    public async Task Build_Server()
+    {
+        var msg = new WsMessage { Type = WebSocketMessageType.Text };
+        msg.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes("hello")));
+
+        var pk = _serverCodec.Build(msg);
+        Assert.NotNull(pk);
+        Assert.NotNull(msg.Payload);     // 构建不消费消息负载
+
+        // 字节：[0x81, 0x05][hello]
+        Assert.Equal(new Byte[] { 0x81, 0x05, (Byte)'h', (Byte)'e', (Byte)'l', (Byte)'l', (Byte)'o' }, pk!.AsReadOnlySequence().ToArray());
+
+        // 帧泵端到端：绑定体并读满
+        var pump = new MessagePump(_serverCodec);
+        using var pipe = new Pipe();
+        pipe.Writer.Append(pk);
+
+        Assert.True(pump.TryRead(pipe.Reader, out var recv));
+        Assert.Equal("hello", Encoding.UTF8.GetString(recv!.Payload!.ToArray()));
+        recv.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_客户端构建_自动掩码可解码")]
+    public void Build_Client_AutoMask()
+    {
+        var payload = MakePayload(37);
+        var msg = new WsMessage { Type = WebSocketMessageType.Binary };
+        msg.SetBody(new ArrayPacket(payload));
+
+        var pk = _clientCodec.Build(msg)!;
+        var data = pk.AsReadOnlySequence().ToArray();
+
+        // 掩码位置 1（长度字节）
+        Assert.Equal(0x82, data[0]);
+        Assert.True((data[1] & 0x80) != 0);
+
+        // 服务端解析：掩码键挂在消息上，消费方解码还原
+        var pump = new MessagePump(_serverCodec);
+        using var pipe = new Pipe();
+        pipe.Writer.Append(pk);
+
+        Assert.True(pump.TryRead(pipe.Reader, out var bound));
+        var ws = (WsMessage)bound!;
+        Assert.NotNull(ws.MaskKey);
+        Assert.True(ws.Demask());
+        Assert.Equal(payload, ws.Payload!.ToArray());
+
+        // 掩码为独占拷贝：消息负载未被原位改写
+        Assert.Equal(payload, msg.Payload!.ToArray());
+
+        ws.Dispose();
+        pk.TryDispose();
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_客户端指定密钥_构建确定性且可解码")]
+    public void Build_Client_FixedMask_Deterministic()
+    {
+        var key = new Byte[] { 0x0A, 0x0B, 0x0C, 0x0D };
+
+        // 同密钥两次构建：字节一致（确定性）
+        var nw = new WsMessage { Type = WebSocketMessageType.Binary, MaskKey = key };
+        nw.SetBody(new ArrayPacket(MakePayload(64)));
+        var frame1 = _clientCodec.Build(nw)!;
+
+        var nw2 = new WsMessage { Type = WebSocketMessageType.Binary, MaskKey = key };
+        nw2.SetBody(new ArrayPacket(MakePayload(64)));
+        var frame2 = _clientCodec.Build(nw2)!;
+
+        Assert.Equal(frame2.AsReadOnlySequence().ToArray(), frame1.AsReadOnlySequence().ToArray());
+
+        // 服务端解码还原
+        var pump = new MessagePump(_serverCodec);
+        using var pipe = new Pipe();
+        pipe.Writer.Append(frame1);
+        Assert.True(pump.TryRead(pipe.Reader, out var bound));
+        var ws = (WsMessage)bound!;
+        Assert.Equal(key, ws.MaskKey);
+        Assert.True(ws.Demask());
+        Assert.Equal(MakePayload(64), ws.Payload!.ToArray());
+        ws.Dispose();
+
+        frame1.TryDispose();
+        frame2.TryDispose();
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_服务端构建_全边界长度往返")]
+    public void Build_Server_RoundTripAllSizes()
+    {
+        foreach (var count in new[] { 0, 5, 125, 126, 65535, 65536 })
+        {
+            var payload = MakePayload(count);
+
+            var nw = new WsMessage { Type = WebSocketMessageType.Text };
+            nw.SetBody(new ArrayPacket(payload));
+            var frame = _serverCodec.Build(nw)!;
+
+            // 客户端解析回读：服务端帧无掩码
+            var pump = new MessagePump(_clientCodec);
+            using var pipe = new Pipe();
+            pipe.Writer.Append(frame);
+            Assert.True(pump.TryRead(pipe.Reader, out var bound));
+            var ws = (WsMessage)bound!;
+            Assert.Equal(payload, ws.Payload!.ToArray());
+            ws.Dispose();
+
+            frame.TryDispose();
+        }
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_头部构建_声明长度")]
+    public void BuildHeader_DeclaresLength()
+    {
+        var pk = _serverCodec.BuildHeader(new WsMessage { Type = WebSocketMessageType.Binary }, 300);
+        Assert.Equal(new Byte[] { 0x82, 0x7E, 0x01, 0x2C }, pk.AsReadOnlySequence().ToArray());
+        pk.TryDispose();
+
+        // 客户端方向：带掩码帧不支持流式发送
+        Assert.Throws<NotSupportedException>(() => _clientCodec.BuildHeader(new WsMessage(), 10));
+
+        // 非法长度
+        Assert.Throws<ArgumentOutOfRangeException>(() => _serverCodec.BuildHeader(new WsMessage(), -1));
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_掩码键超过4字节_只写前4字节")]
+    public void Build_MaskKeyLongerThanFour_WritesFourBytes()
+    {
+        // 掩码键在线上固定 4 字节（RFC 6455 §5.2）。若按数组实际长度写头，帧头会多出 (长度-4) 字节，
+        // 对端把多出的字节当成负载开头，整条消息错位
+        var payload = MakePayload(10);
+        var msg = new WsMessage { Type = WebSocketMessageType.Binary };
+        var key = new Byte[8];
+        for (var i = 0; i < key.Length; i++) key[i] = (Byte)(0x10 + i);
+        msg.MaskKey = key;
+        msg.SetBody(new ArrayPacket(payload));
+
+        var frame = _clientCodec.Build(msg)!;
+        var bytes = frame.AsReadOnlySequence().ToArray();
+
+        // 头 2 + 掩码 4 = 6，加载荷 10 = 16；多余的掩码字节不得进入帧
+        Assert.Equal(16, bytes.Length);
+
+        var rs = _serverCodec.TryParse(new ReadOnlySequence<Byte>(bytes));
+        Assert.NotNull(rs);
+        Assert.Equal(6, rs!.Value.HeaderSize);
+        Assert.Equal(10L, rs.Value.BodyLength);
+
+        // 掩码字段必须是键的前 4 字节；且解码后负载与原文一致——
+        // 按 8 字节写头会把键的后 4 字节覆盖到负载前 4 字节上
+        Assert.Equal(key.AsSpan(0, 4).ToArray(), bytes[2..6]);
+        var parsed = (WsMessage)rs.Value.Message!;
+        parsed.SetBody(new ArrayPacket(bytes).Slice(6, 10));
+        parsed.Demask();
+        Assert.Equal(payload, parsed.Payload!.ToArray());
+        parsed.Dispose();
+
+        msg.Dispose();
+        frame.TryDispose();
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_关闭帧_状态码与描述解析")]
+    public void CloseStatus_Parse()
+    {
+        var desc = "bye";
+        var descBytes = Encoding.UTF8.GetBytes(desc);
+        var body = new Byte[2 + descBytes.Length];
+        body[0] = 0x03;
+        body[1] = 0xE8;     // 1000 网络序
+        descBytes.CopyTo(body, 2);
+
+        var msg = new WsMessage { Type = WebSocketMessageType.Close };
+        msg.SetBody(new ArrayPacket(body));
+
+        Assert.True(msg.TryReadCloseStatus());
+        Assert.Equal(1000, msg.CloseStatus);
+        Assert.Equal(desc, msg.StatusDescription);
+
+        msg.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_关闭帧原因超长_截断到控制帧上限")]
+    public void ClosePayload_LongReason_Truncated()
+    {
+        // RFC 6455 §5.5：控制帧负载不得超过 125 字节，即状态码 2 字节 + 原因最多 123 字节
+        var pk = WebSocketCodec.BuildClosePayload(1000, new String('x', 300));
+        Assert.Equal(125L, pk.Total);
+        Assert.Equal(1000, (pk[0] << 8) | pk[1]);
+        pk.TryDispose();
+
+        // 多字节字符不得被截成半个：'中' 占 3 字节，123 恰是边界（3×41），整 123 字节保留
+        var pk2 = WebSocketCodec.BuildClosePayload(1000, new String('中', 100));
+        Assert.Equal(125L, pk2.Total);
+        pk2.TryDispose();
+
+        // 加 2 字节 ASCII 前缀后 123 落在 '中' 的续字节上，须退到该字符首字节（122）
+        var pk3 = WebSocketCodec.BuildClosePayload(1000, "xy" + new String('中', 100));
+        Assert.Equal(124L, pk3.Total);
+        pk3.TryDispose();
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_不可发送的关闭码_退化为无状态码关闭帧")]
+    public void ClosePayload_UnsendableStatus_Dropped()
+    {
+        // 保留值与未分配段禁止端点发送，发出会被对端判定协议错误
+        foreach (var code in new[] { 0, 999, 1004, 1005, 1006, 1015, 1016, 2999, 5000 })
+        {
+            var pk = WebSocketCodec.BuildClosePayload(code, "bye");
+            Assert.Equal(0L, pk.Total);
+            pk.TryDispose();
+        }
+
+        // 已分配段照常携带状态码（无原因时正文仅 2 字节）
+        foreach (var code in new[] { 1000, 1003, 1007, 1011, 1014, 3000, 4999 })
+        {
+            var pk = WebSocketCodec.BuildClosePayload(code, null);
+            Assert.Equal(2L, pk.Total);
+            Assert.Equal(code, (pk[0] << 8) | pk[1]);
+            pk.TryDispose();
+        }
+    }
+    #endregion
+
+    [Fact]
+    [DisplayName("WS编解码_接收掩码帧_消息解码还原")]
+    public void Receive_MaskedFrame_Demask()
+    {
+        var expected = MakePayload(20);
+        var msg = new WsMessage { Type = WebSocketMessageType.Binary };
+        msg.SetBody(new ArrayPacket(MakePayload(20)));
+        var frame = _clientCodec.Build(msg)!;
+
+        // 服务端解析：掩码键挂在消息上
+        var rs = _serverCodec.TryParse(frame.AsReadOnlySequence());
+        Assert.NotNull(rs);
+        Assert.NotNull(((WsMessage)rs.Value.Message!).MaskKey);
+
+        // 帧泵绑体（内存视图）后解码还原
+        var pump = new MessagePump(_serverCodec);
+        using var pipe = new Pipe();
+        pipe.Writer.Append(frame);
+
+        Assert.True(pump.TryRead(pipe.Reader, out var bound));
+        var ws = (WsMessage)bound!;
+        Assert.True(ws.Demask());
+        Assert.Equal(expected, ws.Payload!.ToArray());
+        ws.Dispose();
+
+        // 无掩码消息：解码为无操作
+        var plain = new WsMessage { Type = WebSocketMessageType.Text };
+        plain.SetBody(new ArrayPacket(expected));
+        Assert.False(plain.Demask());
+        plain.Dispose();
+    }
+
+    #region UTF-8 校验（RFC 6455 §8.1）
+    [Fact]
+    [DisplayName("WS编解码_UTF8校验_合法序列通过")]
+    public void IsValidUtf8_ValidPasses()
+    {
+        Assert.True(WebSocketCodec.IsValidUtf8(null));
+        Assert.True(WebSocketCodec.IsValidUtf8((ArrayPacket)"hello".GetBytes()));
+        Assert.True(WebSocketCodec.IsValidUtf8((ArrayPacket)"中文测试".GetBytes()));
+        // 4 字节序列（emoji）与码点边界
+        Assert.True(WebSocketCodec.IsValidUtf8((ArrayPacket)"😀".GetBytes()));
+        Assert.True(WebSocketCodec.IsValidUtf8((ArrayPacket)new Byte[] { 0xF4, 0x8F, 0xBF, 0xBF })); // U+10FFFF
+    }
+
+    [Fact]
+    [DisplayName("WS编解码_UTF8校验_链式负载跨段连续")]
+    public void IsValidUtf8_ChainSpansSegments()
+    {
+        // 一个 3 字节序列被切成两个段：跨段仍应判定合法（按段分别校验会把合法数据判成非法）
+        var chain = new ArrayPacket(new Byte[] { 0xE4, 0xB8 }) { Next = new ArrayPacket(new Byte[] { 0xAD }) };
+        Assert.True(WebSocketCodec.IsValidUtf8(chain));
+
+        // 跨段截断的多字节序列：非法
+        var broken = new ArrayPacket(new Byte[] { 0xE4, 0xB8 }) { Next = new ArrayPacket(new Byte[] { 0x41 }) };
+        Assert.False(WebSocketCodec.IsValidUtf8(broken));
+    }
+
+    [Theory]
+    [DisplayName("WS编解码_UTF8校验_非法序列被拒")]
+    // 孤立续字节、过长编码（overlong）、代理区、超过 U+10FFFF、非法前导、截断序列
+    [InlineData(new Byte[] { 0x80 })]
+    [InlineData(new Byte[] { 0xC0, 0x80 })]
+    [InlineData(new Byte[] { 0xE0, 0x80, 0x80 })]
+    [InlineData(new Byte[] { 0xED, 0xA0, 0x80 })]
+    [InlineData(new Byte[] { 0xF5, 0x80, 0x80, 0x80 })]
+    [InlineData(new Byte[] { 0xFF })]
+    [InlineData(new Byte[] { 0xE4, 0xB8 })]
+    [InlineData(new Byte[] { 0xC3, 0x28 })]
+    public void IsValidUtf8_InvalidRejected(Byte[] data) => Assert.False(WebSocketCodec.IsValidUtf8((ArrayPacket)data));
+    #endregion
+
+    #region 辅助
+    #endregion
+}

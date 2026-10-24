@@ -285,5 +285,39 @@ public class PacketHelperTests
         for (var p = pk; p != null && steps < 10; p = p.Next) steps++;
         Assert.True(steps <= 5, "链表遍历步骤异常，可能存在环");
     }
+
+    [Fact]
+    public void Append_NextContainsHead_NoLoop()
+    {
+        // 先构造 a -> b，再把链首 a 挂到链中节点 b 之后
+        IPacket a = new OwnerPacket(1).Resize(1);
+        var b = new OwnerPacket(1).Resize(1);
+        a.Append(b);
+
+        // b.Append(a)：next 链包含 pk 的头节点 a，直接挂接会形成 a->b->a 环，应拒绝
+        b.Append(a);
+
+        var steps = 0;
+        for (var p = a; p != null && steps < 10; p = p.Next) steps++;
+        Assert.Equal(2, steps);
+    }
+
+    [Fact]
+    public void Append_NextChainContainsPk_NoLoop()
+    {
+        // c -> a -> b；把 c 挂到 b 之后（next 链的中间节点就是 pk 本身）
+        IPacket a = new OwnerPacket(1).Resize(1);
+        var b = new OwnerPacket(1).Resize(1);
+        var c = new OwnerPacket(1).Resize(1);
+        a.Append(b);
+        c.Append(a);
+
+        // next 链 c->a->b 含 pk(=b)，挂接会成环，应拒绝
+        b.Append(c);
+
+        var steps = 0;
+        for (var p = a; p != null && steps < 10; p = p.Next) steps++;
+        Assert.Equal(2, steps);
+    }
     #endregion
 }

@@ -79,7 +79,6 @@ public abstract class DisposeBase : IDisposable2
         if (disposing)
         {
             // 释放托管资源
-            //OnDispose(disposing);
 
             //// 告诉GC，不要调用析构函数
             //GC.SuppressFinalize(this);
@@ -97,11 +96,6 @@ public abstract class DisposeBase : IDisposable2
             // 事件回调不应影响释放流程，吞掉异常
         }
     }
-
-    ///// <summary>释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！</summary>
-    ///// <param name="disposing"></param>
-    //[Obsolete("=>Dispose")]
-    //protected virtual void OnDispose(Boolean disposing) { }
 
     /// <summary>在公开方法中调用，若对象已释放则抛出 <see cref="ObjectDisposedException"/></summary>
     protected void ThrowIfDisposed()

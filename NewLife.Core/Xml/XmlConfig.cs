@@ -44,7 +44,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
                 // 现存有对象，尝试再次加载，可能因为未修改而返回null，这样只需要返回现存对象即可
                 if (!config.IsUpdated) return config;
 
-                XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
+                XTrace.WriteLine("The configuration file {1} of {0} has changed; reloading.", typeof(TConfig), config.ConfigFile);
 
                 // 异步更新
                 ThreadPool.UnsafeQueueUserWorkItem(s =>
@@ -75,9 +75,11 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
 
                     config.OnLoaded();
 
-                    // 创建或覆盖
-                    var act = File.Exists(dcf) ? "加载出错" : "不存在";
-                    XTrace.WriteLine("{0}的配置文件{1} {2}，准备用默认配置覆盖！", typeof(TConfig).Name, dcf, act);
+                    // 创建或覆盖。状态词不单独作为参数塞入已翻译模板，整句作为词条
+                    var msg = File.Exists(dcf)
+                        ? "The configuration file {1} of {0} failed to load; overwriting with the default configuration."
+                        : "The configuration file {1} of {0} is missing; overwriting with the default configuration.";
+                    XTrace.WriteLine(msg, typeof(TConfig).Name, dcf);
                     try
                     {
                         // 根据配置，有可能不保存，直接返回默认
@@ -276,7 +278,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
             if (!flag)
             {
                 // 异步处理，避免加载日志路径配置时死循环
-                XTrace.WriteLine("配置文件{0}格式不一致，保存为最新格式！", cfi);
+                XTrace.WriteLine("The format of configuration file {0} is inconsistent; saving in the latest format.", cfi);
                 config.Save();
             }
         }

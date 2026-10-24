@@ -109,7 +109,7 @@ public class PacketComparisonBenchmark
     public IPacket Slice_OwnerPacket()
     {
         using var pk = new OwnerPacket(_data, 0, _data.Length, false);
-        return pk.Slice(DataSize / 4, DataSize / 2, false);
+        return pk.Slice(DataSize / 4, DataSize / 2);
     }
 
     [Benchmark(Description = "Slice_MemoryPacket")]

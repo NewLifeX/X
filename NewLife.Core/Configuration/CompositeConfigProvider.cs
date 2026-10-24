@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NewLife.Configuration;
 
@@ -138,7 +139,7 @@ public class CompositeConfigProvider : IConfigProvider
     /// <typeparam name="T">模型类型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
     /// <returns>模型实例；未找到时返回 default</returns>
-    public T? Load<T>(String? path = null) where T : new()
+    public T? Load<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(String? path = null) where T : new()
     {
         foreach (var cfg in Configs)
         {
@@ -154,7 +155,7 @@ public class CompositeConfigProvider : IConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置</param>
     /// <returns>任一提供者保存成功则返回 true</returns>
-    public Boolean Save<T>(T model, String? path = null)
+    public Boolean Save<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, String? path = null)
     {
         foreach (var cfg in Configs)
         {
@@ -175,7 +176,7 @@ public class CompositeConfigProvider : IConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-    public virtual void Bind<T>(T model, Boolean autoReload = true, String? path = null)
+    public virtual void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, Boolean autoReload = true, String? path = null)
     {
         if (model == null) return;
 
@@ -203,7 +204,7 @@ public class CompositeConfigProvider : IConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
     /// <param name="onChange">配置改变时执行的委托</param>
-    public virtual void Bind<T>(T model, String? path, Action<IConfigSection> onChange)
+    public virtual void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, String? path, Action<IConfigSection> onChange)
     {
         if (model == null) return;
 

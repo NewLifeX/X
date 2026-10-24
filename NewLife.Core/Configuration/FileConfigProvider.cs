@@ -1,4 +1,5 @@
-﻿using NewLife.Log;
+using System.Diagnostics.CodeAnalysis;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Configuration;
@@ -134,7 +135,7 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置</param>
     /// <returns>是否保存成功</returns>
-    public override Boolean Save<T>(T model, String? path = null)
+    public override Boolean Save<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, String? path = null)
     {
         if (model == null) return false;
 
@@ -167,7 +168,7 @@ public abstract class FileConfigProvider : ConfigProvider
 
         if (old.IsNullOrEmpty())
         {
-            XTrace.WriteLine("新建配置：{0}", fileName);
+            XTrace.WriteLine("Creating configuration: {0}", fileName);
         }
         else
         {
@@ -181,7 +182,7 @@ public abstract class FileConfigProvider : ConfigProvider
             var e2 = i + 32 < str.Length ? i + 32 : str.Length;
             var diff = str[s..e2].Replace("\r", "\\r").Replace("\n", "\\n");
 
-            XTrace.WriteLine("更新配置：{0}，原：\"{1}\"，新：\"{2}\"", fileName, ori, diff);
+            XTrace.WriteLine("Updating configuration: {0}, old: \"{1}\", new: \"{2}\"", fileName, ori, diff);
         }
 
         // 原子写入：先写临时文件，再原子替换。任何中途崩溃都不会让目标文件出现空白或半截内容
@@ -192,7 +193,7 @@ public abstract class FileConfigProvider : ConfigProvider
         {
             // File.Replace 仅 Windows 支持，Linux/macOS 抛 PlatformNotSupportedException，改用 Move 覆盖
             if (Runtime.Windows)
-                File.Replace(tmp, fileName, null, true);
+                ReplaceFile(tmp, fileName);
             else
 #if NET5_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
                 File.Move(tmp, fileName, true);
@@ -207,6 +208,29 @@ public abstract class FileConfigProvider : ConfigProvider
             File.Move(tmp, fileName);
     }
 
+    /// <summary>原子替换目标文件</summary>
+    /// <remarks>
+    /// 杀毒软件、搜索索引器等外部程序会短暂持有目标文件句柄，此时 ReplaceFile 会以“无法删除要被替换的文件”失败。
+    /// 这类占用是瞬时的，做有限重试即可成功；重试仍失败则向上抛出，保持原有失败语义。
+    /// </remarks>
+    /// <param name="tmp">临时文件</param>
+    /// <param name="fileName">目标文件</param>
+    private static void ReplaceFile(String tmp, String fileName)
+    {
+        for (var i = 0; ; i++)
+        {
+            try
+            {
+                File.Replace(tmp, fileName, null, true);
+                return;
+            }
+            catch (IOException) when (i < 3)
+            {
+                Thread.Sleep(20 * (i + 1));
+            }
+        }
+    }
+
     /// <summary>获取字符串形式</summary>
     /// <param name="section">配置段</param>
     /// <returns>配置的字符串表示；默认返回 null</returns>
@@ -219,7 +243,7 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    public override void Bind<T>(T model, Boolean autoReload = true, String? path = null)
+    public override void Bind<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(T model, Boolean autoReload = true, String? path = null)
     {
         base.Bind(model, autoReload, path);
 
@@ -262,7 +286,7 @@ public abstract class FileConfigProvider : ConfigProvider
             catch (Exception ex)
             {
                 // FileSystemWatcher 在某些 Linux/Android 系统上可能不支持或不可靠
-                XTrace.WriteLine("FileSystemWatcher 创建失败：{0}", ex.Message);
+                XTrace.WriteLine("Failed to create FileSystemWatcher: {0}", ex.Message);
             }
 
             // 同时启动定时器轮询，事件驱动可用时周期较长作为兜底
@@ -312,7 +336,7 @@ public abstract class FileConfigProvider : ConfigProvider
         if (_lastTime.Year > 2000 && fi.LastWriteTime <= _lastTime) return;
         _lastTime = fi.LastWriteTime;
 
-        XTrace.WriteLine("配置文件改变，重新加载 {0}", fileName);
+        XTrace.WriteLine("Configuration file changed; reloading {0}", fileName);
 
         _reading = true;
         try

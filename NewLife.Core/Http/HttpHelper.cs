@@ -12,6 +12,7 @@ using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;
+using WebSocketMessageType = NewLife.Messaging.WebSocketMessageType;
 
 namespace NewLife.Http;
 
@@ -175,47 +176,6 @@ public static class HttpHelper
     #endregion
 
     #region Http封包解包
-    /// <summary>创建请求包（低层轻量封包构造，仅用于内部或自定义 Tcp 级交互，不等价于 <see cref="HttpRequestMessage"/>）</summary>
-    /// <param name="method"></param>
-    /// <param name="uri"></param>
-    /// <param name="headers"></param>
-    /// <param name="pk"></param>
-    /// <returns></returns>
-    public static IPacket MakeRequest(String method, Uri uri, IDictionary<String, Object?>? headers, IPacket? pk)
-    {
-        var count = pk?.Total ?? 0;
-        if (method.IsNullOrEmpty()) method = count > 0 ? "POST" : "GET";
-        uri ??= new Uri("/"); // 兜底，确保 PathAndQuery 可用
-
-        var host = GetHost(uri);
-
-        // 构建头部
-        var sb = Pool.StringBuilder.Get();
-        sb.AppendFormat("{0} {1} HTTP/1.1\r\n", method, uri.PathAndQuery);
-        sb.AppendFormat("Host: {0}\r\n", host);
-
-        //if (Compressed) sb.AppendLine("Accept-Encoding:gzip, deflate");
-        //if (KeepAlive) sb.AppendLine("Connection:keep-alive");
-        //if (!UserAgent.IsNullOrEmpty()) sb.AppendFormat("User-Agent:{0}\r\n", UserAgent);
-
-        // 内容长度
-        if (count > 0) sb.AppendFormat("Content-Length: {0}\r\n", count);
-
-        if (headers != null)
-        {
-            foreach (var item in headers)
-            {
-                // 按 RFC 建议，在冒号后加空格以提升可读性
-                sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
-            }
-        }
-
-        sb.Append("\r\n");
-
-        var rs = new ArrayPacket(sb.Return(true).GetBytes()) { Next = pk };
-        return rs;
-    }
-
     /// <summary>创建响应包（低层轻量封包构造）</summary>
     /// <param name="code"></param>
     /// <param name="headers"></param>
@@ -227,9 +187,15 @@ public static class HttpHelper
         var sb = Pool.StringBuilder.Get();
         sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)code, code);
 
-        // 内容长度
+        // 内容长度：有实体时写明长度；无实体时也必须显式声明 0，否则报文不可自定界，
+        // keep-alive 下客户端会把下一个响应当成本次实体。1xx/204/304 按 RFC 7230 §3.3.2 不得声明。
+        // 调用方已自行声明 Content-Length/Transfer-Encoding 时不再插手，避免写出重复头部（CL.CL 走私面）
         var count = pk?.Total ?? 0;
-        if (count > 0) sb.AppendFormat("Content-Length: {0}\r\n", count);
+        if (count > 0)
+            sb.AppendFormat("Content-Length: {0}\r\n", count);
+        else if (!HttpBase.IsNoEntityStatus(code) && !HasHeader(headers, "Content-Length") && !HasHeader(headers, "Transfer-Encoding"))
+            sb.Append("Content-Length: 0\r\n");
+
         if (headers != null)
         {
             foreach (var item in headers)
@@ -244,54 +210,22 @@ public static class HttpHelper
         return rs;
     }
 
-#pragma warning disable CS0618 // 类型或成员已过时
-    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
-    /// <summary>分析头部（修改原 <see cref="Packet"/>，截去首段头部）</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
-    public static IDictionary<String, Object> ParseHeader(Packet pk)
+    /// <summary>判断头部集合中是否已存在指定名称的头部（忽略大小写）</summary>
+    /// <param name="headers">头部集合</param>
+    /// <param name="name">头部名称</param>
+    /// <returns>是否存在</returns>
+    private static Boolean HasHeader(IDictionary<String, Object?>? headers, String name)
     {
-        // 客户端收到响应，服务端收到请求
-        var headers = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        if (headers == null) return false;
 
-        var p = pk.IndexOf(NewLine);
-        if (p < 0) return headers;
-
-        // 截取
-        var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
-        p += 4; // 跳过 CRLFCRLF
-        pk.Set(pk.Data, pk.Offset + p, pk.Count - p);
-
-        // 分析头部
-        headers.Clear();
-        for (var i = 1; i < lines.Length; i++)
+        foreach (var item in headers)
         {
-            var line = lines[i];
-            var k = line.IndexOf(':');
-            if (k > 0) headers[line[..k]] = line[(k + 1)..].Trim();
+            if (item.Key.EqualIgnoreCase(name)) return true;
         }
 
-        var first = lines.Length > 0 ? lines[0] : "";
-        var ss = first.Split(' ');
-        if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
-        {
-            headers["Method"] = ss[0];
-
-            // 构造资源路径
-            var host = headers.TryGetValue("Host", out var s) ? s : "";
-            var uri = $"http://{host}{ss[1]}"; // 仅能猜测 http，若需 https 应由上层携带
-            headers["Url"] = new Uri(uri);
-        }
-        else if (ss.Length >= 2)
-        {
-            // 分析响应码
-            var code = ss[1].ToInt();
-            if (code > 0) headers["StatusCode"] = (HttpStatusCode)code;
-        }
-
-        return headers;
+        return false;
     }
-#pragma warning restore CS0618 // 类型或成员已过时
+
     #endregion
 
     #region 高级功能扩展
@@ -397,36 +331,6 @@ public static class HttpHelper
     /// <returns></returns>
     public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => client.PostFormAsync(requestUri, data, headers).ConfigureAwait(false).GetAwaiter().GetResult();
 
-    /// <summary>异步提交多段表单数据，含文件流</summary>
-    /// <param name="client">Http客户端</param>
-    /// <param name="requestUri">请求资源地址</param>
-    /// <param name="data">名值对数据。匿名对象或字典，支持文件流</param>
-    /// <param name="cancellationToken">取消通知</param>
-    public static async Task<String> PostMultipartFormAsync(this HttpClient client, String requestUri, Object data, CancellationToken cancellationToken = default)
-    {
-        var content = new MultipartFormDataContent();
-
-        foreach (var item in data.ToDictionary())
-        {
-            //if (item.Value == null) continue;
-
-            if (item.Value is FileStream fs)
-                content.Add(new StreamContent(fs), item.Key, Path.GetFileName(fs.Name));
-            else if (item.Value is Stream stream)
-                content.Add(new StreamContent(stream), item.Key);
-            else if (item.Value is String str)
-                content.Add(new StringContent(str), item.Key);
-            else if (item.Value is Byte[] buf)
-                content.Add(new ByteArrayContent(buf), item.Key);
-            else if (item.Value == null || item.Value.GetType().IsBaseType())
-                content.Add(new StringContent(item.Value + ""), item.Key);
-            else
-                content.Add(new StringContent(item.Value.ToJson()), item.Key);
-        }
-
-        return await PostAsync(client, requestUri, content, null, cancellationToken).ConfigureAwait(false);
-    }
-
     /// <summary>同步获取字符串</summary>
     /// <param name="client">Http客户端</param>
     /// <param name="requestUri">请求资源地址</param>
@@ -446,7 +350,8 @@ public static class HttpHelper
     /// <summary>内部统一 Post 发送逻辑，支持 Filter / Tracer</summary>
     private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
+        // 请求与响应均为本次调用独占：发送完成后即可释放，不再依赖 GC（请求释放会连带释放其内容）
+        using var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
         if (headers != null)
         {
             foreach (var item in headers)
@@ -471,7 +376,7 @@ public static class HttpHelper
         {
             if (filter != null) await filter.OnRequest(client, request, null, cancellationToken).ConfigureAwait(false);
 
-            var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (filter != null) await filter.OnResponse(client, response, request, cancellationToken).ConfigureAwait(false);
 
@@ -519,7 +424,7 @@ public static class HttpHelper
     {
         fileName = fileName.GetFullPath();
 
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 
         // 使用系统临时目录生成随机临时文件名，跨平台可用
         var tempFile = Path.GetTempFileName();
@@ -561,9 +466,9 @@ public static class HttpHelper
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
     {
 #if NET5_0_OR_GREATER
-        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
 #else
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 #endif
 
         await SaveFileAsync(rs, fileName, null, cancellationToken).ConfigureAwait(false);
@@ -601,9 +506,9 @@ public static class HttpHelper
         }
 
 #if NET5_0_OR_GREATER
-        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
 #else
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        using var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 #endif
 
         await SaveFileAsync(rs, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
@@ -649,7 +554,7 @@ public static class HttpHelper
                         if (File.Exists(tmp)) File.Delete(tmp);
                     }
                     catch { }
-                    throw new IOException("Save file hash verification failed.");
+                    throw new IOException(L.T("Save file hash verification failed."));
                 }
             }
 
@@ -688,7 +593,8 @@ public static class HttpHelper
     /// <param name="cancellationToken">取消通知</param>
     public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object? data = null, CancellationToken cancellationToken = default)
     {
-        var content = new MultipartFormDataContent();
+        // 内容容器由本方法释放（连带释放所持有的文件流），避免上传完成后文件句柄残留到 GC
+        using var content = new MultipartFormDataContent();
         if (!fileName.IsNullOrEmpty())
             content.Add(new StreamContent(fileName.AsFile().OpenRead()), "file", Path.GetFileName(fileName));
 
@@ -710,200 +616,6 @@ public static class HttpHelper
         }
 
         return await PostAsync(client, requestUri, content, null, cancellationToken).ConfigureAwait(false);
-    }
-    #endregion
-
-    #region WebSocket
-    /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
-    /// <param name="socket">WebSocket实例</param>
-    /// <param name="queue">队列</param>
-    /// <param name="onProcess">数据处理委托</param>
-    /// <param name="source">取消通知源</param>
-    /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]>? onProcess, CancellationTokenSource source)
-    {
-        DefaultSpan.Current = null;
-        var token = source.Token;
-        while (!token.IsCancellationRequested && socket.Connected)
-        {
-            // try-catch 放在循环内，避免单次异常退出循环
-            try
-            {
-                var msg = await queue.TakeOneAsync(30, token).ConfigureAwait(false);
-                if (msg != null)
-                {
-                    var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
-                    socket.Send(buf, WebSocketMessageType.Text);
-                }
-                else
-                {
-                    await Task.Delay(100, token).ConfigureAwait(false);
-                }
-            }
-            catch (ThreadAbortException) { break; }
-            catch (ThreadInterruptedException) { break; }
-            catch (TaskCanceledException) { }
-            catch (OperationCanceledException) { }
-            catch (WebSocketException ex)
-            {
-                if (token.IsCancellationRequested) break;
-
-                XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
-                break;
-            }
-            catch (Exception ex)
-            {
-                if (token.IsCancellationRequested) break;
-
-                XTrace.WriteException(ex);
-            }
-        }
-
-        // 通知取消
-        try
-        {
-            if (!source.IsCancellationRequested) source.Cancel();
-        }
-        catch (ObjectDisposedException) { }
-    }
-
-    /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
-    /// <param name="socket">WebSocket实例</param>
-    /// <param name="host">缓存主机</param>
-    /// <param name="topic">主题</param>
-    /// <param name="source">取消通知源</param>
-    /// <returns></returns>
-    public static Task ConsumeAndPushAsync(this WebSocket socket, ICache host, String topic, CancellationTokenSource source) => ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
-
-    /// <summary>从队列消费消息并推送到System.Net.WebSockets客户端</summary>
-    /// <param name="socket">WebSocket实例</param>
-    /// <param name="queue">队列</param>
-    /// <param name="onProcess">数据处理委托</param>
-    /// <param name="source">取消通知源</param>
-    /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]>? onProcess, CancellationTokenSource source)
-    {
-        DefaultSpan.Current = null;
-        var token = source.Token;
-        while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
-        {
-            // try-catch 放在循环内，避免单次异常退出循环
-            try
-            {
-                var msg = await queue.TakeOneAsync(30, token).ConfigureAwait(false);
-                if (msg != null)
-                {
-                    var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
-
-                    if (buf != null && buf.Length > 0)
-                        await socket.SendAsync(new ArraySegment<Byte>(buf), System.Net.WebSockets.WebSocketMessageType.Text, true, token).ConfigureAwait(false);
-                }
-                else
-                {
-                    await Task.Delay(100, token).ConfigureAwait(false);
-                }
-            }
-            catch (ThreadAbortException) { break; }
-            catch (ThreadInterruptedException) { break; }
-            catch (TaskCanceledException) { }
-            catch (OperationCanceledException) { }
-            catch (WebSocketException ex)
-            {
-                if (token.IsCancellationRequested) break;
-
-                XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
-                break;
-            }
-            catch (Exception ex)
-            {
-                if (token.IsCancellationRequested) break;
-
-                XTrace.WriteException(ex);
-            }
-        }
-
-        // 通知取消
-        try
-        {
-            if (!source.IsCancellationRequested) source.Cancel();
-        }
-        catch (ObjectDisposedException) { }
-    }
-
-    /// <summary>从队列消费消息并推送到System.Net.WebSockets客户端</summary>
-    /// <param name="socket">WebSocket实例</param>
-    /// <param name="host">缓存主机</param>
-    /// <param name="topic">主题</param>
-    /// <param name="source">取消通知源</param>
-    /// <returns></returns>
-    public static Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, ICache host, String topic, CancellationTokenSource source) => ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
-
-    /// <summary>阻塞等待WebSocket关闭</summary>
-    /// <param name="socket">WebSocket实例</param>
-    /// <param name="onReceive">数据处理委托</param>
-    /// <param name="source">取消通知源</param>
-    /// <returns></returns>
-    public static async Task WaitForClose(this System.Net.WebSockets.WebSocket socket, Action<String?>? onReceive, CancellationTokenSource source)
-    {
-        var buf = Pool.Shared.Rent(4096);
-        try
-        {
-            while (!source.IsCancellationRequested && socket.State == WebSocketState.Open)
-            {
-                try
-                {
-                    var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), source.Token).ConfigureAwait(false);
-                    if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
-                    if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
-                    {
-                        var str = buf.ToStr(null, 0, data.Count);
-                        if (!str.IsNullOrEmpty()) onReceive?.Invoke(str);
-                    }
-                }
-                catch (ThreadAbortException) { break; }
-                catch (ThreadInterruptedException) { break; }
-                catch (TaskCanceledException) { }
-                catch (OperationCanceledException) { }
-                catch (WebSocketException ex)
-                {
-                    XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex);
-                }
-            }
-        }
-        finally
-        {
-            Pool.Shared.Return(buf);
-        }
-
-        // 通知取消
-        try
-        {
-            if (!source.IsCancellationRequested) source.Cancel();
-        }
-        catch (ObjectDisposedException) { }
-
-        if (socket.State == WebSocketState.Open)
-            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default).ConfigureAwait(false);
-    }
-    #endregion
-
-    #region 辅助
-    /// <summary>根据 Uri 计算 Host 头（含端口）；支持 http/https/ws/wss</summary>
-    private static String GetHost(Uri uri)
-    {
-        if (uri == null) return String.Empty;
-        var port = uri.Port;
-        return uri.Scheme.ToLowerInvariant() switch
-        {
-            "http" or "ws" => port == 80 ? uri.Host : $"{uri.Host}:{port}",
-            "https" or "wss" => port == 443 ? uri.Host : $"{uri.Host}:{port}",
-            _ => uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{port}"
-        };
     }
     #endregion
 }

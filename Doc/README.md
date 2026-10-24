@@ -20,6 +20,7 @@ NewLife.Core 是一个全功能的 .NET 基础类库，提供日志、网络、�
 |------|------|------|
 | **链路追踪** | [链路追踪ITracer.md](链路追踪ITracer.md) | 分布式APM，性能监控与调用追踪 |
 | **日志系统** | [日志ILog.md](日志ILog.md) | 统一日志接口，支持文件/控制台/网络日志 |
+| **多语言本地化** | [多语言本地化.md](多语言本地化.md) | 31 种内置语言、语言选择与下游接入 |
 | **高级定时器** | [高级定时器TimerX.md](高级定时器TimerX.md) | 毫秒级定时器，支持Cron表达式 |
 | **Cron表达式** | [Cron表达式.md](Cron表达式.md) | 解析器Cron，计算下次执行时间点 |
 | **机器信息** | [机器信息MachineInfo.md](机器信息MachineInfo.md) | 获取硬件和系统信息 |
@@ -90,6 +91,7 @@ NewLife.Core 是一个全功能的 .NET 基础类库，提供日志、网络、�
 | **Span写入器** | [Span写入器SpanWriter.md](Span写入器SpanWriter.md) | 高效二进制写入 |
 | **缓冲区** | [缓冲区Buffers.md](缓冲区Buffers.md) | 缓冲区管理 |
 | **池化写入器** | [池化写入器PooledByteBufferWriter.md](池化写入器PooledByteBufferWriter.md) | 池化字节写入器 |
+| **序列读取器** | [序列读取器SequenceReader.md](序列读取器SequenceReader.md) | 跨段顺序读取（全 TFM） |
 
 ### ?? 网络通信
 
@@ -99,6 +101,7 @@ NewLife.Core 是一个全功能的 .NET 基础类库，提供日志、网络、�
 |------|------|------|
 | **网络服务端** | [网络服务端NetServer.md](网络服务端NetServer.md) | 高性能TCP/UDP服务端 |
 | **网络客户端** | [网络客户端NetClient.md](网络客户端NetClient.md) | 统一TCP/UDP客户端接口 |
+| **消息协议栈** | [消息协议栈.md](消息协议栈.md) | 协议模式：帧泵/编解码器/RPC/流式 |
 | **ApiHttpClient** | [HTTP客户端ApiHttpClient.md](HTTP客户端ApiHttpClient.md) | 面向Web API调用 |
 | **HTTP服务端** | [HTTP服务端HttpServer.md](HTTP服务端HttpServer.md) | 轻量级HTTP服务器 |
 | **HttpClient增强处理器** | [HttpClient增强处理器DnsHttpHandler_HttpTraceHandler.md](HttpClient增强处理器DnsHttpHandler_HttpTraceHandler.md) | DNS解析与APM追踪处理器 |
@@ -140,6 +143,8 @@ NewLife.Core 是一个全功能的 .NET 基础类库，提供日志、网络、�
 7. **常见问题** - FAQ
 8. **参考链接** - 相关文档
 9. **更新日志** - 版本历史
+
+README 多语言版本（切换行顺序、新增语种的步骤）见 [README多语言规范.md](README多语言规范.md)。
 
 ---
 

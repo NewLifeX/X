@@ -26,15 +26,18 @@ internal class MethodFilterHandler : IHttpHandler
 
     /// <summary>处理请求</summary>
     /// <param name="context">Http上下文</param>
-    public void ProcessRequest(IHttpContext context)
+    public Task ProcessRequestAsync(IHttpContext context)
     {
-        if (!context.Request?.Method.EqualIgnoreCase(Method) == true)
+        // 直接比方法名：请求或方法名缺失时也按不匹配处理。
+        // 旧写法 `!context.Request?.Method.EqualIgnoreCase(Method) == true` 在 Request 为 null 时整体为 null，
+        // 条件不成立会直接放行到业务处理器，方法校验被绕过
+        if (!Method.EqualIgnoreCase(context.Request?.Method))
         {
             context.Response.StatusCode = HttpStatusCode.MethodNotAllowed;
             context.Response.Headers["Allow"] = Method;
-            return;
+            return TaskEx.CompletedTask;
         }
 
-        Handler.ProcessRequest(context);
+        return Handler.ProcessRequestAsync(context);
     }
 }

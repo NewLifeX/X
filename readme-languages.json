@@ -1,0 +1,18 @@
+{
+  "updated": "2026-10-18",
+  "basis": "W3Techs content languages (2025-12-03) + fixed primaries",
+  "doc": "Doc/README多语言规范.md",
+  "languages": [
+    { "code": "en", "name": "English", "file": "README.md" },
+    { "code": "zh-CN", "name": "简体中文", "file": "README.zh-CN.md" },
+    { "code": "zh-TW", "name": "繁體中文", "file": "README.zh-TW.md" },
+    { "code": "es", "name": "Español", "file": "README.es.md" },
+    { "code": "de", "name": "Deutsch", "file": "README.de.md" },
+    { "code": "ja", "name": "日本語", "file": "README.ja.md" },
+    { "code": "fr", "name": "Français", "file": "README.fr.md" },
+    { "code": "pt", "name": "Português", "file": "README.pt.md" },
+    { "code": "ru", "name": "Русский", "file": "README.ru.md" },
+    { "code": "ko", "name": "한국어", "file": "README.ko.md" },
+    { "code": "ar", "name": "العربية", "file": "README.ar.md" }
+  ]
+}

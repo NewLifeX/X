@@ -8,30 +8,652 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  # 全解决方案编译校验（含 Samples/Zero.*/Benchmark 等非测试工程），与测试矩阵并行运行
+  build:
+    name: build solution
     runs-on: windows-latest
+    timeout-minutes: 30
 
     steps:
     - uses: actions/checkout@v4
     - name: Setup dotNET
       uses: actions/setup-dotnet@v4
       with:
+        # 全解决方案含 net8.0-windows/net9.0-windows，需对应 SDK 提供 WindowsDesktop 目标包
+        # （runner 镜像已不再预装旧版 SDK，缺 pack 时报 NETSDK1127）
         dotnet-version: |
-          6.x
-          7.x
           8.x
           9.x
           10.x
+        cache: true
+        cache-dependency-path: '**/*.csproj'
     - name: Build
+      shell: pwsh
+      # 源生成器工程既作为解决方案条目、又被多目标工程引用生成，两类实例会被并行重复生成，
+      # 偶发 CS2012（同一 obj 输出被两个编译器进程写入）；重试一次即可（第二次已是增量构建）
       run: |
         dotnet build -c Release
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host '首次构建失败，重试一次（已知并行重复生成竞态）'
+          dotnet build -c Release
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+        }
+
+    - name: Check English exception messages
+      shell: pwsh
+      run: ./Tools/Scripts/check-english-exceptions.ps1
+
+    - name: Check locale consistency
+      shell: pwsh
+      run: ./Tools/Scripts/check-locales.ps1
+
+    - name: Package consumer smoke
+      # 下游只加 PackageReference + Locales/*.yml 的端到端验证，防止打包/分析器分发回归
+      shell: pwsh
+      run: ./Tools/Scripts/check-package-consumer.ps1
+
+  # 测试矩阵：每个目标框架独立 job，job 间并行且互不争抢宿主资源（进程/端口/CPU），
+  # 每个 job 只构建自身目标框架，省去全解决方案构建的墙钟开销（编译校验由 build job 承担）。
+  # 测试内并行度由各工程 xunit.runner.json 的 maxParallelThreads 控制。
+  test:
+    name: test (${{ matrix.name }})
+    # 未声明 os 的矩阵项按 windows-latest；win-x64/linux-x64/linux-arm64 为阻断门禁（LA64 由独立 job 承担），
+    # experimental 项为观察期（win-arm64/osx/musl），平台稳定全绿后逐项去掉该标记转阻断
+    runs-on: ${{ matrix.os || 'windows-latest' }}
+    timeout-minutes: 40
+    continue-on-error: ${{ matrix.experimental == true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Core-net8.0
+            project: 'XUnitTest.Core\XUnitTest.Core.csproj'
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+          - name: Core-net8.0-windows
+            project: 'XUnitTest.Core\XUnitTest.Core.csproj'
+            framework: net8.0-windows
+            dotnet: |
+              8.x
+              10.x
+          - name: Core-net9.0
+            project: 'XUnitTest.Core\XUnitTest.Core.csproj'
+            framework: net9.0
+            dotnet: |
+              9.x
+              10.x
+          - name: Core-net10.0
+            project: 'XUnitTest.Core\XUnitTest.Core.csproj'
+            framework: net10.0
+            dotnet: 10.x
+          - name: Core-net10.0-windows
+            project: 'XUnitTest.Core\XUnitTest.Core.csproj'
+            framework: net10.0-windows
+            dotnet: 10.x
+          - name: Net6-net6.0
+            project: 'XUnitTest.Net6\XUnitTest.Net6.csproj'
+            framework: net6.0
+            dotnet: |
+              6.x
+              10.x
+          - name: Net6-net6.0-windows
+            project: 'XUnitTest.Net6\XUnitTest.Net6.csproj'
+            framework: net6.0-windows
+            dotnet: |
+              6.x
+              10.x
+          - name: Compat-net462
+            project: 'XUnitTest.Compat\XUnitTest.Compat.csproj'
+            framework: net462
+            dotnet: 10.x
+          - name: Compat-net8.0
+            project: 'XUnitTest.Compat\XUnitTest.Compat.csproj'
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+          - name: SourceGenerator
+            project: 'XUnitTest.SourceGenerator\XUnitTest.SourceGenerator.csproj'
+            framework: net10.0
+            dotnet: 10.x
+
+          # ================= 跨平台矩阵 =================
+          # Linux x64：全量工程覆盖（Core 双 TFM + Compat + 源生成器），阻断门禁
+          - name: Core-net8.0-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+          - name: Core-net10.0-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+          - name: Compat-net8.0-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.Compat/XUnitTest.Compat.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+          - name: SourceGenerator-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.SourceGenerator/XUnitTest.SourceGenerator.csproj
+            framework: net10.0
+            dotnet: 10.x
+          # Linux arm64：阻断门禁
+          - name: Core-net8.0-linux-arm64
+            os: ubuntu-24.04-arm
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+          - name: Core-net10.0-linux-arm64
+            os: ubuntu-24.04-arm
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+          # macOS：观察期；3 vCPU，改用 test.ci.macos.runsettings 降并行度
+          - name: Core-net8.0-osx-arm64
+            os: macos-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            runsettings: test.ci.macos.runsettings
+            experimental: true
+          - name: Core-net10.0-osx-arm64
+            os: macos-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+            runsettings: test.ci.macos.runsettings
+            experimental: true
+          - name: Core-net8.0-osx-x64
+            os: macos-15-intel
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            runsettings: test.ci.macos.runsettings
+            experimental: true
+          - name: Core-net10.0-osx-x64
+            os: macos-15-intel
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+            runsettings: test.ci.macos.runsettings
+            experimental: true
+          # Windows arm64：观察期
+          - name: Core-net8.0-win-arm64
+            os: windows-11-arm
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net8.0
+            dotnet: |
+              8.x
+              10.x
+            experimental: true
+          - name: Core-net10.0-win-arm64
+            os: windows-11-arm
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net10.0
+            dotnet: 10.x
+            experimental: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+        cache: true
+        cache-dependency-path: '**/*.csproj'
     - name: Test
-      # 使用单线程串行执行，避免测试间共享资源（端口/文件/静态状态）冲突失败
-      env:
-        XUNIT_MAX_PARALLEL_THREADS: 1
+      # test.ci.runsettings：4 核 runner 把 xUnit 并行线程压到与核数匹配，避免过度订阅导致时序用例失真（macOS 用专用配置降为 3）；
+      # blame-hang：用例挂起时超时转储，便于事后定位（正常单 job 约 2~3 分钟，远小于 15 分钟阈值）；
+      # dump-type 取值 full/mini/none 区分大小写，写 Mini 会让 dotnet test 直接报参数错误、整个 job 秒退
+      run: dotnet test ${{ matrix.project }} -f ${{ matrix.framework }} -c Release -s ${{ matrix.runsettings || 'test.ci.runsettings' }} --blame-hang-timeout 15m --blame-hang-dump-type mini --logger "trx;LogFileName=${{ matrix.name }}.trx" --results-directory TestResults
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.name }}
+        path: TestResults/*.trx
+        if-no-files-found: ignore
+
+  # musl 容器矩阵（观察期）：alpine 内原生运行单测（x64/arm64 各一档，只跑 net10.0）
+  # 容器内 actions/setup-dotnet 不可用，改用 dotnet-install.sh；宿主先 warm NuGet 缓存并挂载进容器复用
+  test-musl:
+    name: test (musl-${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            os: ubuntu-latest
+          - arch: arm64
+            os: ubuntu-24.04-arm
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (warm NuGet cache)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+        cache: true
+        cache-dependency-path: '**/*.csproj'
+    - name: Test (alpine, net10.0)
       run: |
-        dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net8.0 --no-build
-        dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net8.0-windows --no-build
-        dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net9.0 --no-build
-        dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net10.0 --no-build
-        dotnet test XUnitTest.Core\XUnitTest.Core.csproj -f net10.0-windows --no-build
+        docker run --rm -v "$PWD:/src" -v "$HOME/.nuget/packages:/nuget-packages" -e NUGET_PACKAGES=/nuget-packages -w /src alpine:3.20 sh -c '
+          set -e
+          apk add --no-cache bash curl icu-libs icu-data-full krb5-libs libgcc libstdc++ tzdata >/dev/null
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+          bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet >/dev/null
+          ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+          export DOTNET_CLI_TELEMETRY_OPTOUT=1
+          dotnet test XUnitTest.Core/XUnitTest.Core.csproj -f net10.0 -c Release --nologo -s test.ci.runsettings
+        '
+
+  # Linux LoongArch64（LA64，观察期，不参与 push/PR 门禁）：GitHub 无 LA64 runner/runtime pack，
+  # QEMU 仿真整套单测耗时以小时计（实测 ≥2 小时仍未跑完），且仿真层仍有崩溃风险；
+  # 2026-10-17 决议：仅在人工 workflow_dispatch 时运行，失败不阻塞。
+  # 配方：docker + QEMU（loong64 binfmt）+ 龙芯 SDK 容器内执行 —— 裸宿主缺 LA64 动态加载器；
+  # 基础镜像 lcr.loongnix.cn/debian:14-slim（自带 loader、apt 可用），容器内补装 libicu/libssl；
+  # 还原与构建在宿主 x64 SDK 完成（龙芯 SDK 的 MSBuild 在 QEMU 下不稳），容器内跑自宿主 xunit 执行器
+  # （龙芯 vstest 不识别 LoongArch64、宿主 vstest 为 x64 R2R 复合镜像无法加载）；
+  # DOTNET_EnableHWIntrinsic=0 规避仿真层非法指令。job 限时 300 分钟、容器内 timeout 兜底。
+  loongarch64:
+    name: test (linux-la64 qemu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (loong64)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: loong64
+    - name: Download Loongson .NET SDK (linux-loongarch64)
+      run: |
+        curl -fL -o "$HOME/la64-sdk.tar.gz" \
+          https://github.com/loongson/dotnet/releases/download/v10.0.113-loongarch64/dotnet-sdk-10.0.113-linux-loongarch64.tar.gz
+        mkdir -p "$HOME/la64" && tar -xzf "$HOME/la64-sdk.tar.gz" -C "$HOME/la64"
+        chmod +x "$HOME/la64/dotnet" || true
+    - name: Restore NuGet Packages (host x64 SDK)
+      # 龙芯 SDK 在 QEMU 下的 MSBuild 链路不稳（NuGet 还原触发 RemoveDuplicates 任务 NRE，MSB4018），
+      # 还原与构建均放宿主 x64 SDK：默认构建产出 RID 无关的 IL 与可移植 deps.json，
+      # 容器内仅以 LA64 运行时执行测试；包目录保持 $HOME/.nuget/packages 同路径挂载
+      run: dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+    - name: Build Test Assembly (host x64 SDK)
+      run: dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+    - name: Build Self-host xUnit Runner (host x64 SDK)
+      # 龙芯 SDK 自带 vstest 不识别 LoongArch64 架构（10.0.112/10.0.113 均抛 NotSupportedException），
+      # 宿主 SDK 的 vstest 又是 x64 R2R 复合镜像，无法在 LA64 运行时加载（BadImageFormatException），
+      # 故完全绕开 vstest：用 xunit.runner.utility 构建极简自宿主执行器（纯 IL，可在 LA64 运行），
+      # 容器内以 LA64 运行时直接执行测试程序集；失败明细打印为 FAIL <用例>: <消息>
+      run: |
+        mkdir -p /tmp/selfhost
+        cat > /tmp/selfhost/xr.csproj <<'EOF'
+        <Project Sdk="Microsoft.NET.Sdk">
+          <PropertyGroup>
+            <OutputType>Exe</OutputType>
+            <TargetFramework>net10.0</TargetFramework>
+            <Nullable>disable</Nullable>
+            <LangVersion>latest</LangVersion>
+          </PropertyGroup>
+          <ItemGroup>
+            <PackageReference Include="xunit.runner.utility" Version="2.9.3" />
+          </ItemGroup>
+        </Project>
+        EOF
+        cat > /tmp/selfhost/Program.cs <<'EOF'
+        using System;
+        using System.IO;
+        using System.Threading;
+        using Xunit.Runners;
+
+        if (args.Length < 1)
+        {
+            Console.WriteLine("用法: xr <testAssembly.dll>");
+            return 2;
+        }
+
+        var path = Path.GetFullPath(args[0]);
+        var testDir = Path.GetDirectoryName(path)!;
+
+        // 无 AppDomain 模式下，xunit 以 Assembly.Load(名称) 装载测试程序集，
+        // 需要把测试输出目录挂到默认加载上下文的解析链上
+        System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += (ctx, name) =>
+        {
+            var file = Path.Combine(testDir, name.Name + ".dll");
+
+            return File.Exists(file) ? ctx.LoadFromAssemblyPath(file) : null;
+        };
+
+        var pass = 0;
+        var fail = 0;
+        var skip = 0;
+
+        using var runner = AssemblyRunner.WithoutAppDomain(path);
+        runner.OnTestPassed = _ => Interlocked.Increment(ref pass);
+        runner.OnTestSkipped = _ => Interlocked.Increment(ref skip);
+        runner.OnTestFailed = info =>
+        {
+            Interlocked.Increment(ref fail);
+            Console.WriteLine($"FAIL {info.TestDisplayName}: {info.ExceptionMessage}");
+        };
+
+        var done = new ManualResetEventSlim(false);
+        runner.OnExecutionComplete = info =>
+        {
+            Console.WriteLine($"TOTAL pass={pass} fail={fail} skip={skip} time={info.ExecutionTime:n1}s");
+            done.Set();
+        };
+
+        runner.Start();
+        done.Wait();
+
+        return fail > 0 ? 1 : 0;
+        EOF
+        dotnet build /tmp/selfhost/xr.csproj -c Release --nologo
+    - name: Unit Tests (net10.0) in loong64 Container
+      # 仿真下 --info 会真实执行 LA64 版 dotnet，是 QEMU 通路的第一道验证；
+      # DOTNET_EnableHWIntrinsic=0：QEMU 用户态对 LASX/LSX 指令覆盖不全，JIT 动态桩实测触发
+      # Illegal instruction（ExecutionEngineException），关闭硬件内建以强制基线指令；
+      # 自宿主执行器连同其依赖复制进测试输出目录，保证 AppContext.BaseDirectory 与 VSTest 一致
+      env:
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      run: |
+        docker run --rm --platform linux/loong64 \
+          -v "$PWD:/src" -w /src \
+          -v "$HOME/la64:/opt/dotnet" \
+          -v "$HOME/.nuget/packages:/home/runner/.nuget/packages" \
+          -v "/tmp/selfhost/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e NUGET_PACKAGES=/home/runner/.nuget/packages \
+          -e DOTNET_ROOT=/opt/dotnet \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e DOTNET_EnableHWIntrinsic=0 \
+          lcr.loongnix.cn/debian:14-slim \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libicu-dev libssl-dev >/dev/null
+            /opt/dotnet/dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 4/" xunit.runner.json
+            timeout 240m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll
+          '
+
+  # ================= 指令集矩阵（QEMU 仿真，观察期，不阻塞） =================
+  # RISC-V 64：官方不发 runtime pack/SDK，运行时来自社区构建 filipnavara/dotnet-riscv
+  # （跟踪 dotnet VMR 全量构建，10.0.1xx 与仓库 net10 对齐；版本已锁定，替换渠道见 Doc/AOT兼容性分析.md §7.4）。
+  # RISC-V / s390x 与 LA64 同配方：宿主 x64 SDK 还原构建（IL 与 RID 无关），
+  # 容器内用自宿主 xunit 执行器（vstest 在仿真架构不可靠）；裸宿主缺目标架构 loader，必须在容器内运行。
+  # 触发分层：push/PR 只跑 smoke 子集（Buffers/Algorithms/Collections：字节序、位运算等确定性用例）；
+  # 全量仅人工 workflow_dispatch。观测到稳定全绿后再逐项转阻断门禁。
+  riscv64-smoke:
+    name: test (linux-riscv64 qemu smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    if: github.event_name != 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (riscv64)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: riscv64
+    - name: Download RISC-V .NET SDK (community build)
+      run: |
+        curl -fL -o "$HOME/riscv64-sdk.tar.gz" \
+          https://github.com/filipnavara/dotnet-riscv/releases/download/10.0.113/dotnet-sdk-10.0.113-linux-riscv64.tar.gz
+        mkdir -p "$HOME/riscv64" && tar -xzf "$HOME/riscv64-sdk.tar.gz" -C "$HOME/riscv64"
+        chmod +x "$HOME/riscv64/dotnet" || true
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0 smoke) in riscv64 Container
+      env:
+        SMOKE_NAMESPACES: XUnitTest.Buffers,XUnitTest.Algorithms,XUnitTest.Collections
+      run: |
+        docker run --rm --platform linux/riscv64 \
+          -v "$PWD:/src" -w /src \
+          -v "$HOME/riscv64:/opt/dotnet:ro" \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_ROOT=/opt/dotnet \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e NEWLIFE_TEST_QEMU=1 \
+          -e DOTNET_EnableHWIntrinsic=0 \
+          -e DOTNET_EnableWriteXorExecute=0 \
+          -e SMOKE_NAMESPACES="$SMOKE_NAMESPACES" \
+          riscv64/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libicu74 libssl3 libstdc++6 ca-certificates >/dev/null
+            /opt/dotnet/dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
+            timeout 35m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES" > /tmp/xr.log 2>&1 || RC=$?
+            if [ ${RC:-0} -ne 0 ] && ! grep -q '^TOTAL' /tmp/xr.log; then
+              echo "仿真层崩溃，重试一次"
+              RC=0
+              timeout 35m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES" > /tmp/xr.log 2>&1 || RC=$?
+            fi
+            cat /tmp/xr.log
+            exit ${RC:-0}
+          '
+
+  riscv64:
+    name: test (linux-riscv64 qemu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (riscv64)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: riscv64
+    - name: Download RISC-V .NET SDK (community build)
+      run: |
+        curl -fL -o "$HOME/riscv64-sdk.tar.gz" \
+          https://github.com/filipnavara/dotnet-riscv/releases/download/10.0.113/dotnet-sdk-10.0.113-linux-riscv64.tar.gz
+        mkdir -p "$HOME/riscv64" && tar -xzf "$HOME/riscv64-sdk.tar.gz" -C "$HOME/riscv64"
+        chmod +x "$HOME/riscv64/dotnet" || true
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0) in riscv64 Container
+      run: |
+        docker run --rm --platform linux/riscv64 \
+          -v "$PWD:/src" -w /src \
+          -v "$HOME/riscv64:/opt/dotnet:ro" \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_ROOT=/opt/dotnet \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e NEWLIFE_TEST_QEMU=1 \
+          -e DOTNET_EnableHWIntrinsic=0 \
+          -e DOTNET_EnableWriteXorExecute=0 \
+          riscv64/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends libicu74 libssl3 libstdc++6 ca-certificates >/dev/null
+            /opt/dotnet/dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
+            timeout 290m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll > /tmp/xr.log 2>&1 || RC=$?
+            if [ ${RC:-0} -ne 0 ] && ! grep -q '^TOTAL' /tmp/xr.log; then
+              echo "仿真层崩溃，重试一次"
+              RC=0
+              timeout 290m /opt/dotnet/dotnet ./xr.dll ./XUnitTest.Core.dll > /tmp/xr.log 2>&1 || RC=$?
+            fi
+            cat /tmp/xr.log
+            exit ${RC:-0}
+          '
+
+  # s390x：.NET 10 官方支持清单里 RHEL/CentOS Stream 明确包含 s390x，Ubuntu 24.04 官方源提供
+  # dotnet-runtime-10.0（无 NuGet runtime pack，只能框架依赖）。**大端**是唯一能验证字节序假设的平台，
+  # 预计会暴露"用例假设小端"与真实字节序缺陷，按 Doc/测试稳定性规约.md 的分流规则处理。
+  s390x-smoke:
+    name: test (linux-s390x qemu smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    if: github.event_name != 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (s390x)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: s390x
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0 smoke) in s390x Container
+      env:
+        SMOKE_NAMESPACES: XUnitTest.Buffers,XUnitTest.Algorithms,XUnitTest.Collections
+      run: |
+        docker run --rm --platform linux/s390x \
+          -v "$PWD:/src" -w /src \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e NEWLIFE_TEST_QEMU=1 \
+          -e SMOKE_NAMESPACES="$SMOKE_NAMESPACES" \
+          s390x/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends dotnet-runtime-10.0 libicu74 libssl3 ca-certificates >/dev/null
+            dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
+            timeout 35m dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES" > /tmp/xr.log 2>&1 || RC=$?
+            if [ ${RC:-0} -ne 0 ] && ! grep -q '^TOTAL' /tmp/xr.log; then
+              echo "仿真层崩溃，重试一次"
+              RC=0
+              timeout 35m dotnet ./xr.dll ./XUnitTest.Core.dll --namespace "$SMOKE_NAMESPACES" > /tmp/xr.log 2>&1 || RC=$?
+            fi
+            cat /tmp/xr.log
+            exit ${RC:-0}
+          '
+
+  s390x:
+    name: test (linux-s390x qemu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET (host, for restore)
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.x
+    - name: Set up QEMU (s390x)
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: s390x
+    - name: Restore & Build (host x64 SDK)
+      run: |
+        dotnet restore XUnitTest.Core/XUnitTest.Core.csproj
+        dotnet build XUnitTest.Core/XUnitTest.Core.csproj -c Release -f net10.0 --no-restore
+        dotnet build Tools/SelfHostRunner/SelfHostRunner.csproj -c Release
+    - name: Unit Tests (net10.0) in s390x Container
+      run: |
+        docker run --rm --platform linux/s390x \
+          -v "$PWD:/src" -w /src \
+          -v "$PWD/Tools/SelfHostRunner/bin/Release/net10.0:/opt/selfhost:ro" \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e NEWLIFE_TEST_QEMU=1 \
+          s390x/ubuntu:24.04 \
+          sh -c '
+            set -e
+            apt-get update -qq
+            apt-get install -y -qq --no-install-recommends dotnet-runtime-10.0 libicu74 libssl3 ca-certificates >/dev/null
+            dotnet --info
+            cd /src/Bin/UnitTest/net10.0
+            cp /opt/selfhost/* .
+            sed -i "s/\"maxParallelThreads\": 10/\"maxParallelThreads\": 1/" xunit.runner.json
+            timeout 290m dotnet ./xr.dll ./XUnitTest.Core.dll > /tmp/xr.log 2>&1 || RC=$?
+            if [ ${RC:-0} -ne 0 ] && ! grep -q '^TOTAL' /tmp/xr.log; then
+              echo "仿真层崩溃，重试一次"
+              RC=0
+              timeout 290m dotnet ./xr.dll ./XUnitTest.Core.dll > /tmp/xr.log 2>&1 || RC=$?
+            fi
+            cat /tmp/xr.log
+            exit ${RC:-0}
+          '
+
+  # 源生成器随主包分发校验
+  pack:
+    name: pack check
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET
+      uses: actions/setup-dotnet@v4
+      with:
+        # 主包含 net8.0-windows/net9.0-windows，pack 需对应 SDK 的 WindowsDesktop 目标包
+        dotnet-version: |
+          8.x
+          9.x
+          10.x
+    - name: Pack 校验（源生成器随主包分发）
+      # 校验主包 NewLife.Core 内含 analyzers/dotnet/cs 的分析器程序集，且 lib 正常
+      run: |
+        dotnet pack NewLife.Core\NewLife.Core.csproj -c Release -o out-sg
+        $zip = Get-ChildItem out-sg\NewLife.Core.*.nupkg | Select-Object -First 1
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
+        $names = $archive.Entries | ForEach-Object { $_.FullName }
+        $archive.Dispose()
+        if (-not ($names -contains 'analyzers/dotnet/cs/NewLife.Core.SourceGenerator.dll')) { throw '主包缺少 analyzers/dotnet/cs/NewLife.Core.SourceGenerator.dll' }
+        if (-not ($names -match '^lib/net8.0/NewLife.Core.dll')) { throw '主包缺少 lib/net8.0/NewLife.Core.dll' }
+        Write-Host ($names -join "`n")

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -68,6 +69,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     /// <summary>读取数据</summary>
     /// <param name="dr">数据读取器</param>
     /// <param name="fields">要读取的字段序列（将目标列 i 映射到数据读取器列 fields[i]）</param>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "探测读取器实现的可选快速路径（TakeValues），读取器类型为运行时来源；未命中即回退逐列读取")]
     public void ReadData(IDataReader dr, Int32[]? fields = null)
     {
         // 字段
@@ -158,6 +160,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     /// <param name="dr">数据读取器</param>
     /// <param name="fields">要读取的字段序列（将目标列 i 映射到数据读取器列 fields[i]）</param>
     /// <param name="cancellationToken">取消通知</param>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "探测读取器实现的可选快速路径（TakeValues），读取器类型为运行时来源；未命中即回退逐列读取")]
     public async Task ReadDataAsync(DbDataReader dr, Int32[]? fields = null, CancellationToken cancellationToken = default)
     {
         // 字段
@@ -270,6 +273,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     /// <summary>转换为DataTable</summary>
     /// <param name="dataTable">数据表</param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2062", Justification = "DataColumn 类型来自目标数据表结构，运行时可知；本方法不做模型成员反射")]
     public DataTable Write(DataTable dataTable)
     {
         if (dataTable == null) throw new ArgumentNullException(nameof(dataTable));
@@ -326,6 +330,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
 
     /// <summary>读取头部。获取列名、类型和行数等信息</summary>
     /// <param name="binary">二进制序列化器</param>
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "类型名来自数据头描述，属运行时加载；AOT 下目标类型若被静态引用或声明上下文则可用")]
     public Int64 ReadHeader(Binary binary)
     {
         var pStart = binary.Total;
@@ -338,7 +343,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         _ = binary.Read<Byte>();
 
         // 版本兼容
-        if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}] Unable to support newer versions [{ver}]");
+        if (ver > _Ver) throw new InvalidDataException(L.T("DbTable[ver={0}] Unable to support newer versions [{1}]", _Ver, ver));
 
         // v3开始支持FullTime
         if (ver < 3) binary.FullTime = false;
@@ -354,14 +359,16 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
             // 复杂类型写入类型字符串
             var tc = (TypeCode)binary.Read<Byte>();
             if (tc != TypeCode.Object)
-                ts[i] = Type.GetType("System." + tc) ?? typeof(Object);
+                ts[i] = TypeCodeHelper.GetType(tc) ?? typeof(Object);
             else if (ver >= 2)
                 ts[i] = Type.GetType(binary.Read<String>() + "") ?? typeof(Object);
         }
         Columns = cs;
         Types = ts;
 
-        Total = binary.ReadBytes(4).ToInt();
+        // 行数按小端写入（历史格式），显式按小端读取，避免大端主机把 3 读成 0x03000000
+        var totalBytes = binary.ReadBytes(4);
+        Total = totalBytes[0] | totalBytes[1] << 8 | totalBytes[2] << 16 | totalBytes[3] << 24;
 
         return binary.Total - pStart;
     }
@@ -865,6 +872,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
 
     /// <summary>从Span读取器读取</summary>
     /// <param name="reader">Span读取器</param>
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "类型名来自数据流格式描述，属运行时加载；AOT 下目标类型若被静态引用或声明上下文则可用")]
     public void Read(ref SpanReader reader)
     {
         // 头部，幻数、版本和标记
@@ -876,7 +884,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         _ = reader.ReadByte();
 
         // 版本兼容
-        if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}] Unable to support newer versions [{ver}]");
+        if (ver > _Ver) throw new InvalidDataException(L.T("DbTable[ver={0}] Unable to support newer versions [{1}]", _Ver, ver));
 
         // 读取列数
         var count = reader.ReadEncodedInt();
@@ -891,7 +899,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
             // 复杂类型写入类型字符串
             var tc = (TypeCode)reader.ReadByte();
             if (tc != TypeCode.Object)
-                ts[i] = Type.GetType("System." + tc) ?? typeof(Object);
+                ts[i] = TypeCodeHelper.GetType(tc) ?? typeof(Object);
             else if (ver >= 2)
                 ts[i] = Type.GetType(reader.ReadString() ?? "") ?? typeof(Object);
         }
@@ -942,9 +950,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
 
     #region 读写模型
     /// <summary>写入模型列表</summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">模型类型。AOT 下其公开属性与字段将按需保留</typeparam>
     /// <param name="models"></param>
-    public void WriteModels<T>(IEnumerable<T> models)
+    public void WriteModels<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(IEnumerable<T> models)
     {
         // 可用属性
         var pis = typeof(T).GetProperties(true);
@@ -961,10 +969,10 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     }
 
     /// <summary>模型列表转为对象数组行。支持WriteRows/SaveRows实现一边处理一边写入</summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">模型类型。AOT 下其公开属性与字段将按需保留</typeparam>
     /// <param name="models"></param>
     /// <returns></returns>
-    public IEnumerable<Object?[]> Cast<T>(IEnumerable<T> models)
+    public IEnumerable<Object?[]> Cast<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(IEnumerable<T> models)
     {
         // 可用属性
         var pis = typeof(T).GetProperties(true);
@@ -989,9 +997,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     }
 
     /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">模型类型。AOT 下其公开属性与字段将按需保留</typeparam>
     /// <returns></returns>
-    public IEnumerable<T> ReadModels<T>()
+    public IEnumerable<T> ReadModels<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>()
     {
         foreach (var model in ReadModels(typeof(T)))
         {
@@ -1000,9 +1008,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     }
 
     /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
-    /// <param name="type"></param>
+    /// <param name="type">模型类型。AOT 下其公开属性与字段将按需保留</param>
     /// <returns></returns>
-    public IEnumerable<Object> ReadModels(Type type)
+    public IEnumerable<Object> ReadModels([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type)
     {
         var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
         var rows = Rows;
@@ -1093,10 +1101,13 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         if (_Defs == null)
         {
             var dic = new Dictionary<TypeCode, Object?>();
-            foreach (var item in Enum.GetValues(typeof(TypeCode)))
+#if NET5_0_OR_GREATER
+            var items = Enum.GetValues<TypeCode>();
+#else
+            var items = (TypeCode[])Enum.GetValues(typeof(TypeCode));
+#endif
+            foreach (var tc2 in items)
             {
-                if (item is not TypeCode tc2) continue;
-
                 Object? val = null;
                 val = tc2 switch
                 {

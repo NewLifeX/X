@@ -1,16 +1,17 @@
-﻿using System.Net.Sockets;
+using System.Net.Sockets;
+using System.Reflection;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Net;
 
 /// <summary>NetClient 应用层网络客户端单元测试</summary>
-[Collection("Net")]
+[Collection("Net.A")]
 public class NetClientTests
 {
     #region 构造与属性
@@ -43,6 +44,24 @@ public class NetClientTests
         var uri = new NetUri("udp://127.0.0.1:9090");
         using var client = new NetClient(uri);
         Assert.Same(uri, client.Remote);
+    }
+
+    [Fact(DisplayName = "UDP服务端_客户端模式销毁_释放套接字与端口")]
+    public void UdpServer_ClientMode_Dispose_ReleasesSocket()
+    {
+        // Remote 非通配：关闭流程会先向服务端发空包通知
+        var udp = new UdpServer { Remote = new NetUri("udp://127.0.0.1:9") };
+        udp.Open();
+        Assert.True(udp.Active);
+
+        // 旧实现：Dispose 流程内 Disposed 已置位，OnCloseAsync 里的 Send(Pool.Empty) 抛
+        // ObjectDisposedException 并被吞掉，收尾（Client=null / 关会话 / Shutdown）全部跳过，
+        // 套接字与本地端口一直泄漏到 GC
+        udp.Dispose();
+
+        Assert.True(udp.Disposed);
+        Assert.False(udp.Active);
+        Assert.Null(udp.Client);
     }
 
     [Fact]
@@ -81,7 +100,7 @@ public class NetClientTests
         Assert.True(client.AutoReconnect);
         Assert.Equal(5_000, client.ReconnectDelay);
         Assert.Equal(0, client.MaxReconnect);
-        Assert.Null(client.Pipeline);
+        Assert.Null(client.Protocol);
         Assert.Null(client.Tracer);
     }
 
@@ -146,31 +165,18 @@ public class NetClientTests
     #region 编解码器
 
     [Fact]
-    public void Add_Instance_CreatesPipeline()
+    public void Protocol_DefaultNull()
     {
         using var client = new NetClient();
-        Assert.Null(client.Pipeline);
-        var result = client.Add(new StandardCodec());
-        Assert.NotNull(client.Pipeline);
-        Assert.Same(client, result);
+        Assert.Null(client.Protocol);
     }
 
     [Fact]
-    public void Add_Generic_CreatesPipeline()
+    public void Protocol_SetSrmp()
     {
-        using var client = new NetClient();
-        var result = client.Add<StandardCodec>();
-        Assert.NotNull(client.Pipeline);
-        Assert.Same(client, result);
-    }
-
-    [Fact]
-    public void Add_Multiple_HandlersOrdered()
-    {
-        using var client = new NetClient();
-        client.Add<StandardCodec>().Add<StandardCodec>();
-        Assert.NotNull(client.Pipeline);
-        Assert.Equal(2, ((Pipeline)client.Pipeline!).Handlers.Count);
+        using var client = new NetClient { Protocol = new SrmpCodec() };
+        Assert.NotNull(client.Protocol);
+        Assert.IsType<SrmpCodec>(client.Protocol);
     }
 
     #endregion
@@ -446,16 +452,16 @@ public class NetClientTests
     }
 
     [Fact]
-    public void Pipeline_PassedToInnerClient()
+    public void Protocol_PassedToInnerClient()
     {
         using var server = CreateEchoServer();
         using var client = CreateTcpClient(server.Port);
-        client.Add<StandardCodec>();
+        client.Protocol = new SrmpCodec();
 
         client.Open();
 
-        Assert.NotNull(client.Pipeline);
-        Assert.Same(client.Pipeline, client.Client!.Pipeline);
+        Assert.NotNull(client.Protocol);
+        Assert.Same(client.Protocol, ((SessionBase)client.Client!).Protocol);
     }
 
     [Fact]
@@ -619,10 +625,170 @@ public class NetClientTests
         };
         server2.Start();
 
-        var ok = reconnectWait.Wait(5_000);
+        // 全量并行负载下重连定时器可能被推迟：事件之外再轮询 Active 作为兼容判据，等待窗口放宽
+        var ok = reconnectWait.Wait(3_000);
+        if (!ok)
+        {
+            var deadline = Runtime.TickCount64 + 15_000;
+            while (Runtime.TickCount64 < deadline)
+            {
+                if (client.Active) { ok = true; break; }
+                Thread.Sleep(50);
+            }
+        }
         server2.Stop("done");
 
-        Assert.True(ok, "未能在超时时间内成功重连");
+        Assert.True(ok, $"未能在超时时间内成功重连，openCount={openCount}");
+    }
+
+    [Fact(DisplayName = "重连_替换内部客户端_旧实例被摘除并释放")]
+    public async Task Reconnect_ReplacesClient_OldDisposed()
+    {
+        using var server = CreateEchoServer();
+        using var client = CreateTcpClient(server.Port);
+        client.AutoReconnect = true;
+        client.ReconnectDelay = 200;
+
+        Assert.True(client.Open());
+        var old = client.Client;
+        Assert.NotNull(old);
+
+        // 模拟网络断开：直接关闭内部客户端，触发自动重连
+        old!.Close("simulate");
+
+        // 等待重连成功替换内部客户端
+        var replaced = false;
+        for (var i = 0; i < 150 && !replaced; i++)
+        {
+            await Task.Delay(50);
+            replaced = client.Client != null && !ReferenceEquals(client.Client, old) && client.Client.Active;
+        }
+
+        Assert.True(replaced, "未在超时时间内完成重连替换");
+        // 旧实例应被摘除事件订阅并释放，避免继续转发事件或泄漏资源
+        Assert.True(old is DisposeBase db && db.Disposed, "旧客户端实例应被释放");
+    }
+
+    [Fact(DisplayName = "重连_生产路径_达上限后停止不再重连")]
+    public async Task MaxReconnect_ProductionPath_StopsAfterLimit()
+    {
+        var logs = new List<String>();
+        using var server = CreateEchoServer();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}")
+        {
+            // 建连预算放宽：满载并行下 300ms 会让初始 Open 偶发失败；断线检测由显式 Close 触发，不依赖该值
+            Timeout = 3_000,
+            AutoReconnect = true,
+            ReconnectDelay = 100,
+            MaxReconnect = 2,
+            Log = new ActionLog(msg => { lock (logs) logs.Add(msg); }),
+        };
+
+        Assert.True(client.Open());
+
+        // 服务端停止且不重启：后续重连尝试全部失败
+        server.Stop("stop");
+        server.Dispose();
+
+        // 显式关闭底层连接以确定触发断线检测；仅等服务端关闭时，无数据流的连接可能长时间不感知
+        Assert.NotNull(client.Client);
+        client.Client!.Close("simulate");
+
+        // 等待两次重连尝试发生（负载环境下放宽窗口，失败时输出完整日志便于诊断）
+        for (var i = 0; i < 600 && CountReconnect(logs) < 2; i++) await Task.Delay(50);
+        String detail;
+        lock (logs) detail = String.Join(" | ", logs);
+        Assert.True(CountReconnect(logs) >= 2, $"等待两次重连超时，实际日志：{detail}");
+
+        // 等待“达上限停止”日志
+        var limited = false;
+        for (var i = 0; i < 100 && !limited; i++)
+        {
+            lock (logs) limited = logs.Any(m => m.Contains("Maximum reconnect attempts"));
+            if (!limited) await Task.Delay(50);
+        }
+        lock (logs) detail = String.Join(" | ", logs);
+        Assert.True(limited, $"未打印达上限停止日志，实际日志：{detail}");
+
+        // 再等待一段时间，确认不再发起新的重连
+        await Task.Delay(500);
+        Assert.Equal(2, CountReconnect(logs));
+    }
+
+    private static Int32 CountReconnect(List<String> logs)
+    {
+        lock (logs) return logs.Count(m => m.Contains("Reconnecting"));
+    }
+
+    [Fact(DisplayName = "重连_与用户关闭竞争_不得接管迟到的连接")]
+    public async Task Close_RacingWithReconnect_DoesNotAdoptLateClient()
+    {
+        using var server = CreateEchoServer();
+
+        // 复查与接管处在同一临界区，窗口极窄。这里用多轮错开的时点反复与重连竞争：
+        // 关闭一旦完成，_client 必须保持为 null。任何迟到被接管的连接都会一直活到 Dispose，
+        // 期间 Active 谎报为真，Socket 与对端连接双份残留
+        for (var round = 0; round < 12; round++)
+        {
+            using var client = CreateTcpClient(server.Port);
+            client.AutoReconnect = true;
+            client.ReconnectDelay = 1;
+
+            Assert.True(client.Open());
+            Assert.NotNull(client.Client);
+
+            // 模拟网络断开：直接关闭内部客户端，触发自动重连
+            client.Client!.Close("simulate");
+
+            // 在重连流程的不同阶段关闭，与其竞争
+            await Task.Delay(round % 4);
+            client.Close("user close");
+
+            // 关闭后的观察窗口：不允许再出现被接管的内部客户端
+            for (var i = 0; i < 10; i++)
+            {
+                await Task.Delay(20);
+                Assert.Null(client.Client);
+                Assert.False(client.Active);
+            }
+        }
+    }
+
+    [Fact(DisplayName = "关闭_置位与摘除必须原子_不得抢在重连锁外执行")]
+    public void Close_SetsUserClosedInsideReconnectLock()
+    {
+        using var client = new NetClient("tcp://127.0.0.1:1");
+
+        // 白盒：Close 必须在重连锁内一并完成“置位 _userClosed + 摘除 _client”。
+        // 若先置位再取锁，置位与摘除之间就出现空隙，重连流程可穿过该空隙接管迟到的活连接
+        var lockField = typeof(NetClient).GetField("_reconnectLock", BindingFlags.Instance | BindingFlags.NonPublic);
+        var closedField = typeof(NetClient).GetField("_userClosed", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(lockField);
+        Assert.NotNull(closedField);
+
+        var gate = lockField!.GetValue(client)!;
+        var done = new ManualResetEventSlim();
+
+        Monitor.Enter(gate);
+        try
+        {
+            _ = Task.Run(() =>
+            {
+                client.Close("user close");
+                done.Set();
+            });
+
+            // 占用重连锁期间，Close 不得抢先置位 _userClosed
+            Assert.False(done.Wait(200), "重连锁被占用时 Close 不应完成");
+            Assert.False((Boolean)closedField!.GetValue(client)!, "_userClosed 必须与摘除 _client 同处临界区");
+        }
+        finally
+        {
+            Monitor.Exit(gate);
+        }
+
+        Assert.True(done.Wait(3_000), "释放重连锁后 Close 应能完成");
     }
 
     #endregion
@@ -714,3 +880,4 @@ public class NetClientTests
 
     #endregion
 }
+

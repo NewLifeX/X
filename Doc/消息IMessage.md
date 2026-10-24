@@ -1,8 +1,12 @@
 # IMessage 消息帮助手册
 
+> ⚠️ **旧栈文档（v12 已退役）**：`IFrameMessage` 与消息帧方法（`TryParseHeader`/`ReadFrame`/`Build`/`BuildHeader` 等）已从 `IMessage`/`Message` 整删。现行契约（`IMessage` 消息契约 + `IMessageCodec` 协议契约）见《消息协议栈》，本文章节仅作历史参考。
+
 本文档基于源码 `NewLife.Core/Messaging/IMessage.cs`，说明 `IMessage` 接口及其基类 `Message`、`DefaultMessage` 的设计、用法与注意事项。
 
 > 关键词：请求-响应模式、Dispose 释放链、IOwnerPacket 池化内存、RPC 消息生命周期。
+
+> **契约指引（v12 中间态，已被后续收尾取代）**：`IMessage : IFrameMessage` 曾为单一消息契约——帧读写（`TryParseHeader` 定界 / `ReadFrame` 整帧读体 / `BindBody` 流式体绑定 / `SetBody` 发送体绑定 / `Build` 整帧构建 / `BuildHeader` 头 + 流式体 / `Body` 读取器）在帧契约 `IFrameMessage`，请求-响应语义（`Reply/Error/OneWay` 三个独立布尔 + `Payload` + `CreateReply`）由消息契约在其上追加；`TryParse` 为帧长解析便捷入口（供 `GetFrameLength` 委托绑定）。v12 破坏性变更：旧名 `Read/ToPacket/ToHeaderPacket` 已删除，下游改用 `ReadFrame/Build/BuildHeader` 并重新编译；`WebSocketMessage` 仅实现帧契约。构建采用转移语义：`Build` 成功后消息不再持有体（`SetBody(null)` 表示所有权转移、不归还）；流式体不可整帧构建，请改用 `BuildHeader` + 流式发送。该中间态后续亦删除 `IFrameMessage`，现行契约见《消息协议栈》（`IMessage` 消息契约 + `IMessageCodec` 协议契约）。
 
 ---
 
@@ -17,16 +21,14 @@
 ## 2. 接口定义
 
 ```csharp
-public interface IMessage : IDisposable
+public interface IMessage : IFrameMessage    // 帧契约：TryParseHeader/ReadFrame/Body/SetBody/Build/BuildHeader 等
 {
     Boolean Reply { get; set; }      // 是否响应消息
     Boolean Error { get; set; }      // 是否有错
     Boolean OneWay { get; set; }     // 单向请求
-    IPacket? Payload { get; set; }   // 负载数据
+    IPacket? Payload { get; set; }   // 负载数据（消息体句柄视图，流式模式为 null）
 
     IMessage CreateReply();          // 根据请求创建配对响应
-    Boolean Read(IPacket pk);        // 从数据包解析消息
-    IPacket? ToPacket();             // 序列化为数据包
 }
 ```
 
@@ -42,8 +44,8 @@ public interface IMessage : IDisposable
 ### 2.2 核心方法
 
 - **`CreateReply()`**：根据请求消息创建配对的响应消息，继承序列号等关键属性。仅请求消息可调用。
-- **`Read(IPacket pk)`**：从原始数据包解析消息头和负载。
-- **`ToPacket()`**：将消息序列化为数据包，用于网络发送。
+- **`ReadFrame(IPacket pk)`**（帧契约）：从完整帧解析消息头和负载。帧头可跨节点（首段不足时自动拼入栈缓冲拼读，负载可继续为链式节点）。
+- **`Build()`**（帧契约）：将消息构建为完整数据包，用于网络发送；构建采用转移语义。
 
 ---
 
@@ -57,14 +59,15 @@ public class Message : IMessage
     public Boolean Reply { get; set; }
     public Boolean Error { get; set; }
     public Boolean OneWay { get; set; }
-    public IPacket? Payload { get; set; }
+    public IPacket? Payload { get; set; }        // 消息体句柄视图
+    public LimitedReader? Body => _body;         // 消息体读取视图（帧契约）
 
     public void Dispose() { ... }
     protected virtual void Dispose(Boolean disposing) { ... }
 
     public virtual IMessage CreateReply() { ... }
-    public virtual Boolean Read(IPacket pk) { ... }
-    public virtual IPacket? ToPacket() => Payload;
+    public virtual Boolean ReadFrame(IPacket pk) { ... }
+    public virtual IPacket? Build() { ... }      // 转移语义：构建后消息不再持有体
     public virtual void Reset() { ... }
 }
 ```
@@ -133,7 +136,7 @@ protected virtual void Dispose(Boolean disposing)
   → new OwnerPacket(bufferSize)        // 从 ArrayPool 租用
   → socket.ReceiveAsync(...)           // 填充数据
   → DefaultMessage.Read(ownerPacket)   // 解析协议
-    → Slice(4, len, transferOwner:true) // 切片转移所有权给 Payload
+    → Slice(4, len)                     // 切出共享切片给 Payload（引用计数）
   → 返回 IMessage 给上层
   → 上层使用完毕
   → msg.Dispose()                      // 自动归还池化内存
@@ -157,7 +160,7 @@ IMessage.Dispose()
    - `OwnerPacket`（引用类型，`IDisposable`）：调用 `Dispose()`，归还 `ArrayPool` 缓冲区。
    - `null`：安全跳过。
 
-2. **所有权转移**：`OwnerPacket.Slice(offset, count, transferOwner: true)` 在 `DefaultMessage.Read` 中将缓冲区释放责任从原始包转移给切片出的 `Payload`。原始包失去 `_hasOwner`，不会重复归还。
+2. **引用计数共享**：`DefaultMessage.Read` 用 `Slice(offset, count)` 把负载切为共享切片交给 `Payload`（每段递增计数）。所有句柄各自释放、最后一个归还；原始包不被修改，可继续使用并同样需要释放。
 
 3. **链式递归释放**：`OwnerPacket.Dispose` 会自动释放 `Next` 链节点。即使协议解析产生了多段链式负载（如跨包拼接），一次 `Dispose` 即可全部归还。
 
@@ -166,7 +169,7 @@ IMessage.Dispose()
    - `IOwnerPacket : IPacket, IDisposable`——仅池化实现需要释放。
    - `IMessage : IDisposable`——上层统一释放入口。
 
-5. **与对象池复用配合**：`Message.Reset()` 可将消息状态清零以便复用（但不释放 `Payload`），适用于消息对象池场景。释放与复用职责分离。
+5. **与对象池复用配合**：`Message.Reset()` 可将消息状态清零并归还 `Payload` 引用（交付前须先摘除已转移的负载，如 `Payload=null`），适用于消息对象池场景。
 
 ### 5.4 使用示例
 
@@ -178,7 +181,7 @@ raw.Resize(count);
 
 using var msg = new DefaultMessage();
 msg.Read(raw);
-// raw 的所有权已转移给 msg.Payload
+// Payload 持有共享切片（引用计数），raw 可继续使用、同样需要释放
 
 var response = ProcessRequest(msg);
 // using 块退出后自动归还池化内存
@@ -228,7 +231,7 @@ public IMessage Receive()
 | 接收消息 | 使用 `using var msg = ...` 确保自动释放 |
 | 返回消息给上层 | 文档说明调用方需要 `Dispose` |
 | 消息对象池 | 使用 `Reset()` 重置状态，`Dispose()` 释放 Payload |
-| 多次切片 | 仅最终返回的切片使用 `transferOwner: true` |
+| 多次切片 | 各切片共享引用计数，用毕各自 `Dispose`（最后一个归还池） |
 | 长期持有负载 | 先 `Clone()` 复制数据，避免持有池化内存 |
 
 ---

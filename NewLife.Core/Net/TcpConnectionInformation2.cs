@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
@@ -80,10 +81,6 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         public Byte remotePort3;
         public Byte remotePort4;
         public Int32 owningPid;
-
-        public UInt16 LocalPort => BitConverter.ToUInt16([localPort2, localPort1], 0);
-
-        public UInt16 RemotePort => BitConverter.ToUInt16([remotePort2, remotePort1], 0);
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -103,11 +100,6 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
 
     /// <summary>获取所有Tcp连接</summary>
     /// <returns></returns>
-    [Obsolete("=>GetWindowsTcpConnections")]
-    public static TcpConnectionInformation2[] GetAllTcpConnections() => GetWindowsTcpConnections();
-
-    /// <summary>获取所有Tcp连接</summary>
-    /// <returns></returns>
     public static TcpConnectionInformation2[] GetWindowsTcpConnections()
     {
         //MIB_TCPROW_OWNER_PID[] tTable;
@@ -122,48 +114,65 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
             TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL,
             0);
         if (ret is not 0 and not 122) // 122 insufficient buffer size
-            throw new Exception("bad ret on check " + ret);
-        var buffTable = Marshal.AllocHGlobal(buffSize);
+            throw new Exception(L.T("GetExtendedTcpTable failed while checking the required buffer size (error {0}).", ret));
 
-        var list = new List<TcpConnectionInformation2>();
-        try
+        // 取长度与读表之间连接表可能增长（并发建连时尤其明显），此时返回 122 并回填所需长度，按新长度重试
+        for (var attempt = 0; ; attempt++)
         {
-            ret = GetExtendedTcpTable(buffTable,
-                ref buffSize,
-                true,
-                AF_INET,
-                TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL,
-                0);
-            if (ret != 0)
-                throw new Exception("bad ret " + ret);
-
-            // get the number of entries in the table
-            var tab =
-                (MIB_TCPTABLE_OWNER_PID)Marshal.PtrToStructure(
-                    buffTable,
-                    typeof(MIB_TCPTABLE_OWNER_PID))!;
-            var rowPtr = (IntPtr)((Int64)buffTable +
-                Marshal.SizeOf(tab.dwNumEntries));
-            //tTable = new MIB_TCPROW_OWNER_PID[tab.dwNumEntries];
-
-            for (var i = 0; i < tab.dwNumEntries; i++)
+            var buffTable = Marshal.AllocHGlobal(buffSize);
+            try
             {
-                var tcpRow = (MIB_TCPROW_OWNER_PID)Marshal
-                    .PtrToStructure(rowPtr, typeof(MIB_TCPROW_OWNER_PID))!;
-                //tTable[i] = tcpRow;
-                list.Add(new TcpConnectionInformation2(tcpRow));
+                ret = GetExtendedTcpTable(buffTable,
+                    ref buffSize,
+                    true,
+                    AF_INET,
+                    TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL,
+                    0);
+                if (ret == 122 && attempt < 3) continue;    // 长度已回填，重试
 
-                // next entry
-                rowPtr = (IntPtr)((Int64)rowPtr + Marshal.SizeOf(tcpRow));
+                if (ret != 0)
+                    throw new Exception(L.T("GetExtendedTcpTable failed (error {0}).", ret));
+
+                var list = new List<TcpConnectionInformation2>();
+
+                // get the number of entries in the table
+#if NET45
+                var tab =
+                    (MIB_TCPTABLE_OWNER_PID)Marshal.PtrToStructure(
+                        buffTable,
+                        typeof(MIB_TCPTABLE_OWNER_PID))!;
+#else
+                var tab = Marshal.PtrToStructure<MIB_TCPTABLE_OWNER_PID>(buffTable);
+#endif
+                var rowPtr = (IntPtr)((Int64)buffTable +
+                    Marshal.SizeOf(tab.dwNumEntries));
+                //tTable = new MIB_TCPROW_OWNER_PID[tab.dwNumEntries];
+
+                for (var i = 0; i < tab.dwNumEntries; i++)
+                {
+                    var tcpRow =
+#if NET45
+                        (MIB_TCPROW_OWNER_PID)Marshal
+                        .PtrToStructure(rowPtr, typeof(MIB_TCPROW_OWNER_PID))!;
+#else
+                        Marshal.PtrToStructure<MIB_TCPROW_OWNER_PID>(rowPtr);
+#endif
+                    //tTable[i] = tcpRow;
+                    list.Add(new TcpConnectionInformation2(tcpRow));
+
+                    // next entry
+                    rowPtr = (IntPtr)((Int64)rowPtr + Marshal.SizeOf(tcpRow));
+                }
+
+                //return tTable;
+                return list.ToArray();
+            }
+            finally
+            {
+                // Free the Memory
+                Marshal.FreeHGlobal(buffTable);
             }
         }
-        finally
-        {
-            // Free the Memory
-            Marshal.FreeHGlobal(buffTable);
-        }
-        //return tTable;
-        return list.ToArray();
     }
     #endregion
 
@@ -272,7 +281,8 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
             var remote = ParseAddressAndPort(parts[2]);
             //var pid = GetProcessIdFromInode(parts[9]);
             var info = new TcpConnectionInformation2(local, remote, state, 0);
-            info.Node = parts[9];
+            // inode 位于第10列；短行（截断输入）没有该列，留空而不是越界
+            if (parts.Length > 9) info.Node = parts[9];
 
             list.Add(info);
         }
@@ -339,15 +349,25 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
 
     private static IPAddress ParseIPv4HexString(String hexAddress)
     {
-        return !Int64.TryParse(hexAddress, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result)
-            ? throw new NetworkInformationException()
-            : new IPAddress(result);
+        if (!Int64.TryParse(hexAddress, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result))
+            throw new NetworkInformationException();
+
+        // /proc/net/tcp 的 IPv4 为小端十六进制（0100007F = 127.0.0.1）。
+        // IPAddress(Int64) 按主机字节序解释，大端主机会得到 1.0.0.127，这里显式还原字节序
+        var bytes = new Byte[4];
+        for (var i = 0; i < 4; i++)
+        {
+            bytes[i] = (Byte)(result >> (i * 8));
+        }
+
+        return new IPAddress(bytes);
     }
 
     private static IPAddress ParseIPv6HexString(String hexAddress, Boolean isNetworkOrder = false)
     {
         var span = hexAddress.ToHex();
-        if (!isNetworkOrder && BitConverter.IsLittleEndian)
+        // /proc/net/tcp6 每个 32 位字按主机（小端）序存放，与主机字节序无关，非网络序一律按字反转
+        if (!isNetworkOrder)
         {
             for (var j = 0; j < 4; j++)
             {

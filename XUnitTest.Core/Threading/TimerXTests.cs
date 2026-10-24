@@ -19,29 +19,31 @@ public class TimerXTests
     [Fact]
     public void NormalTest()
     {
-        var now = DateTime.Now;
+        var beforeTime = DateTime.Now;
+        var before = Runtime.TickCount64;
         var count = 0;
+        // 首跳取 30 秒：1 秒首跳在满载并行跑测下会先于断言触发，触发后 NextTick 被改写为“实际触发时刻+周期”，
+        // Timers 也会自增，导致“尚未触发”的断言前提失效。改用长首跳把该前提变成确定性事实
         using var timer = new TimerX(s =>
         {
             Interlocked.Increment(ref count);
 
             //Assert.Equal(s, TimerX.Current);
-        }, "NewLife", 1000, 3000, "Test");
+        }, "NewLife", 30_000, 60_000, "Test");
+        var after = Runtime.TickCount64;
+        var afterTime = DateTime.Now;
 
         Assert.True(timer.Id > 0);
         Assert.Equal("Test", timer.Scheduler.Name);
         //Assert.NotNull(timer.Callback);
         Assert.Equal("NewLife", timer.State);
-        Assert.True(timer.NextTick > Runtime.TickCount64);
-        Assert.True(timer.NextTick <= Runtime.TickCount64 + 1000);
-        Assert.True(timer.NextTime > now.AddMilliseconds(100));
-        //Assert.True(timer.NextTime < now.AddMilliseconds(20));
+        // 用构造前后的读数窗口收窄断言：NextTick/NextTime 恰为构造时读数加首跳间隔，窗口容纳读数延迟与时钟粒度
+        Assert.InRange(timer.NextTick, before + 30_000, after + 30_000);
+        Assert.InRange(timer.NextTime, beforeTime.AddSeconds(29.9), afterTime.AddSeconds(30.1));
         Assert.Equal(0, timer.Timers);
-        Assert.Equal(3000, timer.Period);
+        Assert.Equal(60_000, timer.Period);
         Assert.False(timer.Async);
         Assert.False(timer.Absolutely);
-
-        Thread.Sleep(3050);
 
         //Assert.Equal(10, count);
         //Assert.Equal(10, timer.Timers);
@@ -51,13 +53,17 @@ public class TimerXTests
     public void SyncTest()
     {
         XTrace.WriteLine("SyncTest");
+
+        // 以构造前后的系统节拍为窗口校验首次触发时刻：NextTick = 构造时读数 + 100，
+        // 这样既不受 TickCount64 在 Windows 上 15.6ms 量化影响，也不受线程被抢占导致的读数延迟影响
+        var before = Runtime.TickCount64;
         using var timer = new TimerX(DoSyncTest, "SyncStone", 100, 200);
+        var after = Runtime.TickCount64;
 
-        var ms = Runtime.TickCount64;
-        ms = ms + 100 - timer.NextTick;
-        Assert.InRange(ms, 0, 5);
+        Assert.InRange(timer.NextTick, before + 100, after + 100);
 
-        Thread.Sleep(1000);
+        // 留一点时间让定时器至少触发一次
+        Thread.Sleep(300);
     }
 
     private static void DoSyncTest(Object state)
@@ -74,13 +80,16 @@ public class TimerXTests
     public void AsyncTest()
     {
         XTrace.WriteLine("AsyncTest");
+
+        // 同 SyncTest，用构造前后的节拍窗口消除 TickCount64 量化与线程调度带来的测量误差
+        var before = Runtime.TickCount64;
         using var timer = new TimerX(DoAsyncTest, "AsyncStone", 100, 200) { Async = true };
+        var after = Runtime.TickCount64;
 
-        var ms = Runtime.TickCount64;
-        ms = ms + 100 - timer.NextTick;
-        Assert.InRange(ms, 0, 5);
+        Assert.InRange(timer.NextTick, before + 100, after + 100);
 
-        Thread.Sleep(1000);
+        // 留一点时间让定时器至少触发一次
+        Thread.Sleep(300);
     }
 
     private static async Task DoAsyncTest(Object state)
@@ -97,12 +106,16 @@ public class TimerXTests
     public void AbsolutelyTest()
     {
         XTrace.WriteLine("AbsolutelyTest");
+
+        var before = Runtime.TickCount64;
         using var timer = new TimerX(DoAbsolutelyTest, "Stone2", DateTime.Today, 100);
+        var after = Runtime.TickCount64;
 
-        var ms = timer.NextTick - Runtime.TickCount64;
-        Assert.InRange(ms, 0, 99);
+        // 绝对定时器把 00:00 起的 100ms 网格推后到当前时刻之后，首次触发落在 (now, now+100] 区间内
+        Assert.InRange(timer.NextTick, before + 1, after + 100);
 
-        Thread.Sleep(1000);
+        // 留一点时间让定时器至少触发一次
+        Thread.Sleep(300);
     }
 
     private static async Task DoAbsolutelyTest(Object state)
@@ -116,20 +129,41 @@ public class TimerXTests
     }
 
     [Fact]
+    public void AbsolutelyBoundaryTest()
+    {
+        XTrace.WriteLine("AbsolutelyBoundaryTest");
+
+        // 构造时刻距绝对网格点不足 1ms 时，间隔截断为 0 会提前触发。
+        // 显式把网格点摆在当前时刻之后 0.3ms，覆盖该窗口，验证首个触发严格晚于当前时刻。
+        // 奇偶轮换同步与异步构造，两条路径都覆盖
+        for (var i = 0; i < 100; i++)
+        {
+            var start = DateTime.Now.AddMilliseconds(-99.7);
+            var before = Runtime.TickCount64;
+            using var timer = i % 2 == 0
+                ? new TimerX(_ => { }, "Stone3", start, 100)
+                : new TimerX(DoAbsolutelyTest, "Stone2", start, 100);
+            var after = Runtime.TickCount64;
+
+            Assert.InRange(timer.NextTick, before + 1, after + 100);
+        }
+    }
+
+    [Fact]
     public void CronTest()
     {
         XTrace.WriteLine("CronTest");
+
+        var before = Runtime.TickCount64;
         using var timer = new TimerX(DoCronTest, "CronTest", "1/4 * * * *;3/20");
+        var after = Runtime.TickCount64;
 
         Assert.NotNull(timer.Crons);
         Assert.Equal(2, timer.Crons.Length);
 
-        var ms = timer.NextTick - Runtime.TickCount64;
-        Assert.InRange(ms, 0, 3999 + 1000);
-
-#if DEBUG
-        Thread.Sleep(5500);
-#endif
+        // 首次触发不晚于 4 秒（1/4 表示每分钟内从第 1 秒起每 4 秒一次），
+        // 下界用构造时读数、上界留 1 秒余量以容纳秒级对齐
+        Assert.InRange(timer.NextTick, before + 1, after + 3999 + 1000);
     }
 
     private static async Task DoCronTest(Object state)

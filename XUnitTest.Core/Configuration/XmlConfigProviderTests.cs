@@ -49,7 +49,7 @@ public class XmlConfigProviderTests
 
         Assert.Equal("全局调试。XTrace.Debug", prv.GetSection("Debug").Comment);
         Assert.Equal("系统配置", prv.GetSection("Sys").Comment);
-        Assert.Equal("用于标识系统的英文名，不能有空格", prv.GetSection("Sys:Name").Comment);
+        Assert.Equal("English name used to identify the system; must not contain spaces.", prv.GetSection("Sys:Name").Comment);
 
         var sys = set.Sys;
         Assert.Equal(sys.Name, prv["Sys:Name"]);
@@ -71,7 +71,7 @@ public class XmlConfigProviderTests
 
         Assert.Equal("全局调试。XTrace.Debug", prv2.GetSection("Debug").Comment);
         Assert.Equal("系统配置", prv2.GetSection("Sys").Comment);
-        Assert.Equal("用于标识系统的英文名，不能有空格", prv2.GetSection("Sys:Name").Comment);
+        Assert.Equal("English name used to identify the system; must not contain spaces.", prv2.GetSection("Sys:Name").Comment);
 
         var sys2 = set2.Sys;
         Assert.NotNull(sys2);

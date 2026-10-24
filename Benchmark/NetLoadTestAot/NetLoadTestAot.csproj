@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    裸 Socket 压测工具的 NativeAOT 发布工程：复用 NetLoadTest 的同一份 Program.cs，
+    仅用于「AOT 与 JIT 跑同一负载」的性能对比，不影响常规构建。
+
+    用法：dotnet publish Benchmark/NetLoadTestAot -c Release -r win-x64 -o out-aot
+    对比：dotnet build Benchmark/NetLoadTest -c Release  → bin/Release/net10.0/NetLoadTest.exe（JIT）
+
+    注意：PublishAot 必须写在 csproj（局部属性）。用命令行 `-p:PublishAot=true` 是全局属性，
+    会流到多目标的 NewLife.Core 外层构建，触发 NETSDK1207（net45 等目标不支持 AOT）。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PublishAot>true</PublishAot>
+    <StripSymbols>true</StripSymbols>
+    <AssemblyName>NetLoadTest</AssemblyName>
+    <RootNamespace>NetLoadTest</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\NetLoadTest\Program.cs" />
+    <ProjectReference Include="..\..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+
+</Project>

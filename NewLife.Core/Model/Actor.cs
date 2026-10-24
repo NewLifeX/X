@@ -139,7 +139,7 @@ public abstract class Actor : DisposeBase, IActor
 
             Active = true;
 
-            WriteLog("Actor启动 BoundedCapacity={0} BatchSize={1} LongRunning={2}", BoundedCapacity, BatchSize, LongRunning);
+            WriteLog("Actor started: BoundedCapacity={0} BatchSize={1} LongRunning={2}", BoundedCapacity, BatchSize, LongRunning);
 
             return _task;
         }
@@ -168,7 +168,7 @@ public abstract class Actor : DisposeBase, IActor
         using var span = Tracer?.NewSpan("actor:Stop", $"{Name} msTimeout={msTimeout}");
         try
         {
-            WriteLog("Actor停止 QueueLength={0} msTimeout={1}", _queueLength, msTimeout);
+            WriteLog("Actor stopped: QueueLength={0} msTimeout={1}", _queueLength, msTimeout);
 
             MailBox?.CompleteAdding();
 
@@ -229,7 +229,7 @@ public abstract class Actor : DisposeBase, IActor
             span?.SetError(ex, null);
 
             _error = ex;
-            WriteLog("Actor异常 {0}", ex.Message);
+            WriteLog("Actor error: {0}", ex.Message);
             XTrace.WriteException(ex);
         }
 
@@ -300,6 +300,6 @@ public abstract class Actor : DisposeBase, IActor
     /// <summary>写日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
-    protected void WriteLog(String format, params Object?[] args) => Log?.Info($"[{Name}]{format}", args);
+    protected void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed("[" + Name + "]", format, args);
     #endregion
 }

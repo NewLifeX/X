@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Model;
 
 namespace NewLife.Net;
@@ -69,20 +70,14 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <remarks>默认0秒不启用。启用后可及时检测连接断开</remarks>
     public Int32 KeepAliveInterval { get; set; }
 
-    /// <summary>启用Http</summary>
-    /// <remarks>数据处理时截去请求响应头，默认false</remarks>
-    public Boolean EnableHttp { get; set; }
+    /// <summary>协议编解码器。非空时启用协议模式（创建会话时下发），会话数据经数据管道定界，头部到齐即交付消息帧</summary>
+    public IMessageCodec? Protocol { get; set; }
 
-    /// <summary>消息管道</summary>
-    /// <remarks>
-    /// <para>收发消息都经过管道处理器，进行协议编码解码。</para>
-    /// <para>处理顺序：</para>
-    /// <list type="number">
-    /// <item>接收数据解码时，从前向后通过管道处理器</item>
-    /// <item>发送数据编码时，从后向前通过管道处理器</item>
-    /// </list>
-    /// </remarks>
-    public IPipeline? Pipeline { get; set; }
+    /// <summary>消息泵最大缓存字节数（协议模式无法定界的残余上限），创建会话时下发，默认 1M。0 表示不限制</summary>
+    public Int32 MaxCache { get; set; } = 1024 * 1024;
+
+    /// <summary>最大并发处理数。协议模式下会话消息处理并发度，创建会话时下发：1=串行（默认），大于1=并行派发（兼作并发上限）</summary>
+    public Int32 MaxConcurrency { get; set; } = 1;
 
     /// <summary>SSL协议版本</summary>
     /// <remarks>默认None不启用SSL</remarks>
@@ -146,16 +141,18 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         try
         {
             var sock = Client;
+            var isUnix = Local.IsUnix;
 
             // 开始监听
             //if (Server == null) Server = new TcpListener(Local.EndPoint);
-            if (sock == null) Client = sock = NetHelper.CreateTcp(Local.Address.IsIPv4());
+            if (sock == null) Client = sock = isUnix ? NetHelper.CreateUnix() : NetHelper.CreateTcp(Local.Address.IsIPv4());
 
             try
             {
                 // 地址重用，主要应用于网络服务器重启交替。前一个进程关闭时，端口在短时间内处于TIME_WAIT，导致新进程无法监听。
                 // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
-                if (ReuseAddress) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                // Unix域套接字以文件路径为地址，没有端口重用的概念
+                if (ReuseAddress && !isUnix) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             }
             catch (Exception ex)
             {
@@ -168,14 +165,18 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
             //Server.Start();
-            sock.Bind(Local.EndPoint);
+            if (isUnix)
+                BindUnix(sock, Local.Path);
+            else
+                sock.Bind(Local.EndPoint);
             //sock.Listen(Int32.MaxValue);
             sock.Listen(65535);
 
-            if (Local.Port == 0 && sock.LocalEndPoint is IPEndPoint ep)
+            if (!isUnix && Local.Port == 0 && sock.LocalEndPoint is IPEndPoint ep)
                 Local.Port = ep.Port;
 
-            if (Runtime.Windows)
+            // Unix域套接字不支持TCP选项
+            if (Runtime.Windows && !isUnix)
             {
                 sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
@@ -216,6 +217,19 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
             Client?.Shutdown();
             Client = null;
+
+            // Unix域套接字需要删除文件，否则残留文件会导致下次启动拒绝服务
+            if (Local.IsUnix && !Local.Path.IsNullOrEmpty())
+            {
+                try
+                {
+                    File.Delete(Local.Path!);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteLine(ex.Message);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -225,9 +239,55 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     }
     #endregion
 
+    #region Unix域套接字
+    /// <summary>绑定Unix域套接字，自动清理残留文件</summary>
+    /// <param name="sock">监听套接字</param>
+    /// <param name="path">套接字文件路径</param>
+    private static void BindUnix(Socket sock, String? path)
+    {
+#if NETFRAMEWORK || NETSTANDARD2_0
+        throw new PlatformNotSupportedException(L.T("Unix domain sockets require a target framework of .NET Standard 2.1 or later."));
+#else
+        if (path.IsNullOrEmpty()) throw new ArgumentNullException(nameof(path), L.T("The Unix domain socket path cannot be empty."));
+
+        // 已有服务在监听时拒绝启动，避免两套服务各自服务一部分连接
+        if (File.Exists(path) && UnixSocketAlive(path!))
+            throw new InvalidOperationException(L.T("Unix domain socket [{0}] is already being listened on by another service.", path));
+
+        // 清理进程异常退出后残留的套接字文件
+        if (File.Exists(path))
+        {
+            XTrace.WriteLine("Cleaning up leftover Unix domain socket file {0}", path);
+            File.Delete(path!);
+        }
+
+        sock.Bind(new UnixDomainSocketEndPoint(path!));
+#endif
+    }
+
+#if !NETFRAMEWORK && !NETSTANDARD2_0
+    /// <summary>探测Unix域套接字上是否存在活动服务</summary>
+    /// <param name="path">套接字文件路径</param>
+    /// <returns></returns>
+    private static Boolean UnixSocketAlive(String path)
+    {
+        using var probe = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        try
+        {
+            probe.Connect(new UnixDomainSocketEndPoint(path));
+            return true;
+        }
+        catch (SocketException) { return false; }
+    }
+#endif
+    #endregion
+
     #region 连接处理
     /// <summary>新会话时触发</summary>
     public event EventHandler<SessionEventArgs>? NewSession;
+
+    /// <summary>接受环同步递归深度。内核 accept 队列有积压时 AcceptAsync 会同步完成，直接递归处理会累积栈帧</summary>
+    private Int32 _acceptDepth;
 
     /// <summary>开启异步接受新连接</summary>
     /// <param name="se"></param>
@@ -235,7 +295,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <returns>开启异步是否成功</returns>
     Boolean StartAccept(SocketAsyncEventArgs se, Boolean io)
     {
-        if (!Active || Client == null)
+        if (!Active || Client is not { } sock)
         {
             se?.Dispose();
             return false;
@@ -246,7 +306,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         try
         {
             se.AcceptSocket = null;
-            rs = Client.AcceptAsync(se);
+            rs = sock.AcceptAsync(se);
         }
         catch (Exception ex)
         {
@@ -261,10 +321,19 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
         if (!rs)
         {
-            if (io)
-                ProcessAccept(se);
+            // 同步完成：内核 accept 队列已有积压。直接处理会形成 ProcessAccept → StartAccept → ProcessAccept 的递归，
+            // 连接洪峰（backlog 堆压）下可耗尽线程栈（StackOverflow 不可捕获，进程直接退出）。
+            // 用深度计数限制同步递归层数，超过即改投线程池，使栈深度有界
+            if (io && _acceptDepth < 10)
+            {
+                _acceptDepth++;
+                try { ProcessAccept(se); }
+                finally { _acceptDepth--; }
+            }
             else
+            {
                 Task.Factory.StartNew(() => ProcessAccept(se), TaskCreationOptions.LongRunning);
+            }
         }
 
         return true;
@@ -283,12 +352,16 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         // 判断成功失败
         if (se.SocketError != SocketError.Success)
         {
+            var ex = se.GetException();
+            if (ex != null) OnError("AcceptAsync", ex);
+
             // 未被关闭Socket时，可以继续使用
             //if (!se.IsNotClosed())
+            // 历史：该判断曾被整体注释掉，导致任何接受错误都会释放事件参数并直接返回。
+            // 接受槽位只在启动时按 MaxAsync 创建一次，逐个消耗后服务器将不再接受新连接。
+            // 现按“监听套接字是否已中止”区分：已中止（服务正在关闭）才释放返回，其余错误继续投递。
+            if (se.IsAborted())
             {
-                var ex = se.GetException();
-                if (ex != null) OnError("AcceptAsync", ex);
-
                 se?.Dispose();
                 return;
             }
@@ -319,8 +392,8 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     {
         var session = CreateSession(client);
 
-        // 设置心跳时间
-        if (KeepAliveInterval > 0) client.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
+        // 设置心跳时间。Unix域套接字不支持TCP选项
+        if (KeepAliveInterval > 0 && !Local.IsUnix) client.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
 
         if (_Sessions.Add(session))
         {
@@ -328,13 +401,32 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             session.ID = Interlocked.Increment(ref g_ID);
             session.WriteLog("New {0}", session.Remote.EndPoint);
 
-            NewSession?.Invoke(this, new SessionEventArgs(session));
+            try
+            {
+                NewSession?.Invoke(this, new SessionEventArgs(session));
 
-            // 自动开始异步接收处理
-            session.SslProtocol = SslProtocol;
-            session.Certificate = Certificate;
-            session.Tracer = Tracer;
-            session.Start();
+                // 自动开始异步接收处理
+                session.SslProtocol = SslProtocol;
+                session.Certificate = Certificate;
+                session.Tracer = Tracer;
+                session.Start();
+            }
+            catch (Exception ex)
+            {
+                // 业务回调（CreateHandler/Init/Connected）或会话启动（SSL认证、启动接收环）抛异常时，
+                // 会话已入集合却无人接管：必须立即释放，否则它会一直留在集合里、Disconnected 永不触发、
+                // 连接一直悬挂到会话超时（默认20分钟）。释放由 Dispose 触发 OnDisposed，集合与端点缓存随之清理。
+                // 异常继续上抛，由 ProcessAccept 统一记账
+                session.WriteLog("Failed to handle the new session; releasing session {0}", ex.Message);
+                session.TryDispose();
+
+                throw;
+            }
+        }
+        else
+        {
+            // 会话集合拒绝（端点重复或并发竞态）：会话已建立但无人接管，立即释放，避免 socket 与接收缓冲泄漏
+            session.TryDispose();
         }
     }
     #endregion
@@ -342,21 +434,31 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     #region 会话
     private readonly SessionCollection _Sessions;
     /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
+    /// <remarks>
+    /// <para>会话在 Socket 层是否存在以本集合为准；出集合只有三条路：会话释放（OnDisposed 级联）、
+    /// 超时清理不活动会话、停机清空，调用方不要手工 Remove。</para>
+    /// </remarks>
     public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
     /// <summary>创建会话</summary>
+    /// <remarks>
+    /// <para>服务端会话由服务器统一接管接收：<see cref="SessionBase.AutoReceive"/> 恒为 true，不支持拉取模式。</para>
+    /// <para>子类在这之后设置的 AutoReceive=false 会被会话启动流程忽略。</para>
+    /// </remarks>
     /// <param name="client"></param>
     /// <returns></returns>
     protected virtual TcpSession CreateSession(Socket client)
     {
-        //var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
+        // 会话类型统一为 TcpSession；HTTP 由 HttpServer.CreateHandler 在处理管道处理，不在此分支
         var session = new TcpSession(this, client)
         {
             //// 服务端不支持掉线重连
             //AutoReconnect = 0,
             NoDelay = NoDelay,
             KeepAliveInterval = KeepAliveInterval,
-            Pipeline = Pipeline,
+            Protocol = Protocol,
+            MaxConcurrency = MaxConcurrency,
+            MaxCache = MaxCache,
             //DisconnectWhenEmptyData = false,
 
             Log = Log,
@@ -365,8 +467,15 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             Tracer = Tracer,
         };
 
-        // 为了降低延迟，服务端不要合并小包
-        client.NoDelay = NoDelay;
+        // 为了降低延迟，服务端不要合并小包。Unix域套接字不支持TCP选项
+        if (!Local.IsUnix)
+        {
+            client.NoDelay = NoDelay;
+
+            // 内核接收窗口决定大报文吞吐上限：发送侧已按报文大小自动调优发送缓冲，接收侧需显式放大（默认 0 不修改）
+            var rcvBuf = SocketSetting.Current.ReceiveBufferSize;
+            if (rcvBuf > 0) client.ReceiveBufferSize = rcvBuf;
+        }
 
         return session;
     }
@@ -378,7 +487,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         {
             if (sessions.Count > 0)
             {
-                WriteLog("准备释放会话{0}个！", sessions.Count);
+                WriteLog("Releasing {0} sessions.", sessions.Count);
                 sessions.CloseAll(nameof(CloseAllSession));
                 sessions.Dispose();
                 sessions.Clear();
@@ -430,10 +539,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object?[] args)
-    {
-        if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
-    }
+    public void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed(LogPrefix, format, args);
     #endregion
 
     #region 辅助

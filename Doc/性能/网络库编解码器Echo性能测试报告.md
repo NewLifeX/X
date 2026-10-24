@@ -27,7 +27,7 @@ Runtime: .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v3（Server GC�
 | 优化项 | 说明 |
 |---|---|
 | **ReceivedEventArgs 池化** | `Pool<ReceivedEventArgs>` + `Rent()/Return()`，避免每次 `recv()` 回调分配新事件参数 |
-| **DefaultMessage 池化** | `Pool<DefaultMessage>` + `Rent()/Return()`，StandardCodec 的 Decode/Write/CreateReply 均从池中获取 |
+| **DefaultMessage 池化** | `Pool<DefaultMessage>` + `Rent()/Return()`，StandardCodec 的 Decode/Write/CreateReply 均从池中获取（2026-09 已去池化：容器改为按需创建/释放，本表为当时实测条件） |
 | **PooledValueTaskSource** | 基于 `ManualResetValueTaskSourceCore<Object>` 的池化异步完成源，替代 `TaskCompletionSource` |
 | **NetHandlerContext 池化** | `Pool<NetHandlerContext>` + `Rent()/Return()`，`CreateContext`/`ReturnContext` 从池中借还 |
 | **SendMessageAsync 非异步化** | NET5_0_OR_GREATER 下改为非异步实现，消除编译器生成的 ~200B 状态机分配 |

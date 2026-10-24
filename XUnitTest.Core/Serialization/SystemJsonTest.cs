@@ -254,5 +254,39 @@ public class SystemJsonTest : JsonTestBase
             Assert.Equal((Int32)LogLevel.Fatal, dic["Level"].ToInt());
         }
     }
+
+    [Fact(DisplayName = "上下文透传：运行时类型路径可用且未声明类型回退默认解析器")]
+    public void ContextTest()
+    {
+        var js = new SystemJson(ContextJsonContext.Default);
+
+        // 上下文声明的类型：经运行时类型（Object 入口）完成序列化与反序列化
+        Object model = new ContextModel { Name = "ctx", Count = 42 };
+        var json = js.Write(model);
+        var back = js.Read(json, typeof(ContextModel)) as ContextModel;
+        Assert.NotNull(back);
+        Assert.Equal("ctx", back!.Name);
+        Assert.Equal(42, back.Count);
+
+        // 未在上下文声明的类型：回退默认解析器，行为不变
+        var other = js.Write(new ContextOther { Note = "fallback" });
+        var back2 = js.Read(other, typeof(ContextOther)) as ContextOther;
+        Assert.Equal("fallback", back2?.Note);
+    }
+
 #endif
+}
+
+[JsonSerializable(typeof(ContextModel))]
+partial class ContextJsonContext : JsonSerializerContext { }
+
+class ContextModel
+{
+    public String Name { get; set; } = "";
+    public Int32 Count { get; set; }
+}
+
+class ContextOther
+{
+    public String Note { get; set; } = "";
 }

@@ -53,8 +53,18 @@ public class JwtBuilder : IExtend
     /// <summary>标识</summary>
     public String? Id { get; set; }
 
-    /// <summary>算法。默认HS256</summary>
-    public String Algorithm { get; set; } = "HS256";
+    /// <summary>算法。默认HS256。显式设置后作为验证时的期望算法，令牌声明的算法不一致将验证失败（防算法混淆）</summary>
+    public String Algorithm
+    {
+        get => _algorithm;
+        set { _algorithm = value; _algorithmByUser = true; }
+    }
+
+    private String _algorithm = "HS256";
+    private Boolean _algorithmByUser;
+
+    /// <summary>令牌声明的算法。由 <see cref="Parse"/> 从令牌头部解析得到，只读，便于调用方核对</summary>
+    public String? TokenAlgorithm { get; private set; }
 
     /// <summary>令牌类型。默认JWT</summary>
     public String? Type { get; set; }
@@ -138,10 +148,11 @@ public class JwtBuilder : IExtend
             return $"{header}.{body}.{sign.ToUrlBase64()}";
         }
 
-        throw new InvalidOperationException($"Unsupported algorithm [{alg}]");
+        throw new InvalidOperationException(L.T("Unsupported algorithm [{0}]", alg));
     }
 
     /// <summary>分析令牌</summary>
+    /// <remarks>解析头部与载荷；令牌声明的算法写入 <see cref="TokenAlgorithm"/>，未显式指定 <see cref="Algorithm"/> 时同步采用该算法</remarks>
     /// <param name="token"></param>
     /// <returns></returns>
     public String[]? Parse(String token)
@@ -149,15 +160,34 @@ public class JwtBuilder : IExtend
         var ts = token.Split('.');
         if (ts.Length != 3) return null;
 
+        TokenAlgorithm = null;
+
+        // 头部与载荷。Base64/UTF8 畸形一律按"格式不正确"处理：令牌来自调用方或攻击者，不能让异常穿透
+        IDictionary<String, Object?>? header;
+        IDictionary<String, Object?>? body;
+        try
+        {
+            header = ts[0].ToBase64().ToStr().DecodeJson();
+            body = ts[1].ToBase64().ToStr().DecodeJson();
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+
         // 头部
-        var header = ts[0].ToBase64().ToStr().DecodeJson();
         if (header == null) return null;
 
-        if (header.TryGetValue("alg", out var alg) && alg != null) Algorithm = alg + "";
+        if (header.TryGetValue("alg", out var alg) && alg != null)
+        {
+            TokenAlgorithm = alg + "";
+            // 未显式指定算法时采用令牌声明的算法（自动识别，向后兼容）；
+            // 显式指定则保持不变，TryDecode 校验两者一致，防止令牌降级算法绕过验证
+            if (!_algorithmByUser) _algorithm = alg + "";
+        }
         if (header.TryGetValue("typ", out var typ)) Type = typ + "";
 
         // 主体
-        var body = ts[1].ToBase64().ToStr().DecodeJson();
         if (body != null)
         {
             Items = body;
@@ -175,12 +205,13 @@ public class JwtBuilder : IExtend
     }
 
     /// <summary>解码令牌，得到目标对象</summary>
+    /// <remarks>输入畸形（Base64、未知算法等）不抛异常，一律返回 false 并给出失败消息</remarks>
     /// <param name="token"></param>
     /// <param name="message"></param>
     /// <returns></returns>
     public Boolean TryDecode(String token, [NotNullWhen(false)] out String? message)
     {
-        message = "JWT格式不正确";
+        message = L.T("Invalid JWT format.");
 
         //if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
 
@@ -191,17 +222,32 @@ public class JwtBuilder : IExtend
         var now = Runtime.UtcNow.ToLocalTime().DateTime;
         if (Expire.Year > 2000 && Expire < now)
         {
-            message = "令牌已过期";
+            message = L.T("Token has expired.");
             return false;
         }
         if (NotBefore.Year > 2000 && now < NotBefore)
         {
-            message = "令牌未生效";
+            message = L.T("Token is not yet valid.");
             return false;
         }
         if (Secret.IsNullOrEmpty())
         {
-            message = "未设置密钥";
+            message = L.T("Secret is not configured.");
+            return false;
+        }
+
+        // 算法钉死：显式指定算法后，令牌声明的算法必须一致，防止攻击者用降级算法绕过验证
+        var tokenAlg = TokenAlgorithm ?? Algorithm;
+        if (_algorithmByUser && !tokenAlg.EqualIgnoreCase(Algorithm))
+        {
+            message = L.T("Algorithm mismatch: the token uses [{0}] but [{1}] is expected.", tokenAlg, Algorithm);
+            return false;
+        }
+
+        // 防算法混淆：对称算法以非对称密钥材料（PEM/XML/JWK/紧凑Base64形式的公钥）作 HMAC 密钥时，公开的公钥即可伪造签名（RS256→HS256 降级攻击）
+        if (tokenAlg.StartsWithIgnoreCase("HS") && IsAsymmetricKey(Secret))
+        {
+            message = L.T("Algorithm confusion: a symmetric algorithm must not use an asymmetric key as the secret.");
             return false;
         }
 
@@ -233,9 +279,21 @@ public class JwtBuilder : IExtend
         {
             if (dec != null)
             {
+                // 签名段可能畸形（攻击者可控），解码失败按格式不正确处理
+                Byte[] sig;
+                try
+                {
+                    sig = ts[2].ToBase64();
+                }
+                catch (FormatException)
+                {
+                    message = L.T("Invalid JWT format.");
+                    return false;
+                }
+
                 // 失败时给出具体消息，成功时保持 null（调用方约定）
-                var ok = dec(data, Secret, ts[2].ToBase64());
-                if (!ok) message = "签名验证失败";
+                var ok = dec(data, Secret, sig);
+                if (!ok) message = L.T("Signature verification failed.");
 
                 return ok;
             }
@@ -244,13 +302,54 @@ public class JwtBuilder : IExtend
             if (_encodes.TryGetValue(Algorithm, out var enc) && enc != null)
             {
                 var ok = enc(data, Secret).ToUrlBase64() == ts[2];
-                if (!ok) message = "签名验证失败";
+                if (!ok) message = L.T("Signature verification failed.");
 
                 return ok;
             }
         }
 
-        throw new InvalidOperationException($"Unsupported algorithm [{Algorithm}]");
+        // 未知算法按验证失败处理：令牌头部由攻击者可控，不能抛异常（Try 语义 + 避免未处理异常放大为 500）
+        message = L.T("Unsupported algorithm [{0}].", Algorithm);
+        return false;
+    }
+    #endregion
+
+    #region 辅助
+    /// <summary>判断密钥是否为非对称密钥材料（PEM / .NET XML / JWK，或紧凑 Base64 的 RSA/ECDsa 密钥）。仅用于识别"公钥被当对称密钥"的算法混淆场景</summary>
+    /// <remarks>先做 PEM/XML/JWK 字符串快速识别；紧凑 Base64 形态无法从字符串区分，再尝试真实解析 RSA/ECDsa 密钥，解析失败按"非非对称密钥"处理，探测异常不向外抛。
+    /// 任何非对称密钥序列化都远超32字符，用长度过滤普通短密钥，避免高频 HMAC 验证路径付出无谓的解析成本</remarks>
+    /// <param name="secret">密钥</param>
+    /// <returns></returns>
+    private static Boolean IsAsymmetricKey(String secret)
+    {
+        // 快速识别：PEM/XML/JWK 形态一眼可辨
+        if (secret.Contains("-----BEGIN") || secret.Contains("<RSAKeyValue") || secret.Contains("\"kty\"")) return true;
+
+        // 长度过滤：普通短密钥无需进入解析路径
+        if (secret.Length < 32) return false;
+
+        // 真格式探测：紧凑 Base64 密钥（如 RSAHelper.WriteParameters 产出）只能靠真实解析识别
+        try
+        {
+            using var rsa = RSAHelper.Create(secret);
+            return true;
+        }
+        catch (Exception)
+        {
+            // 普通 HMAC 密钥解析失败，继续探测 ECDsa
+        }
+
+        try
+        {
+            using var ecdsa = ECDsaHelper.Create(secret);
+            if (ecdsa != null) return true;
+        }
+        catch (Exception)
+        {
+            // 普通 HMAC 密钥解析失败，按非非对称密钥处理
+        }
+
+        return false;
     }
     #endregion
 

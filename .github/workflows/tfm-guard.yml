@@ -1,0 +1,68 @@
+name: tfm-guard
+
+# 目标框架清单守门：nupkg 的 lib/ 资产集合必须与约定集合完全一致。
+# 多一个或少一个都失败——防止 EOL 目标被无意加回、或新增目标后忘记同步 README 与架构文档。
+on:
+  push:
+    branches: [ '*' ]
+    paths:
+      - 'NewLife.Core/NewLife.Core.csproj'
+      - 'Directory.Build.props'
+      - '.github/workflows/tfm-guard.yml'
+  pull_request:
+    branches: [ '*' ]
+    paths:
+      - 'NewLife.Core/NewLife.Core.csproj'
+      - 'Directory.Build.props'
+      - '.github/workflows/tfm-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: lib 资产集合校验
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup dotNET
+      uses: actions/setup-dotnet@v4
+      with:
+        # 含 net8.0-windows/net10.0-windows，需对应 SDK 提供 WindowsDesktop 目标包
+        dotnet-version: |
+          8.x
+          9.x
+          10.x
+        cache: true
+        cache-dependency-path: '**/*.csproj'
+    - name: 校验 lib 资产集合
+      shell: pwsh
+      run: |
+        dotnet pack NewLife.Core\NewLife.Core.csproj -c Release -o out-tfm
+        $zip = Get-ChildItem out-tfm\NewLife.Core.*.nupkg | Select-Object -First 1
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
+        $libs = $archive.Entries |
+          Where-Object { $_.FullName -match '^lib/([^/]+)/NewLife\.Core\.dll$' } |
+          ForEach-Object { ($_.FullName -split '/')[1] }
+        $archive.Dispose()
+
+        # SDK 会把钉住的 TargetPlatformVersion 写进目录名（如 net6.0-windows7.0），归一化后再比对
+        $actual = $libs | ForEach-Object { $_ -replace '-windows[0-9.]+$', '-windows' } | Sort-Object -Unique
+        $expected = @(
+          'net45', 'net461', 'net462',
+          'netstandard2.0', 'netstandard2.1',
+          'net6.0', 'net6.0-windows',
+          'net8.0', 'net8.0-windows',
+          'net10.0', 'net10.0-windows'
+        ) | Sort-Object
+
+        Write-Host "实际资产：$($actual -join ', ')"
+        $missing = $expected | Where-Object { $actual -notcontains $_ }
+        $extra = $actual | Where-Object { $expected -notcontains $_ }
+        if ($missing) { throw "缺少约定的目标框架资产：$($missing -join ', ')" }
+        if ($extra) { throw "出现未约定的目标框架资产：$($extra -join ', ')（确认要新增时，请同步更新本工作流的 expected、README 数量与架构设计决策表）" }
+        Write-Host "TFM 资产校验通过：$($actual.Count) 个"

@@ -13,7 +13,7 @@
   - `FileConfigProvider`：文件型提供者基类，封装文件读写、轮询热加载（`TimerX`）。
 - 具体实现
   - `XmlConfigProvider`：XML 文件。
-  - `InIConfigProvider`：INI 文件。
+  - `IniConfigProvider`：INI 文件。
   - `JsonConfigProvider`：JSON 文件（支持注释的预处理）。
   - `HttpConfigProvider`：配置中心（星尘等），带本地缓存、版本与增量上报，支持定时刷新。
   - `ApolloConfigProvider`：针对 Apollo 的适配（命名空间聚合读取）。
@@ -89,7 +89,7 @@ var name = composite["Sys:Name"]; // 读取时按顺序查找
 - 键路径语法：`A:B:C` 表示树形下钻。
 - `Keys` 默认只返回根下第一层键；具体实现可覆盖返回深层键集合。
 - `IsNew` 用于指示配置源是否首次创建，`Config<T>.Current` 会据此决定是否持久化默认值。
-- 注释：模型属性上的 `DescriptionAttribute/DisplayNameAttribute` 会写入配置项注释。
+- 注释：模型属性上的 `DescriptionAttribute/DisplayNameAttribute` 会写入配置项注释；Xml/Ini 保存时按 `LogCulture ?? Culture` 翻译，两者为空时保持原文（默认英文源文），不跟随 `CurrentUICulture`。
 - 列表与数组：`ConfigHelper` 支持 `T[]` 与 `IList<T>`；基元类型元素会进行类型转换。
 
 ## 5. 本仓库优化点（已处理）

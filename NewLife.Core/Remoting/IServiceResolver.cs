@@ -93,7 +93,16 @@ public class ConfigServiceResolver : DisposeBase, IServiceResolver
         if (serviceName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(serviceName));
 
         var key = tag.IsNullOrEmpty() ? serviceName : $"{serviceName}#{tag}";
-        return Task.FromResult(_clients.GetOrAdd(key, _ => CreateClient(serviceName, tag)));
+
+        if (_clients.TryGetValue(key, out var client)) return Task.FromResult(client);
+
+        // 客户端持有 HttpClient/连接池，不能走 GetOrAdd 的“工厂可多跑”语义（败者会被静默丢弃而泄漏）；
+        // 先创建再 CAS，败者就地释放（同 ServiceEndpoint.TryGetClient 口径）
+        var newClient = CreateClient(serviceName, tag);
+        client = _clients.GetOrAdd(key, newClient);
+        if (!ReferenceEquals(client, newClient)) newClient.TryDispose();
+
+        return Task.FromResult(client);
     }
 
     /// <summary>解析服务的地址列表，供调用方自行创建客户端</summary>
@@ -146,7 +155,7 @@ public class ConfigServiceResolver : DisposeBase, IServiceResolver
     protected virtual IApiClient CreateClient(String serviceName, String? tag)
     {
         var address = ReadAddress(serviceName);
-        if (address.IsNullOrEmpty()) throw new InvalidOperationException($"配置中未找到服务[{serviceName}]的地址");
+        if (address.IsNullOrEmpty()) throw new InvalidOperationException(L.T("No address found for service [{0}] in configuration.", serviceName));
 
         var client = BuildClient(serviceName, address);
 
@@ -169,14 +178,14 @@ public class ConfigServiceResolver : DisposeBase, IServiceResolver
     protected virtual IApiClient BuildClient(String name, String address)
     {
         var addrs = address.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries);
-        if (addrs.Length == 0) throw new InvalidOperationException($"服务[{name}]地址不能为空");
+        if (addrs.Length == 0) throw new InvalidOperationException(L.T("Addresses for service [{0}] cannot be empty.", name));
 
         foreach (var addr in addrs)
         {
             var a = addr.Trim();
             if (!a.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
                 !a.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                throw new NotSupportedException($"服务[{name}]地址协议不支持（仅支持 http/https）：{a}");
+                throw new NotSupportedException(L.T("The address protocol for service [{0}] is not supported (only http/https): {1}", name, a));
         }
 
         var http = new ApiHttpClient

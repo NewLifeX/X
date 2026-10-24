@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using System.Linq;
+using System.Net.NetworkInformation;
 using NewLife;
 using NewLife.Log;
 using NewLife.Net;
@@ -8,9 +9,26 @@ namespace XUnitTest.Net;
 
 public class TcpConnectionInformation2Tests
 {
+    [Fact(DisplayName = "当前平台获取所有Tcp连接")]
+    public void GetAllTcpConnectionsCurrentPlatform()
+    {
+        // 覆盖 NetHelper 的平台分派：Windows 扩展Tcp表、Linux /proc/net/tcp、macOS 等返回空数组
+        var tcps = NetHelper.GetAllTcpConnections(-1);
+        Assert.NotNull(tcps);
+
+        if (Runtime.Windows || Runtime.Linux) Assert.True(tcps.Length > 0);
+    }
+
     [Fact]
     public void GetAllTcp()
     {
+        // GetWindowsTcpConnections 为 Windows 专属实现（iphlpapi），其它平台跳过并留痕
+        if (!Runtime.Windows)
+        {
+            XTrace.WriteLine("非 Windows 平台跳过 GetWindowsTcpConnections");
+            return;
+        }
+
         var tcps = TcpConnectionInformation2.GetWindowsTcpConnections();
         Assert.NotNull(tcps);
         Assert.True(tcps.Length > 0);
@@ -190,5 +208,17 @@ public class TcpConnectionInformation2Tests
         Assert.NotNull(nodes);
         Assert.Equal(99, nodes.Length);
         Assert.True(nodes.All(e => !e.IsNullOrEmpty()));
+    }
+
+    [Fact(DisplayName = "截断行不越界：缺 inode 列时 Node 留空")]
+    public void ParseTcps_ShortLine()
+    {
+        // 旧实现只校验段数 >= 4 却直接取 parts[9]，截断输入抛 IndexOutOfRangeException
+        var tcps = TcpConnectionInformation2.ParseTcps("0: 0100007F:0277 00000000:0000 0A");
+
+        Assert.Single(tcps);
+        Assert.Null(tcps[0].Node);
+        Assert.Equal("127.0.0.1:631", tcps[0].LocalEndPoint + "");
+        Assert.Equal(TcpState.Listen, tcps[0].State);
     }
 }

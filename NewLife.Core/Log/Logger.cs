@@ -83,11 +83,24 @@ public abstract class Logger : ILog
                 }
             }
         }
-        if (args == null || args.Length <= 0) return format;
+        if (args == null || args.Length <= 0) return Localization.TranslateForLog(format);
 
         //format = format.Replace("{", "{{").Replace("}", "}}");
 
-        return String.Format(format, args);
+        return Localization.TranslateForLog(format, args);
+    }
+
+    /// <summary>格式化日志消息（翻译 + 参数处理），供带前缀的日志封装复用</summary>
+    /// <param name="log">目标日志器，可为空</param>
+    /// <param name="format">格式化字符串</param>
+    /// <param name="args">格式化参数数组</param>
+    /// <returns>已翻译并格式化的消息</returns>
+    /// <remarks>内置日志器走 <see cref="Format"/> 以保留时间/异常特殊处理；其它实现走 <see cref="Localization.TranslateForLog(String, Object?[])"/>。</remarks>
+    public static String FormatMessage(ILog? log, String format, Object?[]? args)
+    {
+        if (log is Logger logger) return logger.Format(format, args);
+
+        return Localization.TranslateForLog(format, args);
     }
     #endregion
 
@@ -258,8 +271,7 @@ public abstract class Logger : ILog
         var set = Setting.Current;
         sb.AppendFormat("#SystemStarted: {0}\r\n", TimeSpan.FromMilliseconds(Runtime.TickCount64));
         sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
-        sb.AppendFormat("#详解：{0}\r\n", "https://newlifex.com/core/log");
-        sb.AppendFormat("#字段: 时间 线程ID 线程池Y/网页W/普通N 线程名/任务ID/定时T/线程池P/长任务L 消息内容\r\n");
+        sb.AppendFormat("#Docs: {0}\r\n", "https://newlifex.com/core/log");
         //sb.AppendFormat("#Fields: Time ThreadID Kind Name Message\r\n");
 
         var format = set.LogLineFormat;

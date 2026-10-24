@@ -33,7 +33,8 @@ public class QueueEventBusTests
         var rs = await bus.PublishAsync("hello");
         Assert.Equal(1, rs);
 
-        var completed = await Task.WhenAny(tcs.Task, Task.Delay(2_000));
+        // QueueEventBus 空闲轮询间隔 1 秒，满载并行跑测时消费线程调度可滞后数秒，等待预算取 10 秒
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(10_000));
         Assert.Same(tcs.Task, completed);
         Assert.Equal(["hello"], received);
 
@@ -54,7 +55,8 @@ public class QueueEventBusTests
 
         await bus.PublishAsync("hi");
 
-        var completed = await Task.WhenAny(tcs.Task, Task.Delay(2_000));
+        // QueueEventBus 空闲轮询间隔 1 秒，满载并行跑测时消费线程调度可滞后数秒，等待预算取 10 秒
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(10_000));
         Assert.Same(tcs.Task, completed);
         Assert.Equal(2, count);
 

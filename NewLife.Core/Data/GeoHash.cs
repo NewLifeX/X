@@ -110,7 +110,7 @@ public static class GeoHash
     /// <returns>中心点经纬度（Longitude, Latitude）</returns>
     public static (Double Longitude, Double Latitude) Decode(String geohash)
     {
-        if (String.IsNullOrEmpty(geohash)) throw new ArgumentException("geohash 不能为空", nameof(geohash));
+        if (String.IsNullOrEmpty(geohash)) throw new ArgumentException(L.T("geohash cannot be empty."), nameof(geohash));
 
         Double[] latitudeRange = [-90, 90];
         Double[] longitudeRange = [-180, 180];
@@ -120,7 +120,7 @@ public static class GeoHash
         {
             var ch = geohash[i];
             var code = ch < 128 ? _decodeMap[ch] : -1;
-            if (code < 0) throw new ArgumentException($"geohash 包含非法字符: '{ch}'", nameof(geohash));
+            if (code < 0) throw new ArgumentException(L.T("geohash contains an invalid character: '{0}'.", ch), nameof(geohash));
 
             for (var j = 0; j < 5; j++)
             {
@@ -201,7 +201,7 @@ public static class GeoHash
     /// <returns>(MinLongitude, MinLatitude, MaxLongitude, MaxLatitude)</returns>
     public static (Double MinLongitude, Double MinLatitude, Double MaxLongitude, Double MaxLatitude) GetBoundingBox(String geohash)
     {
-        if (String.IsNullOrEmpty(geohash)) throw new ArgumentException("geohash 不能为空", nameof(geohash));
+        if (String.IsNullOrEmpty(geohash)) throw new ArgumentException(L.T("geohash cannot be empty."), nameof(geohash));
 
         Double[] latitudeRange = [-90, 90];
         Double[] longitudeRange = [-180, 180];
@@ -211,7 +211,7 @@ public static class GeoHash
         {
             var ch = geohash[i];
             var code = ch < 128 ? (Int32)_decodeMap[ch] : -1;
-            if (code < 0) throw new ArgumentException($"geohash 包含非法字符: '{ch}'", nameof(geohash));
+            if (code < 0) throw new ArgumentException(L.T("geohash contains an invalid character: '{0}'.", ch), nameof(geohash));
 
             for (var j = 0; j < 5; j++)
             {
@@ -236,7 +236,7 @@ public static class GeoHash
     /// <returns>邻居 GeoHash</returns>
     public static String Neighbor(String geohash, Int32 deltaLongitude, Int32 deltaLatitude)
     {
-        if (String.IsNullOrEmpty(geohash)) throw new ArgumentException("geohash 不能为空", nameof(geohash));
+        if (String.IsNullOrEmpty(geohash)) throw new ArgumentException(L.T("geohash cannot be empty."), nameof(geohash));
 
         var (minLon, minLat, maxLon, maxLat) = GetBoundingBox(geohash);
         var lonSpan = maxLon - minLon;

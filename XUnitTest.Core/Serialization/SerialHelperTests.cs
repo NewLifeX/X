@@ -83,6 +83,6 @@ public class SerialHelperTests
             }
 
             """;
-        Assert.Equal(model, cls);
+        Assert.Equal(model.NormalizeNewline(), cls.NormalizeNewline());
     }
 }

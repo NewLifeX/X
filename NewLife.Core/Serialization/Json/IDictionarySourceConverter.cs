@@ -1,4 +1,5 @@
 #if NET5_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NewLife.Collections;
@@ -38,12 +39,14 @@ public class IDictionarySourceConverter : JsonConverter<Object>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
     public override Object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        => throw new NotSupportedException($"IDictionarySource 接口不支持反序列化。目标类型：{typeToConvert.FullName}");
+        => throw new NotSupportedException(L.T("Deserialization is not supported for IDictionarySource. Target type: {0}", typeToConvert.FullName));
 
     /// <summary>写入。调用 ToDictionary() 获取字典后序列化</summary>
     /// <param name="writer"></param>
     /// <param name="value"></param>
     /// <param name="options"></param>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "字典源对象与未命中转换器的回退均按运行时类型序列化，元数据无法静态表达；AOT 应用应通过 SystemJson 上下文透传声明类型元数据")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "字典源对象与未命中转换器的回退均按运行时类型序列化，元数据无法静态表达；AOT 应用应通过 SystemJson 上下文透传声明类型元数据")]
     public override void Write(Utf8JsonWriter writer, Object value, JsonSerializerOptions options)
     {
         if (value is IDictionarySource source)

@@ -109,15 +109,16 @@ public class ApiHttpClientRaceTests
             DataName = "data"
         };
 
-        // 添加三个服务，第二个响应最快
+        // 添加三个服务，第二个响应最快。
+        // 同 DownloadFileRaceAsync_Fastest：错峰使 “fast” 在 100+50=150ms 完成，慢节点需留足余量
         client.Add("slow1", "http://service1.test");
-        client.Services[0].Client = new HttpClient(new MockJsonHandler(200, """{"code":0,"data":"slow1"}"""));
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(1000, """{"code":0,"data":"slow1"}"""));
 
         client.Add("fast", "http://service2.test");
         client.Services[1].Client = new HttpClient(new MockJsonHandler(50, """{"code":0,"data":"fast"}"""));
 
         client.Add("slow2", "http://service3.test");
-        client.Services[2].Client = new HttpClient(new MockJsonHandler(300, """{"code":0,"data":"slow2"}"""));
+        client.Services[2].Client = new HttpClient(new MockJsonHandler(1500, """{"code":0,"data":"slow2"}"""));
 
         var result = await client.InvokeRaceAsync<String>("/api/test");
 
@@ -244,15 +245,17 @@ public class ApiHttpClientRaceTests
             Timeout = 5000
         };
 
-        // 添加三个服务，第二个响应最快
+        // 添加三个服务，第二个响应最快。
+        // 竞速会按序号给节点加启动错峰（Score = 序号×100ms），故 “fast” 实际在 100+50=150ms 完成；
+        // 慢节点延迟必须远大于错峰幅度与满载调度抖动，否则 1 秒量级的慢节点会抢在 fast 之前返回（实测偶发变红）
         client.Add("slow1", "http://service1.test");
-        client.Services[0].Client = new HttpClient(new MockHandler(200));
+        client.Services[0].Client = new HttpClient(new MockHandler(3000));
 
         client.Add("fast", "http://service2.test");
         client.Services[1].Client = new HttpClient(new MockHandler(50));
 
         client.Add("slow2", "http://service3.test");
-        client.Services[2].Client = new HttpClient(new MockHandler(300));
+        client.Services[2].Client = new HttpClient(new MockHandler(4000));
 
         var file = "race_fastest.txt";
         var fullPath = file.GetFullPath();
@@ -283,9 +286,10 @@ public class ApiHttpClientRaceTests
         client.Add("slower_correct", "http://service2.test");
         client.Services[1].Client = new HttpClient(new MockHandler(100, expectedHash));
 
-        // 服务3：最慢，哈希也匹配
+        // 服务3：最慢，哈希也匹配。延迟取 1500ms：与“较慢但正确”保持 1.4 秒余量，
+        // 避免满载调度抖动让两者完成顺序颠倒（500ms 余量在并发跑测下会被抖动吃掉）
         client.Add("slowest_correct", "http://service3.test");
-        client.Services[2].Client = new HttpClient(new MockHandler(500, expectedHash));
+        client.Services[2].Client = new HttpClient(new MockHandler(1500, expectedHash));
 
         var file = "race_head_race.txt";
         var fullPath = file.GetFullPath();
@@ -458,10 +462,18 @@ public class ApiHttpClientRaceTests
             LoadBalanceMode = LoadBalanceMode.Race
         };
 
-        client.Add("fast", "http://10.0.0.2:6680");
-        client.Services[0].Client = new HttpClient(new MockJsonHandler(20, """{"code":0,"data":"fast"}"""));
+        // 竞速探测注入确定性桩：默认探测会真实解析/连接这两个域名，既触网又受环境波动影响
+        var balancer = (RaceLoadBalancer)client.LoadBalancer;
+        balancer.ProbeAsync = (_, _) => Task.FromResult<TimeSpan?>(TimeSpan.FromMilliseconds(1));
 
-        var slowHandler = new CountingHandler(0, """{"code":0,"data":"slow"}""");
+        // 慢节点起步延后（错峰幅度）取 1 秒：首节点毫秒级返回即取消竞速，慢节点根本不会被启动；
+        // 即使满载下快节点链路调度稍有停顿，1 秒余量也足够
+        balancer.StartDelayStep = 1_000;
+
+        client.Add("fast", "http://10.0.0.2:6680");
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(0, """{"code":0,"data":"fast"}"""));
+
+        var slowHandler = new CountingHandler(1000, """{"code":0,"data":"slow"}""");
         client.Add("slow", "http://slow.test");
         client.Services[1].Client = new HttpClient(slowHandler);
 
@@ -488,11 +500,14 @@ public class ApiHttpClientRaceTests
         client.Add("ok", "http://service2.test");
         client.Services[1].Client = new HttpClient(new MockJsonHandler(50, """{"code":0,"data":"ok"}"""));
 
+        // 时间基准取动作前：屏蔽期从失败时刻起算，若用断言时刻的墙钟作右值，
+        // 满载调度停顿让动作到断言的间隔超过(屏蔽期-1秒)时会误报
+        var t0 = DateTime.Now;
         var result = await client.InvokeRaceAsync<String>("/");
 
         Assert.Equal("ok", result);
         Assert.Equal("ok", client.Current?.Name);
         Assert.Equal(1, client.Services[0].Errors);
-        Assert.True(client.Services[0].NextTime >= DateTime.Now.AddSeconds(1));
+        Assert.True(client.Services[0].NextTime >= t0.AddSeconds(1));
     }
 }

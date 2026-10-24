@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using NewLife.Buffers;
 using NewLife.Collections;
 using NewLife.Data;
@@ -15,6 +16,10 @@ public abstract class HttpBase : IDisposable
     /// <summary>内容长度</summary>
     public Int32 ContentLength { get; set; } = -1;
 
+    /// <summary>Content-Length 头存在但非法（无法解析、为负或超出 Int32 范围）</summary>
+    /// <remarks>此类报文应按协议错误拒绝（请求回 400），不能按“无体”继续处理，否则连接上请求边界失步</remarks>
+    public Boolean InvalidContentLength { get; protected set; }
+
     /// <summary>内容类型</summary>
     public String? ContentType { get; set; }
 
@@ -26,6 +31,13 @@ public abstract class HttpBase : IDisposable
 
     /// <summary>是否已完整。头部未指定长度，或指定长度后内容已满足</summary>
     public Boolean IsCompleted => ContentLength < 0 || ContentLength <= BodyLength;
+
+    /// <summary>本次解析消耗的字节数。为头部（含分隔空行）加上实体的长度</summary>
+    /// <remarks>
+    /// <para>HTTP/1.1 允许流水线（一次发送多个请求），调用方据此切出同一轮数据中其后多出的字节继续解析，不能丢弃。</para>
+    /// <para>未声明 Content-Length 时，头部之后的可用字节按实体处理（兼容直接发体的客户端），消耗量即整包长度。</para>
+    /// </remarks>
+    internal Int32 ConsumedLength { get; private set; }
 
     /// <summary>头部集合</summary>
     public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -53,23 +65,78 @@ public abstract class HttpBase : IDisposable
         return p >= 0;
     }
 
+    /// <summary>是否严格校验头部行：拒绝字段名含空白、以及以空白开头的续行折叠（obs-fold）</summary>
+    /// <remarks>RFC 7230 §3.2.4 对「服务端收到的请求」是 MUST（拒绝或替换为空格），对响应则是客户端替换、不得拒绝，
+    /// 故请求侧置为 true（见 <see cref="HttpRequest" />），响应侧保持宽容以兼容历史服务器。</remarks>
+    protected virtual Boolean StrictHeader => false;
+
+    /// <summary>清洗头部文本，剔除 CR/LF 与其它控制字符</summary>
+    /// <param name="text">原始文本（状态描述、字段名或字段值）</param>
+    /// <returns>清洗后的文本；不含非法字符时原样返回（零分配）</returns>
+    /// <remarks>
+    /// <para>RFC 9110 §5.5：字段值只能由可见字符与 SP/HTAB 组成，不得出现 CR/LF。异常消息等内容源自带换行时，
+    /// 直接写入会让一行裂成两行——接收方会把它解析成额外的头部（响应拆分/请求拆分），可被用来伪造
+    /// Content-Length、Location、Set-Cookie 等头部。</para>
+    /// <para>CR/LF 替换为空格（保留可读描述），其它控制字符（不含 HTAB）剔除；可见字符与非 ASCII 原样保留。</para>
+    /// </remarks>
+    internal static String SanitizeHeaderText(String text)
+    {
+        if (text.IsNullOrEmpty()) return text;
+
+        // 快路径：无控制字符时原样返回，不产生分配
+        var dirty = false;
+        foreach (var ch in text)
+        {
+            if (ch < ' ' || ch == (Char)0x7F) { dirty = true; break; }
+        }
+        if (!dirty) return text;
+
+        var sb = Pool.StringBuilder.Get();
+        foreach (var ch in text)
+        {
+            // CR/LF 换成空格；其它控制字符（含 DEL，HTAB 除外）剔除
+            if (ch == '\r' || ch == '\n')
+                sb.Append(' ');
+            else if (ch == '\t' || (ch >= ' ' && ch != (Char)0x7F))
+                sb.Append(ch);
+        }
+
+        return sb.Return(true);
+    }
+
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
-    /// <summary>分析请求头。截取Body时获取缓冲区所有权</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
+    /// <summary>分析请求头。主体以共享切片截取，不释放入参</summary>
+    /// <remarks>主体为入参数据包的共享切片（引用计数独立持有）；本方法不释放 <paramref name="pk"/>，由调用方负责释放。头部可跨节点（链式帧/跨接收段）：前缀与空行均跨段查找，跨段时物化头部区域后解析。
+    /// Transfer-Encoding 存在时不按 Content-Length 截断实体（RFC 9112 §6.1：TE 覆盖 CL），主体为头部之后的全部可用字节。</remarks>
+    /// <param name="pk">数据包</param>
+    /// <returns>是否解析成功</returns>
     public Boolean Parse(IPacket pk)
     {
-        var data = pk.GetSpan();
-        if (!FastValidHeader(data)) return false;
+        // 快速验证：第一行以请求谓语/响应版本开头（最多10字节内出现空格；跨段前缀拼读）
+        Span<Byte> fastBuf = stackalloc Byte[10];
+        if (!FastValidHeader(pk.GetPrefix(fastBuf, 10))) return false;
 
-        // 查找首个空行（CRLFCRLF）。p 指向空行起始位置
-        var p = data.IndexOf(NewLine2);
+        // 查找首个空行（CRLFCRLF）。p 指向空行起始位置（跨段查找，返回全局偏移）
+        var p = pk.IndexOf(NewLine2);
         if (p < 0) return false;
+
+        // 头部区域：单段零拷贝直读；链式（头部跨节点）物化头部区，头部通常很小
+        ReadOnlySpan<Byte> data;
+        if (pk.Next == null)
+            data = pk.GetSpan();
+        else
+            data = pk.ReadBytes(0, p);
 
         // 只取头部区域（不包含分隔空行），避免之前 (p+2) 的截取导致尾部半行进入解析产生潜在问题
         var header = data[..p];
+
+        // 整表重建：同实例二次解析（复用 HttpRequest/HttpResponse）时，上一条的头部必须随之消失。
+        // 否则残留的 Transfer-Encoding/Content-Length 会让本条消息按错误的方式分帧（残留判据比缺省值更危险）
+        Headers.Clear();
+
         var firstLine = "";
+        var clCount = 0;
         while (header.Length > 0)
         {
             var p2 = header.IndexOf(NewLine);
@@ -82,10 +149,27 @@ public abstract class HttpBase : IDisposable
             else
             {
                 var p3 = line.IndexOf((Byte)':');
+
+                // 严格模式（请求侧）：字段名与冒号之间的空白、以及以空白开头的续行折叠（obs-fold）一律拒绝。
+                // 二者都会让本端与前置代理对同一段字节得出不同理解——攻击者用「Content-Length\t: 5」或折叠出的
+                // 「 Content-Length: 5」藏出第二个长度：本端认不出而代理认（或反之），后续字节在本端算作下一个请求、
+                // 在代理算作实体，请求走私与连接边界失步由此成立。此处选择拒绝而非替换（RFC 7230 §3.2.4 二者皆可）
+                if (StrictHeader)
+                {
+                    if (line.Length > 0 && (line[0] == (Byte)' ' || line[0] == (Byte)'\t')) return false;
+
+                    if (p3 > 0 && (line[..p3].IndexOf((Byte)' ') >= 0 || line[..p3].IndexOf((Byte)'\t') >= 0)) return false;
+                }
+
                 if (p3 > 0)
                 {
                     var name = line[..p3].Trim((Byte)' ').ToStr();
                     var value = line[(p3 + 1)..].Trim((Byte)' ').ToStr();
+
+                    // 同名头部就地覆盖，重复的 Content-Length 只剩最后一个值，与前置代理（通常取第一个）理解不一致，
+                    // 构成 CL.CL 走私面。只统计本次解析的出现次数
+                    if (name.EqualIgnoreCase("Content-Length")) clCount++;
+
                     Headers[name] = value;
                 }
             }
@@ -94,17 +178,67 @@ public abstract class HttpBase : IDisposable
             header = header[(p2 + 2)..];
         }
 
-        // 截取主体，获取所有权（跳过 CRLFCRLF 共4字节）
-        Body = pk.Slice(p + 4, -1, true);
+        // Content-Length 用 Int64 解析：无法解析、为负或超上限都视为非法，不能退化成“无体”。
+        // 旧实现用 ToInt(-1)，非法值直接变成 -1（无体），声明的那段主体会被当成后续请求字节（边界失步）。
+        // 出现两次及以上同样非法（RFC 9112 §6.3）：取值会被就地覆盖成其中一个，前后端看到不同长度
+        var cl = Headers["Content-Length"];
+        ContentLength = -1;
+        InvalidContentLength = false;
+        if (clCount > 1)
+            InvalidContentLength = true;
+        else if (!cl.IsNullOrEmpty())
+        {
+            if (Int64.TryParse(cl, out var len) && len >= 0 && len <= Int32.MaxValue)
+                ContentLength = (Int32)len;
+            else
+                InvalidContentLength = true;
+        }
 
-        ContentLength = Headers["Content-Length"].ToInt(-1);
         ContentType = Headers["Content-Type"];
 
-        // 分析第一行
+        // 分析第一行。提前到主体切片之前：主体策略取决于请求方法与协议版本（见 BodyWithoutLength），
+        // 且解析失败时不再需要先切主体（少一次切片与归还）
         if (!OnParse(firstLine)) return false;
+
+        // 截取主体（跳过 CRLFCRLF 共4字节）：共享切片独立持有引用；入参句柄由调用方释放。
+        // 声明了 Content-Length 时按它截断：同一轮数据里其后紧跟的字节（客户端多发、或同连接的下一请求）
+        // 不属于本请求，否则会被当业务参数/JSON 解析，并写进链路追踪。
+        // Transfer-Encoding 存在时以它为准（RFC 9112 §6.1：TE 覆盖 Content-Length）：此时实体边界不由 CL 决定，
+        // 按 CL 截断会把同轮其余字节整段丢掉（服务端分块解码拿不到完整流、请求悬停）
+        var bodyStart = p + 4;
+        var available = pk.Total - bodyStart;
+        // 声明长度小于本轮可用字节时只截取声明长度
+        var declared = Headers["Transfer-Encoding"].IsNullOrEmpty() && ContentLength >= 0 && ContentLength < available;
+        // 未声明长度：请求侧默认“没有实体”，头部之后的字节属于同连接的下一个请求（流水线）；
+        // 响应侧与老式请求保留“读到的就是实体”的兼容语义，见 BodyWithoutLength
+        var noLength = !declared && Headers["Transfer-Encoding"].IsNullOrEmpty() && ContentLength < 0 && !BodyWithoutLength;
+
+        // 旧主体可能是上一次解析（同实例复用）或调用方置入的拥有句柄：覆盖前先归还，
+        // 否则它持有的池缓冲引用计数永不归零（与 Dispose 将 Body 视为拥有句柄的口径一致）
+        Body.TryDispose();
+
+        Body = noLength
+            ? null
+            : declared
+                ? pk.Slice(bodyStart, ContentLength)
+                : pk.Slice(bodyStart, -1);
+
+        // 本请求占用的字节数，其后多出的字节属于后续请求（HTTP/1.1 流水线），调用方据此切分保留。
+        // 未声明长度且按无实体处理时，消耗量只含头部与分隔空行，剩余字节留给调用方继续解析
+        ConsumedLength = bodyStart + (noLength ? 0 : declared ? ContentLength : available);
 
         return true;
     }
+
+    /// <summary>未声明 Content-Length 与 Transfer-Encoding 时，是否把头部之后的可用字节按实体处理</summary>
+    /// <remarks>
+    /// <para>RFC 9112 §6.3：请求既无 Content-Length 也无 Transfer-Encoding 时**没有实体**，头部之后的字节属于
+    /// 同连接的下一个请求（HTTP/1.1 流水线）。若一律按实体吞掉，同轮里的第二个请求会被静默丢弃：既不回响应
+    /// 也不关闭连接，客户端只能等到自身超时；与前置代理共存时两侧对同一段字节的理解还会不一致。</para>
+    /// <para>老式客户端（HTTP/1.0）以“连接关闭”定界实体、不发送 Content-Length，故该兼容语义按方法判定保留，
+    /// 见 <see cref="HttpRequest" />；响应无长度时实体本就以连接关闭定界，保持原样。</para>
+    /// </remarks>
+    protected virtual Boolean BodyWithoutLength => true;
 
     /// <summary>分析第一行</summary>
     /// <param name="firstLine"></param>
@@ -113,11 +247,12 @@ public abstract class HttpBase : IDisposable
 
     #region 读写
     /// <summary>创建请求响应包</summary>
-    /// <remarks>数据来自缓冲池，使用者用完返回数据包后应该释放，以便把缓冲区放回池里</remarks>
+    /// <remarks>数据来自缓冲池，使用者用完返回数据包后应该释放，以便把缓冲区放回池里。链式主体逐段写入，实际内容与声明长度一致。</remarks>
     /// <returns></returns>
     public virtual IOwnerPacket Build()
     {
-        var body = Body;
+        // 无实体响应（204/304）不得携带实体：既不写入主体字节，也不计入长度
+        var body = HasNoEntity ? null : Body;
         var len = body != null ? body.Total : 0;
 
         var header = BuildHeader(len);
@@ -130,9 +265,35 @@ public abstract class HttpBase : IDisposable
 
         writer.Write(header, -1);
 
-        if (body != null) writer.Write(body.GetSpan());
+        // 链式主体由 Write(IPacket) 逐段写入，无需聚合拷贝
+        if (body != null) writer.Write(body);
 
         return pk.Resize(writer.Position);
+    }
+
+    /// <summary>是否为无实体消息（1xx/204/304 响应）。无实体时不得声明 Content-Length（RFC 7230 §3.3.2）</summary>
+    protected virtual Boolean HasNoEntity => false;
+
+    /// <summary>判断状态码是否属于无实体响应（1xx、204、304）</summary>
+    /// <remarks>RFC 7230 §3.3.2：1xx 与 204 不得携带 Content-Length，1xx/204/304 均不得携带实体。响应构建与低级封包构造共用本判据，避免两处口径不一致。</remarks>
+    /// <param name="code">响应状态码</param>
+    /// <returns>是否为无实体响应</returns>
+    public static Boolean IsNoEntityStatus(HttpStatusCode code) => (Int32)code is >= 100 and < 200 or 204 or 304;
+
+    /// <summary>仅创建头部封包（不含主体），流式发送时先发头部</summary>
+    /// <param name="contentLength">主体长度；负数表示未知（调用方应先行设置 Transfer-Encoding 等头部）</param>
+    /// <returns>头部数据包，调用方负责 Dispose</returns>
+    /// <remarks>已知长度时自动写入 Content-Length（<see cref="HasNoEntity"/> 为 true 时例外）；长度未知时由调用方设置 Transfer-Encoding: chunked 等头部。</remarks>
+    public IOwnerPacket BuildHeaderPacket(Int64 contentLength = -1)
+    {
+        if (contentLength >= 0 && !HasNoEntity) Headers["Content-Length"] = contentLength.ToString();
+
+        var header = BuildHeader(0);
+        var bytes = Encoding.UTF8.GetBytes(header);
+        var pk = new OwnerPacket(bytes.Length);
+        bytes.CopyTo(pk.GetSpan());
+
+        return pk;
     }
 
     /// <summary>创建头部</summary>

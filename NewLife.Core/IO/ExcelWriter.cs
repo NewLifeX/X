@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO.Compression;
 using System.Security;
 using System.Text;
@@ -27,7 +28,12 @@ public class ExcelWriter : DisposeBase
         DateTime = 22 // m/d/yy h:mm
     }
 
-    private static readonly ExcelCellStyle[] _cellStyles = (ExcelCellStyle[])Enum.GetValues(typeof(ExcelCellStyle));
+    private static readonly ExcelCellStyle[] _cellStyles =
+#if NET5_0_OR_GREATER
+        Enum.GetValues<ExcelCellStyle>();
+#else
+        (ExcelCellStyle[])Enum.GetValues(typeof(ExcelCellStyle));
+#endif
     #endregion
 
     #region 属性
@@ -372,7 +378,7 @@ public class ExcelWriter : DisposeBase
         var target = Stream;
         if (target == null)
         {
-            if (FileName.IsNullOrEmpty()) throw new InvalidOperationException("未指定输出位置");
+            if (FileName.IsNullOrEmpty()) throw new InvalidOperationException(L.T("Output location was not specified."));
 
             var file = FileName.EnsureDirectory(true).GetFullPath();
             target = new FileStream(file, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);

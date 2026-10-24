@@ -69,8 +69,22 @@ public class DefaultSpan : ISpan
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
     public ITracer? Tracer { get; set; }
 
+    private String? _id;
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
-    public String Id { get; set; } = null!;
+    /// <remarks>延迟生成，首次读取时才创建。绝大多数埋点并未采样，无需为其付出标识字符串的分配</remarks>
+    public String Id
+    {
+        get
+        {
+            var id = _id;
+            if (id != null) return id;
+
+            id = CreateId();
+            // 同一片段可能被并行分支共享，以先写入者为准，保证对外呈现同一个Id
+            return Interlocked.CompareExchange(ref _id, id, null) ?? id;
+        }
+        set => _id = value;
+    }
 
     /// <summary>埋点名</summary>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
@@ -79,8 +93,22 @@ public class DefaultSpan : ISpan
     /// <summary>父级片段标识</summary>
     public String? ParentId { get; set; }
 
+    private String? _traceId;
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
-    public String TraceId { get; set; } = null!;
+    /// <remarks>延迟生成，首次读取时才创建</remarks>
+    public String TraceId
+    {
+        get
+        {
+            var traceId = _traceId;
+            if (traceId != null) return traceId;
+
+            traceId = CreateTraceId();
+            // 同一片段可能被并行分支共享，以先写入者为准，保证同一链路的子片段拿到同一个TraceId
+            return Interlocked.CompareExchange(ref _traceId, traceId, null) ?? traceId;
+        }
+        set => _traceId = value;
+    }
 
     /// <summary>开始时间。Unix毫秒</summary>
     public Int64 StartTime { get; set; }
@@ -145,10 +173,9 @@ public class DefaultSpan : ISpan
     /// <summary>设置跟踪标识</summary>
     public virtual void Start()
     {
-        StartTime = Runtime.UtcNow.ToLong();
+        StartTime = Runtime.UtcNow.ToUnixTimeMilliseconds();
 
         //if (Id.IsNullOrEmpty()) Id = Rand.NextBytes(8).ToHex().ToLower();
-        if (Id.IsNullOrEmpty()) Id = CreateId();
 
         // 设置父级
         var span = Current;
@@ -161,9 +188,6 @@ public class DefaultSpan : ISpan
             // 继承跟踪标识，该TraceId下全量采样，确保链路采样完整
             if (span is DefaultSpan ds) TraceFlag = ds.TraceFlag;
         }
-
-        // 否则创建新的跟踪标识
-        if (TraceId.IsNullOrEmpty()) TraceId = CreateTraceId();
 
         // 设置当前片段
         Current = this;
@@ -180,10 +204,24 @@ public class DefaultSpan : ISpan
     {
         // IPv4(8) + PID(4) + 顺序数(4)
         var id = Interlocked.Increment(ref _seq) & 0xFFFF;
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+        return String.Create(16, (Seq: id, Ip: _myip, Pid: _pid), (span, s) =>
+        {
+            s.Ip.AsSpan().CopyTo(span);
+            s.Pid.AsSpan().CopyTo(span[8..]);
+            WriteHex(span[12..], (UInt32)s.Seq, 4);
+        });
+#else
         return _myip + _pid + id.ToString("x4").PadLeft(4, '0');
+#endif
     }
 
     /// <summary>创建跟踪编号</summary>
+    /// <remarks>
+    /// 总长度固定为32位十六进制，以满足W3C TraceContext对trace-id的要求（30位会被标准解析器拒绝）。
+    /// 布局参考阿里云EagleEye全链路追踪，并增加IPv4与PID两个定位维度：
+    /// IPv4(8) + 毫秒时间(13) + 顺序数(6) + 标识位(1) + PID(4) = 32
+    /// </remarks>
     /// <returns></returns>
     protected virtual String CreateTraceId()
     {
@@ -192,26 +230,70 @@ public class DefaultSpan : ISpan
          * 7ae122a215982779017518707e
          * IPv4(8) + 毫秒时间(13) + 顺序数(4) + 标识位(1) + PID(4)
          * 7ae122a2 + 1598277901751 + 8707 + e
+         *
+         * 为对齐W3C TraceContext，顺序数由4位扩展到6位，使总长度达到标准的32位。
+         * 毫秒时间为13位十进制，在公元2286年之前一直保持13位。
          */
 
-        var sb = Pool.StringBuilder.Get();
-        sb.Append(_myip);
-        sb.Append(Runtime.UtcNow.ToLong());
-        var id = Interlocked.Increment(ref _seq2) & 0xFFFF;
-        sb.Append(id.ToString("x4").PadLeft(4, '0'));
-        sb.Append('e');
-        sb.Append(_pid);
+        var ms = Runtime.UtcNow.ToUnixTimeMilliseconds();
+        var id = Interlocked.Increment(ref _seq2) & 0xFFFFFF;
 
         //return _myip + DateTime.UtcNow.ToLong() + Interlocked.Increment(ref _seq) + "e" + _pid;
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+        return String.Create(32, (Seq: id, Ms: ms, Ip: _myip, Pid: _pid), (span, s) =>
+        {
+            s.Ip.AsSpan().CopyTo(span);
+            WriteDec(span[8..], s.Ms, 13);
+            WriteHex(span[21..], (UInt32)s.Seq, 6);
+            span[27] = 'e';
+            s.Pid.AsSpan().CopyTo(span[28..]);
+        });
+#else
+        var sb = Pool.StringBuilder.Get();
+        sb.Append(_myip);
+        sb.Append(ms);
+        sb.Append(id.ToString("x6").PadLeft(6, '0'));
+        sb.Append('e');
+        sb.Append(_pid);
         return sb.Return(true);
+#endif
     }
+
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    /// <summary>把整数以小写十六进制右对齐写入字符区，左侧补零</summary>
+    /// <param name="span">目标字符区</param>
+    /// <param name="value">待写入数值</param>
+    /// <param name="digits">写入位数</param>
+    private static void WriteHex(Span<Char> span, UInt32 value, Int32 digits)
+    {
+        for (var i = digits - 1; i >= 0; i--)
+        {
+            var d = (Int32)(value & 0xF);
+            span[i] = (Char)(d < 10 ? '0' + d : 'a' + d - 10);
+            value >>= 4;
+        }
+    }
+
+    /// <summary>把整数以十进制右对齐写入字符区，左侧补零</summary>
+    /// <param name="span">目标字符区</param>
+    /// <param name="value">待写入数值</param>
+    /// <param name="digits">写入位数</param>
+    private static void WriteDec(Span<Char> span, Int64 value, Int32 digits)
+    {
+        for (var i = digits - 1; i >= 0; i--)
+        {
+            span[i] = (Char)('0' + (Int32)(value % 10));
+            value /= 10;
+        }
+    }
+#endif
 
     /// <summary>完成跟踪</summary>
     protected virtual void Finish()
     {
         if (Interlocked.CompareExchange(ref _finished, 1, 0) != 0) return;
 
-        EndTime = Runtime.UtcNow.ToLong();
+        EndTime = Runtime.UtcNow.ToUnixTimeMilliseconds();
 
         // 从本线程中清除跟踪标识
         Current = _parent;
@@ -234,6 +316,10 @@ public class DefaultSpan : ISpan
     {
         _finished = 1;
         //Builder = null;
+
+        // 抛弃的片段同样要把上下文归还给父级，否则它会一直被 Current 持有，
+        // 同一异步上下文内后续埋点也会挂到这个永远不会上报的父级上
+        Current = _parent;
 
         // 不能还给对象池，因为外部还有引用，Dispose尚未调用
     }
@@ -333,9 +419,22 @@ public class DefaultSpan : ISpan
 public static class SpanExtension
 {
     #region 扩展方法
+#if NET45
+    private static readonly DateTimeOffset _dt1970 = new(new DateTime(1970, 1, 1), TimeSpan.Zero);
+
+    /// <summary>取Unix毫秒时间戳。net45缺少该成员，在此补齐，避免走 UtcNow.ToLong() 的装箱分配</summary>
+    /// <param name="dto">时间</param>
+    /// <returns></returns>
+    internal static Int64 ToUnixTimeMilliseconds(this DateTimeOffset dto) => (Int64)(dto - _dt1970).TotalMilliseconds;
+#endif
+
     private static String? GetAttachParameter(ISpan span)
     {
         var tracer = (span as DefaultSpan)?.Tracer;
+#if NET6_0_OR_GREATER
+        // OpenTelemetry 档的片段不是 DefaultSpan，需单独取跟踪器，否则出站请求不会注入 traceparent，跨进程链路断开
+        tracer ??= (span as OpenTelemetrySpan)?.Tracer;
+#endif
         return tracer?.AttachParameter;
     }
 

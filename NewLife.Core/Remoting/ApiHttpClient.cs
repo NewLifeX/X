@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Http;
@@ -44,14 +45,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         {
             if (LoadBalancer.Mode != value) LoadBalancer = CreateLoadBalancer(value);
         }
-    }
-
-    /// <summary>加权轮询负载均衡。默认false只使用故障转移</summary>
-    [Obsolete("请使用 LoadBalanceMode 属性")]
-    public Boolean RoundRobin
-    {
-        get => LoadBalanceMode == LoadBalanceMode.RoundRobin;
-        set => LoadBalanceMode = value ? LoadBalanceMode.RoundRobin : LoadBalanceMode.Failover;
     }
 
     /// <summary>不可用节点的屏蔽时间。默认60秒</summary>
@@ -243,6 +236,10 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             {
                 if (!ss[i].IsNullOrEmpty()) ParseAndAdd(services, "service" + (i + 1), ss[i]);
             }
+
+            // 替换前释放旧节点缓存的 HttpClient（含连接池），避免节点被换出后资源无人回收
+            foreach (var svc in Services) svc.Client?.Dispose();
+
             Services = services;
             _lastUrls = urls;
         }
@@ -285,51 +282,51 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> GetAsync<TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Get, action, args);
+    public Task<TResult?> GetAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Get, action, args);
 
     /// <summary>同步获取，参数构造在Url</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult? Get<TResult>(String action, Object? args = null) => GetAsync<TResult>(action, args).ConfigureAwait(false).GetAwaiter().GetResult();
+    public TResult? Get<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => GetAsync<TResult>(action, args).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步提交，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> PostAsync<TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Post, action, args);
+    public Task<TResult?> PostAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Post, action, args);
 
     /// <summary>同步提交，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult? Post<TResult>(String action, Object? args = null) => PostAsync<TResult>(action, args).ConfigureAwait(false).GetAwaiter().GetResult();
+    public TResult? Post<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => PostAsync<TResult>(action, args).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步上传，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> PutAsync<TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Put, action, args);
+    public Task<TResult?> PutAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Put, action, args);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
     /// <summary>异步修改，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> PatchAsync<TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Patch, action, args);
+    public Task<TResult?> PatchAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Patch, action, args);
 #else
     /// <summary>异步修改，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> PatchAsync<TResult>(String action, Object? args = null) => InvokeAsync<TResult>(new HttpMethod("Patch"), action, args);
+    public Task<TResult?> PatchAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(new HttpMethod("Patch"), action, args);
 #endif
 
     /// <summary>异步删除，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> DeleteAsync<TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Delete, action, args);
+    public Task<TResult?> DeleteAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Delete, action, args);
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">返回类型</typeparam>
@@ -339,10 +336,11 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="onRequest">请求头回调</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual async Task<TResult?> InvokeAsync<TResult>(HttpMethod method, String action, Object? args = null, Action<HttpRequestMessage>? onRequest = null, CancellationToken cancellationToken = default)
+    public virtual async Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(HttpMethod method, String action, Object? args = null, Action<HttpRequestMessage>? onRequest = null, CancellationToken cancellationToken = default)
     {
         var returnType = typeof(TResult);
         var svrs = Services;
+        if (svrs.Count == 0) throw new InvalidOperationException(L.T("No service address configured!"));
 
         // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
         using var span = Tracer?.NewSpan(action, args);
@@ -353,24 +351,26 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             var request = BuildRequest(method, action, args, returnType);
             onRequest?.Invoke(request);
 
-            var filter = Filter;
             try
             {
-                using var msg = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+                var msg = await SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 var jsonHost = JsonHost ?? ServiceProvider?.GetService<IJsonHost>() ?? JsonHelper.Default;
-                return await ApiHelper.ProcessResponse<TResult>(msg, CodeName, DataName, jsonHost).ConfigureAwait(false);
+                try
+                {
+                    return await ApiHelper.ProcessResponse<TResult>(msg, CodeName, DataName, jsonHost).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // 调用方索取原始响应时所有权移交，不在此销毁；其余结果读取后立即释放，连接及时归还
+                    if (typeof(TResult) != typeof(HttpResponseMessage)) msg.Dispose();
+                }
             }
             catch (Exception ex)
             {
                 span?.AppendTag(ex.Message);
 
                 while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
-                ex.Source = _currentService?.Address + "/" + action;
-
-                var client = _currentService?.Client;
-                if (client != null && filter != null)
-                    await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
 
                 // 网络异常时，自动切换到其它节点
                 if (ex is HttpRequestException or TaskCanceledException && i + 1 < svrs.Count) continue;
@@ -390,7 +390,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public Task<TResult?> InvokeAsync<TResult>(String action, Object? args, CancellationToken cancellationToken = default)
+    public Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args, CancellationToken cancellationToken = default)
     {
         var method = HttpMethod.Post;
 #if NETCOREAPP || NETSTANDARD2_1
@@ -408,7 +408,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult? Invoke<TResult>(String action, Object? args) => InvokeAsync<TResult>(action, args, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+    public TResult? Invoke<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args) => InvokeAsync<TResult>(action, args, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>下载文件到本地并校验哈希（可取消）</summary>
     /// <param name="requestUri">请求资源地址</param>
@@ -419,6 +419,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     public virtual async Task DownloadFileAsync(String requestUri, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
     {
         var svrs = Services;
+        if (svrs.Count == 0) throw new InvalidOperationException(L.T("No service address configured!"));
 
         // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
         var action = requestUri;
@@ -431,7 +432,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             // 建立请求
             var request = BuildRequest(HttpMethod.Get, requestUri, null, null);
 
-            var filter = Filter;
             try
             {
                 using var rs = await SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -451,11 +451,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
                 span?.AppendTag(ex.Message);
 
                 while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
-                ex.Source = _currentService?.Address + "/" + action;
-
-                var client = _currentService?.Client;
-                if (client != null && filter != null)
-                    await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
 
                 // 网络异常时，自动切换到其它节点
                 if (ex is HttpRequestException or TaskCanceledException && i + 1 < svrs.Count) continue;
@@ -488,12 +483,10 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         if (returnType != null)
         {
             // 指定返回类型
-#pragma warning disable CS0618 // 类型或成员已过时
-            if (returnType == typeof(Byte[]) || returnType == typeof(IPacket) || returnType == typeof(Packet))
+            if (returnType == typeof(Byte[]) || returnType == typeof(IPacket))
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
             else
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-#pragma warning restore CS0618 // 类型或成员已过时
         }
 
         //// 压缩
@@ -517,10 +510,10 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <returns></returns>
     protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (Services.Count == 0) throw new InvalidOperationException("Service address not added!");
+        if (Services.Count == 0) throw new InvalidOperationException(L.T("Service address not added!"));
 
         // 获取一个处理当前请求的服务，使用负载均衡器
-        var service = LoadBalancer.GetService(Services) ?? throw new InvalidOperationException("No available service nodes!");
+        var service = LoadBalancer.GetService(Services) ?? throw new InvalidOperationException(L.T("No available service nodes!"));
         Source = service.Name;
         _currentService = service;
 
@@ -545,6 +538,15 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         {
             error = ex;
 
+            // 用本次调用实际使用的服务归因（此处 service 为局部变量，并发请求之间天然互不影响）
+            ex.Source = service.Address + "/" + request.RequestUri;
+
+            // 过滤器拦截也放在这里：拿到的必然是本次调用实际使用的客户端
+            var filter = Filter;
+            var client = service.Client;
+            if (client != null && filter != null)
+                await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
+
             throw;
         }
         finally
@@ -552,7 +554,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             if (st != null)
             {
                 var msCost = st.StopCount(sw) / 1000;
-                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri?.AbsoluteUri}]，耗时{msCost:n0}ms");
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog("Slow call [{0}], elapsed {1:n0} ms", request.RequestUri?.AbsoluteUri, msCost);
             }
 
             // 归还服务
@@ -569,6 +571,11 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <returns></returns>
     protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, ServiceEndpoint service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
     {
+        // 节点自带访问令牌（地址中的 #token=）在发送前按选中节点附加：
+        // 不再写进客户端级共享属性 Token，避免多节点各自带令牌时串门、或首个请求漏带令牌
+        if (request.Headers.Authorization == null && !service.Token.IsNullOrEmpty())
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", service.Token);
+
         var filter = Filter;
         if (filter != null) await filter.OnRequest(client, request, this, cancellationToken).ConfigureAwait(false);
 
@@ -591,14 +598,13 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         var client = service.Client;
         if (client == null)
         {
-            if (service.CreateTime.Year < 2000) Log?.Debug("使用[{0}]：{1}", service.Name, service.Address);
+            if (service.CreateTime.Year < 2000) Log?.Debug("Using [{0}]: {1}", service.Name, service.Address);
 
             // 原子创建，避免并发首次调用时重复创建导致连接池泄漏
             client = service.TryGetClient(() =>
             {
                 var c = CreateClient();
                 c.BaseAddress = service.Address;
-                if (!service.Token.IsNullOrEmpty()) Token = service.Token;
                 return c;
             });
             service.CreateTime = DateTime.Now;

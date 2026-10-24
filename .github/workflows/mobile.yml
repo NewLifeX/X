@@ -1,0 +1,152 @@
+name: mobile
+
+on:
+  push:
+    branches: [ '*' ]
+    paths:
+      - 'Samples/Mobile.Core/**'
+      - 'Samples/Mobile.Console/**'
+      - 'Samples/Mobile.Android/**'
+      - 'Samples/Mobile.iOS/**'
+      - 'NewLife.Core/**'
+      - 'NewLife.Core.SourceGenerator/**'
+      - 'Directory.Build.props'
+      - '.github/workflows/mobile.yml'
+  pull_request:
+    branches: [ '*' ]
+    paths:
+      - 'Samples/Mobile.Core/**'
+      - 'Samples/Mobile.Console/**'
+      - 'Samples/Mobile.Android/**'
+      - 'Samples/Mobile.iOS/**'
+      - 'NewLife.Core/**'
+      - 'NewLife.Core.SourceGenerator/**'
+      - 'Directory.Build.props'
+      - '.github/workflows/mobile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  # PR 上取消被覆盖的旧运行；dev 推送不取消，避免核心提交把尚未完成的 AOT 全量运行顶掉
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # 仅 NewLife.Core/** 变更走 Android JIT 快档；移动端样例、源生成器、全局构型与工作流自身变更走 AOT 全量
+  detect:
+    name: detect scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+    steps:
+      - name: Detect change scope
+        id: scope
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mode=full
+          files=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files="$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --paginate --jq '.[].filename' 2>/dev/null)" || files=""
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            base="${{ github.event.before }}"
+            if [ -n "$base" ] && [ "$base" != "0000000000000000000000000000000000000000" ]; then
+              files="$(gh api "repos/${{ github.repository }}/compare/${base}...${{ github.sha }}" --paginate --jq '.files[].filename' 2>/dev/null)" || files=""
+            fi
+          fi
+          if [ -n "$files" ] && ! printf '%s\n' "$files" | grep -Eq '^(Samples/Mobile\.|Directory\.Build\.props$|\.github/workflows/mobile\.yml$|NewLife\.Core\.SourceGenerator/)'; then
+            mode=fast
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "::notice::change scope: $mode"
+
+  android:
+    name: android emulator
+    needs: detect
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotNET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            Directory.Build.props
+      - name: Install Android workload
+        run: dotnet workload install android || sudo dotnet workload install android
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Android smoke
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: pwsh ./Samples/Mobile.Android/run-android.ps1 -Mode ${{ needs.detect.outputs.mode == 'full' && 'Aot' || 'Jit' }} -Configuration Release -TimeoutSec 120 -Smoke
+      - name: Upload Android artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-android
+          path: |
+            Bin/Mobile.Android/apk/**
+            Bin/Mobile.Android/artifacts/**
+          if-no-files-found: warn
+          retention-days: 7
+
+  ios:
+    name: ios simulator
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache dotNET SDK + iOS workload
+        uses: actions/cache@v4
+        with:
+          # 命中时 setup-dotnet 会识别已安装版本并跳过下载，workload 也直接复用；未命中首次运行会多一次缓存上传
+          path: ~/.dotnet
+          key: dotnet-ios-${{ runner.os }}-${{ runner.arch }}-10.0.402-10.0.400.1
+      - name: Setup dotNET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.402
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            Directory.Build.props
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      - name: Install iOS workload
+        # iOS SDK 版本必须与 Xcode 主次版本严格一致：默认 workload set 的 iOS 27 需要 Xcode 27，
+        # 这里固定到 Xcode 26.6 对应的 workload set（10.0.400.1 → iOS 26.5.10315）。
+        # workload set 版本必须是 4 段（SDK 版本 + workload 补丁），写成 10.400.1 会被解析成其他包而报找不到
+        run: dotnet workload install ios --version 10.0.400.1 || sudo dotnet workload install ios --version 10.0.400.1
+      - name: Run iOS smoke
+        run: bash ./Samples/Mobile.iOS/run-ios.sh
+      - name: Upload iOS artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-ios
+          path: Bin/Mobile.iOS/artifacts/**
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload iOS app on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-ios-app
+          path: Bin/Mobile.iOS/*.app/**
+          if-no-files-found: ignore
+          retention-days: 7

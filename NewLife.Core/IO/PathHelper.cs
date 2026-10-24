@@ -369,11 +369,11 @@ public static class PathHelper
             {
                 var fullPath = Path.GetFullPath(Path.Combine(fullName, item.FullName));
                 if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
-                    throw new IOException("IO_ExtractingResultsInOutside");
+                    throw new IOException(L.T("The archive entry '{0}' would be extracted outside the target directory.", item.FullName));
 
                 if (Path.GetFileName(fullPath).Length == 0)
                 {
-                    if (item.Length != 0L) throw new IOException("IO_DirectoryNameWithData");
+                    if (item.Length != 0L) throw new IOException(L.T("The archive entry '{0}' is a directory but has non-zero length.", item.FullName));
 
                     Directory.CreateDirectory(fullPath);
                 }
@@ -572,7 +572,7 @@ public static class PathHelper
             // 跳过当前目录
             if (item.GetFullPath().EqualIgnoreCase(cur)) continue;
 
-            Console.WriteLine("复制 {0} => {1}", item, cur);
+            Console.WriteLine(L.T("Copy {0} => {1}", item, cur));
 
             try
             {
@@ -677,7 +677,7 @@ public static class PathHelper
                 128 => "sha512",
                 _ => null,
             };
-            if (alg.IsNullOrEmpty()) throw new NotSupportedException("Please specify a hash algorithm prefix.");
+            if (alg.IsNullOrEmpty()) throw new NotSupportedException(L.T("Please specify a hash algorithm prefix."));
         }
 
         var span = DefaultSpan.Current;
@@ -733,7 +733,7 @@ public static class PathHelper
 
         // 未能识别算法，认为验证失败
         //return false;
-        throw new NotSupportedException("Only hash algorithms md5/crc/sha1/sha256/sha512 are supported.");
+        throw new NotSupportedException(L.T("Only hash algorithms md5/crc/sha1/sha256/sha512 are supported."));
     }
     #endregion
 }

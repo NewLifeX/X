@@ -1,6 +1,6 @@
 ﻿namespace System.Threading;
 
-#if NETFRAMEWORK || NETSTANDARD || NETCOREAPP3_1 || NET5_0 || NET6_0 || NET7_0
+#if NETFRAMEWORK || NETSTANDARD || NET6_0
 /// <summary>表示可以更改其到期时间和时间段的计时器。</summary>
 public interface ITimer : IDisposable
 {

@@ -70,8 +70,12 @@ public abstract class LoadBalancerBase : ILoadBalancer
     /// <param name="error">异常信息，null表示成功</param>
     public virtual void PutService(IList<ServiceEndpoint> services, ServiceEndpoint service, Exception? error)
     {
-        // 每过一段时间，清空客户端，让它重建连接，更新域名缓存
-        if (service.CreateTime.AddMinutes(10) < DateTime.Now) service.Client = null;
+        // 每过一段时间，重建客户端，让它更新域名缓存。与 ServiceEndpoint.MarkFailure/Reset 同口径先释放，避免连接池资源泄漏
+        if (service.CreateTime.AddMinutes(10) < DateTime.Now)
+        {
+            service.Client?.Dispose();
+            service.Client = null;
+        }
 
         //var ex = error;
         //while (ex is AggregateException age) ex = age.InnerException;
@@ -81,7 +85,7 @@ public abstract class LoadBalancerBase : ILoadBalancer
         {
             service.MarkFailure(ShieldingTime);
 
-            Log?.Debug("服务节点[{0}]发生错误，屏蔽{1}秒", service.Name, ShieldingTime);
+            Log?.Debug("Service node [{0}] failed; shielding it for {1} seconds.", service.Name, ShieldingTime);
         }
     }
 
@@ -96,7 +100,7 @@ public abstract class LoadBalancerBase : ILoadBalancer
             {
                 item.Reset();
             }
-            Log?.Debug("所有服务节点已屏蔽，重置全部节点");
+            Log?.Debug("All service nodes are shielded; resetting all nodes.");
         }
     }
     #endregion

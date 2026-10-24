@@ -37,7 +37,7 @@ public interface ISocketRemote : ISocket, IExtend
     /// <summary>发送数据包</summary>
     /// <param name="data">要发送的数据包</param>
     /// <returns>实际发送的字节数，失败时返回负数</returns>
-    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定</remarks>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（短计数自动续发）；数据报（UDP）：整包原子送出</remarks>
     Int32 Send(IPacket data);
 
     /// <summary>发送字节数组</summary>
@@ -45,13 +45,13 @@ public interface ISocketRemote : ISocket, IExtend
     /// <param name="offset">数据起始偏移量</param>
     /// <param name="count">发送字节数，-1表示发送从偏移量开始的所有数据</param>
     /// <returns>实际发送的字节数，失败时返回负数</returns>
-    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定</remarks>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（短计数自动续发）；数据报（UDP）：整包原子送出</remarks>
     Int32 Send(Byte[] data, Int32 offset = 0, Int32 count = -1);
 
     /// <summary>发送数组段</summary>
     /// <param name="data">数组段</param>
     /// <returns>实际发送的字节数，失败时返回负数</returns>
-    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定</remarks>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定。流式协议（TCP）：返回时整包已提交（短计数自动续发）；数据报（UDP）：整包原子送出</remarks>
     Int32 Send(ArraySegment<Byte> data);
 
     /// <summary>发送只读内存段</summary>
@@ -59,25 +59,27 @@ public interface ISocketRemote : ISocket, IExtend
     /// <returns>实际发送的字节数，失败时返回负数</returns>
     /// <remarks>
     /// <para>目标地址由 <see cref="Remote"/> 属性决定。</para>
+    /// <para>流式协议（TCP）：返回时整包已提交（短计数自动续发）；数据报（UDP）：整包原子送出。</para>
     /// <para>高性能API，避免不必要的内存拷贝，适用于.NET Core/.NET 5+环境。</para>
     /// </remarks>
     Int32 Send(ReadOnlySpan<Byte> data);
     #endregion
 
     #region 数据接收
-    /// <summary>同步接收数据包</summary>
+    /// <summary>同步接收数据包。拉取模式接口</summary>
     /// <returns>接收到的数据包，无数据时返回null</returns>
     /// <remarks>
     /// <para>该方法会阻塞当前线程直到有数据到达或连接关闭。</para>
+    /// <para>事件模式下（接收环运行）将抛出异常；拉取模式请在打开前设置 <see cref="SessionBase.AutoReceive"/> = false。</para>
     /// <para>返回的数据包需要在使用完毕后正确释放，避免内存泄漏。</para>
     /// </remarks>
     IOwnerPacket? Receive();
 
-    /// <summary>异步接收数据包</summary>
+    /// <summary>异步接收数据包。拉取模式接口，不阻塞调用线程</summary>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>接收到的数据包，无数据时返回null</returns>
     /// <remarks>
-    /// <para>推荐的异步接收方式，不会阻塞调用线程。</para>
+    /// <para>推荐的异步拉取方式。事件模式下（接收环运行）将抛出异常；拉取模式请在打开前设置 <see cref="SessionBase.AutoReceive"/> = false。</para>
     /// <para>返回的数据包需要在使用完毕后正确释放，避免内存泄漏。</para>
     /// </remarks>
     Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default);
@@ -97,7 +99,7 @@ public interface ISocketRemote : ISocket, IExtend
     /// <returns>响应消息对象</returns>
     /// <remarks>
     /// <para>高级消息通信API，支持请求-响应模式和超时控制。</para>
-    /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送，响应经解码后返回。</para>
+    /// <para>协议模式下经协议（<see cref="SessionBase.Protocol"/>）构建整帧发送，响应经配对交付。</para>
     /// </remarks>
     ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default);
 
@@ -106,7 +108,7 @@ public interface ISocketRemote : ISocket, IExtend
     /// <returns>实际发送的字节数，失败时返回负数</returns>
     /// <remarks>
     /// <para>单向消息发送，适用于通知、推送等场景。</para>
-    /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送。</para>
+    /// <para>协议模式下经协议构建整帧发送。</para>
     /// </remarks>
     Int32 SendMessage(Object message);
 
@@ -131,34 +133,34 @@ public static class SocketRemoteHelper
     /// <summary>发送数据流</summary>
     /// <param name="session">Socket会话</param>
     /// <param name="stream">数据流</param>
-    /// <param name="bufferSize"></param>
+    /// <param name="bufferSize">读取块大小。基准实测 64KB 分块吞吐约为 8KB 的 2 倍以上，默认已调优</param>
     /// <returns>实际发送的字节数</returns>
     /// <remarks>
-    /// <para>以8KB缓冲区分块读取并发送流数据，适用于大文件传输。</para>
+    /// <para>以 64KB 缓冲区分块读取并发送流数据，适用于大文件传输。</para>
     /// <para>发送过程中如果出现错误会立即停止并返回已发送的字节数。</para>
     /// </remarks>
-    public static Int32 Send(this ISocketRemote session, Stream stream, Int32 bufferSize = 8192)
+    public static Int32 Send(this ISocketRemote session, Stream stream, Int32 bufferSize = 64 * 1024)
     {
         var totalSent = 0;
-        var buffer = Pool.Shared.Rent(bufferSize);
+        using var buffer = Pool.Rent(bufferSize);
 
-        try
+        while (true)
         {
-            while (true)
+            var bytesRead = stream.Read(buffer, 0, buffer.Length);
+            if (bytesRead <= 0) break;
+
+            // 不能把“短读”当作流结束：网络流/压缩流随时可能返回部分数据，提前退出会截断
+            // 逐段发送：Send 可能只发出部分数据（TCP 窗口受限），剩余部分必须续发
+            var offset = 0;
+            while (offset < bytesRead)
             {
-                var bytesRead = stream.Read(buffer, 0, buffer.Length);
-                if (bytesRead <= 0) break;
+                var sent = session.Send(buffer, offset, bytesRead - offset);
+                if (sent <= 0) return totalSent + offset;
 
-                var sent = session.Send(buffer, 0, bytesRead);
-                if (sent < 0) break;
-
-                totalSent += sent;
-                if (bytesRead < buffer.Length) break;
+                offset += sent;
             }
-        }
-        finally
-        {
-            Pool.Shared.Return(buffer);
+
+            totalSent += bytesRead;
         }
 
         return totalSent;
@@ -191,87 +193,6 @@ public static class SocketRemoteHelper
         if (packet == null || packet.Length == 0) return String.Empty;
 
         return packet.ToStr(encoding ?? Encoding.UTF8);
-    }
-    #endregion
-
-    #region 管道处理器扩展
-    /// <summary>添加类型化处理器</summary>
-    /// <typeparam name="THandler">处理器类型</typeparam>
-    /// <param name="session">Socket会话</param>
-    /// <remarks>处理器必须有无参构造函数</remarks>
-    public static void Add<THandler>(this ISocket session) where THandler : IPipelineHandler, new() => GetPipeline(session).Add(new THandler());
-
-    /// <summary>添加处理器实例</summary>
-    /// <param name="session">Socket会话</param>
-    /// <param name="handler">处理器实例</param>
-    public static void Add(this ISocket session, IPipelineHandler handler) => GetPipeline(session).Add(handler);
-
-#pragma warning disable CS0618 // 类型或成员已过时
-    /// <summary>添加处理器实例</summary>
-    /// <param name="session">Socket会话</param>
-    /// <param name="handler">处理器实例</param>
-    [Obsolete("=>IPipelineHandler")]
-    public static void Add(this ISocket session, IHandler handler) => GetPipeline(session).Add(handler);
-#pragma warning restore CS0618 // 类型或成员已过时
-
-    /// <summary>获取或创建消息管道</summary>
-    private static IPipeline GetPipeline(ISocket session) => session.Pipeline ??= new Pipeline();
-    #endregion
-
-    #region 高级消息传输
-    /// <summary>分块发送数据流为多个消息包</summary>
-    /// <param name="session">Socket会话</param>
-    /// <param name="stream">数据流</param>
-    /// <returns>发送的消息包数量</returns>
-    /// <remarks>
-    /// <para>将大数据流切分为多个消息包发送，接收方可按顺序重组。</para>
-    /// <para>每个消息包会添加标准4字节消息头，由StandardCodec处理器负责编解码。</para>
-    /// </remarks>
-    public static Int32 SendMessages(this ISocketRemote session, Stream stream)
-    {
-        var messageCount = 0;
-        var bufferSize = SocketSetting.Current.BufferSize;
-        var buffer = Pool.Shared.Rent(bufferSize);
-
-        try
-        {
-            while (true)
-            {
-                // 预留4字节消息头空间
-                var bytesRead = stream.Read(buffer, 4, bufferSize - 4);
-                if (bytesRead <= 0) break;
-
-                // StandardCodec将在头部添加4字节长度信息
-                var packet = new ArrayPacket(buffer, 4, bytesRead);
-                session.SendMessage(packet);
-                messageCount++;
-            }
-        }
-        finally
-        {
-            Pool.Shared.Return(buffer);
-        }
-
-        return messageCount;
-    }
-
-    /// <summary>以消息包形式发送文件</summary>
-    /// <param name="session">Socket会话</param>
-    /// <param name="filePath">文件路径</param>
-    /// <param name="compressed">是否启用压缩</param>
-    /// <returns>发送的消息包数量</returns>
-    /// <remarks>
-    /// <para>自动处理文件读取和分块传输，支持可选的压缩功能。</para>
-    /// <para>接收方需要按相同顺序重组消息包以还原完整文件。</para>
-    /// </remarks>
-    public static Int32 SendFile(this ISocketRemote session, String filePath, Boolean compressed = false)
-    {
-        var messageCount = 0;
-        filePath.AsFile().OpenRead(compressed, stream =>
-        {
-            messageCount = session.SendMessages(stream);
-        });
-        return messageCount;
     }
     #endregion
 }

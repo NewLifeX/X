@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using NewLife;
@@ -17,6 +18,13 @@ public class ProcessHelperTests
         var p = Process.GetCurrentProcess();
 
         var raw = ProcessHelper.GetCommandLine(p.Id);
+        if (raw == null && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            // macOS 无 /proc 等价实现，产品读不到其它进程的命令行，环境缺失时跳过并留痕
+            XTrace.WriteLine("macOS 未提供进程命令行，跳过断言");
+
+            return;
+        }
         Assert.NotNull(raw);
         Assert.Contains(p.ProcessName, raw!, System.StringComparison.OrdinalIgnoreCase);
 
@@ -298,6 +306,8 @@ public class ProcessHelperTests
         Process? p;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             p = Process.Start(new ProcessStartInfo("cmd", "/c exit 0") { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden });
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            p = Process.Start("/usr/bin/true");   // macOS 无 /bin/true
         else
             p = Process.Start("/bin/true");
 
@@ -316,13 +326,186 @@ public class ProcessHelperTests
     [Fact]
     public void Execute_ReturnError()
     {
+        // 等待时间放宽到 30 秒：满载并行跑测时进程创建与退出本身可能停滞数秒（实测 5 秒偶发超时返回 null）。
+        // 本用例验证的是 returnError 语义，超时值不是被测对象
         String? rs;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            rs = "cmd".Execute("/c echo err_out 1>&2", 5_000, true);
+            rs = "cmd".Execute("/c echo err_out 1>&2", 30_000, true);
         else
-            rs = "sh".Execute("-c \"echo err_out 1>&2\"", 5_000, true);
+            rs = "sh".Execute("-c \"echo err_out 1>&2\"", 30_000, true);
 
         Assert.NotNull(rs);
         Assert.Contains("err_out", rs);
     }
+
+    #region 进程管控（ForceKill/SafetyKill/ShellExecute/RunNew）
+
+    /// <summary>启动长命子进程。Windows 用 cmd+ping 回环（不访问外部网络），Unix 用 sleep</summary>
+    private static Process StartLongProcess()
+    {
+        ProcessStartInfo psi;
+        if (Runtime.Windows)
+            psi = new ProcessStartInfo("cmd", "/c ping -n 30 127.0.0.1 >nul") { CreateNoWindow = true, UseShellExecute = false, WindowStyle = ProcessWindowStyle.Hidden };
+        else
+            psi = new ProcessStartInfo("sleep", "30") { CreateNoWindow = true, UseShellExecute = false };
+
+        var p = Process.Start(psi);
+        Assert.NotNull(p);
+
+        // 等待子进程真正启动并进入运行状态
+        Thread.Sleep(200);
+        Assert.False(p!.GetHasExited());
+
+        return p;
+    }
+
+    [Fact]
+    [DisplayName("ForceKill_长命子进程_立即终止且重复调用不抛")]
+    public void ForceKill_LongRunning()
+    {
+        var p = StartLongProcess();
+        try
+        {
+            var rs = p.ForceKill();
+            Assert.Same(p, rs);
+            Assert.True(p.WaitForExit(15_000), "ForceKill 后 15 秒内子进程未退出");
+
+            // 已退出进程再次强杀：幂等，不抛异常
+            var again = p.ForceKill();
+            Assert.Same(p, again);
+            Assert.True(p.GetHasExited());
+        }
+        finally
+        {
+            try { p.ForceKill(); } catch { }
+            p.Dispose();
+        }
+    }
+
+    [Fact]
+    [DisplayName("SafetyKill_长命子进程_按平台语义渐进终止")]
+    public void SafetyKill_LongRunning()
+    {
+        var p = StartLongProcess();
+        try
+        {
+            var rs = p.SafetyKill(2_000, 20, 100);
+            Assert.Same(p, rs);
+
+            if (Runtime.Linux)
+            {
+                // Linux：kill 发送 SIGTERM，sleep 会立即退出
+                Assert.True(p.WaitForExit(15_000), "SafetyKill 后 15 秒内子进程未退出");
+            }
+            else if (Runtime.Windows)
+            {
+                // Windows：taskkill 不带 /f，对 CreateNoWindow 启动的无窗口控制台子进程实测无法终止（taskkill 退出码 1），
+                // 实现本身不保证退出，故只断言返回同一进程且不抛异常，由 finally 的 ForceKill 兜底清理
+                XTrace.WriteLine("Windows 下 SafetyKill 不保证终止无窗口控制台子进程，跳过退出断言");
+            }
+            else
+            {
+                // macOS 等平台无信号分支，SafetyKill 为空操作
+                XTrace.WriteLine("当前平台无 SafetyKill 信号实现，跳过退出断言");
+            }
+        }
+        finally
+        {
+            try { p.ForceKill(); } catch { }
+            p.Dispose();
+        }
+    }
+
+    [Fact]
+    [DisplayName("SafetyKill_ForceKill_已退出进程_返回自身且不抛")]
+    public void Kill_ExitedProcess_Idempotent()
+    {
+        Process? p = null;
+        try
+        {
+            if (Runtime.Windows)
+                p = Process.Start(new ProcessStartInfo("cmd", "/c exit 0") { CreateNoWindow = true, UseShellExecute = false });
+            else if (Runtime.OSX)
+                p = Process.Start("/usr/bin/true");
+            else
+                p = Process.Start("/bin/true");
+
+            Assert.NotNull(p);
+            Assert.True(p!.WaitForExit(15_000));
+            Assert.True(p.GetHasExited());
+
+            Assert.Same(p, p.SafetyKill());
+            Assert.Same(p, p.ForceKill());
+            Assert.True(p.GetHasExited());
+        }
+        finally
+        {
+            try { p?.ForceKill(); } catch { }
+            p?.Dispose();
+        }
+    }
+
+    [Fact]
+    [DisplayName("ShellExecute_短命令_返回已启动进程并退出")]
+    public void ShellExecute_ShortCommand()
+    {
+        Process? p = null;
+        try
+        {
+            if (Runtime.Windows)
+                p = "cmd".ShellExecute("/c exit 0");
+            else
+                p = "sh".ShellExecute("-c \"exit 0\"");
+
+            Assert.NotNull(p);
+            Assert.True(p!.WaitForExit(15_000), "ShellExecute 启动的进程未在 15 秒内退出");
+        }
+        finally
+        {
+            try { p?.ForceKill(); } catch { }
+            p?.Dispose();
+        }
+    }
+
+    [Fact]
+    [DisplayName("RunNew_短命令_捕获输出与退出码")]
+    public void RunNew_CaptureOutputAndExitCode()
+    {
+        var lines = new ConcurrentQueue<String?>();
+        var code = Runtime.Windows
+            ? "cmd".RunNew("/c echo hello_runnew", 15_000, line => lines.Enqueue(line))
+            : "sh".RunNew("-c \"echo hello_runnew\"", 15_000, line => lines.Enqueue(line));
+
+        Assert.Equal(0, code);
+
+        // RunNew 采用异步输出事件，返回时事件可能尚未派发完毕，短暂等待后断言
+        var end = Runtime.TickCount64 + 5_000;
+        while (lines.IsEmpty && Runtime.TickCount64 < end) Thread.Sleep(50);
+
+        Assert.Contains(lines, e => e != null && e.Contains("hello_runnew"));
+    }
+
+    [Fact]
+    [DisplayName("RunNew_非零退出码_原样返回")]
+    public void RunNew_NonZeroExitCode()
+    {
+        var code = Runtime.Windows
+            ? "cmd".RunNew("/c exit 3", 15_000)
+            : "sh".RunNew("-c \"exit 3\"", 15_000);
+
+        Assert.Equal(3, code);
+    }
+
+    [Fact]
+    [DisplayName("RunNew_不等待_返回负一")]
+    public void RunNew_NoWait()
+    {
+        var code = Runtime.Windows
+            ? "cmd".RunNew("/c exit 0", 0)
+            : "sh".RunNew("-c \"exit 0\"", 0);
+
+        Assert.Equal(-1, code);
+    }
+
+    #endregion
 }

@@ -127,6 +127,11 @@ public static class SerialHelper
 
         return map;
     }
+
+    /// <summary>获取类型的 JSON 属性名到 PropertyInfo 的映射字典（默认序列化选项）</summary>
+    /// <param name="type">目标类型</param>
+    /// <returns>属性映射字典</returns>
+    public static Dictionary<String, PropertyInfo> GetJsonPropertyMap(Type type) => GetJsonPropertyMap(type, null);
 #else
     /// <summary>获取类型的 JSON 属性名到 PropertyInfo 的映射字典，用于序列化/反序列化时 O(1) 查找</summary>
     /// <param name="type">目标类型</param>

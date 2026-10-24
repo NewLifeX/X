@@ -60,7 +60,7 @@ public class PacketConcurrencyBenchmark
             for (var i = 0; i < OperationsPerThread; i++)
             {
                 using var pk = new OwnerPacket(_data, 0, _data.Length, false);
-                _ = pk.Slice(256, 512, false);
+                _ = pk.Slice(256, 512);
             }
         });
     }

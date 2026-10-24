@@ -229,7 +229,7 @@ public class Asn1
         else if (len == 0x84)
             len = (Int32)reader.ReadBytes(4).ToUInt32(0, false);
         else if (len == 0x80)
-            throw new NotSupportedException("不支持BER不定长编码（0x80）");
+            throw new NotSupportedException(L.T("Indefinite-length BER encoding (0x80) is not supported."));
 
         return len;
     }

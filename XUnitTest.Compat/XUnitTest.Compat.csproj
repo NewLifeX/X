@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net462;net8.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <OutputPath>..\Bin\UnitTestCompat</OutputPath>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- CompatLib 为子目录工程，其源码与 obj 产物由 ProjectReference 提供，需从本工程通配中排除 -->
+    <Compile Remove="CompatLib\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- net462 下 xunit 默认在独立 AppDomain 中执行并卸载；
+         本库首次写日志会初始化 XTrace/TextFileLog（静态缓存 + TimerX），令该 AppDomain 卸载挂起。
+         禁用独立 AppDomain，改在默认域内执行，避免测试进程跑完不退出 -->
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
+    <ProjectReference Include="CompatLib\CompatLib.csproj" />
+  </ItemGroup>
+</Project>

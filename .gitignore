@@ -24,4 +24,13 @@ bld/
 [Cc]onfig/
 [Ll]og/
 !XUnitTest.Core/Log/
+!NewLife.Core/Log/
 BenchmarkDotNet.Artifacts/
+/XUnitTest.Core/TestResults
+/TestResults
+/Benchmark/NetLoadTest/results
+/*-wt/
+/.wt-*/
+
+# 审计/分析类临时产物（仅本地保留，不入库）
+/.tmp/

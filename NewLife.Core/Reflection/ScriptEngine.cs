@@ -1,4 +1,4 @@
-﻿#if __WIN__
+#if WINDOWS || NETFRAMEWORK
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
@@ -53,6 +53,8 @@ namespace NewLife.Reflection;
 /// Console.WriteLine("2*3={0}", n);
 /// </code>
 /// </example>
+[RequiresDynamicCode("脚本引擎依赖运行时代码编译，NativeAOT 下不可用")]
+[RequiresUnreferencedCode("脚本引擎依赖动态程序集加载与运行时成员查找，裁剪后不可用")]
 public class ScriptEngine
 {
     #region 属性
@@ -118,6 +120,9 @@ public class ScriptEngine
     public static ScriptEngine Create(String code, Boolean isExpression = true)
     {
         if (String.IsNullOrEmpty(code)) throw new ArgumentNullException(nameof(code));
+
+        // NativeAOT 等环境明确报错，避免后续晦涩的编译/加载失败
+        DynamicCodeHelper.ThrowIfNotSupported("NativeAOT/trimmed environments do not support the script engine. Use static registration or an alternative implementation.");
 
         var key = code + isExpression;
         return _cache.GetOrAdd(key, k => new ScriptEngine(code, isExpression));
@@ -316,7 +321,7 @@ public class ScriptEngine
                         //Assembly.LoadFrom(item);
                         // 先加载到内存，再加载程序集，避免文件被锁定
                         Assembly.Load(File.ReadAllBytes(item));
-                        WriteLog("加载外部程序集：{0}", item);
+                        WriteLog("Loading external assembly: {0}", item);
                     }
                     catch { }
                 }
@@ -362,6 +367,7 @@ public class ScriptEngine
     /// <param name="classCode"></param>
     /// <param name="options"></param>
     /// <returns></returns>
+    [UnconditionalSuppressMessage("SingleFile", "IL3000", Justification = "脚本引擎依赖动态编译；收集引用程序集路径时单文件下 Location 为空已被容错跳过，不属于 AOT 主链")]
     public CompilerResults Compile(String classCode, CompilerParameters? options)
     {
         options ??= new CompilerParameters
@@ -444,7 +450,7 @@ public class ScriptEngine
     public Object? Invoke(params Object?[] parameters)
     {
         if (Method == null) Compile();
-        if (Method == null) throw new XException("脚本引擎未编译表达式！");
+        if (Method == null) throw new XException("The script engine has not compiled the expression.");
         // Main函数可能含有参数string[] args
         if (parameters == null || parameters.Length == 0)
         {

@@ -1,3 +1,4 @@
+using System.Reflection;
 using NewLife;
 using NewLife.Compression;
 using NewLife.Log;
@@ -40,9 +41,24 @@ public class SevenZipTests
         File.WriteAllText(Path.Combine(subDir, "file3.txt"), "子目录中的测试文件");
     }
 
+    /// <summary>7z.exe 缺失时跳过当前用例（CI runner 未必安装 7-Zip），不误判为失败</summary>
+    /// <returns>工具是否可用</returns>
+    private static Boolean EnsureSevenZip()
+    {
+        var field = typeof(SevenZip).GetField("_7z", BindingFlags.NonPublic | BindingFlags.Static);
+        var path = field?.GetValue(null) as String;
+        if (!path.IsNullOrEmpty()) return true;
+
+        XTrace.WriteLine("未找到 7z.exe，跳过当前 SevenZip 用例");
+
+        return false;
+    }
+
     [Fact(DisplayName = "压缩文件到7z")]
     public void CompressTo7z()
     {
+        if (!EnsureSevenZip()) return;
+
         if (File.Exists(_archiveFile)) File.Delete(_archiveFile);
 
         var sevenZip = new SevenZip();
@@ -55,6 +71,8 @@ public class SevenZipTests
     [Fact(DisplayName = "解压7z文件")]
     public void Extract7z()
     {
+        if (!EnsureSevenZip()) return;
+
         // 先确保有压缩文件
         if (!File.Exists(_archiveFile))
         {
@@ -82,6 +100,8 @@ public class SevenZipTests
     [Fact(DisplayName = "压缩解压往返验证")]
     public void CompressExtractRoundTrip()
     {
+        if (!EnsureSevenZip()) return;
+
         if (File.Exists(_archiveFile)) File.Delete(_archiveFile);
         if (Directory.Exists(_outputDir)) Directory.Delete(_outputDir, true);
         Directory.CreateDirectory(_outputDir);
@@ -105,6 +125,8 @@ public class SevenZipTests
     [Fact(DisplayName = "覆盖模式解压")]
     public void ExtractWithOverwrite()
     {
+        if (!EnsureSevenZip()) return;
+
         if (File.Exists(_archiveFile)) File.Delete(_archiveFile);
 
         var sevenZip = new SevenZip();

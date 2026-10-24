@@ -1,5 +1,6 @@
 ﻿using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 
 namespace NewLife.Http;
 
@@ -12,18 +13,21 @@ public class WebSocketHandler : IHttpHandler
 {
     /// <summary>处理请求。若为 WebSocket 升级请求则绑定消息处理委托。</summary>
     /// <param name="context">Http 上下文</param>
-    public virtual void ProcessRequest(IHttpContext context)
+    /// <returns>处理任务</returns>
+    public virtual Task ProcessRequestAsync(IHttpContext context)
     {
         var ws = context.WebSocket;
-        ws?.Handler = ProcessMessage;
+        ws?.MessageHandler = ProcessMessage;
 
-        WriteLog(context, "WebSocket连接 {0}", context.Connection?.Remote);
+        WriteLog(context, "WebSocket connected {0}", context.Connection?.Remote);
+
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>处理消息。可在子类中重写。</summary>
     /// <param name="socket">WebSocket 会话</param>
     /// <param name="message">消息</param>
-    public virtual void ProcessMessage(WebSocket socket, WebSocketMessage message)
+    public virtual void ProcessMessage(WebSocket socket, WsMessage message)
     {
         var remote = (socket.Context?.Connection?.Remote) ?? throw new ObjectDisposedException(nameof(socket.Context));
 
@@ -33,22 +37,22 @@ public class WebSocketHandler : IHttpHandler
         {
             case WebSocketMessageType.Text:
                 var msg = payload?.ToStr();
-                WriteLog(socket.Context, "WebSocket收到[{0}] {1}", remote, msg);
-                // 群发所有客户端
-                socket.SendAll($"[{remote}]说，{msg}");
+                WriteLog(socket.Context, "WebSocket received [{0}] {1}", remote, msg);
+                // 群发所有客户端。处理器为同步委托无法等待，弃置任务即可（群发内部已隔离各会话异常）
+                _ = socket.SendAllAsync($"[{remote}] says: {msg}");
                 break;
             case WebSocketMessageType.Binary:
-                WriteLog(socket.Context, "WebSocket收到[{0}] {1} bytes", remote, payload?.Total ?? 0);
+                WriteLog(socket.Context, "WebSocket received [{0}] {1} bytes", remote, payload?.Total ?? 0);
                 break;
             case WebSocketMessageType.Close:
-                WriteLog(socket.Context, "WebSocket关闭[{0}] [{1}] {2}", remote, message.CloseStatus, message.StatusDescription);
+                WriteLog(socket.Context, "WebSocket closed [{0}] [{1}] {2}", remote, message.CloseStatus, message.StatusDescription);
                 break;
             case WebSocketMessageType.Ping:
             case WebSocketMessageType.Pong:
-                WriteLog(socket.Context, "WebSocket心跳[{0}] {1}", message.Type, payload?.ToStr());
+                WriteLog(socket.Context, "WebSocket heartbeat [{0}] {1}", message.Type, payload?.ToStr());
                 break;
             default:
-                WriteLog(socket.Context, "WebSocket收到[{0}] {1} bytes", message.Type, payload?.Total ?? 0);
+                WriteLog(socket.Context, "WebSocket received [{0}] {1} bytes", message.Type, payload?.Total ?? 0);
                 break;
         }
     }

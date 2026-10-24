@@ -1,16 +1,18 @@
-﻿using System.Net;
+using System.ComponentModel;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Net.Handlers;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Net;
 
 /// <summary>网络异步操作测试</summary>
+[Collection("Net.A")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class NetAsyncTests
 {
@@ -47,7 +49,7 @@ public class NetAsyncTests
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
         client.Log = XTrace.Log;
-        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        if (client is TcpSession tcp) tcp.AutoReceive = false;
         client.Open();
 
         // 发送数据
@@ -83,8 +85,10 @@ public class NetAsyncTests
 
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Timeout = 1000; // 1秒超时
+        // 建连/接收超时预算放宽：本用例的"超时"由 500ms 取消令牌驱动，1 秒预算在满载并行下会让建连偶发失败
+        client.Timeout = 5_000;
         client.Log = XTrace.Log;
+        if (client is TcpSession tcp2) tcp2.AutoReceive = false;
         client.Open();
 
         // 发送数据
@@ -114,13 +118,15 @@ public class NetAsyncTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
-        server.Received += (s, e) =>
+        server.Protocol = new SrmpCodec();
+        server.Received += async (s, e) =>
         {
-            if (s is INetSession session && e.Packet != null)
+            if (s is INetSession session && e.Message is DefaultMessage m)
             {
-                // 回复消息
-                session.SendReply(e.Packet, e);
+                // 回复消息：回显消息体
+                var reply = m.CreateReply();
+                if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                session.SendMessage(reply);
             }
         };
 
@@ -128,13 +134,14 @@ public class NetAsyncTests
 
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Log = XTrace.Log;
         client.Open();
 
         // 发送消息并等待响应
-        var sendData = new ArrayPacket("Test Message"u8.ToArray());
-        var response = await client.SendMessageAsync(sendData);
+        var request = new DefaultMessage();
+        request.SetBody(new ArrayPacket("Test Message"u8.ToArray()));
+        var response = await client.SendMessageAsync(request);
 
         Assert.NotNull(response);
 
@@ -152,7 +159,7 @@ public class NetAsyncTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
+        server.Protocol = new SrmpCodec();
         // 服务端不回复，让客户端超时
         server.Received += (s, e) => { };
 
@@ -160,19 +167,20 @@ public class NetAsyncTests
 
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Log = XTrace.Log;
         client.Open();
 
         try
         {
             // 发送消息，但很快取消
-            var sendData = new ArrayPacket("Cancel Test"u8.ToArray());
+            var request = new DefaultMessage();
+            request.SetBody(new ArrayPacket("Cancel Test"u8.ToArray()));
             using var cts = new CancellationTokenSource(500);
 
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                await client.SendMessageAsync(sendData, cts.Token);
+                await client.SendMessageAsync(request, cts.Token);
             });
         }
         finally
@@ -185,10 +193,11 @@ public class NetAsyncTests
     #region 同步发送测试
     /// <summary>测试SendMessage同步发送</summary>
     [Fact]
+    [DisplayName("同步发送_SendMessage 写出并送达_接收方经 Message 读负载")]
     public void SendMessageSyncTest()
     {
         var messageReceived = new ManualResetEventSlim(false);
-        IPacket? receivedPacket = null;
+        Byte[]? receivedBody = null;
 
         using var server = new NetServer
         {
@@ -197,31 +206,37 @@ public class NetAsyncTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
+        server.Protocol = new SrmpCodec();
         server.Received += (s, e) =>
         {
-            if (e.Packet != null)
-            {
-                receivedPacket = e.Packet;
-                messageReceived.Set();
-            }
+            // 负载读取走 Message，不依赖 Packet：Packet 只是“整帧同窗到达”时的零拷贝快路径视图，
+            // 帧分片到达（发送方多次写出、或网络分段）时消息体是流式体，此时 Packet 为 null。
+            // 交付契约：处理器返回后消息收尾，负载需在本方法内读完（数据未到齐会等待——同连接消息串行）
+            if (e.Message is not DefaultMessage msg) return;
+
+            var all = msg.Body!.ReadAllAsync().AsTask().GetAwaiter().GetResult();
+            receivedBody = all.ToArray();
+            all.TryDispose();
+
+            messageReceived.Set();
         };
 
         server.Start();
 
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Log = XTrace.Log;
         client.Open();
 
         // 同步发送消息
-        var sendData = new ArrayPacket("Sync Message"u8.ToArray());
-        var result = client.SendMessage(sendData);
+        var request = new DefaultMessage();
+        request.SetBody(new ArrayPacket("Sync Message"u8.ToArray()));
+        var result = client.SendMessage(request);
 
         Assert.True(result > 0);
         Assert.True(messageReceived.Wait(3000));
-        Assert.NotNull(receivedPacket);
+        Assert.Equal("Sync Message"u8.ToArray(), receivedBody);
 
         client.Close("Test");
     }
@@ -239,13 +254,15 @@ public class NetAsyncTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
-        server.Received += (s, e) =>
+        server.Protocol = new SrmpCodec();
+        server.Received += async (s, e) =>
         {
-            if (s is INetSession session && e.Packet != null)
+            if (s is INetSession session && e.Message is DefaultMessage m)
             {
                 // 简单Echo
-                session.SendReply(e.Packet, e);
+                var reply = m.CreateReply();
+                if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                session.SendMessage(reply);
             }
         };
 
@@ -253,7 +270,7 @@ public class NetAsyncTests
 
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Log = XTrace.Log;
         client.Open();
 
@@ -261,8 +278,9 @@ public class NetAsyncTests
         for (var i = 0; i < 5; i++)
         {
             var msg = $"Request {i}";
-            var sendData = new ArrayPacket(Encoding.UTF8.GetBytes(msg));
-            var response = await client.SendMessageAsync(sendData);
+            var request = new DefaultMessage();
+            request.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes(msg)));
+            var response = await client.SendMessageAsync(request);
 
             Assert.NotNull(response);
         }
@@ -281,14 +299,15 @@ public class NetAsyncTests
             Log = XTrace.Log,
         };
 
-        server.Add<StandardCodec>();
-        //server.Add(new StandardCodec { UserPacket = false });
-        server.Received += (s, e) =>
+        server.Protocol = new SrmpCodec();
+        server.Received += async (s, e) =>
         {
-            if (s is INetSession session && e.Message is IPacket pk)
+            if (s is INetSession session && e.Message is DefaultMessage m)
             {
-                XTrace.WriteLine("收到：{0}", pk.ToStr());
-                session.SendReply(pk, e);
+                XTrace.WriteLine("收到消息");
+                var reply = m.CreateReply();
+                if (m.Body != null) reply.SetBody(await m.Body.ReadAllAsync());
+                session.SendMessage(reply);
             }
         };
 
@@ -296,7 +315,7 @@ public class NetAsyncTests
 
         var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
         var client = uri.CreateRemote();
-        client.Add<StandardCodec>();
+        ((SessionBase)client).Protocol = new SrmpCodec();
         client.Log = XTrace.Log;
         client.LogSend = true;
         client.LogReceive = true;
@@ -304,13 +323,14 @@ public class NetAsyncTests
         client.Open();
 
         // 并发发送多个请求
-        var tasks = new List<Task<Object>>();
+        var tasks = new List<Task<IMessage?>>();
         for (var i = 0; i < 3; i++)
         {
             var idx = i;
             var msg = $"Concurrent {idx}";
-            var sendData = new ArrayPacket(Encoding.UTF8.GetBytes(msg));
-            tasks.Add(client.SendMessageAsync(sendData).AsTask());
+            var request = new DefaultMessage();
+            request.SetBody(new ArrayPacket(Encoding.UTF8.GetBytes(msg)));
+            tasks.Add(((SessionBase)client).SendMessageAsync(request).AsTask());
         }
 
         var rs = await Task.WhenAll(tasks);

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -210,9 +211,13 @@ public class ObjectContainer : IObjectContainer
     /// <param name="factory">工厂方法</param>
     /// <param name="throwOnError">失败时是否抛出异常</param>
     /// <returns>类型实例</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "容器按运行时类型反射构造实例；AOT 下请使用泛型注册（构造函数保留由泛型入口传递）")]
     internal static Object? CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object>? factory, Boolean throwOnError)
     {
         if (factory != null) return factory(provider);
+
+        // 源生成器预生成的无参构造工厂（NativeAOT 首选路径，避免反射构造与表达式编译）
+        if (ServiceFactoryTable.TryGet(type) is { } generatedFactory) return generatedFactory();
 
         // 初始化默认值字典
         if (_defs == null)
@@ -286,7 +291,7 @@ public class ObjectContainer : IObjectContainer
         }
 
         if (throwOnError)
-            throw new InvalidOperationException($"No suitable constructor was found for '{type}'. Please confirm that all required parameters for the type constructor are registered. Unable to parse parameter '{errorParameter}'");
+            throw new InvalidOperationException(L.T("No suitable constructor was found for '{0}'. Please confirm that all required parameters for the type constructor are registered. Unable to parse parameter '{1}'", type, errorParameter));
 
         return null;
     }

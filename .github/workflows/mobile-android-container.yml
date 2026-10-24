@@ -1,0 +1,97 @@
+name: mobile-android-container
+
+# 手动触发的容器镜像 spike：容器内构建 APK，宿主机跑模拟器冒烟。
+# 不参与 push/PR，验证有收益后再考虑并入 mobile.yml。
+# 判读：对比 mobile.yml 的构建步骤耗时；若“拉镜像 + 容器构建”不比宿主机构建快，删除本工作流与镜像即可。
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 预构建镜像
+        required: false
+        default: ghcr.io/newlifex/x/android-build:latest
+      mode:
+        description: 构建模式
+        required: false
+        default: Aot
+        type: choice
+        options:
+          - Aot
+          - Jit
+
+permissions:
+  contents: read
+  packages: read
+  actions: read
+
+jobs:
+  build:
+    name: container build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Build APK in container
+        run: |
+          IMAGE="${{ inputs.image }}"
+          mkdir -p "$HOME/.nuget/packages"
+          docker pull "$IMAGE"
+          /usr/bin/time -f 'container build elapsed=%e s' \
+            docker run --rm --user "$(id -u):$(id -g)" \
+              -e HOME=/tmp \
+              -e NUGET_PACKAGES=/nuget \
+              -v "$PWD:/work" \
+              -v "$HOME/.nuget/packages:/nuget" \
+              -w /work "$IMAGE" \
+              pwsh -NoProfile -File Samples/Mobile.Android/pack-android.ps1 \
+                -Mode "${{ inputs.mode }}" -Configuration Release -RuntimeIdentifier android-x64
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: Bin/Mobile.Android/apk/*.apk
+          if-no-files-found: error
+          retention-days: 3
+
+  smoke:
+    name: emulator smoke
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: Bin/Mobile.Android/apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Android smoke
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: pwsh ./Samples/Mobile.Android/run-android.ps1 -Mode ${{ inputs.mode }} -Configuration Release -SkipBuild -TimeoutSec 120 -Smoke
+      - name: Upload Android artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-android-container-logs
+          path: Bin/Mobile.Android/artifacts/**
+          if-no-files-found: warn
+          retention-days: 3

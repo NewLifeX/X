@@ -152,6 +152,7 @@ Console.WriteLine($"CPU: {machine.CpuRate:P}");
 - **来源**：主板序列号
 - **特点**：与硬件绑定，更换主板后变化
 - **注意**：部分品牌（如某些白牌机）可能重复
+- **Android**：普通应用读不到硬件序列号，退化为 `android_id`（与 `Guid` 取值相同）；该值按应用签名和用户隔离，恢复出厂设置或更换签名后变化，不能当作永久硬件指纹
 
 ```csharp
 var uuid = machine.UUID;  // 如 "A1B2C3D4-E5F6-..."

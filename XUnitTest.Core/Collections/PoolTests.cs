@@ -30,4 +30,50 @@ public class PoolTests
         var count = pool.Clear();
         Assert.True(count <= pool.Max);
     }
+
+    [Fact(DisplayName = "基本创建与归还复用")]
+    public void Get_Return_Reuse()
+    {
+        var pool = new Pool<PoolTestItem>(8);
+
+        var a = pool.Get();
+        Assert.NotNull(a);
+
+        pool.Return(a);
+        var b = pool.Get();
+        Assert.Same(a, b);
+    }
+
+    [Fact(DisplayName = "子类重写OnCreate优先于默认工厂")]
+    public void OnCreate_Override()
+    {
+        var pool = new CustomPool(8);
+        Assert.Equal(42, pool.Get().Value);
+    }
+
+    [Fact(DisplayName = "无公开无参构造类型_Get抛出而非静默返回null")]
+    public void Get_NoParameterlessCtor_Throws()
+    {
+        var pool = new Pool<NoDefaultCtorItem>(8);
+        Assert.ThrowsAny<Exception>(() => pool.Get());
+    }
+
+    class PoolTestItem
+    {
+        public Int32 Value { get; set; }
+    }
+
+    class CustomPool : Pool<PoolTestItem>
+    {
+        public CustomPool(Int32 max) : base(max) { }
+
+        protected override PoolTestItem? OnCreate() => new() { Value = 42 };
+    }
+
+    class NoDefaultCtorItem
+    {
+        public NoDefaultCtorItem(Int32 value) => Value = value;
+
+        public Int32 Value { get; }
+    }
 }

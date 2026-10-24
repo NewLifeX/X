@@ -12,7 +12,7 @@ NewLife.Core 提供了强大灵活的配置系统，支持 XML、JSON、INI 等�
 - **强类型配置**：继承 `Config<T>` 自动管理配置文件
 - **多格式支持**：XML、JSON、INI、HTTP 等配置提供者
 - **热更新**：配置文件变化时自动重载
-- **注释支持**：XML 格式支持自动生成注释
+- **注释支持**：XML/INI 格式支持自动生成注释；保存时按 `LogCulture ?? Culture` 翻译，默认英文源文
 - **分层配置**：支持多级嵌套配置结构
 - **配置中心**：支持远程配置中心（如星尘）
 
@@ -185,10 +185,10 @@ public class LoggingConfig
 }
 ```
 
-### InIConfigProvider
+### IniConfigProvider
 
 ```csharp
-[Config("settings", Provider = typeof(InIConfigProvider))]
+[Config("settings", Provider = typeof(IniConfigProvider))]
 public class IniConfig : Config<IniConfig>
 {
     public String Server { get; set; }

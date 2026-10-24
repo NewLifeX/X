@@ -1,4 +1,6 @@
-﻿namespace NewLife.Remoting;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace NewLife.Remoting;
 
 /// <summary>应用接口客户端接口</summary>
 public interface IApiClient
@@ -10,7 +12,7 @@ public interface IApiClient
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    TResult? Invoke<TResult>(String action, Object? args = null);
+    TResult? Invoke<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null);
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult"></typeparam>
@@ -18,5 +20,5 @@ public interface IApiClient
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task<TResult?> InvokeAsync<TResult>(String action, Object? args = null, CancellationToken cancellationToken = default);
+    Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null, CancellationToken cancellationToken = default);
 }

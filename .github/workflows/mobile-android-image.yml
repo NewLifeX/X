@@ -1,0 +1,34 @@
+name: mobile-android-image
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 镜像标签
+        required: false
+        default: latest
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: build android build image
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push image
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          IMAGE="ghcr.io/$(printf '%s' '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/android-build:${TAG}"
+          echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+          /usr/bin/time -f 'image build elapsed=%e s' \
+            docker build -f .github/docker/android-build.Dockerfile -t "$IMAGE" .github/docker
+      - name: Push image
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push "$IMAGE"
+          echo "::notice::pushed $IMAGE"

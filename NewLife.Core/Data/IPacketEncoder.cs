@@ -1,4 +1,5 @@
-﻿using NewLife.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using NewLife.Buffers;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -31,7 +32,13 @@ public static class PacketEncoderExtensions
     /// <param name="encoder">编码器实例</param>
     /// <param name="data">要解码的数据包</param>
     /// <returns>解码后的强类型对象</returns>
-    public static T? Decode<T>(this IPacketEncoder encoder, IPacket data) => (T?)encoder.Decode(data, typeof(T));
+    public static T? Decode<T>(this IPacketEncoder encoder, IPacket data)
+    {
+        var value = encoder.Decode(data, typeof(T));
+
+        // 解码失败（未开启 ThrowOnError）时返回 null，值类型不能直接强转：直接强转会变成空引用异常
+        return value is T t ? t : default;
+    }
 }
 
 /// <summary>默认数据包编码器</summary>
@@ -149,12 +156,6 @@ public class DefaultPacketEncoder : IPacketEncoder
         // 目标就是数据包类型 
         if (type == typeof(IPacket)) return data;
 
-        // 目标是具体的Packet类型
-#pragma warning disable CS0618 // 类型或成员已过时
-        if (type == typeof(Packet))
-            return data is Packet existingPacket ? existingPacket : new Packet(data.ReadBytes());
-#pragma warning restore CS0618 // 类型或成员已过时
-
         // 目标是字节数组
         if (type == typeof(Byte[])) return data.ReadBytes();
 
@@ -188,6 +189,7 @@ public class DefaultPacketEncoder : IPacketEncoder
     /// <remarks>
     /// 子类可重写此方法以实现自定义的字符串解码逻辑
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "解码目标类型由报文注册信息驱动，运行时才可知；元数据由 SystemJson 上下文或调用方负责保留")]
     protected virtual Object? OnDecode(String value, Type type)
     {
         var typeCode = type.GetTypeCode();

@@ -275,7 +275,7 @@ public static class Runtime
         }
         catch (Exception ex)
         {
-            XTrace.Log?.Error("获取进程[{0}]失败：{1}", processId, ex.Message);
+            XTrace.Log?.Error("Failed to get process [{0}]: {1}", processId, ex.Message);
             return false;
         }
 
@@ -290,9 +290,9 @@ public static class Runtime
             var ws = p.WorkingSet64 / 1024;
             var prv = p.PrivateMemorySize64 / 1024;
             if (gc)
-                log.Debug("[{3}/{4}]开始释放内存：GC={0:n0}K，WorkingSet={1:n0}K，PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
+                log.Debug("[{3}/{4}] Releasing memory: GC={0:n0}K, WorkingSet={1:n0}K, PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
             else
-                log.Debug("[{3}/{4}]开始释放内存：WorkingSet={1:n0}K，PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
+                log.Debug("[{3}/{4}] Releasing memory: WorkingSet={1:n0}K, PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
         }
 
         if (gc)
@@ -318,7 +318,7 @@ public static class Runtime
             }
             catch (Exception ex)
             {
-                log?.Error("EmptyWorkingSet失败：{0}", ex.Message);
+                log?.Error("EmptyWorkingSet failed: {0}", ex.Message);
                 return false;
             }
         }
@@ -330,9 +330,9 @@ public static class Runtime
             var ws = p.WorkingSet64 / 1024;
             var prv = p.PrivateMemorySize64 / 1024;
             if (gc)
-                log.Debug("[{3}/{4}]释放内存完成：GC={0:n0}K，WorkingSet={1:n0}K，PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
+                log.Debug("[{3}/{4}] Memory release completed: GC={0:n0}K, WorkingSet={1:n0}K, PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
             else
-                log.Debug("[{3}/{4}]释放内存完成：WorkingSet={1:n0}K，PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
+                log.Debug("[{3}/{4}] Memory release completed: WorkingSet={1:n0}K, PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
         }
 
         return true;

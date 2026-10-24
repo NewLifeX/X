@@ -29,7 +29,7 @@ public class EmbeddedFileHandler : IHttpHandler
 
     /// <summary>处理请求</summary>
     /// <param name="ctx">Http上下文</param>
-    public virtual void ProcessRequest(IHttpContext ctx)
+    public virtual Task ProcessRequestAsync(IHttpContext ctx)
     {
         var file = ctx.Path;
         if (file.StartsWithIgnoreCase(Path))
@@ -43,7 +43,7 @@ public class EmbeddedFileHandler : IHttpHandler
         if (file.Contains(".."))
         {
             ctx.Response.StatusCode = HttpStatusCode.NotFound;
-            return;
+            return TaskEx.CompletedTask;
         }
 
         // 获取目标程序集
@@ -51,22 +51,26 @@ public class EmbeddedFileHandler : IHttpHandler
         if (asm == null)
         {
             ctx.Response.StatusCode = HttpStatusCode.NotFound;
-            return;
+            return TaskEx.CompletedTask;
         }
 
         // 将路径转换为嵌入资源名称（/ → .）
         var resourceName = $"{ContentPath}.{file.Replace('/', '.').Replace('\\', '.')}";
 
-        using var stream = asm.GetManifestResourceStream(resourceName);
+        var stream = asm.GetManifestResourceStream(resourceName);
         if (stream == null)
         {
             ctx.Response.StatusCode = HttpStatusCode.NotFound;
-            return;
+            return TaskEx.CompletedTask;
         }
 
         var ext = System.IO.Path.GetExtension(file) ?? "";
         var contentType = MimeHelper.GetContentType(ext) ?? "application/octet-stream";
 
-        ctx.Response.SetResult(stream, contentType);
+        // 流式发送资源内容：流所有权移交响应（发送完成后释放），大资源不物化到内存
+        ctx.Response.ContentType = contentType;
+        ctx.Response.BodyStream = stream;
+
+        return TaskEx.CompletedTask;
     }
 }
