@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -93,6 +94,9 @@ public static class ConfigHelper
             section.Value = value.ToString();
         else
             section.Value = value?.ToString();
+
+        // 记录原始值，供JSON等带类型的数据源还原数字与布尔
+        if (section is ConfigSection cs) cs.RawValue = value;
     }
     #endregion
 
@@ -127,6 +131,10 @@ public static class ConfigHelper
             var cfg = childs.FirstOrDefault(e => e.Key.EqualIgnoreCase(name));
             if (cfg == null)
             {
+                // 仅命名风格不同（下划线/连字符/空格）的键无法匹配，给出告警，避免静默取默认值
+                var near = childs.FirstOrDefault(e => e.Key != null && TrimKeyStyle(e.Key).EqualIgnoreCase(TrimKeyStyle(name)));
+                if (near != null) XTrace.Log?.Warn("Configuration key [{0}] is not mapped to property [{1}]; default value used. Add [DataMember(Name = \"{0}\")] or [JsonPropertyName(\"{0}\")] on the property to bind a custom key name", near.Key, name);
+
                 prv?.MissKey(name);
                 continue;
             }
@@ -135,6 +143,11 @@ public static class ConfigHelper
             MapToObject(cfg, model, pi, provider);
         }
     }
+
+    /// <summary>去掉命名风格差异（下划线/连字符/空格），用于识别近似的配置键</summary>
+    /// <param name="key">配置键或属性名</param>
+    /// <returns>归一化后的名称</returns>
+    private static String TrimKeyStyle(String key) => key.Replace("_", "").Replace("-", "").Replace(" ", "");
 
     /// <summary>映射配置子节点到字典</summary>
     /// <param name="childs">子节点数组</param>

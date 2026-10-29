@@ -30,8 +30,21 @@ public class ConfigSection : IConfigSection
     /// <summary>配置名</summary>
     public String Key { get; set; } = null!;
 
+    private String? _value;
     /// <summary>配置值</summary>
-    public String? Value { get; set; }
+    /// <remarks>赋值时清空<see cref="RawValue"/>，避免原始值与字符串值不一致</remarks>
+    public String? Value
+    {
+        get => _value;
+        set
+        {
+            _value = value;
+            RawValue = null;
+        }
+    }
+
+    /// <summary>原始值。记录字符串化之前的值，供JSON等带类型的数据源保存时还原数字与布尔</summary>
+    internal Object? RawValue { get; set; }
 
     /// <summary>注释</summary>
     public String? Comment { get; set; }

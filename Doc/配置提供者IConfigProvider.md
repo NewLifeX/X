@@ -91,6 +91,8 @@ var name = composite["Sys:Name"]; // 读取时按顺序查找
 - `IsNew` 用于指示配置源是否首次创建，`Config<T>.Current` 会据此决定是否持久化默认值。
 - 注释：模型属性上的 `DescriptionAttribute/DisplayNameAttribute` 会写入配置项注释；Xml/Ini 保存时按 `LogCulture ?? Culture` 翻译，两者为空时保持原文（默认英文源文），不跟随 `CurrentUICulture`。
 - 列表与数组：`ConfigHelper` 支持 `T[]` 与 `IList<T>`；基元类型元素会进行类型转换。
+- 值类型：`IConfigSection.Value` 统一为字符串，JSON 提供者保存时按 `ConfigSection.RawValue` 还原数字与布尔（`3306` 写数字、`"3306"` 写字符串），其余类型仍写字符串。
+- 键名匹配：忽略大小写，但不做下划线/连字符归一（`token_key` 不匹配属性 `TokenKey`）。仅命名风格不同的近名键在绑定时输出告警；自定义键名请在属性上标注 `[DataMember(Name = "...")]`（全 TFM）或 `[JsonPropertyName("...")]`（net6+）。
 
 ## 5. 本仓库优化点（已处理）
 

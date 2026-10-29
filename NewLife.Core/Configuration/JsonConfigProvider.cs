@@ -1,4 +1,5 @@
-﻿using NewLife.Serialization;
+﻿using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Configuration;
 
@@ -125,11 +126,8 @@ public class JsonConfigProvider : FileConfigProvider
                 var key = elm?.GetType()?.Name;
                 if (!key.IsNullOrEmpty())
                 {
-                    var cfg2 = new ConfigSection
-                    {
-                        Key = key,
-                        Value = elm + "",
-                    };
+                    var cfg2 = new ConfigSection { Key = key };
+                    cfg2.SetValue(elm);
                     cfg.Childs.Add(cfg2);
                 }
             }
@@ -167,7 +165,7 @@ public class JsonConfigProvider : FileConfigProvider
             }
             else
             {
-                dst[key] = item.Value;
+                dst[key] = GetJsonValue(item);
             }
         }
     }
@@ -181,7 +179,7 @@ public class JsonConfigProvider : FileConfigProvider
         if (cs.Count > 0)
         {
             var childs = cs[0].Childs;
-            if (childs == null || childs.Count == 0) return cs.Select(e => e.Value).ToArray();
+            if (childs == null || childs.Count == 0) return cs.Select(GetJsonValue).ToArray();
         }
 
         var list = new List<Object>();
@@ -192,6 +190,21 @@ public class JsonConfigProvider : FileConfigProvider
             list.Add(rs);
         }
         return list;
+    }
+
+    /// <summary>获取配置节对应的Json值，数字与布尔还原为原生类型</summary>
+    /// <remarks>
+    /// 配置树的<see cref="IConfigSection.Value"/>统一为字符串，直接写出会把数字与布尔字符串化（3306 变成 "3306"），
+    /// 使Json文件的类型信息与文档约定不符。此处按<see cref="ConfigSection.RawValue"/>还原原生类型；
+    /// 字符串、时间日期、枚举等仍保持字符串形式。
+    /// </remarks>
+    /// <param name="section">配置节</param>
+    /// <returns>原生Json值；无法还原时返回配置值字符串</returns>
+    private static Object? GetJsonValue(IConfigSection section)
+    {
+        if (section is ConfigSection { RawValue: { } raw } && (raw is Boolean || raw.GetType() is { IsEnum: false } type && type.IsNumber())) return raw;
+
+        return section.Value;
     }
 
     /// <summary>清理json字符串中的注释</summary>

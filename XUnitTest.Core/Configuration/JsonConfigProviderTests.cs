@@ -1,9 +1,11 @@
-﻿using NewLife;
+﻿using System.Text;
+using NewLife;
 using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Security;
+using NewLife.Serialization;
 using NewLife.Web;
 using Xunit;
 
@@ -271,5 +273,166 @@ public class JsonConfigProviderTests
         // 设置为0表示不做自动更新
         prv.Period = 0;
         Assert.Equal(0, prv.Period);
+    }
+
+    [Fact(DisplayName = "保存时数字与布尔按原生Json类型写出")]
+    public void WriteNativeTypes()
+    {
+        var prv = new JsonConfigProvider { FileName = "Config/typed.json" };
+
+        var set = new TypedModel
+        {
+            Port = 3306,
+            Ratio = 1.5,
+            Amount = 12.34m,
+            Enable = true,
+            Code = "0012",
+            Level = LogLevel.Warn,
+            Numbers = [1, 2, 3],
+        };
+        prv.Save(set);
+
+        var txt = File.ReadAllText(prv.FileName.GetBasePath());
+        Assert.Contains("\"Port\": 3306", txt);
+        Assert.Contains("\"Enable\": true", txt);
+        Assert.Contains("\"Code\": \"0012\"", txt);
+        Assert.Contains("\"Level\": \"Warn\"", txt);
+
+        // 反解析校验类型：数字仍是数字，字符串仍是字符串
+        var dic = txt.DecodeJson();
+        Assert.NotNull(dic);
+        Assert.Equal(3306, dic["Port"]);
+        Assert.Equal(1.5d, dic["Ratio"]);
+        Assert.Equal(12.34d, Convert.ToDouble(dic["Amount"]));
+        Assert.Equal(true, dic["Enable"]);
+        Assert.Equal("0012", dic["Code"]);
+        Assert.Equal("Warn", dic["Level"]);
+
+        var nums = dic["Numbers"] as IList<Object>;
+        Assert.NotNull(nums);
+        Assert.Equal(3, nums.Count);
+        Assert.Equal(1, nums[0]);
+
+        // 回读一致
+        var set2 = new JsonConfigProvider { FileName = prv.FileName }.Load<TypedModel>();
+        Assert.NotNull(set2);
+        Assert.Equal(set.Port, set2.Port);
+        Assert.Equal(set.Ratio, set2.Ratio);
+        Assert.Equal(set.Amount, set2.Amount);
+        Assert.Equal(set.Enable, set2.Enable);
+        Assert.Equal(set.Code, set2.Code);
+        Assert.Equal(set.Level, set2.Level);
+        Assert.Equal(set.Numbers, set2.Numbers);
+    }
+
+    [Fact(DisplayName = "读取已有文件后再输出，保持原有值类型")]
+    public void KeepFileValueTypes()
+    {
+        var prv = new JsonConfigProvider { FileName = "Config/keeptypes.json" };
+        var file = prv.FileName.GetFullPath().EnsureDirectory(true);
+        File.WriteAllText(file, """
+            {
+              "port": 3306,
+              "ratio": 1.25,
+              "enable": true,
+              "code": "0012",
+              "nums": [1, 2, 3],
+              "names": ["a", "b"]
+            }
+            """);
+
+        prv.LoadAll();
+
+        var txt = prv.GetString();
+        Assert.Contains("\"port\": 3306", txt);
+        Assert.Contains("\"enable\": true", txt);
+
+        var dic = txt.DecodeJson();
+        Assert.NotNull(dic);
+        Assert.Equal(3306, dic["port"]);
+        Assert.Equal(1.25d, dic["ratio"]);
+        Assert.Equal(true, dic["enable"]);
+        // 形如数字的字符串仍保持字符串
+        Assert.Equal("0012", dic["code"]);
+
+        var nums = dic["nums"] as IList<Object>;
+        Assert.NotNull(nums);
+        Assert.Equal(1, nums[0]);
+
+        var names = dic["names"] as IList<Object>;
+        Assert.NotNull(names);
+        Assert.Equal("a", names[0]);
+    }
+
+    [Fact(DisplayName = "下划线键无法匹配属性时输出告警")]
+    public void UnderscoreKeyWarn()
+    {
+        var json = """
+            {
+              "token_key": "abc",
+              "connect_timeout": 30
+            }
+            """;
+
+        var prv = new JsonConfigProvider { FileName = "Config/underscore.json" };
+        var file = prv.FileName.GetFullPath().EnsureDirectory(true);
+        File.WriteAllText(file, json);
+        prv.LoadAll();
+
+        var model = new SnakeModel();
+        var old = XTrace.Log;
+        var log = new CaptureLog();
+        try
+        {
+            XTrace.Log = log;
+
+            prv.Bind(model, false);
+        }
+        finally
+        {
+            XTrace.Log = old;
+        }
+
+        // 命名风格差异的键不会被采纳，模型保持默认值
+        Assert.Null(model.TokenKey);
+        Assert.Equal(0, model.ConnectTimeout);
+        // 但不再静默，日志给出告警与改名建议
+        var text = log.GetText();
+        Assert.Contains("token_key", text);
+        Assert.Contains("connect_timeout", text);
+    }
+
+    /// <summary>捕获日志文本的日志实现</summary>
+    private sealed class CaptureLog : Logger
+    {
+        private readonly StringBuilder _sb = new();
+
+        public String GetText()
+        {
+            lock (_sb) return _sb.ToString();
+        }
+
+        protected override void OnWrite(LogLevel level, String format, params Object?[] args)
+        {
+            var msg = args == null || args.Length == 0 ? format : String.Format(format, args);
+            lock (_sb) _sb.AppendLine(msg);
+        }
+    }
+
+    private class TypedModel
+    {
+        public Int32 Port { get; set; }
+        public Double Ratio { get; set; }
+        public Decimal Amount { get; set; }
+        public Boolean Enable { get; set; }
+        public String? Code { get; set; }
+        public LogLevel Level { get; set; }
+        public Int32[] Numbers { get; set; } = [];
+    }
+
+    private class SnakeModel
+    {
+        public String? TokenKey { get; set; }
+        public Int32 ConnectTimeout { get; set; }
     }
 }

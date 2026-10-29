@@ -185,6 +185,8 @@ public class LoggingConfig
 }
 ```
 
+> 数字与布尔按原生 Json 类型写出（`3306`、`true`），字符串保持带引号，枚举写名称；键名忽略大小写，但不支持下划线/连字符归一，自定义键名请用 `[DataMember(Name = "...")]` 或 `[JsonPropertyName("...")]`。
+
 ### IniConfigProvider
 
 ```csharp
