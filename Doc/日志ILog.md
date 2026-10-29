@@ -225,12 +225,32 @@ class Program
 
 ### 彩色输出
 
-控制台日志支持彩色输出，不同日志级别使用不同颜色：
-- **Debug**: 灰色
-- **Info**: 白色
-- **Warn**: 黄色
-- **Error**: 红色
-- **Fatal**: 洋红色
+控制台日志按 **日志级别 + 线程** 整行着色：
+
+- **级别色优先**：`Warn` 黄色、`Error` 红色、`Fatal` 亮红，整行着色，任何线程下都能第一时间被看到
+- **线程色**：普通日志按线程取整行颜色，同一线程的日志在控制台上成块显示，便于追踪单个线程的执行上下文
+- **主线程**：线程编号 1 固定中性灰，不占用调色板
+- **颜色分配**：先到先得，前 N 个写日志的线程颜色不重复（N 为调色板长度），不受线程编号空洞影响
+
+终端能力自动探测，按阶梯降级：
+
+| 能力 | 触发条件 | 效果 |
+|------|---------|------|
+| ANSI 256 色 | Linux/macOS 终端；Windows Terminal、VS Code 等现代终端（自动开启虚拟终端） | 12 色高对比调色板，对比度 ≥5.9:1 |
+| 16 色 | 经典控制台、老版本 Windows | 6 色高对比调色板 |
+| 无颜色 | 输出重定向到文件或管道、`NO_COLOR` 环境变量、`TERM=dumb`、`UseColor=false` | 纯文本 |
+
+```csharp
+XTrace.UseConsole(useColor: true);   // 默认启用彩色
+
+// 强制 16 色模式并自定义调色板
+var log1 = new ConsoleLog { UseAnsiColor = false, Colors = [ConsoleColor.Cyan, ConsoleColor.Green] };
+
+// 自定义 ANSI 256 色调色板（xterm 颜色索引）
+var log2 = new ConsoleLog { AnsiColors = [39, 216, 77] };
+```
+
+> 白底终端请通过 `AnsiColors` 指定深色系颜色（如 `[25, 23, 28, 58, 89]`），默认调色板按深色背景优化。
 
 ### 多线程彩色
 

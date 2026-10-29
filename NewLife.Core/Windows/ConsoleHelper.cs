@@ -36,6 +36,25 @@ public class ConsoleHelper
 
     #endregion 关闭控制台 快速编辑模式、插入模式
 
+    #region 开启虚拟终端
+    private const Int32 STD_OUTPUT_HANDLE = -11;
+    private const UInt32 ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+
+    /// <summary>尝试开启标准输出的虚拟终端（ANSI 转义序列）支持</summary>
+    /// <remarks>Windows 10 及以上默认支持，早于 Windows 10 或经典控制台会失败，此时应降级为 16 色输出</remarks>
+    /// <returns>终端是否支持 ANSI 转义序列</returns>
+    internal static Boolean TryEnableVirtualTerminal()
+    {
+        var hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (hStdOut == IntPtr.Zero || hStdOut == new IntPtr(-1)) return false;
+        if (!GetConsoleMode(hStdOut, out var mode)) return false;
+        if ((mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0) return true;
+
+        return SetConsoleMode(hStdOut, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+
+    #endregion 开启虚拟终端
+
     #region 设置控制台标题 禁用关闭按钮
 
     [DllImport("user32.dll", EntryPoint = "FindWindow")]
