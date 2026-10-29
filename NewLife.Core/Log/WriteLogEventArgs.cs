@@ -118,7 +118,9 @@ public class WriteLogEventArgs : EventArgs
     /// <returns></returns>
     public override String ToString()
     {
-        if (Exception != null) Message += Exception.GetMessage();
+        // 异常文本不能被写回 Message，否则多次格式化会让异常内容层层累积
+        var message = Message;
+        if (Exception != null) message += Exception.GetMessage();
 
         var name = ThreadName;
         if (name.IsNullOrEmpty())
@@ -165,7 +167,7 @@ public class WriteLogEventArgs : EventArgs
                     sb.Append(']');
                     break;
                 case "Message":
-                    if (!Message.IsNullOrEmpty()) sb.Append(Message);
+                    if (!message.IsNullOrEmpty()) sb.Append(message);
                     break;
                 default:
                     break;

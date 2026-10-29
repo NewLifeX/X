@@ -86,4 +86,16 @@ public class WriteLogEventArgsTests
         Assert.Equal(100, args.TaskID);
         Assert.Equal(new DateTime(2025, 1, 1), args.Time);
     }
+
+    [Fact(DisplayName = "异常文本不随多次格式化累积")]
+    public void ToString_ExceptionNotAccumulated()
+    {
+        var args = new WriteLogEventArgs().Set(LogLevel.Error).Set("boom", new InvalidOperationException("bad"));
+
+        var first = args.ToString();
+        var second = args.ToString();
+
+        Assert.Equal(first, second);
+        Assert.Equal("boom", args.Message);
+    }
 }
