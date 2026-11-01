@@ -221,8 +221,9 @@ public class JsonReader
                 if (normalizedKey != null)
                     props.TryGetValue(normalizedKey, out pi);
 
-                // 兜底：大小写不敏感匹配
+                // 兜底：大小写不敏感匹配。属性名与DataMember/JsonPropertyName等序列化名称都要兼容
                 pi ??= props.Values.FirstOrDefault(e => e.Name.EqualIgnoreCase(item.Key));
+                pi ??= props.FirstOrDefault(e => e.Key.EqualIgnoreCase(item.Key)).Value;
                 if (pi == null)
                 {
                     // 可能有扩展属性

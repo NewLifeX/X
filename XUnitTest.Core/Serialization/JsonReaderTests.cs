@@ -1,3 +1,5 @@
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using NewLife;
 using NewLife.Serialization;
 using Xunit;
@@ -111,6 +113,28 @@ public class JsonReaderTests
         Assert.Throws<XException>(() => _reader.Read<String>("not json"));
     }
 
+    [Fact]
+    public void Read_DataMemberName_IgnoreCase()
+    {
+        var json = "{\"localIP\":\"10.0.0.10\",\"fileVersion\":\"3.7.2026.1031\",\"oS\":\"Ubuntu 26.04.1 LTS\"}";
+        var result = _reader.Read<AgentItem>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal("10.0.0.10", result.IP);
+        Assert.Equal("3.7.2026.1031", result.Version);
+        Assert.Equal("Ubuntu 26.04.1 LTS", result.OS);
+    }
+
+    [Fact]
+    public void Read_JsonPropertyName_IgnoreCase()
+    {
+        var json = "{\"local_ip\":\"10.0.0.10\"}";
+        var result = _reader.Read<JsonNameHolder>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal("10.0.0.10", result.IP);
+    }
+
     public class Person
     {
         public String? Name { get; set; }
@@ -131,5 +155,23 @@ public class JsonReaderTests
     public class FlagHolder
     {
         public Boolean Flag { get; set; }
+    }
+
+    public class AgentItem
+    {
+        [DataMember(Name = "LocalIP")]
+        public String? IP { get; set; }
+
+        [DataMember(Name = "FileVersion")]
+        public String? Version { get; set; }
+
+        [DataMember(Name = "OS")]
+        public String? OS { get; set; }
+    }
+
+    public class JsonNameHolder
+    {
+        [JsonPropertyName("local_ip")]
+        public String? IP { get; set; }
     }
 }

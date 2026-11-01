@@ -125,6 +125,8 @@ Console.WriteLine(user.Name);  // 张三
 Console.WriteLine(user.Roles[0]);  // admin
 ```
 
+> **字段名匹配**：优先精确匹配；未命中时忽略大小写匹配属性名与序列化名称（`DataMember`/`JsonPropertyName`/`XmlElement`），因此 `localIP`、`LocalIP`、`LOCALIP` 都能绑定到 `[DataMember(Name = "LocalIP")]` 对应的属性。
+
 ### DecodeJson - 解析为字典
 
 ```csharp

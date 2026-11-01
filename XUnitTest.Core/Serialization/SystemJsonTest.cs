@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using NewLife;
 using NewLife.Log;
 using NewLife.Model;
@@ -119,6 +120,26 @@ public class SystemJsonTest : JsonTestBase
         Assert.Equal("123", model.Childs[0].Name);
         Assert.Equal("456", model.Childs[1].Name);
         Assert.Equal("789", model.Childs[2].Name);
+    }
+
+    [Fact]
+    public void DataMemberName_IgnoreCase()
+    {
+        var json = "{\"localIP\":\"10.0.0.10\",\"fileVersion\":\"3.7.2026.1031\"}";
+        var item = _json.Read(json, typeof(AgentItem)) as AgentItem;
+
+        Assert.NotNull(item);
+        Assert.Equal("10.0.0.10", item.IP);
+        Assert.Equal("3.7.2026.1031", item.Version);
+    }
+
+    class AgentItem
+    {
+        [DataMember(Name = "LocalIP")]
+        public String IP { get; set; }
+
+        [DataMember(Name = "FileVersion")]
+        public String Version { get; set; }
     }
 
     [JsonDerivedType(typeof(DuckB), typeDiscriminator: "duckb")]
