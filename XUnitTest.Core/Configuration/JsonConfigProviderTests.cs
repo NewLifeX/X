@@ -198,6 +198,86 @@ public class JsonConfigProviderTests
         Assert.Empty(cfg2.Items);
     }
 
+    [Fact(DisplayName = "绑定后修改并保存，数组仍为数组且数字保持原生类型")]
+    public void SaveKeepsArray()
+    {
+        // 复现 https://github.com/NewLifeX/X/issues/187
+        var prv = new JsonConfigProvider { FileName = "Config/arraykeep.json" };
+        var file = prv.FileName.GetFullPath().EnsureDirectory(true);
+        File.WriteAllText(file, """
+            {
+                "cluster": {
+                    "node": [
+                        { "host": "a.example.com", "port": 6380 },
+                        { "host": "b.example.com", "port": 6381 }
+                    ]
+                }
+            }
+            """);
+
+        var model = new ArrayRoot();
+        prv.Bind(model, false);
+        Assert.Equal(2, model.Cluster?.Node?.Count);
+
+        model.Cluster!.Node![0].Port = 7000;
+        prv.Save(model);
+
+        // 保存后仍是数组，两个元素都在，端口仍是数字
+        var dic = File.ReadAllText(file).DecodeJson();
+        Assert.NotNull(dic);
+        var cluster = dic["Cluster"] as IDictionary<String, Object?>;
+        Assert.NotNull(cluster);
+        var nodes = cluster["Node"] as IList<Object>;
+        Assert.NotNull(nodes);
+        Assert.Equal(2, nodes.Count);
+        var first = nodes[0] as IDictionary<String, Object?>;
+        Assert.NotNull(first);
+        Assert.Equal(7000, first["Port"]);
+
+        // 全新提供者仍然可以读回数组
+        var loaded = new JsonConfigProvider { FileName = prv.FileName }.Load<ArrayRoot>();
+        Assert.NotNull(loaded);
+        Assert.Equal(2, loaded.Cluster?.Node?.Count);
+        Assert.Equal(7000, loaded.Cluster?.Node?[0].Port);
+        Assert.Equal(6381, loaded.Cluster?.Node?[1].Port);
+    }
+
+    [Fact(DisplayName = "单元素列表保存为数组而不是对象")]
+    public void SaveSingleElementArray()
+    {
+        var prv = new JsonConfigProvider { FileName = "Config/arraysingle.json" };
+        var model = new SingleArrayModel
+        {
+            Nodes = [new ArrayNode { Host = "a", Port = 1 }],
+            Numbers = [5],
+            Names = ["x"],
+        };
+        prv.Save(model);
+
+        var dic = File.ReadAllText(prv.FileName.GetBasePath()).DecodeJson();
+        Assert.NotNull(dic);
+
+        var nodes = dic["Nodes"] as IList<Object>;
+        Assert.NotNull(nodes);
+        Assert.Single(nodes);
+        Assert.Equal(1, (nodes[0] as IDictionary<String, Object?>)?["Port"]);
+
+        var numbers = dic["Numbers"] as IList<Object>;
+        Assert.NotNull(numbers);
+        Assert.Equal(5, numbers[0]);
+
+        var names = dic["Names"] as IList<Object>;
+        Assert.NotNull(names);
+        Assert.Equal("x", names[0]);
+
+        var loaded = new JsonConfigProvider { FileName = prv.FileName }.Load<SingleArrayModel>();
+        Assert.NotNull(loaded);
+        Assert.Single(loaded.Nodes!);
+        Assert.Equal("a", loaded.Nodes![0].Host);
+        Assert.Equal([5], loaded.Numbers);
+        Assert.Equal(["x"], loaded.Names);
+    }
+
     [Fact]
     public void LoadAppSettings()
     {
@@ -434,5 +514,28 @@ public class JsonConfigProviderTests
     {
         public String? TokenKey { get; set; }
         public Int32 ConnectTimeout { get; set; }
+    }
+
+    private class ArrayRoot
+    {
+        public ArrayCluster? Cluster { get; set; }
+    }
+
+    private class ArrayCluster
+    {
+        public List<ArrayNode>? Node { get; set; }
+    }
+
+    private class ArrayNode
+    {
+        public String? Host { get; set; }
+        public Int32 Port { get; set; }
+    }
+
+    private class SingleArrayModel
+    {
+        public List<ArrayNode>? Nodes { get; set; }
+        public List<Int32>? Numbers { get; set; }
+        public List<String>? Names { get; set; }
     }
 }

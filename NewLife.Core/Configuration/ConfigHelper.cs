@@ -98,6 +98,15 @@ public static class ConfigHelper
         // 记录原始值，供JSON等带类型的数据源还原数字与布尔
         if (section is ConfigSection cs) cs.RawValue = value;
     }
+
+    /// <summary>设置数组标记</summary>
+    /// <remarks>仅内建<see cref="ConfigSection"/>承载该标记，自定义<see cref="IConfigSection"/>实现沿用原有键名约定</remarks>
+    /// <param name="section">配置节</param>
+    /// <param name="isArray">是否数组</param>
+    private static void SetArray(IConfigSection section, Boolean isArray)
+    {
+        if (section is ConfigSection cs) cs.IsArray = isArray;
+    }
     #endregion
 
     #region 映射
@@ -390,6 +399,9 @@ public static class ConfigHelper
     {
         if (section == null) return;
 
+        // 对象映射不是数组，清除可能残留的数组标记
+        SetArray(section, false);
+
         // 支持字典
         if (model is IDictionary<String, Object?> dic)
         {
@@ -446,6 +458,9 @@ public static class ConfigHelper
         if (type.IsBaseType())
         {
             cfg.SetValue(val);
+
+            // 基本类型不是数组，清除可能残留的数组标记
+            SetArray(cfg, false);
         }
         else if (type.As<IList>() || type.As(typeof(IList<>)))
         {
@@ -461,6 +476,9 @@ public static class ConfigHelper
                 MapDictionary(cfg, dic, type);
             else
                 cfg.Childs = null;
+
+            // 字典不是数组，清除可能残留的数组标记
+            SetArray(cfg, false);
         }
         else if (val != null)
         {
@@ -470,6 +488,7 @@ public static class ConfigHelper
         else
         {
             cfg.Childs = null;
+            SetArray(cfg, false);
         }
     }
 
@@ -526,7 +545,11 @@ public static class ConfigHelper
         cfg.Childs ??= [];
         if (cfg.Childs.Count > 0) cfg.Childs.Clear();
 
-        // 数组元素是没有key的集合
+        // 标记数组容器。Xml等格式以“元素类型名作为元素键名”表达数组，单元素时键名无法区分数组与对象，
+        // 由本标记让Json等格式写出时仍还原为数组
+        SetArray(cfg, true);
+
+        // 数组元素使用元素类型名作为键名，符合Xml等格式的既有约定
         foreach (var item in list)
         {
             if (item == null) continue;

@@ -163,9 +163,13 @@ public class ConfigHelperPrivateTests
         Assert.NotNull(cl);
         Assert.NotNull(cl!.Childs);
         Assert.Equal(2, cl.Childs!.Count);
-        // 验证 MapArray 使用元素类型名作为子节点 Key（Node）
+        // 验证 MapArray 使用元素类型名作为子节点 Key（Node），并标记为数组容器
         Assert.All(cl.Childs!, c => Assert.Equal(nameof(Node), c.Key));
+        Assert.True(((ConfigSection)cl).IsArray);
         Assert.Equal(["l1", "l2"], cl.Childs!.Select(e => e.Childs!.First(x => x.Key == "Name").Value).ToArray());
+
+        // 普通对象不标记为数组
+        Assert.False(((ConfigSection)cp!).IsArray);
     }
 
     private sealed class ListModel

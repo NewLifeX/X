@@ -46,6 +46,9 @@ public class ConfigSection : IConfigSection
     /// <summary>原始值。记录字符串化之前的值，供JSON等带类型的数据源保存时还原数字与布尔</summary>
     internal Object? RawValue { get; set; }
 
+    /// <summary>是否数组。数组容器的子节点以元素类型名命名（Xml等格式的约定），单元素时无法从键名区分数组与对象，故显式标记，供Json等格式写出时还原数组形态</summary>
+    internal Boolean IsArray { get; set; }
+
     /// <summary>注释</summary>
     public String? Comment { get; set; }
 

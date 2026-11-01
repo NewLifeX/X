@@ -111,6 +111,8 @@ public class JsonConfigProvider : FileConfigProvider
     private void MapList(IList<Object> list, IConfigSection cfg)
     {
         cfg.Childs = [];
+        if (cfg is ConfigSection cs) cs.IsArray = true;
+
         foreach (var elm in list)
         {
             // 复杂对象
@@ -150,8 +152,9 @@ public class JsonConfigProvider : FileConfigProvider
             var cs = item.Childs;
             if (cs != null)
             {
-                // 数组
-                if (cs.Count == 0 || cs.Count > 0 && cs[0].Key == null || cs.Count >= 2 && cs[0].Key == cs[1].Key)
+                // 数组：配置树读取的数组元素没有键名；模型映射的数组容器带“数组”标记（单元素时只能依赖该标记）；
+                // 多元素数组的元素键名相同
+                if (item is ConfigSection { IsArray: true } || cs.Count == 0 || cs[0].Key == null || cs.Count >= 2 && cs[0].Key == cs[1].Key)
                 {
                     dst[key] = MapChildsToArray(cs);
                 }
