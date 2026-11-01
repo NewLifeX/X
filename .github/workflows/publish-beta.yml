@@ -11,6 +11,11 @@ on:
         - 'NewLife.Core/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   build-publish:
     runs-on: windows-latest
@@ -48,7 +53,12 @@ jobs:
         dotnet pack NewLife.Core\NewLife.Core.csproj -c Release -o out-pv `
           -p:EnablePackageValidation=true `
           -p:PackageValidationBaselineVersion=$baseline
+    - name: NuGet login (OIDC)
+      id: nuget-login
+      uses: NuGet/login@v1
+      with:
+        user: NewLife
     - name: Publish
       run: |
         dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
-        dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.nugetKey }}
+        dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
