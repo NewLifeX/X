@@ -308,7 +308,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         // 协议模式：数据报即完整帧，定界后逐条分发；空数据报仍按停会话约定处理
         if (Protocol is { } codec && e?.Packet is { Length: > 0 } pk)
         {
-            ProcessDatagram(codec, pk);
+            ProcessDatagram(codec, pk, e.Local, e.Remote);
             return true;
         }
 
@@ -332,7 +332,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <summary>处理协议数据报。一个数据报可能包含多个消息帧，逐条定界分发；坏帧截断丢弃</summary>
     /// <param name="codec">协议编解码器</param>
     /// <param name="pk">数据报（接收环轮内有效，消息体为零拷贝共享切片）</param>
-    private void ProcessDatagram(IMessageCodec codec, IPacket pk)
+    /// <param name="local">数据报实际到包的本机地址，为 null 时用会话本地地址</param>
+    /// <param name="remote">数据报实际来源端点，为 null 时用会话远端。广播/任意地址会话下会话远端并非真实来源，必须以此为准</param>
+    private void ProcessDatagram(IMessageCodec codec, IPacket pk, IPAddress? local, IPEndPoint? remote)
     {
         var seq = pk.AsReadOnlySequence();
         var pos = 0L;
@@ -399,7 +401,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
                         return;
                     }
 
-                    ProcessMessage(message, concurrency);
+                    ProcessMessage(message, local, remote, concurrency);
                 });
 
                 pos += headerSize + bodyLength;
@@ -407,7 +409,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             }
 
             // 串行处理：与并行分支共用同一交付逻辑（信号量传 null，不涉及并发槽位）
-            ProcessMessage(message, null);
+            ProcessMessage(message, local, remote, null);
 
             pos += headerSize + bodyLength;
         }
@@ -415,13 +417,15 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     /// <summary>处理单个消息：进入事件链并尝试交付配对，未命中则释放；并行派发时完成后释放并发信号量</summary>
     /// <param name="message">消息（体为数据报内零拷贝共享切片，天然独立）</param>
+    /// <param name="local">数据报实际到包的本机地址</param>
+    /// <param name="remote">数据报实际来源端点</param>
     /// <param name="concurrency">派发前等待到的信号量实例；串行分支为 null。归还必须用同一实例：会话首访并发时可能各建一个，重读属性会把槽位还到另一个满额实例并抛 <see cref="SemaphoreFullException"/></param>
-    private void ProcessMessage(IMessage message, SemaphoreSlim? concurrency)
+    private void ProcessMessage(IMessage message, IPAddress? local, IPEndPoint? remote, SemaphoreSlim? concurrency)
     {
         var delivered = false;
         try
         {
-            OnMessage(message);
+            OnMessage(message, local, remote);
 
             // 事件链（可观测）可能已在处理器内读空消息体；命中配对的等待方还要消费同一份体，
             // 交付前把内存模式体复位到起点（与流式会话口径一致）
@@ -458,14 +462,17 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     /// <summary>收到消息。构造接收事件参数并进入事件链（协议模式）</summary>
     /// <param name="message">消息（头部字段就位、体已绑定）</param>
+    /// <param name="local">数据报实际到包的本机地址，为 null 时用会话本地地址</param>
+    /// <param name="remote">数据报实际来源端点，为 null 时用会话远端</param>
     /// <remarks>事件参数的 <see cref="ReceivedEventArgs.Packet"/> 为消息负载视图；与消息同生命周期（处理器返回后失效）</remarks>
-    private void OnMessage(IMessage message)
+    private void OnMessage(IMessage message, IPAddress? local, IPEndPoint? remote)
     {
         var e = ReceivedEventArgs.Rent();
         try
         {
-            e.Local = Local.Address;
-            e.Remote = Remote.EndPoint;
+            // 广播/任意地址会话上，会话远端只是发送目标，并非本包来源；事件参数以数据报真实来源为准
+            e.Local = local ?? Local.Address;
+            e.Remote = remote ?? Remote.EndPoint;
             e.Packet = message.Payload;
             e.Message = message;
 
