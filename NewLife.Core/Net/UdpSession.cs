@@ -123,14 +123,16 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
         Server.Open();
 
-        WriteLog("New {0}", Remote.EndPoint);
+        // UDP 无连接语义，对端数据报每次都可能新建一次性会话（如局域网广播探测），生命周期日志放到调试级别
+        Log?.WritePrefixed(LogLevel.Debug, LogPrefix, "New {0}", Remote.EndPoint);
     }
 
     private void Stop(String reason)
     {
         if (Server == null) return;
 
-        WriteLog("Close {0} {1}", Remote.EndPoint, reason);
+        // 与 New 对称，UDP 会话关闭属于数据报级别细节，降到调试级别
+        Log?.WritePrefixed(LogLevel.Debug, LogPrefix, "Close {0} {1}", Remote.EndPoint, reason);
 
         Server = null!;
     }

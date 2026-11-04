@@ -95,6 +95,13 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     /// <remarks>获取客户端的网络地址信息</remarks>
     public NetUri Remote => Session.Remote;
 
+    /// <summary>是否无连接会话</summary>
+    /// <remarks>
+    /// UDP 没有连接建立/拆除的语义，每个对端数据报都可能新建一个一次性会话（例如局域网广播探测），
+    /// 连接/断开属于数据报级别的细节，日志降到调试级别，避免正常业务把日志刷满。
+    /// </remarks>
+    public virtual Boolean Connectionless => Remote != null && Remote.Type == NetType.Udp;
+
     /// <summary>网络数据处理器</summary>
     /// <remarks>
     /// <para>可作为业务处理实现，也可以作为前置协议解析，由服务器的 CreateHandler 方法创建。</para>
@@ -152,7 +159,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     {
         if (Interlocked.CompareExchange(ref _running, 1, 0) != 0) return;
 
-        WriteLog("Connected {0}", Session);
+        WriteSessionLog("Connected {0}", Session);
 
         var host = (this as INetSession).Host;
         // 服务提供者，用于创建Scoped范围服务，以使得各服务解析在本会话中唯一
@@ -275,7 +282,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         using var span = host?.Tracer?.NewSpan($"net:{host.Name}:Disconnect", new { remote = remoteStr, reason });
         try
         {
-            WriteLog("Disconnect [{0}] {1}", Session, reason);
+            WriteSessionLog("Disconnect [{0}] {1}", Session, reason);
 
             // 主动断开底层连接（UDP 会话无连接可断，跳过）；被动断开路径下底层已在关闭，二次关闭是安全空操作
             if (Session is ISocketClient sc) sc.Close(reason);
@@ -440,6 +447,17 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     /// <param name="format">格式化字符串</param>
     /// <param name="args">参数</param>
     public virtual void WriteLog(String format, params Object?[] args) => Log?.InfoPrefixed(LogPrefix, format, args);
+
+    /// <summary>写会话生命周期日志。无连接协议（UDP）降到调试级别</summary>
+    /// <param name="format">格式化字符串</param>
+    /// <param name="args">参数</param>
+    private void WriteSessionLog(String format, params Object?[] args)
+    {
+        if (Connectionless)
+            Log?.WritePrefixed(LogLevel.Debug, LogPrefix, format, args);
+        else
+            Log?.InfoPrefixed(LogPrefix, format, args);
+    }
 
     /// <summary>输出错误日志</summary>
     /// <param name="format">格式化字符串</param>

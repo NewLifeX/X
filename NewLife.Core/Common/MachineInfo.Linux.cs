@@ -161,13 +161,15 @@ public partial class MachineInfo
             var srecl = GetMem(dic, "SReclaimable");
             var shmem = GetMem(dic, "Shmem");
 
-            AvailableMemory = ma;
-
             // FreeMemory采用 free 命令的宽松口径：free + buffers + cache + SReclaimable - Shmem
             var cache = cached + srecl;
             if (cache > shmem) cache -= shmem;
 
             FreeMemory = mf + buffers + cache;
+
+            // 部分裁剪内核不提供 MemAvailable（3.14 以前或定制内核），此时会取到 0。
+            // 直接上报 0 会让平台上的可用内存长期显示为零、内存告警失真，故退化为 FreeMemory。
+            AvailableMemory = ma > 0 ? ma : FreeMemory;
         }
 
         // A2/A4温度获取，Buildroot，CPU温度和主板温度
