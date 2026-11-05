@@ -46,7 +46,7 @@ jobs:
       id: nuget-login
       uses: NuGet/login@v1
       with:
-        user: NewLife
+        user: BigStone
     - name: Publish to NuGet.org
       id: nuget
       run: |

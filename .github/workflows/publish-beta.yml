@@ -57,7 +57,7 @@ jobs:
       id: nuget-login
       uses: NuGet/login@v1
       with:
-        user: NewLife
+        user: BigStone
     - name: Publish
       run: |
         dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
