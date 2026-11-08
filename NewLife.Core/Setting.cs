@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using NewLife.Common;
 using NewLife.Configuration;
@@ -82,6 +83,15 @@ public class Setting : Config<Setting>
     /// </remarks>
     [Description("UI language. Values: zh-CN/zh-TW/en-US/es-ES/de-DE/ja-JP/fr-FR/pt-BR/ru-RU/ko-KR/ar-SA/bn-BD/cs-CZ/da-DK/el-GR/fa-IR/fi-FI/he-IL/hi-IN/hu-HU/id-ID/it-IT/ms-MY/nb-NO/nl-NL/pl-PL/ro-RO/sv-SE/th-TH/tr-TR/uk-UA/vi-VN. Empty follows the system; a supported language fixes the UI and log language regardless of request culture.")]
     public String Language { get; set; } = "";
+
+    /// <summary>日志语言。留空跟随 <see cref="Language"/>，设置后只影响日志、配置注释与历史备注，界面语言不受影响</summary>
+    /// <remarks>
+    /// 界面与日志的语言诉求往往不同：界面该跟使用者走（多语言站点），日志该跟运维走（便于排障）。
+    /// 典型做法是界面留空按请求自动识别，日志固定为开发/运维语言，这样同一台服务器的日志始终同一种语言。
+    /// 取值与 <see cref="Language"/> 相同，不受支持时保持跟随界面语言。
+    /// </remarks>
+    [Description("Log language. Values same as UI language. Empty follows the UI language; a supported language fixes only the log, config comments and history remarks, leaving the UI language untouched.")]
+    public String LogLanguage { get; set; } = "";
     #endregion
 
     #region 方法
@@ -141,13 +151,30 @@ public class Setting : Config<Setting>
         {
             // 配置清空后撤销此前强制的语言，恢复自动识别；宿主自行设置的语言不受影响
             if (Localization.ForcedLanguage != null) Localization.SetLanguage(null);
-            return;
+        }
+        // 配置的语言不受支持时保持自动模式，不覆盖宿主显式设置
+        else if (Localization.NormalizeCulture(Language) != null)
+        {
+            Localization.SetLanguage(Language);
         }
 
-        // 配置的语言不受支持时保持自动模式，不覆盖宿主显式设置
-        if (Localization.NormalizeCulture(Language) == null) return;
+        ApplyLogLanguage();
+    }
 
-        Localization.SetLanguage(Language);
+    /// <summary>应用日志语言。留空跟随界面语言，因此只在显式配置时覆盖</summary>
+    private void ApplyLogLanguage()
+    {
+        var name = Localization.NormalizeCulture(LogLanguage);
+        if (name == null) return;
+
+        try
+        {
+            Localization.LogCulture = new CultureInfo(name);
+        }
+        catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException)
+        {
+            // 不变全球化下具名区域性不可用，保持跟随界面语言
+        }
     }
 
     /// <summary>获取插件目录</summary>
