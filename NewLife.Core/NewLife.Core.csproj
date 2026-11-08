@@ -55,6 +55,10 @@
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="Locales\*.yml" />
+    <!-- 与打包后的 NuGet/NewLife.Core.props 保持一致：构建本工程时源生成器也要读到这些开关 -->
+    <CompilerVisibleProperty Include="NewLifeLocalizationGenerateL" />
+    <CompilerVisibleProperty Include="NewLifeLocalizationOverwrite" />
+    <CompilerVisibleProperty Include="NewLifeLocalizationLanguages" />
   </ItemGroup>
 
   <!-- net8.0+（含 -windows 形态）常驻启用 AOT/裁剪分析器：0 告警成为构建期硬约束，与 AOT 支持基线一致。

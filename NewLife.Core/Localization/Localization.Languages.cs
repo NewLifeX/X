@@ -80,15 +80,35 @@ partial class Localization
     }
 
     /// <summary>获取语言选项。可直接绑定管理端下拉框</summary>
+    /// <remarks>
+    /// 只列出**真正有词表**的语言。小体积发布（如 NativeAOT 边缘代理）可用
+    /// <c>NewLifeLocalizationLanguages</c> 只编译少数语言词表，此时下拉框不能再列出其它语言，
+    /// 否则用户选中后界面与日志会静默回退原文。需要完整语言清单请用 <see cref="GetLanguages"/>。
+    /// </remarks>
     public static IDictionary<String, String> GetLanguageOptions()
     {
         var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in GetLanguages())
         {
-            dic[item.Name] = item.GetDisplayName();
+            if (IsLanguageAvailable(item.Name)) dic[item.Name] = item.GetDisplayName();
         }
 
         return dic;
+    }
+
+    /// <summary>判断指定语言是否有可用词表</summary>
+    /// <param name="name">语言代码，如 zh-CN</param>
+    /// <returns></returns>
+    private static Boolean IsLanguageAvailable(String name)
+    {
+        var key = GetCultureKeyOf(name);
+        if (key == null) return false;
+        if (key == "en") return true;
+
+        // 运行时注册的覆盖表可能包含内置词表之外的新语言
+        if (Volatile.Read(ref _overrideCount) != 0 && _overrides.ContainsKey(key)) return true;
+
+        return GetTable(key) != null;
     }
 
     private static Boolean IsBuiltinLanguage(String name)

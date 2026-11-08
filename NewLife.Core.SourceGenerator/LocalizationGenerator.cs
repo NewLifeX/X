@@ -65,7 +65,8 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
             .Combine(context.AnalyzerConfigOptionsProvider.Select(static (p, _) => new BuildOptions(
                 p.GlobalOptions.TryGetValue("build_property.NewLifeLocalizationGenerateL", out var value)
                 && String.Equals(value, "false", StringComparison.OrdinalIgnoreCase),
-                GetOverwrite(p.GlobalOptions))));
+                GetOverwrite(p.GlobalOptions),
+                GetLanguages(p.GlobalOptions))));
 
         context.RegisterSourceOutput(input, static (spc, source) => Emit(spc, source.Left.Left, source.Left.Right, source.Right));
     }
@@ -75,6 +76,46 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         if (!options.TryGetValue("build_property.NewLifeLocalizationOverwrite", out var value) || String.IsNullOrEmpty(value)) return null;
 
         return String.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>读取语言白名单。为空表示编译全部语言</summary>
+    /// <param name="options">分析器配置</param>
+    /// <returns>语言代码集合，未配置时返回空</returns>
+    /// <remarks>
+    /// 小体积发布（如 NativeAOT 边缘代理）可用 <c>NewLifeLocalizationLanguages=zh-Hans;en</c> 只编译需要的语言，
+    /// 其余语言回退英文原文。属性对整条引用链生效，需在命令行以全局属性传入。
+    /// </remarks>
+    private static String[]? GetLanguages(AnalyzerConfigOptions options)
+    {
+        if (!options.TryGetValue("build_property.NewLifeLocalizationLanguages", out var value) || String.IsNullOrWhiteSpace(value)) return null;
+
+        var list = new List<String>();
+        foreach (var item in value.Split([';', ',', ' '], StringSplitOptions.RemoveEmptyEntries))
+        {
+            var lang = item.Trim();
+            if (lang.Length > 0) list.Add(lang);
+        }
+
+        return list.Count > 0 ? list.ToArray() : null;
+    }
+
+    /// <summary>判断语言是否在白名单内</summary>
+    /// <param name="culture">语言代码，如 zh-Hans</param>
+    /// <param name="languages">白名单，空表示全部</param>
+    /// <returns></returns>
+    private static Boolean IsLanguageEnabled(String culture, String[]? languages)
+    {
+        if (languages == null || languages.Length == 0) return true;
+
+        var index = culture.IndexOf('-');
+        var baseName = index > 0 ? culture.Substring(0, index) : culture;
+        foreach (var item in languages)
+        {
+            if (String.Equals(item, culture, StringComparison.OrdinalIgnoreCase) ||
+                String.Equals(item, baseName, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
     }
 
     private static Boolean IsLocalePath(String path)
@@ -91,6 +132,8 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         foreach (var file in files)
         {
             if (String.IsNullOrEmpty(file.Culture)) continue;
+            // 语言白名单：小体积发布只编译需要的语言，其余回退英文原文
+            if (!IsLanguageEnabled(file.Culture, options.Languages)) continue;
 
             var lines = file.Text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
             var table = new Dictionary<String, String>(StringComparer.Ordinal);
@@ -175,9 +218,10 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
         sb.AppendLine("        }");
         sb.AppendLine("    }");
         sb.AppendLine();
-        sb.AppendLine("    private static String? GetCultureKey(CultureInfo culture)");
+        sb.AppendLine("    private static String? GetCultureKey(CultureInfo culture) => GetCultureKey(culture.Name);");
+        sb.AppendLine();
+        sb.AppendLine("    private static String? GetCultureKey(String name)");
         sb.AppendLine("    {");
-        sb.AppendLine("        var name = culture.Name;");
         sb.AppendLine("        if (String.IsNullOrEmpty(name)) return null;");
         sb.AppendLine();
         sb.AppendLine("        if (name.StartsWith(\"zh\", StringComparison.OrdinalIgnoreCase))");
@@ -550,11 +594,14 @@ public sealed class LocalizationGenerator : IIncrementalGenerator
     {
         public Boolean SkipL { get; }
         public Boolean? Overwrite { get; }
+        /// <summary>语言白名单。为空表示编译全部语言</summary>
+        public String[]? Languages { get; }
 
-        public BuildOptions(Boolean skipL, Boolean? overwrite)
+        public BuildOptions(Boolean skipL, Boolean? overwrite, String[]? languages)
         {
             SkipL = skipL;
             Overwrite = overwrite;
+            Languages = languages;
         }
     }
 }

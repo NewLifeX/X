@@ -3,6 +3,8 @@
   <ItemGroup>
     <CompilerVisibleProperty Include="NewLifeLocalizationGenerateL" />
     <CompilerVisibleProperty Include="NewLifeLocalizationOverwrite" />
+    <!-- 小体积发布：只编译指定语言（分号/逗号分隔），其余回退英文原文 -->
+    <CompilerVisibleProperty Include="NewLifeLocalizationLanguages" />
   </ItemGroup>
 
   <!-- 下游把 Locales/*.yml 放进项目即可自动作为 AdditionalFiles，无需改 csproj。

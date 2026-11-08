@@ -185,14 +185,8 @@ public static partial class Localization
         if (name.IsNullOrEmpty()) return null;
         if (_cultureKeys.TryGetValue(name, out var key)) return key;
 
-        try
-        {
-            key = GetCultureKey(CultureInfo.GetCultureInfo(name));
-        }
-        catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException)
-        {
-            return null;
-        }
+        // 直接从名称推导词表键：无 ICU（DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1）时创建不了 CultureInfo
+        key = GetCultureKey(name);
 
         _cultureKeys.TryAdd(name, key);
         return key;

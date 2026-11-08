@@ -383,6 +383,25 @@ public class LocalizationTests
         }
     }
 
+    [Fact(DisplayName = "语言选项：运行时注册的新语言会补进下拉框")]
+    public void GetLanguageOptions_registered()
+    {
+        var culture = CultureInfo.GetCultureInfo("sw-KE");
+        var key = "Localization available list test {0}.";
+        try
+        {
+            Assert.DoesNotContain("sw-KE", Localization.GetLanguageOptions().Keys);
+
+            Localization.Register(culture, new Dictionary<String, String> { [key] = "Orodha {0}." });
+
+            Assert.Contains("sw-KE", Localization.GetLanguageOptions().Keys);
+        }
+        finally
+        {
+            Localization.Unregister(culture);
+        }
+    }
+
     [Fact(DisplayName = "请求语言：按 q 权重选择最高权重的受支持语言")]
     public void RequestCulture_parse_supported_quality()
     {

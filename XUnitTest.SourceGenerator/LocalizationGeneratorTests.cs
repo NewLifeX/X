@@ -130,6 +130,39 @@ public class LocalizationGeneratorTests
         Assert.DoesNotContain("public static String T(", text);
     }
 
+    [Fact(DisplayName = "语言白名单：Core 只生成白名单内的词表")]
+    public void CoreLanguageWhitelist()
+    {
+        const String ja = """
+"Ready.": "準備完了。"
+""";
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "NewLife.Core", null,
+            new[] { ("Locales/zh-Hans.yml", Yaml), ("Locales/en.yml", Yaml), ("Locales/ja.yml", ja) },
+            new Dictionary<String, String> { ["NewLifeLocalizationLanguages"] = "zh-Hans;en" });
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("private static readonly Byte[] _t_zh_Hans", text);
+        Assert.Contains("private static readonly Byte[] _t_en", text);
+        Assert.DoesNotContain("_t_ja", text);
+    }
+
+    [Fact(DisplayName = "语言白名单：下游同样只生成白名单内的词表")]
+    public void DownstreamLanguageWhitelist()
+    {
+        const String ja = """
+"Ready.": "準備完了。"
+""";
+        var (_, result) = GeneratorTestHost.RunWithAdditionalTexts(
+            new LocalizationGenerator(), "", "My.Component", null,
+            new[] { ("Locales/zh-Hans.yml", Yaml), ("Locales/ja.yml", ja) },
+            new Dictionary<String, String> { ["NewLifeLocalizationLanguages"] = "zh-Hans" });
+
+        var text = Assert.Single(GeneratorTestHost.GetGeneratedSources(result)).Value;
+        Assert.Contains("zh-Hans", text);
+        Assert.DoesNotContain("ja", text);
+    }
+
     [Fact(DisplayName = "下游类库：默认不覆盖 Core 同名译文")]
     public void DownstreamLibraryKeepsBuiltin()
     {
