@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
@@ -413,6 +414,8 @@ public class AssemblyX
             }
         }
         if (!isLoadAssembly) yield break;
+        // NativeAOT 不能加载新的托管程序集，且没有“仅反射”程序集概念，外部插件目录扫描整体跳过
+        if (!IsDynamicCodeSupported) yield break;
 
         foreach (var item in ReflectionOnlyGetAssemblies())
         {
@@ -451,10 +454,43 @@ public class AssemblyX
         }
     }
 
+    /// <summary>当前运行时是否支持动态代码。.NET Framework 与非 AOT 运行时为真，NativeAOT 为假</summary>
+    /// <remarks>低版本目标框架没有 <c>RuntimeFeature</c>，统一走本属性判断，避免条件编译散落各处</remarks>
+    private static Boolean IsDynamicCodeSupported
+    {
+        get
+        {
+#if NET5_0_OR_GREATER
+            return RuntimeFeature.IsDynamicCodeSupported;
+#else
+            return true;
+#endif
+        }
+    }
+
+    /// <summary>取调用方程序集。NativeAOT 不支持该能力，返回空</summary>
+    /// <returns>调用方程序集；AOT 或受限平台返回空</returns>
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "GetCallingAssembly 仅动态代码可用；AOT 下按空值降级")]
+    private static Assembly? GetCallingAssemblySafe()
+    {
+        if (!IsDynamicCodeSupported) return null;
+
+        try
+        {
+            return Assembly.GetCallingAssembly();
+        }
+        catch (PlatformNotSupportedException)
+        {
+            return null;
+        }
+    }
+
     /// <summary><paramref name="asm"/> 是否引用了 <paramref name="baseAsmName"/></summary>
     /// <param name="asm">程序集</param>
     /// <param name="baseAsmName">被引用程序集全名</param>
     /// <returns></returns>
+    /// <remarks>NativeAOT 下运行时没有程序集引用关系（<see cref="Assembly.GetReferencedAssemblies"/> 直接抛 PlatformNotSupportedException），
+    /// 此时无法据此筛选，按“可能引用”放行，由后续类型检查决定</remarks>
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
     private static Boolean IsReferencedFrom(Assembly asm, String? baseAsmName)
@@ -462,9 +498,19 @@ public class AssemblyX
         if (baseAsmName.IsNullOrEmpty()) return false;
         if (asm.GetName().Name.EqualIgnoreCase(baseAsmName)) return true;
 
-        foreach (var item in asm.GetReferencedAssemblies())
+        if (!IsDynamicCodeSupported) return true;
+
+        try
         {
-            if (item.Name.EqualIgnoreCase(baseAsmName)) return true;
+            foreach (var item in asm.GetReferencedAssemblies())
+            {
+                if (item.Name.EqualIgnoreCase(baseAsmName)) return true;
+            }
+        }
+        catch (PlatformNotSupportedException)
+        {
+            // 部分裁剪运行时同样不提供引用关系，按“可能引用”放行
+            return true;
         }
 
         return false;
@@ -499,10 +545,10 @@ public class AssemblyX
             if (type != null) return type;
         }
 
-        // 尝试本程序集
+        // 尝试本程序集。NativeAOT 不支持 GetCallingAssembly，按空值降级
         var asms = new[] {
             Create(Assembly.GetExecutingAssembly()),
-            Create(Assembly.GetCallingAssembly()),
+            Create(GetCallingAssemblySafe()),
             Create(Assembly.GetEntryAssembly()) };
         var loads = new List<AssemblyX>();
 
@@ -527,6 +573,8 @@ public class AssemblyX
 
         // 尝试加载只读程序集
         if (!isLoadAssembly) return null;
+        // NativeAOT 没有只读程序集与动态加载能力，整体跳过
+        if (!IsDynamicCodeSupported) return null;
 
         foreach (var asm in ReflectionOnlyGetAssemblies())
         {
