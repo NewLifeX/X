@@ -360,7 +360,7 @@ public static class SpanSerializer
     /// <typeparam name="T">对象类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</typeparam>
     /// <param name="reader">Span读取器</param>
     /// <returns>反序列化的对象，可能为null</returns>
-    public static T? Read<[DynamicallyAccessedMembers(Dam.SerializeWithConstructors)] T>(ref SpanReader reader) where T : class
+    public static T? Read<[DynamicallyAccessedMembers(Dam.Serialize)] T>(ref SpanReader reader) where T : class
     {
         var flag = reader.ReadByte();
         if (flag == 0) return null;
@@ -372,7 +372,7 @@ public static class SpanSerializer
     /// <param name="reader">Span读取器</param>
     /// <param name="type">对象类型。AOT 下该类型的公开属性、字段与无参构造将按需保留</param>
     /// <returns>反序列化的对象实例</returns>
-    public static Object ReadObject(ref SpanReader reader, [DynamicallyAccessedMembers(Dam.SerializeWithConstructors)] Type type)
+    public static Object ReadObject(ref SpanReader reader, [DynamicallyAccessedMembers(Dam.Serialize)] Type type)
     {
         var obj = type.CreateInstance()!;
 

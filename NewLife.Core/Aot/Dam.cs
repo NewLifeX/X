@@ -29,9 +29,6 @@ internal static class Dam
     /// <summary>仅公开无参构造</summary>
     public const DynamicallyAccessedMemberTypes Create = PublicParameterlessConstructor;
 
-    /// <summary>反序列化目标（需公开构造）：公开属性 + 公开字段 + 公开构造函数</summary>
-    public const DynamicallyAccessedMemberTypes SerializeWithConstructors = PublicProperties | PublicFields | PublicConstructors;
-
     /// <summary>方法查找含非公开：公开方法 + 非公开方法</summary>
     public const DynamicallyAccessedMemberTypes AllMethods = PublicMethods | NonPublicMethods;
 
