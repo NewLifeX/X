@@ -83,7 +83,7 @@ public class AssemblyX
     public String Description => _Description ??= "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>();
 
     /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>
-    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = AotReason.RuntimeTypeBoundary)]
     public String? Location
     {
         get
@@ -120,8 +120,8 @@ public class AssemblyX
     [ThreadStatic]
     private static Int32 _resolving;
 
-    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
     private static Assembly? OnAssemblyResolve(Object? sender, ResolveEventArgs args)
     {
         if (_resolving > 0) return null;
@@ -176,8 +176,8 @@ public class AssemblyX
     #region 扩展属性
     //private IEnumerable<Type> _Types;
     /// <summary>类型集合，当前程序集的所有类型，包括私有和内嵌，非内嵌请直接调用Asm.GetTypes()</summary>
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
     public IEnumerable<Type> Types
     {
         get
@@ -338,7 +338,7 @@ public class AssemblyX
     /// <param name="baseType">类型</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Advanced)]
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
     public IList<Type> FindPlugins(Type baseType)
     {
         // 如果type是null，则返回所有类型
@@ -380,8 +380,8 @@ public class AssemblyX
     /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
     /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
     public static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
     {
         var baseAssemblyName = baseType.Assembly.GetName().Name;
@@ -491,8 +491,8 @@ public class AssemblyX
     /// <returns></returns>
     /// <remarks>NativeAOT 下运行时没有程序集引用关系（<see cref="Assembly.GetReferencedAssemblies"/> 直接抛 PlatformNotSupportedException），
     /// 此时无法据此筛选，按“可能引用”放行，由后续类型检查决定</remarks>
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = AotReason.RuntimeTypeBoundary)]
     private static Boolean IsReferencedFrom(Assembly asm, String? baseAsmName)
     {
         if (baseAsmName.IsNullOrEmpty()) return false;
@@ -520,9 +520,9 @@ public class AssemblyX
     /// <param name="typeName">类型名</param>
     /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
     [UnconditionalSuppressMessage("Trimming", "IL2057", Justification = "按类型名（含程序集限定名）动态解析类型；AOT 下未保留的类型返回空（见分析稿 §5）")]
     public static Type? GetType(String typeName, Boolean isLoadAssembly)
     {
@@ -696,7 +696,7 @@ public class AssemblyX
     /// <summary>只反射加载指定路径的所有程序集。NETCore不支持只反射加载，该方法动态加载DLL后返回</summary>
     /// <param name="path"></param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
     public static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
     {
         if (!Directory.Exists(path)) yield break;
@@ -756,7 +756,7 @@ public class AssemblyX
 
     /// <summary>获取当前应用程序的所有程序集，不包括系统程序集，仅限本目录</summary>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("AOT", "IL3000", Justification = AotReason.RuntimeTypeBoundary)]
     public static List<AssemblyX> GetMyAssemblies()
     {
         var list = new List<AssemblyX>();
@@ -801,7 +801,7 @@ public class AssemblyX
     /// <summary>在对程序集的解析失败时发生</summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
     private static Assembly? OnResolve(String name)
     {
         foreach (var item in AppDomain.CurrentDomain.GetAssemblies())

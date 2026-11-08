@@ -97,7 +97,7 @@ public static class Reflect
     /// <param name="name">名称</param>
     /// <param name="paramTypes">参数类型数组</param>
     /// <returns></returns>
-    public static MethodInfo? GetMethodEx<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(String name, params Type[] paramTypes) => typeof(T).GetMethodEx(name, paramTypes);
+    public static MethodInfo? GetMethodEx<[DynamicallyAccessedMembers(Dam.AllMethods)] T>(String name, params Type[] paramTypes) => typeof(T).GetMethodEx(name, paramTypes);
 
     /// <summary>获取指定名称的方法集合，支持指定参数个数来匹配过滤</summary>
     /// <param name="type"></param>
@@ -128,7 +128,7 @@ public static class Reflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    public static PropertyInfo? GetPropertyEx<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.NonPublicProperties)] T>(String name, Boolean ignoreCase = false) => typeof(T).GetPropertyEx(name, ignoreCase);
+    public static PropertyInfo? GetPropertyEx<[DynamicallyAccessedMembers(Dam.AllProperties)] T>(String name, Boolean ignoreCase = false) => typeof(T).GetPropertyEx(name, ignoreCase);
 
     /// <summary>获取字段。搜索私有、静态、基类，优先返回大小写精确匹配成员</summary>
     /// <param name="type">类型</param>
@@ -201,7 +201,7 @@ public static class Reflect
     /// <summary>反射创建指定类型的实例。泛型入口，编译期已知类型，AOT 下 T 的公开无参构造与非公开构造按需保留</summary>
     /// <typeparam name="T">目标类型</typeparam>
     /// <returns></returns>
-    public static T? CreateInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>() => (T?)typeof(T).CreateInstance();
+    public static T? CreateInstance<[DynamicallyAccessedMembers(Dam.AllConstructors)] T>() => (T?)typeof(T).CreateInstance();
 
     /// <summary>反射调用指定对象的方法。target为类型时调用其静态方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>

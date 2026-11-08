@@ -202,7 +202,7 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="paramTypes">参数类型数组</param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = AotReason.RuntimeTypeBoundary)]
     public virtual MethodInfo? GetMethod(Type type, String name, params Type[] paramTypes)
     {
         MethodInfo? mi = null;
@@ -226,7 +226,7 @@ public class DefaultReflect : IReflect
     /// <param name="name"></param>
     /// <param name="paramCount">参数个数，-1表示不过滤参数个数</param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = AotReason.RuntimeTypeBoundary)]
     public virtual MethodInfo[] GetMethods(Type type, String name, Int32 paramCount = -1)
     {
         var ms = type.GetMethods(bf);
@@ -248,8 +248,8 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
     public virtual PropertyInfo? GetProperty(Type type, String name, Boolean ignoreCase)
     {
         // 父类私有属性的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
@@ -275,8 +275,8 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
     public virtual FieldInfo? GetField(Type type, String name, Boolean ignoreCase)
     {
         // 父类私有字段的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
@@ -302,8 +302,8 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
     public virtual MemberInfo? GetMember(Type type, String name, Boolean ignoreCase)
     {
         // 父类私有成员的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
@@ -345,7 +345,7 @@ public class DefaultReflect : IReflect
             return _cache2.GetOrAdd(type, key => GetFields2(key, false));
     }
 
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = AotReason.RuntimeTypeBoundary)]
     private IList<FieldInfo> GetFields2(Type type, Boolean baseFirst)
     {
         var list = new List<FieldInfo>();
@@ -382,7 +382,7 @@ public class DefaultReflect : IReflect
             return _cache4.GetOrAdd(type, key => GetProperties2(key, false));
     }
 
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = AotReason.RuntimeTypeBoundary)]
     private IList<PropertyInfo> GetProperties2(Type type, Boolean baseFirst)
     {
         var list = new List<PropertyInfo>();
@@ -486,7 +486,7 @@ public class DefaultReflect : IReflect
     public virtual Object CreateInstance(Type type, params Object?[] parameters) => CreateInstanceCore(type, parameters);
 
     // 非虚核心实现，供 Reflect.cs 直接调用
-    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = AotReason.RuntimeTypeBoundary)]
     internal Object CreateInstanceCore(Type type, Object?[]? parameters)
     {
         try
@@ -508,7 +508,7 @@ public class DefaultReflect : IReflect
     }
 
     // 无工厂委托时的兜底创建。优先公开无参构造（NativeAOT 走快速路径），非公开构造回退，语义与原 Activator.CreateInstance(type, true) 一致
-    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = AotReason.RuntimeTypeBoundary)]
     private static Object CreateByActivator(Type type)
     {
         try
@@ -1145,7 +1145,7 @@ public class DefaultReflect : IReflect
     /// <param name="target"></param>
     /// <param name="source"></param>
     /// <param name="deep"></param>
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
     public void DictionaryCopy(Object target, Object? source, Boolean deep) => DictionaryCopy(target, source, deep, new Dictionary<Object, Object>(ReferenceComparer.Instance));
 
     /// <summary>字典拷贝</summary>
@@ -1153,7 +1153,7 @@ public class DefaultReflect : IReflect
     /// <param name="source"></param>
     /// <param name="deep"></param>
     /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
     private void DictionaryCopy(Object target, Object? source, Boolean deep, IDictionary<Object, Object> visited)
     {
         if (target == null || source == null)
@@ -1231,8 +1231,8 @@ public class DefaultReflect : IReflect
     /// <param name="dictInterface"></param>
     /// <param name="deep"></param>
     /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = AotReason.RuntimeTypeBoundary)]
     private void DictionaryCopy(Object targetDic, Object sourceDic, Type dictInterface, Boolean deep, IDictionary<Object, Object> visited)
     {
         // 共享引用：同一源字典复用同一目标字典
@@ -1291,7 +1291,7 @@ public class DefaultReflect : IReflect
     /// <param name="sourceEnumerable">源集合</param>
     /// <param name="deep">是否深拷贝</param>
     /// <param name="visited">已拷贝的源引用与目标副本映射，用于循环与共享引用</param>
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
     private void IEnumerableCopy(Object targetEnumerable, Object? sourceEnumerable, Boolean deep, IDictionary<Object, Object> visited)
     {
         if (sourceEnumerable is not IEnumerable srcEnum) return;
@@ -1391,7 +1391,7 @@ public class DefaultReflect : IReflect
     /// <summary>获取一个类型的元素类型</summary>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = AotReason.RuntimeTypeBoundary)]
     public virtual Type? GetElementType(Type type)
     {
         if (type.HasElementType) return type.GetElementType();

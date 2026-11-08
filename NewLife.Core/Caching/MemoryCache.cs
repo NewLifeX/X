@@ -515,7 +515,7 @@ public class MemoryCache : Cache
     /// <param name="topic">事件主题</param>
     /// <param name="clientId">客户标识/消息分组</param>
     /// <returns></returns>
-    public override IEventBus<TEvent> CreateEventBus<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TEvent>(String topic, String clientId = "")
+    public override IEventBus<TEvent> CreateEventBus<[DynamicallyAccessedMembers(Dam.Serialize)] TEvent>(String topic, String clientId = "")
     {
         var key = $"event:{topic}";
         var item = clientId.IsNullOrEmpty() ?

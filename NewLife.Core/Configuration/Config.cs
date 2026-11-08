@@ -14,7 +14,7 @@ namespace NewLife.Configuration;
 /// Current将加载配置文件，如果文件不存在或者加载失败，将实例化一个对象返回。
 /// </remarks>
 /// <typeparam name="TConfig"></typeparam>
-public class Config<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] TConfig> where TConfig : Config<TConfig>, new()
+public class Config<[DynamicallyAccessedMembers(Dam.Members)] TConfig> where TConfig : Config<TConfig>, new()
 {
     #region 静态
     /// <summary>当前使用的提供者</summary>

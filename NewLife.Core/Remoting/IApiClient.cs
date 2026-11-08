@@ -12,7 +12,7 @@ public interface IApiClient
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    TResult? Invoke<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null);
+    TResult? Invoke<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null);
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult"></typeparam>
@@ -20,5 +20,5 @@ public interface IApiClient
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null, CancellationToken cancellationToken = default);
+    Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null, CancellationToken cancellationToken = default);
 }

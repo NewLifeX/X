@@ -103,7 +103,7 @@ public static class CacheProviderHelper
     /// <param name="clientId">应用标识。作为消费组</param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public static IEventBus<TEvent>? CreateEventBus<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TEvent>(this ICacheProvider provider, String topic, String? clientId = null)
+    public static IEventBus<TEvent>? CreateEventBus<[DynamicallyAccessedMembers(Dam.Serialize)] TEvent>(this ICacheProvider provider, String topic, String? clientId = null)
     {
         if (provider.Cache is not Cache cache)
             //throw new NotSupportedException($"[{provider.Cache.GetType().FullName}]缓存不支持创建事件总线！");

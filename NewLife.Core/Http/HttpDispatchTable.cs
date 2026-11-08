@@ -24,7 +24,7 @@ public static class HttpDispatchTable
     /// <summary>注册控制器的静态分发表</summary>
     /// <param name="controllerType">控制器类型。AOT 下其公开构造与公开方法将按需保留（运行时将由处理器实例化并分发）</param>
     /// <param name="dispatchers">方法名到调用委托的映射，方法名匹配不区分大小写</param>
-    public static void RegisterController([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] Type controllerType, Dictionary<String, ControllerInvokeDelegate> dispatchers)
+    public static void RegisterController([DynamicallyAccessedMembers(Dam.Handlers)] Type controllerType, Dictionary<String, ControllerInvokeDelegate> dispatchers)
     {
         if (controllerType == null) throw new ArgumentNullException(nameof(controllerType));
         if (dispatchers == null) throw new ArgumentNullException(nameof(dispatchers));

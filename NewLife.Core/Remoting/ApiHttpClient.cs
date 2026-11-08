@@ -282,51 +282,51 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> GetAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Get, action, args);
+    public Task<TResult?> GetAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Get, action, args);
 
     /// <summary>同步获取，参数构造在Url</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult? Get<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => GetAsync<TResult>(action, args).ConfigureAwait(false).GetAwaiter().GetResult();
+    public TResult? Get<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null) => GetAsync<TResult>(action, args).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步提交，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> PostAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Post, action, args);
+    public Task<TResult?> PostAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Post, action, args);
 
     /// <summary>同步提交，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult? Post<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => PostAsync<TResult>(action, args).ConfigureAwait(false).GetAwaiter().GetResult();
+    public TResult? Post<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null) => PostAsync<TResult>(action, args).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步上传，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> PutAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Put, action, args);
+    public Task<TResult?> PutAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Put, action, args);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
     /// <summary>异步修改，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> PatchAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Patch, action, args);
+    public Task<TResult?> PatchAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Patch, action, args);
 #else
     /// <summary>异步修改，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> PatchAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(new HttpMethod("Patch"), action, args);
+    public Task<TResult?> PatchAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(new HttpMethod("Patch"), action, args);
 #endif
 
     /// <summary>异步删除，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public Task<TResult?> DeleteAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Delete, action, args);
+    public Task<TResult?> DeleteAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Delete, action, args);
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">返回类型</typeparam>
@@ -336,7 +336,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="onRequest">请求头回调</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual async Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(HttpMethod method, String action, Object? args = null, Action<HttpRequestMessage>? onRequest = null, CancellationToken cancellationToken = default)
+    public virtual async Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(HttpMethod method, String action, Object? args = null, Action<HttpRequestMessage>? onRequest = null, CancellationToken cancellationToken = default)
     {
         var returnType = typeof(TResult);
         var svrs = Services;
@@ -390,7 +390,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args, CancellationToken cancellationToken = default)
+    public Task<TResult?> InvokeAsync<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args, CancellationToken cancellationToken = default)
     {
         var method = HttpMethod.Post;
 #if NETCOREAPP || NETSTANDARD2_1
@@ -408,7 +408,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult? Invoke<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TResult>(String action, Object? args) => InvokeAsync<TResult>(action, args, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+    public TResult? Invoke<[DynamicallyAccessedMembers(Dam.Serialize)] TResult>(String action, Object? args) => InvokeAsync<TResult>(action, args, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>下载文件到本地并校验哈希（可取消）</summary>
     /// <param name="requestUri">请求资源地址</param>

@@ -23,7 +23,7 @@ namespace NewLife.Collections;
 /// 兼容性：支持 .NET Framework 4.5 起与 .NET Standard / .NET Core / .NET 5+ 多目标。
 /// </remarks>
 /// <typeparam name="T">池化的引用类型</typeparam>
-public class Pool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : IPool<T> where T : class
+public class Pool<[DynamicallyAccessedMembers(Dam.Create)] T> : IPool<T> where T : class
 {
     #region 属性
     /// <summary>对象池大小。默认 CPU*2，初始化后改变无效</summary>
@@ -149,7 +149,7 @@ public class Pool<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Pub
 
     /// <summary>清空对象池，返回被清理的对象数量</summary>
     /// <returns>清理的数量</returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = AotReason.RuntimeTypeBoundary)]
     public virtual Int32 Clear()
     {
         var count = 0;

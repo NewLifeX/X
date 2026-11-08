@@ -54,7 +54,7 @@ public interface IEventBusFactory
     /// <param name="topic">事件主题</param>
     /// <param name="clientId">客户标识/消息分组</param>
     /// <returns>事件总线实例；没有任何可用通道时返回 <see langword="null"/></returns>
-    IEventBus<TEvent>? CreateEventBus<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TEvent>(String topic, String clientId = "");
+    IEventBus<TEvent>? CreateEventBus<[DynamicallyAccessedMembers(Dam.Serialize)] TEvent>(String topic, String clientId = "");
 }
 
 /// <summary>事件总线。强类型的事件发布/订阅，统一异步 API</summary>

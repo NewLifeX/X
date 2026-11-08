@@ -390,7 +390,7 @@ public partial class MachineInfo
     /// <param name="property">属性名</param>
     /// <param name="nameSpace">命名空间，默认 root\cimv2</param>
     /// <returns>查询结果</returns>
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
     public static String GetInfo(String path, String property, String? nameSpace = null)
     {
         // 规范化命名空间：WMI 要求反斜杠分隔，调用者可能传入 root/wmi 等正斜杠格式
@@ -443,9 +443,9 @@ public partial class MachineInfo
 #if NET5_0_OR_GREATER
     [SupportedOSPlatform("windows")]
 #endif
-    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = AotReason.RuntimeTypeBoundary)]
     internal static String? QueryWmiSystemManagement(String wmiClass, String property, String nameSpace, Boolean throwOnError = false)
     {
         try
@@ -526,7 +526,7 @@ public partial class MachineInfo
 #if NET5_0_OR_GREATER
     [SupportedOSPlatform("windows")]
 #endif
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "运行时类型反射/动态加载边界；AOT 下不受支持或需改用泛型入口（见分析稿 §4/§5）")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = AotReason.RuntimeTypeBoundary)]
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "经 WMI moniker 动态绑定 COM 服务；AOT 下不受支持并降级为空值（见分析稿 §5）")]
     internal static String? QueryWmiCom(String wmiClass, String property, String nameSpace, Boolean throwOnError = false)
     {

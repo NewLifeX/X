@@ -952,7 +952,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     /// <summary>写入模型列表</summary>
     /// <typeparam name="T">模型类型。AOT 下其公开属性与字段将按需保留</typeparam>
     /// <param name="models"></param>
-    public void WriteModels<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(IEnumerable<T> models)
+    public void WriteModels<[DynamicallyAccessedMembers(Dam.Members)] T>(IEnumerable<T> models)
     {
         // 可用属性
         var pis = typeof(T).GetProperties(true);
@@ -972,7 +972,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     /// <typeparam name="T">模型类型。AOT 下其公开属性与字段将按需保留</typeparam>
     /// <param name="models"></param>
     /// <returns></returns>
-    public IEnumerable<Object?[]> Cast<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>(IEnumerable<T> models)
+    public IEnumerable<Object?[]> Cast<[DynamicallyAccessedMembers(Dam.Members)] T>(IEnumerable<T> models)
     {
         // 可用属性
         var pis = typeof(T).GetProperties(true);
@@ -999,7 +999,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
     /// <typeparam name="T">模型类型。AOT 下其公开属性与字段将按需保留</typeparam>
     /// <returns></returns>
-    public IEnumerable<T> ReadModels<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] T>()
+    public IEnumerable<T> ReadModels<[DynamicallyAccessedMembers(Dam.Members)] T>()
     {
         foreach (var model in ReadModels(typeof(T)))
         {
@@ -1010,7 +1010,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
     /// <param name="type">模型类型。AOT 下其公开属性与字段将按需保留</param>
     /// <returns></returns>
-    public IEnumerable<Object> ReadModels([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)] Type type)
+    public IEnumerable<Object> ReadModels([DynamicallyAccessedMembers(Dam.Members)] Type type)
     {
         var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
         var rows = Rows;
