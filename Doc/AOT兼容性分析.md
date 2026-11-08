@@ -73,6 +73,38 @@
 - **启动顺序**：生成物以 `[ModuleInitializer]` 注册，先于任何静态构造；分发形态为随主包 `analyzers/dotnet/cs` 分发，下游零配置。
 - **新增通道四件套**：运行期表 + 生成器 + 生成物单测（`XUnitTest.SourceGenerator`）+ 冒烟"生成/回退"双场景。
 
+### 3.3 注解书写规范
+
+保留需求一律使用 `NewLife.Dam` 预设（`Aot/Dam.cs`），不内联书写标志位组合。
+
+| 预设 | 保留成员 | 语义 |
+|---|---|---|
+| `Dam.Serialize` | 公开属性 + 公开字段 + 公开无参构造 | 反序列化目标（DTO 往返，含 `SpanSerializer`） |
+| `Dam.Members` | 公开属性 + 公开字段 | 成员枚举 |
+| `Dam.PropertiesAndMethods` | 公开属性 + 公开方法 | 属性读取 + 方法调用 |
+| `Dam.Constructors` | 公开构造函数 | 按公开构造实例化 |
+| `Dam.Handlers` | 公开构造函数 + 公开方法 | 控制器/处理器类型 |
+| `Dam.Create` | 公开无参构造 | 仅需无参构造 |
+| `Dam.AllMethods` / `Dam.AllProperties` / `Dam.AllConstructors` | 公开 + 非公开同名成员 | 反射门面含非公开查找 |
+
+**为什么等价**：`const` 常量值在编译期直接写入特性元数据（`DynamicallyAccessedMembersAttribute.MemberTypes` 里落的就是字面量联合值），裁剪器与静态分析器读到的内容与内联写法逐位一致，不影响保留行为；调整某类保留集合只需改 `Aot/Dam.cs` 一处。
+
+**抑制备注**：同文重复的 `UnconditionalSuppressMessage` 备注使用 `NewLife.AotReason` 常量（如 `AotReason.RuntimeTypeBoundary`）；各具场景特异性的长文案保留在被标注处，不强行归类。
+
+**三条硬规则**：
+
+1. 裁剪注解只用 `Dam` 预设，不内联位或。
+2. 裁剪告警只用 `UnconditionalSuppressMessage`，不用 `#pragma warning disable IL2xxx/IL3xxx`（ILC 不认 pragma）。
+3. `RequiresUnreferencedCode` / `RequiresDynamicCode` 的 message 是面向下游的迁移文案，保持完整，不缩写、不常量化。
+
+**反模式**：
+
+- 自建复合特性（如 `[AotKeepMembers]`）——裁剪器与分析器只认 BCL 特性，自建特性**没有任何保留效果**，会形成"看着支持 AOT 实则假安全"。
+- `global using static ...DynamicallyAccessedMemberTypes`——把 `None`/`All`/`PublicFields` 等通用标识符注入全库命名空间。
+- 把抑制集中到 assembly 级（`Target = "~M:..."`）——靠字符串签名匹配，成员改名后**静默失效且不报错**。
+
+**守护**：`Tools/Scripts/check-aot-annotations.ps1` 静态扫描前两条规则（跳过 `Aot/` 与 `Stub/`），已接入 `test.yml` 静态检查步骤，违规即失败。不用分析器项目——规则纯属书写约定，一个脚本即可覆盖，且不增加构建期依赖；新增规则时同步扩脚本与本节。
+
 ---
 
 ## 4. 下游使用指引

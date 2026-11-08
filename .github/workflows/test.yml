@@ -47,6 +47,11 @@ jobs:
       shell: pwsh
       run: ./Tools/Scripts/check-locales.ps1
 
+    - name: Check AOT annotation style
+      # 规则见 Doc/AOT兼容性分析.md §3.3：裁剪注解用 Dam 预设，裁剪告警用 UnconditionalSuppressMessage
+      shell: pwsh
+      run: ./Tools/Scripts/check-aot-annotations.ps1
+
     - name: Package consumer smoke
       # 下游只加 PackageReference + Locales/*.yml 的端到端验证，防止打包/分析器分发回归
       shell: pwsh
