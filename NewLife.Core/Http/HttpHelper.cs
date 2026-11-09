@@ -514,6 +514,88 @@ public static class HttpHelper
         await SaveFileAsync(rs, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>下载文件到本地，支持响应头/响应体分段超时、进度回调与哈希校验</summary>
+    /// <param name="client">Http客户端</param>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="fileName">目标文件名。开启 <see cref="HttpDownloadOptions.UseContentDispositionFileName"/> 时可能被响应头文件名覆盖</param>
+    /// <param name="options">下载选项</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>下载后的实际文件路径</returns>
+    /// <remarks>
+    /// 分段超时依赖独立的取消令牌，不会修改传入的 <paramref name="client"/>。
+    /// 如果客户端自身设置了 <see cref="HttpClient.Timeout"/>，该超时仍可能生效；需要由本选项完整控制下载时，
+    /// 建议调用方将 <see cref="HttpClient.Timeout"/> 设为 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>。
+    /// </remarks>
+    public static async Task<String> DownloadFileAsync(this HttpClient client, String requestUri, String fileName, HttpDownloadOptions options, CancellationToken cancellationToken = default)
+    {
+        if (client == null) throw new ArgumentNullException(nameof(client));
+        if (options == null) throw new ArgumentNullException(nameof(options));
+        if (requestUri.IsNullOrEmpty()) throw new ArgumentNullException(nameof(requestUri));
+        if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(fileName));
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+        HttpResponseMessage rs;
+        using (var headerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+        {
+            if (options.HeaderTimeout > TimeSpan.Zero) headerCts.CancelAfter(options.HeaderTimeout);
+
+            try
+            {
+                // 只等到响应头，响应体随后分块读取，便于统计进度与分段超时
+                rs = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, headerCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                // 只把本方法的响应头超时转换为 TimeoutException，客户端自身超时保持原样
+                if (!headerCts.IsCancellationRequested) throw;
+
+                throw new TimeoutException(L.T("No response headers received within {0} seconds: {1}", options.HeaderTimeout.TotalSeconds, requestUri), ex);
+            }
+        }
+
+        using (rs)
+        {
+            rs.EnsureSuccessStatusCode();
+
+            // 从Http响应头中获取文件名。FileNameStar 优先，FileName 可能带引号
+            if (options.UseContentDispositionFileName)
+            {
+                var disposition = rs.Content.Headers?.ContentDisposition;
+                var name = disposition?.FileNameStar;
+                if (name.IsNullOrEmpty()) name = disposition?.FileName;
+                if (!name.IsNullOrEmpty())
+                {
+                    name = name.Trim('"');
+                    if (!name.IsNullOrEmpty())
+                    {
+                        var safeName = Path.GetFileName(name);
+                        if (!safeName.IsNullOrEmpty()) fileName = Path.GetDirectoryName(fileName).CombinePath(safeName);
+                    }
+                }
+            }
+
+            var total = rs.Content.Headers?.ContentLength ?? 0;
+            using var downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (options.DownloadTimeout > TimeSpan.Zero) downloadCts.CancelAfter(options.DownloadTimeout);
+
+            using var stream = await rs.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            try
+            {
+                await SaveFileCoreAsync(stream, fileName, options.ExpectedHash, total, options.Progress, options.BufferSize, downloadCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                // 只把本方法的响应体超时转换为 TimeoutException，客户端自身超时保持原样
+                if (!downloadCts.IsCancellationRequested) throw;
+
+                throw new TimeoutException(L.T("Download did not complete within {0} seconds: {1}", options.DownloadTimeout.TotalSeconds, requestUri), ex);
+            }
+        }
+
+        return fileName.GetFullPath();
+    }
+
     /// <summary>保存流到本地文件并校验哈希。常用于文件下载</summary>
     /// <param name="stream">数据流</param>
     /// <param name="fileName">目标文件名</param>
@@ -521,7 +603,11 @@ public static class HttpHelper
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
     /// <exception cref="IOException"></exception>
-    public static async Task SaveFileAsync(this Stream stream, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
+    public static Task SaveFileAsync(this Stream stream, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
+        => SaveFileCoreAsync(stream, fileName, expectedHash, 0, null, 0, cancellationToken);
+
+    /// <summary>保存流到本地文件并校验哈希。支持进度回调与按 Content-Length 校验完整性</summary>
+    private static async Task SaveFileCoreAsync(Stream stream, String fileName, String? expectedHash, Int64 total, Action<Int64, Int64>? progress, Int32 bufferSize, CancellationToken cancellationToken)
     {
         fileName = fileName.GetFullPath();
 
@@ -536,9 +622,34 @@ public static class HttpHelper
             // 打开目标目录下的临时文件进行写入，这样重命名更接近原子操作
             using (var fs = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                var bufferSize = SocketSetting.Current.BufferSize;
+                if (bufferSize <= 0) bufferSize = SocketSetting.Current.BufferSize;
                 if (bufferSize < 1024) bufferSize = 1024;
-                await stream.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
+
+                var received = 0L;
+                if (progress == null && total <= 0)
+                {
+                    // 无进度与完整性要求时走流复制，保持 SaveFileAsync 的原有性能特征
+                    await stream.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    var buffer = new Byte[bufferSize];
+                    while (true)
+                    {
+                        var n = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+                        if (n <= 0) break;
+
+                        await fs.WriteAsync(buffer, 0, n, cancellationToken).ConfigureAwait(false);
+                        received += n;
+
+                        progress?.Invoke(received, total);
+                    }
+                }
+
+                // 上游提前断流时可能正常结束读取，按预期总长度校验完整性
+                if (total > 0 && received != total)
+                    throw new IOException(L.T("Incomplete download, expected {0} bytes but received {1} bytes.", total, received));
+
                 await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
