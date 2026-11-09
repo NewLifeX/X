@@ -188,7 +188,45 @@ partial class Localization
         return null;
     }
 
-    /// <summary>设置界面与日志语言。留空表示跟随系统自动识别</summary>
+    /// <summary>设置站点默认语言。留空恢复进程启动时的系统语言</summary>
+    /// <param name="language">语言代码，如 zh-CN；为空表示不指定默认语言</param>
+    /// <returns>归一化后的语言名称；不受支持时返回 null</returns>
+    /// <remarks>
+    /// 默认语言只作为请求与日志的兜底，不写入 <see cref="Culture"/>，因此不会锁定界面；
+    /// 请求级语言（如 Accept-Language）仍可覆盖它。
+    /// </remarks>
+    public static String? SetDefaultLanguage(String? language)
+    {
+        var name = NormalizeCulture(language);
+        CultureInfo? culture = null;
+        if (name != null)
+        {
+            try
+            {
+                culture = new CultureInfo(name);
+            }
+            catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException)
+            {
+                // 不变全球化下具名区域性不可用，保持跟随系统
+                name = null;
+            }
+        }
+
+        lock (_defaultLock)
+        {
+            DefaultCulture = culture;
+
+            // 只影响新线程与线程池线程的默认值；当前请求线程由 RequestCultureScope 或宿主中间件显式设置。
+            // 锁定语言优先于默认语言，保证后台线程直接读取 CurrentUICulture 时也与界面一致
+            CultureInfo.DefaultThreadCurrentUICulture = Culture ?? culture ?? _initialDefaultThreadUICulture;
+        }
+
+        return name;
+    }
+
+    /// <summary>设置界面与日志语言。留空表示跟随默认语言与系统自动识别</summary>
+    /// <param name="language">语言代码，如 zh-CN；为空表示取消锁定</param>
+    /// <returns>归一化后的语言名称；不受支持时返回 null</returns>
     public static String? SetLanguage(String? language)
     {
         var name = NormalizeCulture(language);

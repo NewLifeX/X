@@ -6,7 +6,8 @@ namespace NewLife;
 /// <remarks>
 /// <see cref="Http.HttpServer"/> 默认对每个请求自动使用它；其它宿主可显式调用。
 /// 仅在 <see cref="Localization.Culture"/> 为空时生效，便于宿主固定全局语言。
-/// 从请求头中按 q 权重选择最高权重且存在译文表的语言；全部不支持时不改变当前 UI 文化。
+/// 从请求头中按 q 权重选择最高权重且存在译文表的语言；全部不支持时回退 <see cref="Localization.DefaultCulture"/>，
+/// 默认语言也为空时才保持当前 UI 文化。
 /// 只修改 <see cref="CultureInfo.CurrentUICulture"/>，不修改 <see cref="CultureInfo.CurrentCulture"/>，
 /// 避免影响协议中的数字与日期格式。
 /// </remarks>
@@ -23,17 +24,22 @@ public sealed class RequestCultureScope : IDisposable
 
     /// <summary>按 Accept-Language 头创建请求语言作用域</summary>
     /// <param name="acceptLanguage">Accept-Language 头原始值</param>
-    /// <returns>请求语言作用域；未识别到受支持语言时释放不做任何事</returns>
+    /// <returns>请求语言作用域；未识别到受支持语言且没有默认语言时释放不做任何事</returns>
     public static RequestCultureScope Create(String? acceptLanguage)
     {
 #if NETFRAMEWORK
         // .NET Framework 的 CurrentUICulture 为线程静态，异步请求之间可能串语言，保持宿主语言
         return new(null, false);
 #else
-        if (Localization.Culture != null || !TryParseAcceptLanguage(acceptLanguage, out var culture)) return new(null, false);
+        if (Localization.Culture != null) return new(null, false);
+
+        if (!TryParseAcceptLanguage(acceptLanguage, out var culture)) culture = Localization.DefaultCulture;
+        if (culture == null) return new(null, false);
 
         var saved = CultureInfo.CurrentUICulture;
-        CultureInfo.CurrentUICulture = culture!;
+        if (String.Equals(culture.Name, saved.Name, StringComparison.OrdinalIgnoreCase)) return new(null, false);
+
+        CultureInfo.CurrentUICulture = culture;
 
         return new(saved, true);
 #endif

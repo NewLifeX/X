@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Globalization;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using NewLife.Common;
 using NewLife.Configuration;
@@ -84,14 +83,19 @@ public class Setting : Config<Setting>
     [Description("UI language. Values: zh-CN/zh-TW/en-US/es-ES/de-DE/ja-JP/fr-FR/pt-BR/ru-RU/ko-KR/ar-SA/bn-BD/cs-CZ/da-DK/el-GR/fa-IR/fi-FI/he-IL/hi-IN/hu-HU/id-ID/it-IT/ms-MY/nb-NO/nl-NL/pl-PL/ro-RO/sv-SE/th-TH/tr-TR/uk-UA/vi-VN. Empty follows the system; a supported language fixes the UI and log language regardless of request culture.")]
     public String Language { get; set; } = "";
 
-    /// <summary>日志语言。留空跟随 <see cref="Language"/>，设置后只影响日志、配置注释与历史备注，界面语言不受影响</summary>
+    /// <summary>默认语言。界面与日志的兜底语言，留空跟随系统；请求语言优先于它</summary>
     /// <remarks>
-    /// 界面与日志的语言诉求往往不同：界面该跟使用者走（多语言站点），日志该跟运维走（便于排障）。
-    /// 典型做法是界面留空按请求自动识别，日志固定为开发/运维语言，这样同一台服务器的日志始终同一种语言。
-    /// 取值与 <see cref="Language"/> 相同，不受支持时保持跟随界面语言。
+    /// 站点级默认值：浏览器请求带受支持语言时按请求语言；未指定或不支持时回退到该语言。
+    /// 服务端日志、配置注释与后台线程同样使用它，避免同一台服务器的日志随请求语言混杂。
+    /// 与 <see cref="Language"/> 的区别：Language 非空表示全站锁定，忽略请求语言；DefaultLanguage 只做兜底，不锁定界面。
+    /// 完整清单见 <see cref="Localization.SupportedCultures"/>，显示名称见 <see cref="Localization.GetLanguages"/>。
+    /// 裸语言码（en、ja、de-AT）由 <see cref="Localization.NormalizeCulture"/> 归一化；运行时注册的语言同样可用。
     /// </remarks>
-    [Description("Log language. Values same as UI language. Empty follows the UI language; a supported language fixes only the log, config comments and history remarks, leaving the UI language untouched.")]
-    public String LogLanguage { get; set; } = "";
+    [Description("Default language. Values same as UI language. Empty follows the system; a supported language is used when the request has no supported language and as the log/config-comment language. Unlike UI language, it does not lock the UI.")]
+    public String DefaultLanguage { get; set; } = "";
+
+    private static Boolean _logCultureFromSetting;
+    private static String? _warnedEnvironment;
     #endregion
 
     #region 方法
@@ -142,39 +146,71 @@ public class Setting : Config<Setting>
 
     /// <summary>应用语言设置</summary>
     /// <remarks>
-    /// 留空表示自动识别，不覆盖宿主显式设置的 <see cref="Localization.Culture"/> 与 <see cref="Localization.LogCulture"/>；
-    /// 语言不受支持时同样保持自动模式。
+    /// 环境变量优先于配置文件：<c>Language</c>、<c>DefaultLanguage</c>。
+    /// 留空表示自动识别；<see cref="Language"/> 非空时锁定界面与日志，<see cref="DefaultLanguage"/> 非空时作为请求与日志兜底。
+    /// 空配置不清除宿主显式设置的 <see cref="Localization.Culture"/>；配置了语言时按上述优先级覆盖 <see cref="Localization.LogCulture"/>。
     /// </remarks>
     public void ApplyLanguage()
     {
-        if (Language.IsNullOrWhiteSpace())
-        {
-            // 配置清空后撤销此前强制的语言，恢复自动识别；宿主自行设置的语言不受影响
-            if (Localization.ForcedLanguage != null) Localization.SetLanguage(null);
-        }
-        // 配置的语言不受支持时保持自动模式，不覆盖宿主显式设置
-        else if (Localization.NormalizeCulture(Language) != null)
-        {
-            Localization.SetLanguage(Language);
-        }
+        var language = GetEffectiveLanguage();
+        var defaultLanguage = GetEffectiveDefaultLanguage();
 
-        ApplyLogLanguage();
+        // 锁定语言。配置清空或改成不受支持的语言时，撤销此前由配置施加的锁定
+        if (Localization.NormalizeCulture(language) is { } forced)
+            Localization.SetLanguage(forced);
+        else if (Localization.ForcedLanguage != null)
+            Localization.SetLanguage(null);
+
+        // 站点默认语言只做请求与日志兜底，不锁定界面
+        Localization.SetDefaultLanguage(defaultLanguage);
+
+        // 日志语言：锁定语言 > 默认语言 > 启动时的系统语言，避免随请求语言混杂
+        if (Localization.ForcedLanguage != null)
+        {
+            Localization.LogCulture = Localization.Culture;
+            _logCultureFromSetting = true;
+        }
+        else if (Localization.DefaultCulture != null)
+        {
+            Localization.LogCulture = Localization.DefaultCulture;
+            _logCultureFromSetting = true;
+        }
+        else if (_logCultureFromSetting)
+        {
+            Localization.LogCulture = null;
+            _logCultureFromSetting = false;
+        }
     }
 
-    /// <summary>应用日志语言。留空跟随界面语言，因此只在显式配置时覆盖</summary>
-    private void ApplyLogLanguage()
-    {
-        var name = Localization.NormalizeCulture(LogLanguage);
-        if (name == null) return;
+    /// <summary>获取生效的界面语言。环境变量 <c>Language</c> 优先于配置文件</summary>
+    /// <returns>语言代码；未配置时返回空</returns>
+    public String? GetEffectiveLanguage() => GetLanguageSetting("Language", Language);
 
-        try
+    /// <summary>获取生效的默认语言。环境变量 <c>DefaultLanguage</c> 优先于配置文件</summary>
+    /// <returns>语言代码；未配置时返回空</returns>
+    public String? GetEffectiveDefaultLanguage() => GetLanguageSetting("DefaultLanguage", DefaultLanguage);
+
+    private static String? GetLanguageSetting(String name, String configValue)
+    {
+        // Linux 区分大小写，精确读取可避开 GNU gettext 的 LANGUAGE 变量
+        var value = Environment.GetEnvironmentVariable(name);
+        if (value.IsNullOrWhiteSpace()) return configValue;
+
+        // 环境变量优先；不受支持时回退配置，避免一个拼写错误把整站语言锁死
+        if (Localization.NormalizeCulture(value) == null)
         {
-            Localization.LogCulture = new CultureInfo(name);
+            // 该入口可能被请求级代码频繁调用，同一错误只提示一次
+            var key = $"{name}={value}";
+            if (!String.Equals(_warnedEnvironment, key, StringComparison.Ordinal))
+            {
+                _warnedEnvironment = key;
+                XTrace.WriteLine("Environment variable {0}={1} is not a supported language; using the configuration value instead.", name, value);
+            }
+
+            return configValue;
         }
-        catch (Exception ex) when (ex is CultureNotFoundException || ex is ArgumentException)
-        {
-            // 不变全球化下具名区域性不可用，保持跟随界面语言
-        }
+
+        return value;
     }
 
     /// <summary>获取插件目录</summary>

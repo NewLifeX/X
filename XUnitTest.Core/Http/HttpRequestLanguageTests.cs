@@ -74,4 +74,61 @@ public class HttpRequestLanguageTests
             Localization.Culture = saved;
         }
     }
+
+    [Fact]
+    [DisplayName("HTTP请求_无Accept-Language时回退默认语言")]
+    public async Task RequestLanguage_FallsBackToDefaultCulture()
+    {
+        var saved = Localization.Culture;
+        var savedDefault = Localization.DefaultCulture;
+        var savedThread = CultureInfo.DefaultThreadCurrentUICulture;
+        try
+        {
+            Localization.Culture = null;
+            Localization.SetDefaultLanguage("zh-CN");
+
+            using var server = CreateServer();
+            using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{server.Port}") };
+
+            var response = await client.GetAsync("/lang");
+
+            Assert.Equal("zh-CN", await response.Content.ReadAsStringAsync());
+        }
+        finally
+        {
+            Localization.Culture = saved;
+            Localization.SetDefaultLanguage(savedDefault?.Name);
+            CultureInfo.DefaultThreadCurrentUICulture = savedThread;
+        }
+    }
+
+    [Fact]
+    [DisplayName("HTTP请求_不支持的语言回退默认语言")]
+    public async Task RequestLanguage_FallsBackToDefaultCultureForUnsupportedLanguage()
+    {
+        var saved = Localization.Culture;
+        var savedDefault = Localization.DefaultCulture;
+        var savedThread = CultureInfo.DefaultThreadCurrentUICulture;
+        try
+        {
+            Localization.Culture = null;
+            Localization.SetDefaultLanguage("zh-CN");
+
+            using var server = CreateServer();
+            using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{server.Port}") };
+
+            var request = new HttpRequestMessage(HttpMethod.Get, "/lang");
+            request.Headers.TryAddWithoutValidation("Accept-Language", "sw-KE");
+
+            var response = await client.SendAsync(request);
+
+            Assert.Equal("zh-CN", await response.Content.ReadAsStringAsync());
+        }
+        finally
+        {
+            Localization.Culture = saved;
+            Localization.SetDefaultLanguage(savedDefault?.Name);
+            CultureInfo.DefaultThreadCurrentUICulture = savedThread;
+        }
+    }
 }

@@ -577,39 +577,73 @@ public class LocalizationTests
         }
     }
 
-    [Fact(DisplayName = "设置：日志语言独立于界面语言")]
-    public void Setting_log_language()
+    [Fact(DisplayName = "L.TLog：未设置日志语言时回退默认语言而非请求语言")]
+    public void L_TLog_falls_back_to_default_culture()
+    {
+        var savedCulture = Localization.Culture;
+        var savedLogCulture = Localization.LogCulture;
+        var savedDefault = Localization.DefaultCulture;
+        var savedThread = CultureInfo.DefaultThreadCurrentUICulture;
+        var savedCurrent = CultureInfo.CurrentUICulture;
+        try
+        {
+            Localization.Culture = null;
+            Localization.LogCulture = null;
+            Localization.SetDefaultLanguage("zh-CN");
+
+            // 模拟请求线程已切到英文，日志仍应使用站点默认语言
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+
+            Assert.Equal(Zh, L.TLog(Key));
+        }
+        finally
+        {
+            Localization.Culture = savedCulture;
+            Localization.LogCulture = savedLogCulture;
+            Localization.SetDefaultLanguage(savedDefault?.Name);
+            CultureInfo.DefaultThreadCurrentUICulture = savedThread;
+            CultureInfo.CurrentUICulture = savedCurrent;
+        }
+    }
+
+    [Fact(DisplayName = "设置：默认语言作为界面与日志兜底，不锁定界面")]
+    public void Setting_default_language()
     {
         var set = new Setting();
         var savedCulture = Localization.Culture;
         var savedLogCulture = Localization.LogCulture;
         var savedForced = Localization.ForcedLanguage;
+        var savedDefault = Localization.DefaultCulture;
+        var savedThread = CultureInfo.DefaultThreadCurrentUICulture;
         try
         {
-            // 界面固定中文，日志固定英文：两个语言互不影响
+            // 界面锁定中文，日志跟随锁定语言；默认语言仅作为兜底存在
             set.Language = "zh-CN";
-            set.LogLanguage = "en-US";
-            set.ApplyLanguage();
-
-            Assert.Equal("zh-CN", Localization.Culture?.Name);
-            Assert.Equal("en-US", Localization.LogCulture?.Name);
-            Assert.Equal(Key, L.TLog(Key));
-            Assert.Equal(Zh, L.T(Key));
-
-            // 日志语言留空时跟随界面语言
-            set.LogLanguage = "";
+            set.DefaultLanguage = "en-US";
             set.ApplyLanguage();
 
             Assert.Equal("zh-CN", Localization.Culture?.Name);
             Assert.Equal("zh-CN", Localization.LogCulture?.Name);
+            Assert.Equal("en-US", Localization.DefaultCulture?.Name);
+            Assert.Equal(Zh, L.T(Key));
+            Assert.Equal(Zh, L.TLog(Key));
 
-            // 界面留空按请求自动识别，日志仍可固定，保证同一台服务器的日志语言稳定
+            // 界面不锁定，默认语言同时作为界面与日志兜底
             set.Language = "";
-            set.LogLanguage = "en-US";
+            set.DefaultLanguage = "zh-CN";
             set.ApplyLanguage();
 
             Assert.Null(Localization.Culture);
-            Assert.Equal("en-US", Localization.LogCulture?.Name);
+            Assert.Equal("zh-CN", Localization.DefaultCulture?.Name);
+            Assert.Equal("zh-CN", Localization.LogCulture?.Name);
+            Assert.Equal(Zh, L.TLog(Key));
+
+            // 默认语言清空后，日志回到启动时的系统语言
+            set.DefaultLanguage = "";
+            set.ApplyLanguage();
+
+            Assert.Null(Localization.DefaultCulture);
+            Assert.Null(Localization.LogCulture);
         }
         finally
         {
@@ -617,6 +651,52 @@ public class LocalizationTests
             Localization.SetLanguage(savedForced);
             Localization.Culture = savedCulture;
             Localization.LogCulture = savedLogCulture;
+            Localization.SetDefaultLanguage(savedDefault?.Name);
+            CultureInfo.DefaultThreadCurrentUICulture = savedThread;
+        }
+    }
+
+    [Fact(DisplayName = "设置：环境变量优先于配置文件，非法值回退配置")]
+    public void Setting_environment_overrides_config()
+    {
+        var set = new Setting();
+        var savedCulture = Localization.Culture;
+        var savedLogCulture = Localization.LogCulture;
+        var savedForced = Localization.ForcedLanguage;
+        var savedDefault = Localization.DefaultCulture;
+        var savedThread = CultureInfo.DefaultThreadCurrentUICulture;
+        var oldLanguage = Environment.GetEnvironmentVariable("Language");
+        var oldDefault = Environment.GetEnvironmentVariable("DefaultLanguage");
+        try
+        {
+            set.Language = "en-US";
+            set.DefaultLanguage = "en-US";
+
+            Environment.SetEnvironmentVariable("Language", "zh-CN");
+            Environment.SetEnvironmentVariable("DefaultLanguage", "zh-CN");
+            set.ApplyLanguage();
+
+            Assert.Equal("zh-CN", Localization.ForcedLanguage);
+            Assert.Equal("zh-CN", Localization.DefaultCulture?.Name);
+            Assert.Equal("zh-CN", Localization.LogCulture?.Name);
+
+            // 环境变量非法时回退配置文件
+            Environment.SetEnvironmentVariable("Language", "sw-KE");
+            Environment.SetEnvironmentVariable("DefaultLanguage", "sw-KE");
+            set.ApplyLanguage();
+
+            Assert.Equal("en-US", Localization.ForcedLanguage);
+            Assert.Equal("en-US", Localization.DefaultCulture?.Name);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("Language", oldLanguage);
+            Environment.SetEnvironmentVariable("DefaultLanguage", oldDefault);
+            Localization.SetLanguage(savedForced);
+            Localization.Culture = savedCulture;
+            Localization.LogCulture = savedLogCulture;
+            Localization.SetDefaultLanguage(savedDefault?.Name);
+            CultureInfo.DefaultThreadCurrentUICulture = savedThread;
         }
     }
 

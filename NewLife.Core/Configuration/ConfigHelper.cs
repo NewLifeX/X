@@ -380,15 +380,15 @@ public static class ConfigHelper
     /// <param name="comment">源文注释</param>
     /// <returns>本地化注释；未显式设置开发者语言时返回原文</returns>
     /// <remarks>
-    /// 配置文件是持久化产物，只跟随 <see cref="Localization.LogCulture"/> 或显式设置的
-    /// <see cref="Localization.Culture"/>，不跟随 <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>，
-    /// 避免请求语言导致注释漂移。
+    /// 配置文件是持久化产物，只跟随 <see cref="Localization.LogCulture"/>、显式设置的
+    /// <see cref="Localization.Culture"/> 或站点默认语言 <see cref="Localization.DefaultCulture"/>，
+    /// 不跟随 <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>，避免请求语言导致注释漂移。
     /// </remarks>
     public static String? LocalizeComment(this String? comment)
     {
         if (comment.IsNullOrEmpty()) return comment;
 
-        var culture = Localization.LogCulture ?? Localization.Culture;
+        var culture = Localization.LogCulture ?? Localization.Culture ?? Localization.DefaultCulture;
         return culture == null ? comment : Localization.Translate(culture, comment);
     }
 

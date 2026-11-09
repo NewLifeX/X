@@ -20,7 +20,7 @@ internal static class L
     /// <summary>按日志语言翻译指定文本</summary>
     /// <param name="template">英文原文模板</param>
     /// <returns>本地化文本；缺少翻译时返回原文</returns>
-    /// <remarks>日志语言由 <see cref="Localization.LogCulture"/> 控制，与界面/异常使用的 <see cref="Localization.Culture"/> 相互独立。</remarks>
+    /// <remarks>日志语言优先取 <see cref="Localization.LogCulture"/>，未设置时依次回退锁定语言、<see cref="Localization.DefaultCulture"/> 与启动时的系统语言，避免随请求语言混杂。</remarks>
     public static String TLog(String template) => Localization.TranslateForLog(template);
 
     /// <summary>按日志语言翻译并格式化指定文本</summary>

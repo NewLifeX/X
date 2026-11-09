@@ -16,9 +16,18 @@ public static partial class Localization
     /// <summary>目标语言。默认 null，表示跟随 <see cref="CultureInfo.CurrentUICulture"/></summary>
     public static CultureInfo? Culture { get; set; }
 
-    /// <summary>日志与配置注释的语言。默认 null，表示跟随 <see cref="Culture"/></summary>
+    /// <summary>日志与配置注释的语言。默认 null，表示跟随 <see cref="Culture"/>、<see cref="DefaultCulture"/> 与 <see cref="SystemCulture"/></summary>
     public static CultureInfo? LogCulture { get; set; }
 
+    /// <summary>站点默认语言。请求没有指定受支持语言时使用；空表示跟随 <see cref="CultureInfo.CurrentUICulture"/></summary>
+    /// <remarks>默认语言只做请求与日志兜底，不写入 <see cref="Culture"/>，因此不会锁定界面</remarks>
+    public static CultureInfo? DefaultCulture { get; private set; }
+
+    /// <summary>进程启动时的 UI 语言。默认语言清空后恢复，并作为日志的最终兜底</summary>
+    public static CultureInfo SystemCulture { get; } = CultureInfo.CurrentUICulture;
+
+    private static readonly CultureInfo? _initialDefaultThreadUICulture = CultureInfo.DefaultThreadCurrentUICulture;
+    private static readonly Object _defaultLock = new();
     private static readonly ConcurrentDictionary<String, IReadOnlyDictionary<String, String>> _overrides = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<String, String?> _cultureKeys = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal);
@@ -90,10 +99,29 @@ public static partial class Localization
     public static String Translate(String template, params Object?[]? args) => Translate(null, template, args);
 
     /// <summary>按日志语言翻译指定文本</summary>
-    public static String TranslateForLog(String template) => Translate(LogCulture ?? Culture, template);
+    /// <param name="template">英文原文模板</param>
+    /// <returns>本地化文本；缺少翻译时返回原文</returns>
+    /// <remarks>日志语言优先取 <see cref="LogCulture"/>，其次锁定语言与默认语言，最后回退进程启动时的系统语言，避免随请求语言混杂</remarks>
+    public static String TranslateForLog(String template) => Translate(GetLogCulture(), template);
 
     /// <summary>按日志语言翻译并格式化指定文本</summary>
-    public static String TranslateForLog(String template, params Object?[]? args) => Translate(LogCulture ?? Culture, template, args);
+    /// <param name="template">英文原文模板</param>
+    /// <param name="args">格式化参数</param>
+    /// <returns>本地化文本；缺少翻译或格式化失败时回退英文</returns>
+    public static String TranslateForLog(String template, params Object?[]? args) => Translate(GetLogCulture(), template, args);
+
+    private static CultureInfo GetLogCulture() => LogCulture ?? Culture ?? DefaultCulture ?? SystemCulture;
+
+    private static CultureInfo GetCurrentCulture(CultureInfo? culture)
+    {
+        if (culture != null) return culture;
+        if (Culture != null) return Culture;
+
+        var current = CultureInfo.CurrentUICulture;
+
+        // 不变全球化下当前区域性没有名称，退回站点默认语言；否则跟随当前线程的 UI 语言
+        return current.Name.Length == 0 && DefaultCulture != null ? DefaultCulture : current;
+    }
 
     /// <summary>判断指定区域是否有可用的翻译表；英文始终为 true</summary>
     public static Boolean IsSupported(CultureInfo culture)
@@ -114,7 +142,7 @@ public static partial class Localization
     {
         if (template.IsNullOrEmpty()) return template;
 
-        culture ??= Culture ?? CultureInfo.CurrentUICulture;
+        culture = GetCurrentCulture(culture);
         var key = GetCultureKeyCached(culture);
         if (key == null) return template;
 
@@ -194,7 +222,7 @@ public static partial class Localization
 
     internal static String Translate(CultureInfo? culture, String template, params Object?[]? args)
     {
-        culture ??= Culture ?? CultureInfo.CurrentUICulture;
+        culture = GetCurrentCulture(culture);
         var text = Translate(culture, template);
         if (args == null || args.Length == 0) return text;
 
