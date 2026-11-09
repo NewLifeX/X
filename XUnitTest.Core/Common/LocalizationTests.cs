@@ -45,6 +45,7 @@ public class LocalizationTests
     {
         Assert.Equal("系统设置", Localization.Translate(_zh, "System settings"));
         Assert.Equal("日志等级。只输出大于等于该级别的日志，All/Debug/Info/Warn/Error/Fatal，默认Info", Localization.Translate(_zh, "Log level. Only logs at or above this level are output: All/Debug/Info/Warn/Error/Fatal. Default Info."));
+        Assert.Equal("默认语言。可选值与界面语言相同。留空跟随系统；填写受支持的语言后，当请求没有受支持的语言时使用它，并作为日志与配置注释的语言。与界面语言不同，它不锁定界面。", Localization.Translate(_zh, "Default language. Values same as UI language. Empty follows the system; a supported language is used when the request has no supported language and as the log/config-comment language. Unlike UI language, it does not lock the UI."));
         Assert.Equal("Paramètres système", Localization.Translate(CultureInfo.GetCultureInfo("fr"), "System settings"));
     }
 
