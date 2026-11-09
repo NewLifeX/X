@@ -22,7 +22,18 @@ public class HttpDownloadOptions
     /// </remarks>
     public TimeSpan DownloadTimeout { get; set; } = TimeSpan.FromSeconds(300);
 
+    /// <summary>重试次数。默认0，不重试；最多尝试 RetryCount+1 次</summary>
+    public Int32 RetryCount { get; set; }
+
+    /// <summary>重试延迟。默认2秒，按尝试次数线性递增</summary>
+    public TimeSpan RetryDelay { get; set; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>HttpClient工厂。重试时通过工厂创建新客户端，以便强制新建连接；未设置时复用原客户端</summary>
+    /// <remarks>工厂应返回新的客户端实例，不能返回调用方传入的客户端；工厂创建的客户端由本方法负责释放，首次尝试始终使用调用方传入的客户端</remarks>
+    public Func<HttpClient>? ClientFactory { get; set; }
+
     /// <summary>下载进度回调。参数为（已接收字节数，总字节数），总字节数未知时为0</summary>
+    /// <remarks>发生重试时，进度会从0重新开始</remarks>
     public Action<Int64, Int64>? Progress { get; set; }
 
     /// <summary>预期哈希字符串。支持带算法前缀（如 md5$...）或按长度自动识别；为空时不校验</summary>

@@ -19,6 +19,9 @@ public class HttpDownloadOptionsTests
 
         Assert.Equal(TimeSpan.FromSeconds(15), options.HeaderTimeout);
         Assert.Equal(TimeSpan.FromSeconds(300), options.DownloadTimeout);
+        Assert.Equal(0, options.RetryCount);
+        Assert.Equal(TimeSpan.FromSeconds(2), options.RetryDelay);
+        Assert.Null(options.ClientFactory);
         Assert.Null(options.Progress);
         Assert.Null(options.ExpectedHash);
         Assert.Equal(0, options.BufferSize);
@@ -109,6 +112,151 @@ public class HttpDownloadOptionsTests
                 .DownloadFileAsync("http://x/file.bin", file, options);
 
             Assert.Equal(file.GetFullPath(), rs);
+            Assert.Equal(data, File.ReadAllBytes(rs));
+        }
+        finally
+        {
+            DeleteFile(file);
+        }
+    }
+
+    [Fact]
+    [DisplayName("下载_失败后按重试次数重试成功")]
+    public async Task Download_RetryThenSuccess()
+    {
+        var data = "retry-ok"u8.ToArray();
+        var file = NewTempFile("retry.bin");
+        try
+        {
+            var count = 0;
+            var options = new HttpDownloadOptions
+            {
+                HeaderTimeout = TimeSpan.FromSeconds(2),
+                DownloadTimeout = TimeSpan.FromSeconds(10),
+                RetryCount = 1,
+                RetryDelay = TimeSpan.FromMilliseconds(10),
+            };
+
+            var client = CreateClient((_, _) =>
+            {
+                count++;
+                return Task.FromResult(count == 1
+                    ? new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+                    : CreateResponse(data));
+            });
+
+            var rs = await client.DownloadFileAsync("http://x/file.bin", file, options);
+
+            Assert.Equal(2, count);
+            Assert.Equal(data, File.ReadAllBytes(rs));
+        }
+        finally
+        {
+            DeleteFile(file);
+        }
+    }
+
+    [Fact]
+    [DisplayName("下载_重试次数用尽后抛出最后一次异常")]
+    public async Task Download_RetryExhausted()
+    {
+        var file = NewTempFile("retry-exhausted.bin");
+        try
+        {
+            var count = 0;
+            var options = new HttpDownloadOptions
+            {
+                HeaderTimeout = TimeSpan.FromSeconds(2),
+                DownloadTimeout = TimeSpan.FromSeconds(10),
+                RetryCount = 2,
+                RetryDelay = TimeSpan.FromMilliseconds(10),
+            };
+
+            var client = CreateClient((_, _) =>
+            {
+                count++;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+            });
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => client.DownloadFileAsync("http://x/file.bin", file, options));
+
+            Assert.Equal(3, count);
+            Assert.False(File.Exists(file));
+        }
+        finally
+        {
+            DeleteFile(file);
+        }
+    }
+
+    [Fact]
+    [DisplayName("下载_重试时通过ClientFactory新建客户端")]
+    public async Task Download_ClientFactoryUsedOnRetry()
+    {
+        var data = "factory"u8.ToArray();
+        var file = NewTempFile("factory.bin");
+        try
+        {
+            var originalCount = 0;
+            var retryCount = 0;
+            var original = CreateClient((_, _) =>
+            {
+                originalCount++;
+                return Task.FromException<HttpResponseMessage>(new HttpRequestException("boom"));
+            });
+            var factoryClient = CreateClient((_, _) =>
+            {
+                retryCount++;
+                return Task.FromResult(CreateResponse(data));
+            });
+            var options = new HttpDownloadOptions
+            {
+                HeaderTimeout = TimeSpan.FromSeconds(2),
+                DownloadTimeout = TimeSpan.FromSeconds(10),
+                RetryCount = 1,
+                RetryDelay = TimeSpan.FromMilliseconds(10),
+                ClientFactory = () => factoryClient,
+            };
+
+            var rs = await original.DownloadFileAsync("http://x/file.bin", file, options);
+
+            Assert.Equal(1, originalCount);
+            Assert.Equal(1, retryCount);
+            Assert.Equal(data, File.ReadAllBytes(rs));
+        }
+        finally
+        {
+            DeleteFile(file);
+        }
+    }
+
+    [Fact]
+    [DisplayName("下载_响应头超时后重试成功")]
+    public async Task Download_HeaderTimeoutRetries()
+    {
+        var data = "timeout-retry"u8.ToArray();
+        var file = NewTempFile("timeout-retry.bin");
+        try
+        {
+            var count = 0;
+            var options = new HttpDownloadOptions
+            {
+                HeaderTimeout = TimeSpan.FromMilliseconds(100),
+                DownloadTimeout = TimeSpan.FromSeconds(10),
+                RetryCount = 1,
+                RetryDelay = TimeSpan.FromMilliseconds(10),
+            };
+
+            var client = CreateClient(async (_, cancellationToken) =>
+            {
+                count++;
+                if (count == 1) await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                return CreateResponse(data);
+            });
+
+            var rs = await client.DownloadFileAsync("http://x/file.bin", file, options);
+
+            Assert.Equal(2, count);
             Assert.Equal(data, File.ReadAllBytes(rs));
         }
         finally
@@ -215,14 +363,18 @@ public class HttpDownloadOptionsTests
         var file = NewTempFile("cancel.bin");
         try
         {
+            var count = 0;
             var options = new HttpDownloadOptions
             {
                 HeaderTimeout = TimeSpan.FromSeconds(10),
                 DownloadTimeout = TimeSpan.FromSeconds(10),
+                RetryCount = 2,
+                RetryDelay = TimeSpan.FromMilliseconds(10),
             };
 
             var client = CreateClient(async (_, cancellationToken) =>
             {
+                count++;
                 await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
                 return CreateResponse([1, 2, 3]);
             });
@@ -231,6 +383,7 @@ public class HttpDownloadOptionsTests
             var ex = await Record.ExceptionAsync(() => client.DownloadFileAsync("http://x/file.bin", file, options, cts.Token));
 
             Assert.IsAssignableFrom<OperationCanceledException>(ex);
+            Assert.Equal(1, count);
             Assert.False(File.Exists(file));
         }
         finally

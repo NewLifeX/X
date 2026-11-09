@@ -525,6 +525,9 @@ public static class HttpHelper
     /// 分段超时依赖独立的取消令牌，不会修改传入的 <paramref name="client"/>。
     /// 如果客户端自身设置了 <see cref="HttpClient.Timeout"/>，该超时仍可能生效；需要由本选项完整控制下载时，
     /// 建议调用方将 <see cref="HttpClient.Timeout"/> 设为 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>。
+    /// 设置 <see cref="HttpDownloadOptions.RetryCount"/> 后，网络异常、超时与 IO 异常会按
+    /// <see cref="HttpDownloadOptions.RetryDelay"/> 线性递增重试；需要切换连接或节点时，可通过
+    /// <see cref="HttpDownloadOptions.ClientFactory"/> 在重试时创建新客户端。
     /// </remarks>
     public static async Task<String> DownloadFileAsync(this HttpClient client, String requestUri, String fileName, HttpDownloadOptions options, CancellationToken cancellationToken = default)
     {
@@ -533,6 +536,46 @@ public static class HttpHelper
         if (requestUri.IsNullOrEmpty()) throw new ArgumentNullException(nameof(requestUri));
         if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(fileName));
 
+        var attempt = 0;
+        while (true)
+        {
+            var current = client;
+            var ownsClient = false;
+            try
+            {
+                // 首次尝试使用调用方传入的客户端；重试时按需通过工厂新建连接
+                if (attempt > 0 && options.ClientFactory != null)
+                {
+                    current = options.ClientFactory() ?? throw new InvalidOperationException(L.T("The HttpClient factory returned null."));
+                    ownsClient = true;
+                }
+
+                return await DownloadOnceAsync(current, requestUri, fileName, options, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (IsRetryable(ex, cancellationToken) && attempt < options.RetryCount)
+            {
+                attempt++;
+
+                // 工厂创建的客户端在每次尝试结束后释放，避免重试期间积累连接池
+                if (ownsClient)
+                {
+                    current.Dispose();
+                    ownsClient = false;
+                }
+
+                var delay = options.RetryDelay > TimeSpan.Zero ? TimeSpan.FromTicks(options.RetryDelay.Ticks * attempt) : TimeSpan.Zero;
+                if (delay > TimeSpan.Zero) await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                if (ownsClient) current.Dispose();
+            }
+        }
+    }
+
+    /// <summary>执行一次下载。分段超时与文件处理集中在单次尝试内，便于外层按策略重试</summary>
+    private static async Task<String> DownloadOnceAsync(HttpClient client, String requestUri, String fileName, HttpDownloadOptions options, CancellationToken cancellationToken)
+    {
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
         HttpResponseMessage rs;
@@ -594,6 +637,14 @@ public static class HttpHelper
         }
 
         return fileName.GetFullPath();
+    }
+
+    /// <summary>判断异常是否值得重试</summary>
+    private static Boolean IsRetryable(Exception ex, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested) return false;
+
+        return ex is TimeoutException || ex is IOException || ex is HttpRequestException || ex is OperationCanceledException;
     }
 
     /// <summary>保存流到本地文件并校验哈希。常用于文件下载</summary>
