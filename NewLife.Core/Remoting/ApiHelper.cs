@@ -410,7 +410,11 @@ public static class ApiHelper
             //var message = js["message"] + "";
             //if (message.IsNullOrEmpty()) message = js["msg"] + "";
             if (message.IsNullOrEmpty()) message = data + "";
-            throw new ApiException(code, message);
+
+            // 保留完整错误信封，供调用方读取服务端时间等附加字段（如登录失败后校准时间差再重试）
+            var ex = new ApiException(code, message);
+            ex.Data["response"] = dic;
+            throw ex;
         }
     }
 
