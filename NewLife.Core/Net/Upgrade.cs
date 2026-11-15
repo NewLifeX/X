@@ -38,7 +38,7 @@ public class Upgrade
     /// <summary>超链接信息</summary>
     public Link? Link { get; set; }
 
-    /// <summary>缓存文件。同名文件不再下载，默认false</summary>
+    /// <summary>缓存文件。同名文件已存在时不再下载，默认true</summary>
     public Boolean CacheFile { get; set; } = true;
 
     /// <summary>更新源文件</summary>
@@ -174,6 +174,7 @@ public class Upgrade
     }
 
     /// <summary>开始更新</summary>
+    /// <remarks>同步重载不校验哈希；需要完整性校验时用 DownloadAsync</remarks>
     /// <param name="url">下载源</param>
     /// <param name="fileName">文件名</param>
     public void Download(String url, String? fileName)
@@ -182,7 +183,7 @@ public class Upgrade
         var file = !fileName.IsNullOrEmpty() ?
             UpdatePath.CombinePath(fileName).GetBasePath() :
             Path.GetTempFileName();
-        if (!CacheFile && File.Exists(file)) File.Delete(file); ;
+        if (!CacheFile && File.Exists(file)) File.Delete(file);
         if (!File.Exists(file))
         {
             WriteLog("Preparing to download {0} to {1}", url, file);
@@ -210,9 +211,12 @@ public class Upgrade
         var file = !fileName.IsNullOrEmpty() ?
             UpdatePath.CombinePath(fileName).GetBasePath() :
             Path.GetTempFileName();
-        if (!CacheFile && File.Exists(file)) File.Delete(file); ;
-        if (!File.Exists(file))
+        if (!CacheFile && File.Exists(file)) File.Delete(file);
+        if (NeedDownload(file, expectedHash))
         {
+            // 缓存文件哈希不对（上次失败留下的坏包），先删掉再重下
+            if (File.Exists(file)) File.Delete(file);
+
             WriteLog("Preparing to download {0} to {1}", url, file);
 
             var sw = Stopwatch.StartNew();
@@ -225,6 +229,21 @@ public class Upgrade
         }
 
         SourceFile = file;
+    }
+
+    /// <summary>判断是否需要下载。缓存文件存在时，有哈希要求就必须校验通过。</summary>
+    /// <param name="file">本地文件路径</param>
+    /// <param name="expectedHash">预期哈希，为空表示不校验</param>
+    /// <returns>需要下载时返回 true</returns>
+    internal static Boolean NeedDownload(String file, String? expectedHash)
+    {
+        if (!File.Exists(file)) return true;
+
+        // 没有哈希要求时，缓存文件直接可用
+        if (expectedHash.IsNullOrEmpty()) return false;
+
+        // 有哈希要求时，缓存包可能是上次失败留下的坏文件，必须校验
+        return !file.AsFile().VerifyHash(expectedHash);
     }
 
     /// <summary>检查并执行更新操作</summary>
