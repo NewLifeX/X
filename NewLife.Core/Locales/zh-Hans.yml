@@ -2,6 +2,13 @@
 # 格式：每行一条 "英文原文": "译文"；仅支持双引号与 \\ \" \n \r \t \uXXXX 转义
 # 占位符（{0}/{1}…）必须与英文原文一致，否则编译失败
 
+"Download did not complete within {0} seconds: {1}": "下载未在 {0} 秒内完成：{1}"
+"Incomplete download, expected {0} bytes but received {1} bytes.": "下载不完整，预期 {0} 字节，实际收到 {1} 字节。"
+"No response headers received within {0} seconds: {1}": "{0} 秒内未收到响应头：{1}"
+"The HttpClient factory returned null.": "HttpClient 工厂返回了 null。"
+"The encrypted data failed the integrity check.": "加密数据完整性校验失败。"
+"The encrypted data is too short.": "加密数据太短。"
+"Too many redirects: {0}": "重定向次数过多：{0}"
 "[{0}] Configuration changed; reloading keys: {1}": "[{0}]配置改变，重新加载如下键：{1}"
 "[{0}] Failed to pull configuration from the configuration center at {1}: {2}": "[{0}]配置中心拉取失败，地址：{1}，{2}"
 "[{0}] is full: {1:n0}>{2:n0}; removing [{3:n0}] items": "[{0}]满，{1:n0}>{2:n0}，删除[{3:n0}]个"

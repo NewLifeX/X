@@ -2,6 +2,13 @@
 # 형식: 한 줄에 "영문 원문": "번역문"；큰따옴표와 \\ \" \n \r \t \uXXXX 이스케이프만 지원
 # 자리 표시자({0}/{1}…)는 영문 원문과 반드시 일치해야 하며, 그렇지 않으면 컴파일 실패
 
+"Download did not complete within {0} seconds: {1}": "{0}초 안에 다운로드가 완료되지 않았습니다: {1}"
+"Incomplete download, expected {0} bytes but received {1} bytes.": "다운로드가 불완전합니다. {0}바이트가 필요하지만 {1}바이트를 받았습니다."
+"No response headers received within {0} seconds: {1}": "{0}초 안에 응답 헤더를 받지 못했습니다: {1}"
+"The HttpClient factory returned null.": "HttpClient 팩터리가 null을 반환했습니다."
+"The encrypted data failed the integrity check.": "암호화된 데이터의 무결성 검사에 실패했습니다."
+"The encrypted data is too short.": "암호화된 데이터가 너무 짧습니다."
+"Too many redirects: {0}": "리디렉션이 너무 많습니다: {0}"
 "[{0}] Configuration changed; reloading keys: {1}": "[{0}] 구성이 변경되어 다음 키를 다시 로드합니다: {1}"
 "[{0}] Failed to pull configuration from the configuration center at {1}: {2}": "[{0}] 구성 센터에서 구성 가져오기 실패, 주소: {1}, {2}"
 "[{0}] is full: {1:n0}>{2:n0}; removing [{3:n0}] items": "[{0}] 가득 참: {1:n0}>{2:n0}, [{3:n0}]개 항목 삭제"

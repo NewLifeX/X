@@ -2,6 +2,13 @@
 # Format: eine Zeile pro Eintrag "Englischer Originaltext": "Übersetzung"; nur doppelte Anführungszeichen und die Escapes \\ \" \n \r \t \uXXXX werden unterstützt
 # Platzhalter ({0}/{1}…) müssen mit dem englischen Originaltext übereinstimmen, sonst schlägt die Kompilierung fehl
 
+"Download did not complete within {0} seconds: {1}": "Der Download wurde nicht innerhalb von {0} Sekunden abgeschlossen: {1}"
+"Incomplete download, expected {0} bytes but received {1} bytes.": "Unvollständiger Download: {0} Bytes erwartet, aber {1} Bytes empfangen."
+"No response headers received within {0} seconds: {1}": "Innerhalb von {0} Sekunden wurden keine Antwortheader empfangen: {1}"
+"The HttpClient factory returned null.": "Die HttpClient-Factory hat null zurückgegeben."
+"The encrypted data failed the integrity check.": "Die Integritätsprüfung der verschlüsselten Daten ist fehlgeschlagen."
+"The encrypted data is too short.": "Die verschlüsselten Daten sind zu kurz."
+"Too many redirects: {0}": "Zu viele Weiterleitungen: {0}"
 "[{0}] Configuration changed; reloading keys: {1}": "[{0}] Konfiguration geändert; folgende Schlüssel werden neu geladen: {1}"
 "[{0}] Failed to pull configuration from the configuration center at {1}: {2}": "[{0}] Konfiguration konnte nicht vom Konfigurationszentrum unter {1} abgerufen werden: {2}"
 "[{0}] is full: {1:n0}>{2:n0}; removing [{3:n0}] items": "[{0}] ist voll: {1:n0}>{2:n0}; [{3:n0}] Elemente werden entfernt"
