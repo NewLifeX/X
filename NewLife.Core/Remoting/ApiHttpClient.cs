@@ -492,14 +492,43 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         //// 压缩
         //if (Compressed) request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
-        // 加上令牌或其它身份验证
+        // 加上令牌或其它身份验证。目标不是本客户端的服务地址（如从 CDN 下载）时不带，避免把令牌泄露给第三方
         var auth = Authentication;
         if (auth == null && !Token.IsNullOrEmpty()) auth = new AuthenticationHeaderValue("Bearer", Token);
-        if (auth != null) request.Headers.Authorization = auth;
+        if (auth != null && IsServiceTarget(action)) request.Headers.Authorization = auth;
 
         OnRequest?.Invoke(this, new HttpRequestEventArgs { Request = request });
 
         return request;
+    }
+
+    /// <summary>判断请求目标是否为本客户端的服务地址</summary>
+    /// <remarks>
+    /// 相对路径一律视为服务地址；绝对地址只认与已配置节点同主机同端口的 http(s) 地址，其它视为第三方资源。
+    /// 协议相对地址（<c>//host/path</c>、<c>\\host\share</c>）会被 HttpClient 按 BaseAddress 补全成跨主机绝对地址，
+    /// 在这里解析出来是 file 方案，必须一并拒绝，否则令牌会随请求发给第三方主机。
+    /// </remarks>
+    /// <param name="requestUri">相对路径或绝对地址</param>
+    /// <returns>可以携带令牌时返回 true</returns>
+    protected Boolean IsServiceTarget(String? requestUri)
+    {
+        if (requestUri.IsNullOrEmpty()) return true;
+
+        // 相对路径由 HttpClient 的 BaseAddress 补全，必定落在服务节点上
+        if (!Uri.TryCreate(requestUri, UriKind.Absolute, out var uri)) return true;
+
+        // 非 http(s) 方案（协议相对地址解析出的 file、其它自定义方案）一律不带令牌
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return false;
+
+        var services = Services;
+        for (var i = 0; i < services.Count; i++)
+        {
+            var addr = services[i].Address;
+            if (addr == null) continue;
+            if (addr.Host.EqualIgnoreCase(uri.Host) && addr.Port == uri.Port) return true;
+        }
+
+        return false;
     }
     #endregion
 
@@ -572,8 +601,9 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, ServiceEndpoint service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
     {
         // 节点自带访问令牌（地址中的 #token=）在发送前按选中节点附加：
-        // 不再写进客户端级共享属性 Token，避免多节点各自带令牌时串门、或首个请求漏带令牌
-        if (request.Headers.Authorization == null && !service.Token.IsNullOrEmpty())
+        // 不再写进客户端级共享属性 Token，避免多节点各自带令牌时串门、或首个请求漏带令牌。
+        // 仅相对地址或同源节点才附带，跨主机绝对地址（第三方资源）一律不带
+        if (request.Headers.Authorization == null && !service.Token.IsNullOrEmpty() && IsServiceTarget(request.RequestUri?.OriginalString))
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", service.Token);
 
         var filter = Filter;

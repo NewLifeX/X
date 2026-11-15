@@ -49,6 +49,7 @@
   <ItemGroup>
     <!-- Remoting 组件拆分至独立仓库后，本仓仅保留与核心库 ApiHttpClient/ApiHelper 相关的联测文件（走 NuGet 引用外部 ApiServer）；
          ApiTest/ApiHelperTest/ApiDownTests 属外部组件用例，已在 NewLife.Remoting 仓库维护，本工程保持排除 -->
+    <Compile Include="Remoting\ApiHttpClientAuthTests.cs" />
     <Compile Include="Remoting\ApiHttpClientRaceTests.cs" />
     <Compile Include="Remoting\ApiHttpClientTests.cs" />
     <Compile Include="Remoting\ApiHttpClientUnitTests.cs" />
