@@ -96,13 +96,9 @@ public static class XTrace
 
         ThreadPoolX.Init();
 
-        try
-        {
-            var set = Setting.Current;
-            Debug = set.Debug;
-            LogPath = set.LogPath;
-        }
-        catch { }
+        // 这里不能读 Setting.Current：配置初始化会写日志（FileConfigProvider.OnWrite → XTrace.WriteLine），
+        // 两个线程分别首次进入 XTrace 与 Config<Setting> 时，会各自等待对方的类型初始化，形成死锁。
+        // 需要配置值的 Debug/LogPath 改为首次访问时延迟加载。
     }
 
     private static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
@@ -150,8 +146,11 @@ public static class XTrace
     }
 
     private static readonly Object _lock = new();
-    private static Int32 _initing = 0;
     private static Boolean _initFailed;
+
+    /// <summary>本线程是否正在初始化日志。配置初始化会写日志并再次进入本方法，用它挡住同线程递归</summary>
+    [ThreadStatic]
+    private static Boolean _initing;
 
     /// <summary>
     /// 2012.11.05 修正初次调用的时候，由于同步BUG，导致Log为空的问题。
@@ -161,7 +160,7 @@ public static class XTrace
         /*
          * 日志初始化可能会触发配置模块，其内部又写日志导致死循环。
          * 1，外部写日志引发初始化
-         * 2，标识日志初始化正在进行中
+         * 2，标识日志初始化正在进行中（按线程，配置初始化写日志会再次进入本方法）
          * 3，初始化日志提供者
          * 4，此时如果再次引发写入日志，发现正在进行中，放弃写入的日志
          * 5，标识日志初始化已完成
@@ -170,41 +169,60 @@ public static class XTrace
 
         if (_Log != null && _Log != Logger.Null) return true;
         if (_initFailed) return false;
-        if (_initing > 0 && _initing == Thread.CurrentThread.ManagedThreadId) return false;
+        if (_initing) return false;
 
-        lock (_lock)
+        _initing = true;
+        try
         {
-            if (_Log != null && _Log != Logger.Null) return true;
+            // 先在锁外读配置：配置首次初始化会反过来写日志并进入本方法（FileConfigProvider.OnWrite），
+            // 持锁等待配置初始化就会与配置侧形成环形等待
+            Setting? set = null;
+            try { set = Setting.Current; } catch { }
 
-            _initing = Thread.CurrentThread.ManagedThreadId;
+            // 日志目录同样在锁外解析，避免持锁时经属性 getter 触发配置读取
+            var logPath = LogPath;
+            if (logPath.IsNullOrEmpty() || logPath == "Log") logPath = set?.LogPath;
 
-            try
+            lock (_lock)
             {
-                var set = Setting.Current;
-                if (LogPath.IsNullOrEmpty() || LogPath == "Log") LogPath = set.LogPath;
-                if (set.LogFileFormat.Contains("{1}"))
-                    _Log = new LevelLog(LogPath, set.LogFileFormat);
-                else
-                    _Log = TextFileLog.Create(LogPath);
+                if (_Log != null && _Log != Logger.Null) return true;
 
-                if (!set.NetworkLog.IsNullOrEmpty())
+                // 配置异常：退化为静默日志且不再重试
+                if (set == null)
                 {
-                    var nlog = new NetworkLog(set.NetworkLog);
-                    _Log = new CompositeLog(_Log, nlog);
+                    _Log = Logger.Null;
+                    _initFailed = true;
+
+                    return true;
+                }
+
+                try
+                {
+                    logPath ??= set.LogPath;
+                    if (set.LogFileFormat.Contains("{1}"))
+                        _Log = new LevelLog(logPath, set.LogFileFormat);
+                    else
+                        _Log = TextFileLog.Create(logPath);
+
+                    if (!set.NetworkLog.IsNullOrEmpty())
+                    {
+                        var nlog = new NetworkLog(set.NetworkLog);
+                        _Log = new CompositeLog(_Log, nlog);
+                    }
+                }
+                catch
+                {
+                    // 配置异常时不能把异常抛给写日志的调用方：
+                    // 调用方可能是线程池任务或终结器，异常一旦外抛会中断业务流程甚至杀死进程。
+                    // 退化为静默日志且不再重试，与日志系统静态构造中的处理保持一致
+                    _Log = Logger.Null;
+                    _initFailed = true;
                 }
             }
-            catch
-            {
-                // 日志初始化会触发配置模块。配置异常时不能把异常抛给写日志的调用方：
-                // 调用方可能是线程池任务或终结器，异常一旦外抛会中断业务流程甚至杀死进程。
-                // 退化为静默日志且不再重试，与日志系统静态构造中的处理保持一致
-                _Log = Logger.Null;
-                _initFailed = true;
-            }
-            finally
-            {
-                _initing = 0;
-            }
+        }
+        finally
+        {
+            _initing = false;
         }
 
         //WriteVersion();
@@ -399,11 +417,52 @@ public static class XTrace
 
     #region 属性
 
-    /// <summary>是否调试。</summary>
-    public static Boolean Debug { get; set; }
+    private static Int32 _settingLoaded;
+    private static Setting? _setting;
+    private static Boolean? _debug;
+    private static String? _logPath;
 
-    /// <summary>文本日志目录</summary>
-    public static String? LogPath { get; set; }
+    /// <summary>是否调试。默认读取配置 Debug</summary>
+    public static Boolean Debug
+    {
+        get => _debug ?? LoadSetting()?.Debug ?? false;
+        set => _debug = value;
+    }
+
+    /// <summary>文本日志目录。默认读取配置 LogPath</summary>
+    public static String? LogPath
+    {
+        get => _logPath ?? LoadSetting()?.LogPath;
+        set => _logPath = value;
+    }
+
+    /// <summary>首次访问时延迟读取配置</summary>
+    /// <remarks>
+    /// 放在静态构造里会与 <c>Config&lt;Setting&gt;</c> 的初始化互等：配置初始化会写日志（FileConfigProvider.OnWrite），
+    /// 日志又要求 XTrace 完成初始化。这里用无锁门闸，首个进入者加载，其余线程先用默认值，任何情况下都不阻塞。
+    /// 加载只写配置快照，属性显式赋值优先于快照，避免赋值与加载并发时被覆盖。
+    /// </remarks>
+    /// <returns>配置快照；加载失败或其它线程正在加载时返回空</returns>
+    private static Setting? LoadSetting()
+    {
+        if (Volatile.Read(ref _settingLoaded) == 2) return _setting;
+        if (Interlocked.CompareExchange(ref _settingLoaded, 1, 0) != 0) return null;
+
+        try
+        {
+            _setting = Setting.Current;
+        }
+        catch
+        {
+            // 配置异常时保持默认值，与写日志路径的处理一致：不能把异常抛给调用方
+        }
+        finally
+        {
+            Volatile.Write(ref _settingLoaded, 2);
+        }
+
+        return _setting;
+    }
 
     ///// <summary>临时目录</summary>
     //public static String TempPath { get; set; } = Setting.Current.TempPath;

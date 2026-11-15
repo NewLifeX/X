@@ -1,3 +1,5 @@
+using System.Reflection;
+using NewLife;
 using NewLife.Log;
 using Xunit;
 
@@ -81,5 +83,61 @@ public class XTraceTests
         {
             XTrace.Debug = original;
         }
+    }
+
+    [Fact]
+    public void LogPath_NotSuppressDebugFromConfig()
+    {
+        var debug = XTrace.Debug;
+        var logPath = XTrace.LogPath;
+
+        try
+        {
+            ResetSetting();
+
+            // 先显式设置日志目录，再读 Debug，仍应取到配置值
+            XTrace.LogPath = Path.Combine(Path.GetTempPath(), "xtrace-test");
+            Assert.Equal(Setting.Current.Debug, XTrace.Debug);
+        }
+        finally
+        {
+            ResetSetting();
+            XTrace.Debug = debug;
+            XTrace.LogPath = logPath;
+        }
+    }
+
+    [Fact]
+    public void Debug_NotSuppressLogPathFromConfig()
+    {
+        var debug = XTrace.Debug;
+        var logPath = XTrace.LogPath;
+
+        try
+        {
+            ResetSetting();
+
+            // 先显式设置调试开关，再读日志目录，仍应取到配置值
+            XTrace.Debug = !Setting.Current.Debug;
+            Assert.Equal(Setting.Current.LogPath, XTrace.LogPath);
+        }
+        finally
+        {
+            ResetSetting();
+            XTrace.Debug = debug;
+            XTrace.LogPath = logPath;
+        }
+    }
+
+    /// <summary>复位延迟加载状态，模拟进程内首次访问。字段改名时用例会失败提醒同步</summary>
+    private static void ResetSetting()
+    {
+        const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
+        var type = typeof(XTrace);
+
+        type.GetField("_settingLoaded", flags)!.SetValue(null, 0);
+        type.GetField("_setting", flags)!.SetValue(null, null);
+        type.GetField("_debug", flags)!.SetValue(null, null);
+        type.GetField("_logPath", flags)!.SetValue(null, null);
     }
 }
