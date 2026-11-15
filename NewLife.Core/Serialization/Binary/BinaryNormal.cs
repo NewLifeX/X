@@ -117,13 +117,13 @@ public class BinaryNormal : BinaryHandlerBase
         {
 #if NETCOREAPP || NETSTANDARD2_1
             Span<Byte> buffer = stackalloc Byte[16];
-            if (Host.ReadBytes(buffer) == 0) return false;
+            if (Host.ReadBytes(buffer) < 16) return false;
 
             value = new Guid(buffer);
 #else
             using var buffer = Pool.Rent(16);
 
-            if (Host.ReadBytes(buffer, 0, 16) == 0) return false;
+            if (Host.ReadBytes(buffer, 0, 16) < 16) return false;
 
             value = new Guid(buffer);
 #endif

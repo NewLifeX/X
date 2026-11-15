@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Reflection;
@@ -480,7 +480,7 @@ public class BinaryGeneral : BinaryHandlerBase
         const Int32 SIZE = 2;
 #if NETCOREAPP || NETSTANDARD2_1
         Span<Byte> buffer = stackalloc Byte[SIZE];
-        if (Host.ReadBytes(buffer) == 0) return false;
+        if (Host.ReadBytes(buffer) < SIZE) return false;
 
         if (Host.IsLittleEndian)
             value = BinaryPrimitives.ReadInt16LittleEndian(buffer);
@@ -488,7 +488,7 @@ public class BinaryGeneral : BinaryHandlerBase
             value = BinaryPrimitives.ReadInt16BigEndian(buffer);
 #else
         using var buffer = Pool.Rent(SIZE);
-        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+        if (Host.ReadBytes(buffer, 0, SIZE) < SIZE) return false;
 
         if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
@@ -510,7 +510,7 @@ public class BinaryGeneral : BinaryHandlerBase
         const Int32 SIZE = 4;
 #if NETCOREAPP || NETSTANDARD2_1
         Span<Byte> buffer = stackalloc Byte[SIZE];
-        if (Host.ReadBytes(buffer) == 0) return false;
+        if (Host.ReadBytes(buffer) < SIZE) return false;
 
         if (Host.IsLittleEndian)
             value = BinaryPrimitives.ReadInt32LittleEndian(buffer);
@@ -518,7 +518,7 @@ public class BinaryGeneral : BinaryHandlerBase
             value = BinaryPrimitives.ReadInt32BigEndian(buffer);
 #else
         using var buffer = Pool.Rent(SIZE);
-        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+        if (Host.ReadBytes(buffer, 0, SIZE) < SIZE) return false;
 
         if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
@@ -540,7 +540,7 @@ public class BinaryGeneral : BinaryHandlerBase
         const Int32 SIZE = 8;
 #if NETCOREAPP || NETSTANDARD2_1
         Span<Byte> buffer = stackalloc Byte[SIZE];
-        if (Host.ReadBytes(buffer) == 0) return false;
+        if (Host.ReadBytes(buffer) < SIZE) return false;
 
         if (Host.IsLittleEndian)
             value = BinaryPrimitives.ReadInt64LittleEndian(buffer);
@@ -548,7 +548,7 @@ public class BinaryGeneral : BinaryHandlerBase
             value = BinaryPrimitives.ReadInt64BigEndian(buffer);
 #else
         using var buffer = Pool.Rent(SIZE);
-        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+        if (Host.ReadBytes(buffer, 0, SIZE) < SIZE) return false;
 
         if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
@@ -569,7 +569,7 @@ public class BinaryGeneral : BinaryHandlerBase
         const Int32 SIZE = 4;
 #if NET5_0_OR_GREATER
         Span<Byte> buffer = stackalloc Byte[SIZE];
-        if (Host.ReadBytes(buffer) == 0) return false;
+        if (Host.ReadBytes(buffer) < SIZE) return false;
 
         if (Host.IsLittleEndian)
             value = BinaryPrimitives.ReadSingleLittleEndian(buffer);
@@ -577,7 +577,7 @@ public class BinaryGeneral : BinaryHandlerBase
             value = BinaryPrimitives.ReadSingleBigEndian(buffer);
 #else
         using var buffer = Pool.Rent(SIZE);
-        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+        if (Host.ReadBytes(buffer, 0, SIZE) < SIZE) return false;
 
         if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
@@ -596,7 +596,7 @@ public class BinaryGeneral : BinaryHandlerBase
         const Int32 SIZE = 8;
 #if NET5_0_OR_GREATER
         Span<Byte> buffer = stackalloc Byte[SIZE];
-        if (Host.ReadBytes(buffer) == 0) return false;
+        if (Host.ReadBytes(buffer) < SIZE) return false;
 
         if (Host.IsLittleEndian)
             value = BinaryPrimitives.ReadDoubleLittleEndian(buffer);
@@ -604,7 +604,7 @@ public class BinaryGeneral : BinaryHandlerBase
             value = BinaryPrimitives.ReadDoubleBigEndian(buffer);
 #else
         using var buffer = Pool.Rent(SIZE);
-        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+        if (Host.ReadBytes(buffer, 0, SIZE) < SIZE) return false;
 
         if (Host.IsLittleEndian != BitConverter.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
 
@@ -633,7 +633,7 @@ public class BinaryGeneral : BinaryHandlerBase
         // 长度动态，统一走池化缓冲区；Span 正好覆盖 n 字节
         using var buffer = Pool.Rent(n);
 
-        if (Host.ReadBytes(buffer.Span) == 0) return false;
+        if (Host.ReadBytes(buffer.Span) < n) return false;
 
         var enc = Host.Encoding ?? Encoding.UTF8;
 
@@ -646,7 +646,7 @@ public class BinaryGeneral : BinaryHandlerBase
 #else
         using var buffer = Pool.Rent(n);
 
-        if (Host.ReadBytes(buffer, 0, n) == 0) return false;
+        if (Host.ReadBytes(buffer, 0, n) < n) return false;
 
         var enc = Host.Encoding ?? Encoding.UTF8;
 
