@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace>NewLife.SourceGenerator</RootNamespace>
     <AssemblyName>NewLife.Core.SourceGenerator</AssemblyName>
     <Description>Source generator of NewLife.Core for NativeAOT-friendly compile-time code generation. Ships with the main package and generates plain static code for IoC registration and localization tables, keeping the output AOT-safe.</Description>

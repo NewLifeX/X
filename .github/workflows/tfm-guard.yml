@@ -27,9 +27,9 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup dotNET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         # 含 net8.0-windows/net10.0-windows，需对应 SDK 提供 WindowsDesktop 目标包
         dotnet-version: |

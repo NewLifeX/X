@@ -70,15 +70,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup dotNET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
           cache: true
           cache-dependency-path: |
             **/*.csproj
             Directory.Build.props
+      - name: Setup JDK 21
+        # ubuntu-latest 预装 JDK 25，.NET Android 只认 JDK 21，不换会直接报
+        # "Building with JDK version 25.0.5 is not supported"
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
       - name: Install Android workload
         run: dotnet workload install android || sudo dotnet workload install android
       - name: Enable KVM
@@ -96,7 +103,7 @@ jobs:
           script: pwsh ./Samples/Mobile.Android/run-android.ps1 -Mode ${{ needs.detect.outputs.mode == 'full' && 'Aot' || 'Jit' }} -Configuration Release -TimeoutSec 120 -Smoke
       - name: Upload Android artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mobile-android
           path: |
@@ -110,15 +117,15 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Cache dotNET SDK + iOS workload
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           # 命中时 setup-dotnet 会识别已安装版本并跳过下载，workload 也直接复用；未命中首次运行会多一次缓存上传
           path: ~/.dotnet
           key: dotnet-ios-${{ runner.os }}-${{ runner.arch }}-10.0.402-10.0.400.1
       - name: Setup dotNET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.402
           cache: true
@@ -136,7 +143,7 @@ jobs:
         run: bash ./Samples/Mobile.iOS/run-ios.sh
       - name: Upload iOS artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mobile-ios
           path: Bin/Mobile.iOS/artifacts/**
@@ -144,7 +151,7 @@ jobs:
           retention-days: 7
       - name: Upload iOS app on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mobile-ios-app
           path: Bin/Mobile.iOS/*.app/**

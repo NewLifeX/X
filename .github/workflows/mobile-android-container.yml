@@ -30,9 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
@@ -55,7 +55,7 @@ jobs:
               pwsh -NoProfile -File Samples/Mobile.Android/pack-android.ps1 \
                 -Mode "${{ inputs.mode }}" -Configuration Release -RuntimeIdentifier android-x64
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk
           path: Bin/Mobile.Android/apk/*.apk
@@ -68,9 +68,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Download APK
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk
           path: Bin/Mobile.Android/apk
@@ -89,7 +89,7 @@ jobs:
           script: pwsh ./Samples/Mobile.Android/run-android.ps1 -Mode ${{ inputs.mode }} -Configuration Release -SkipBuild -TimeoutSec 120 -Smoke
       - name: Upload Android artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mobile-android-container-logs
           path: Bin/Mobile.Android/artifacts/**

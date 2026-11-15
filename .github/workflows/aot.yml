@@ -15,9 +15,9 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup dotNET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         # 构建 net8.0/net8.0-windows 需要 8.x SDK 提供 WindowsDesktop 目标包（runner 镜像已不再预装）
         dotnet-version: |
@@ -64,9 +64,9 @@ jobs:
             experimental: true
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup dotNET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.x
     - name: Install NativeAOT Prerequisites (Linux)
@@ -99,7 +99,7 @@ jobs:
             os: ubuntu-24.04-arm
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Publish & Run NativeAOT Smoke (alpine)
       run: |
         docker run --rm -v "$PWD:/src" -w /src alpine:3.20 sh -c '
@@ -124,9 +124,9 @@ jobs:
     continue-on-error: true
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup dotNET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.x
     - name: Publish NativeAOT Smoke (win-x86)
@@ -144,9 +144,9 @@ jobs:
     continue-on-error: true
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup QEMU (arm)
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
       with:
         platforms: arm
     - name: JIT Smoke in arm32 Container
@@ -187,13 +187,13 @@ jobs:
     continue-on-error: true
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup dotNET (host, for restore)
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.x
     - name: Set up QEMU (loong64)
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
       with:
         platforms: loong64
     - name: Download Loongson .NET SDK (linux-loongarch64)
@@ -261,13 +261,13 @@ jobs:
     continue-on-error: true
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup dotNET (host, for restore)
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.x
     - name: Set up QEMU (riscv64)
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
       with:
         platforms: riscv64
     - name: Download RISC-V .NET SDK (community build)
