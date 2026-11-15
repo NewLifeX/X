@@ -63,6 +63,13 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
     /// </example>
     public X509Certificate? Certificate { get; set; }
 
+    /// <summary>客户端是否严格校验证书链。默认false</summary>
+    /// <remarks>
+    /// 关闭时只校验证书指纹（未指定 Certificate 则任何证书都通过），只保证加密不保证身份。
+    /// 打开后按系统信任链校验，过期、主机名不符、不受信根都会拒绝，适合真正需要防中间人的场景。
+    /// </remarks>
+    public Boolean ValidateServerCertificate { get; set; }
+
     private SslStream? _Stream;
 
     /// <summary>系统自动分配的本地端口。0表示无</summary>
@@ -356,7 +363,10 @@ public partial class TcpSession : SessionBase, ISocketSession, IStreamSession
         //    }
         //}
 
-        // 如果没有证书，全部通过
+        // 严格模式：按系统信任链校验（过期、主机名不符、不受信根一律拒绝）
+        if (ValidateServerCertificate && sslPolicyErrors != SslPolicyErrors.None) return false;
+
+        // 如果没有指定证书，全部通过
         if (Certificate is not X509Certificate2 cert) return true;
         if (chain == null) return false;
 
