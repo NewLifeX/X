@@ -5,6 +5,11 @@ using Xunit;
 namespace XUnitTest.Log;
 
 /// <summary>日志事件监听器测试</summary>
+/// <remarks>
+/// 用例会改写进程级 <c>XTrace.Log</c>，并创建/释放 <see cref="EventListener"/>；
+/// 与其它用例并行时既会互相抢走日志，也会在 EventListener 与 EventSource 的全局锁上互相等待，故串行执行。
+/// </remarks>
+[Collection("GlobalState")]
 public class LogEventListenerTests
 {
     /// <summary>等待日志消息满足条件</summary>

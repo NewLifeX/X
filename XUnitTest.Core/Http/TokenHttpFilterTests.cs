@@ -13,6 +13,8 @@ using Xunit;
 
 namespace XUnitTest.Http;
 
+/// <summary>改写进程级全局状态（XTrace.Log），与其它用例串行执行</summary>
+[Collection("GlobalState")]
 public class TokenHttpFilterTests
 {
     [Fact(DisplayName = "令牌端点请求被识别并放行，不触发取令牌")]

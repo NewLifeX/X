@@ -11,6 +11,8 @@ using Xunit;
 
 namespace XUnitTest.Configuration;
 
+/// <summary>改写进程级全局状态（XTrace.Log），与其它用例串行执行</summary>
+[Collection("GlobalState")]
 public class JsonConfigProviderTests
 {
     readonly IConfigProvider _provider;
