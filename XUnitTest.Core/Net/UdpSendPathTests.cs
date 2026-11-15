@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using NewLife;
+using NewLife.Data;
 using NewLife.Net;
 using Xunit;
 
@@ -100,6 +101,47 @@ public class UdpSendPathTests
         EndPoint from = new IPEndPoint(IPAddress.Any, 0);
         var ex = Assert.Throws<SocketException>(() => sockA.ReceiveFrom(buf, ref from));
         Assert.Equal(SocketError.TimedOut, ex.SocketErrorCode);
+    }
+    #endregion
+
+    #region 指定目标发送
+    /// <summary>广播场景回复来源设备：会话不提供带目标参数的发送重载，改由 UdpServer.SendTo 指定目标</summary>
+    [Fact(DisplayName = "UDP指定目标发送_两个接收方各自收到")]
+    public void SendTo_ExplicitTarget_ReachesEachTarget()
+    {
+        using var sockA = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        sockA.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        sockA.ReceiveTimeout = 5_000;
+        var epA = (IPEndPoint)sockA.LocalEndPoint!;
+
+        using var sockB = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        sockB.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        sockB.ReceiveTimeout = 5_000;
+        var epB = (IPEndPoint)sockB.LocalEndPoint!;
+
+        // 模拟广播接收方：本端只绑定端口、不设远端，发送目标由调用方逐个指定
+        using var udp = new UdpServer { Port = 0 };
+        udp.Open();
+
+        var buf = new Byte[256];
+        var payloadA = "to-A"u8.ToArray();
+        Assert.Equal(payloadA.Length, udp.SendTo(payloadA, epA));
+        Assert.Equal(payloadA, buf[..sockA.Receive(buf, SocketFlags.None)]);
+
+        var payloadB = "to-B"u8.ToArray();
+        Assert.Equal(payloadB.Length, udp.SendTo(new ArrayPacket(payloadB), epB));
+        Assert.Equal(payloadB, buf[..sockB.Receive(buf, SocketFlags.None)]);
+    }
+
+    /// <summary>指定目标发送同样受销毁状态约束</summary>
+    [Fact(DisplayName = "UDP指定目标发送_销毁后抛ObjectDisposedException")]
+    public void SendTo_AfterDispose_Throws()
+    {
+        var udp = new UdpServer { Port = 0 };
+        udp.Open();
+        udp.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => udp.SendTo("x"u8.ToArray(), new IPEndPoint(IPAddress.Loopback, 9)));
     }
     #endregion
 }

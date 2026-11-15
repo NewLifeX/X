@@ -255,6 +255,35 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <returns>是否成功</returns>
     protected override Int32 OnSend(ReadOnlySpan<Byte> data) => OnSend(data, Remote.EndPoint);
 
+    /// <summary>发送数据到指定远端</summary>
+    /// <remarks>
+    /// 会话（<see cref="UdpSession"/>）按固定远端建模，不提供带目标参数的发送重载；
+    /// 广播/组播场景下会话的 <see cref="SessionBase.Remote"/> 是广播地址，回复数据报来源设备时由本方法显式指定目标。
+    /// 底层 Socket 已连接（客户端模式）时，目标必须是连接端点，否则按未连接路径走 SendTo。
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <param name="remote">目标端点</param>
+    /// <returns>实际发送的字节数</returns>
+    /// <exception cref="ObjectDisposedException">服务器已销毁</exception>
+    public virtual Int32 SendTo(IPacket data, IPEndPoint remote)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+        return OnSend(data, remote);
+    }
+
+    /// <summary>发送数据到指定远端</summary>
+    /// <param name="data">只读内存段</param>
+    /// <param name="remote">目标端点</param>
+    /// <returns>实际发送的字节数</returns>
+    /// <exception cref="ObjectDisposedException">服务器已销毁</exception>
+    public virtual Int32 SendTo(ReadOnlySpan<Byte> data, IPEndPoint remote)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+        return OnSend(data, remote);
+    }
+
     internal Int32 OnSend(IPacket pk, IPEndPoint remote)
     {
         var count = pk.Total;
@@ -825,12 +854,12 @@ public static class UdpHelper
         while (true)
         {
             var n = stream.Read(buffer, 0, buffer.Length);
+            // 只有读到 0 才算流结束。网络流/压缩流经常一次读不满缓冲区，
+            // 以前按 n < buffer.Length 判结束，会把剩下的数据直接丢掉
             if (n <= 0) break;
 
             udp.Send(buffer, n, remoteEP);
             total += n;
-
-            if (n < buffer.Length) break;
         }
 
         return udp;

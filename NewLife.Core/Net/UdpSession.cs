@@ -14,6 +14,7 @@ namespace NewLife.Net;
 /// <para>特性：</para>
 /// <list type="bullet">
 /// <item>绑定到固定的远程地址</item>
+/// <item>发送目标恒为 <see cref="Remote"/>，不提供带目标参数的发送重载；广播/组播场景回复数据报来源设备属传输层职责，请用 <see cref="UdpServer.SendTo(IPacket, IPEndPoint)"/></item>
 /// <item>共享UdpServer的底层Socket</item>
 /// <item>不支持会话级拉取：Socket 为多会话共享，按会话过滤拉取会丢弃其他会话的数据报，<see cref="Receive()"/> 与 <see cref="ReceiveAsync(CancellationToken)"/> 直接抛 <see cref="NotSupportedException"/>；接收请订阅 <see cref="Received"/> 事件，拉取请使用 <see cref="UdpServer"/> 继承自 SessionBase 的 Receive/ReceiveAsync（需 AutoReceive=false）</item>
 /// <item>收到空数据包时自动结束会话。判定以收到的原始数据报为准，在进入事件链之前定下；业务在事件内释放或置空 <see cref="ReceivedEventArgs.Packet"/> 不影响判定，要主动结束会话请 <see cref="DisposeBase.Dispose()"/></item>
