@@ -106,7 +106,11 @@ partial class Localization
         if (key == "en") return true;
 
         // 运行时注册的覆盖表可能包含内置词表之外的新语言
-        if (Volatile.Read(ref _overrideCount) != 0 && _overrides.ContainsKey(key)) return true;
+        if (Volatile.Read(ref _overrideCount) != 0)
+        {
+            if (_variantOverrides.ContainsKey(name)) return true;
+            if (_overrides.ContainsKey(key)) return true;
+        }
 
         return GetTable(key) != null;
     }
@@ -198,6 +202,10 @@ partial class Localization
     public static String? SetDefaultLanguage(String? language)
     {
         var name = NormalizeCulture(language);
+
+        // 没有词表的语言设了也是白设（界面会静默回退英文），直接按未指定处理
+        if (name != null && !IsLanguageAvailable(name)) name = null;
+
         CultureInfo? culture = null;
         if (name != null)
         {
@@ -230,6 +238,10 @@ partial class Localization
     public static String? SetLanguage(String? language)
     {
         var name = NormalizeCulture(language);
+
+        // 没有词表的语言不能锁定界面：锁了会全站回退英文，还顺带让请求语言（Accept-Language）失效
+        if (name != null && !IsLanguageAvailable(name)) name = null;
+
         CultureInfo? culture = null;
         if (name != null)
         {

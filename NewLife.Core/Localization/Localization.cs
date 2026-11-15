@@ -29,6 +29,8 @@ public static partial class Localization
     private static readonly CultureInfo? _initialDefaultThreadUICulture = CultureInfo.DefaultThreadCurrentUICulture;
     private static readonly Object _defaultLock = new();
     private static readonly ConcurrentDictionary<String, IReadOnlyDictionary<String, String>> _overrides = new(StringComparer.Ordinal);
+    /// <summary>按完整语言名注册的覆盖表，避免 pt-PT 与 pt-BR 这类同语种变体互相覆盖</summary>
+    private static readonly ConcurrentDictionary<String, IReadOnlyDictionary<String, String>> _variantOverrides = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<String, String?> _cultureKeys = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<String, Dictionary<String, String>> _tables = new(StringComparer.Ordinal);
     private static readonly Dictionary<String, String> _emptyTable = new(StringComparer.Ordinal);
@@ -50,10 +52,19 @@ public static partial class Localization
             key,
             _ => Merge(key, table, overwrite),
             (_, existing) => Merge(key, table, overwrite, existing));
-        Volatile.Write(ref _overrideCount, _overrides.Count);
+
+        // 带区域的变体另存一份：同语种的 pt-PT 与 pt-BR 各自保留自己的译文
+        var vkey = culture.Name;
+        if (!vkey.IsNullOrEmpty() && !vkey.EqualIgnoreCase(key))
+            _variantOverrides.AddOrUpdate(
+                vkey,
+                _ => Merge(key, table, overwrite),
+                (_, existing) => Merge(key, table, overwrite, existing));
+
+        Volatile.Write(ref _overrideCount, _overrides.Count + _variantOverrides.Count);
 
         // 运行时新增的语言同时进入语言清单，供管理端下拉选择与配置归一化；内置语言无需登记
-        if (!IsBuiltinLanguage(culture.Name)) _extraLanguages.TryAdd(key, LanguageInfo.FromCulture(culture));
+        if (!IsBuiltinLanguage(culture.Name)) _extraLanguages.TryAdd(culture.Name, LanguageInfo.FromCulture(culture));
     }
 
     /// <summary>移除指定语言的覆盖表</summary>
@@ -62,10 +73,15 @@ public static partial class Localization
         if (culture == null) return false;
 
         var key = GetCultureKey(culture);
-        if (key == null || !_overrides.TryRemove(key, out _)) return false;
+        if (key == null) return false;
 
-        Volatile.Write(ref _overrideCount, _overrides.Count);
+        var removed = _overrides.TryRemove(key, out _);
+        if (!culture.Name.IsNullOrEmpty() && !culture.Name.EqualIgnoreCase(key) && _variantOverrides.TryRemove(culture.Name, out _)) removed = true;
+        if (!removed) return false;
+
+        Volatile.Write(ref _overrideCount, _overrides.Count + _variantOverrides.Count);
         _extraLanguages.TryRemove(key, out _);
+        _extraLanguages.TryRemove(culture.Name, out _);
         return true;
     }
 
@@ -133,7 +149,11 @@ public static partial class Localization
         if (key == "en") return true;
 
         // 运行时注册的覆盖表可能包含内置语言之外的新语言
-        if (Volatile.Read(ref _overrideCount) != 0 && _overrides.ContainsKey(key)) return true;
+        if (Volatile.Read(ref _overrideCount) != 0)
+        {
+            if (_variantOverrides.ContainsKey(culture.Name)) return true;
+            if (_overrides.ContainsKey(key)) return true;
+        }
 
         return GetTable(key) != null;
     }
@@ -146,8 +166,13 @@ public static partial class Localization
         var key = GetCultureKeyCached(culture);
         if (key == null) return template;
 
-        // 无覆盖表时跳过覆盖查找
-        if (Volatile.Read(ref _overrideCount) != 0 && _overrides.TryGetValue(key, out var overlay) && overlay.TryGetValue(template, out var text)) return text;
+        // 无覆盖表时跳过覆盖查找。先用完整语言名，再退回语言前缀
+        String? text = null;
+        if (Volatile.Read(ref _overrideCount) != 0)
+        {
+            if (!culture.Name.IsNullOrEmpty() && _variantOverrides.TryGetValue(culture.Name, out var variant) && variant.TryGetValue(template, out text)) return text;
+            if (_overrides.TryGetValue(key, out var overlay) && overlay.TryGetValue(template, out text)) return text;
+        }
 
         // en 也可能带词表：元数据源文为其它语言时，用 en.yml 提供英文译文
         var table = GetTable(key);

@@ -469,6 +469,12 @@ public static class ConfigHelper
                 var elementType = type.GetElementTypeEx();
                 if (elementType != null) MapArray(cfg, list, elementType);
             }
+            else
+            {
+                // 数组被置空：旧子节点与数组标记都要清掉，否则写回时还是上一轮的旧数组
+                cfg.Childs = null;
+                SetArray(cfg, false);
+            }
         }
         else if (type.As<IDictionary>() || type.As(typeof(IDictionary<,>)))
         {
