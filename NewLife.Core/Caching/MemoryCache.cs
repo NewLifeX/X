@@ -692,6 +692,9 @@ public class MemoryCache : Cache
                 newValue = (oldValue is Double n ? n : oldValue.ToDouble()) + value;
             } while (Interlocked.CompareExchange(ref _value, newValue, oldValue) != oldValue);
 
+            // 原来是整数时切为浮点：否则 Value 仍去读 _valueLong，刚累加的结果永远看不到
+            if (IsInt()) TypeCode = TypeCode.Double;
+
             VisitTime = Runtime.TickCount64;
 
             return newValue;
@@ -819,8 +822,8 @@ public class MemoryCache : Cache
             }
         }
 
-        // 修正
-        _count = k;
+        // 只扣实际移除的数量：扫描期间其它线程可能新增/删除，直接赋值会把它们的变更抹掉
+        if (removed > 0) Interlocked.Add(ref _count, -removed);
     }
 
     /// <summary>缓存过期</summary>

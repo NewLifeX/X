@@ -75,19 +75,17 @@ public class Pool<[DynamicallyAccessedMembers(Dam.Create)] T> : IPool<T> where T
         return true;
     }
 
-    [MemberNotNull(nameof(_items))]
     private Item[] Init()
     {
-        // 双检锁：仅首次分配进入临界区。
-        if (_items == null)
-        {
-            lock (_sync)
-            {
-                _items ??= new Item[Max - 1];
-            }
-        }
+        // 先读局部变量：Clear 可能随时把 _items 置空，
+        // 如果最后再返回字段，就会把 null 交给调用方（随后 items.Length 直接空引用）
+        var items = _items;
+        if (items != null) return items;
 
-        return _items;
+        lock (_sync)
+        {
+            return _items ??= new Item[Max - 1];
+        }
     }
     #endregion
 
