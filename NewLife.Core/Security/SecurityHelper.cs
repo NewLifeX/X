@@ -275,6 +275,106 @@ public static class SecurityHelper
         return stream.ReadBytes(-1);
     }
 
+    /// <summary>安全的对称加密：随机 IV + HMAC-SHA256 完整性校验</summary>
+    /// <remarks>
+    /// 输出格式：IV(块长) + 密文 + MAC(32 字节)。
+    /// 与旧的 Encrypt(data, pass) 不同，同一明文每次加密结果都不同，且密文被改动会被发现。
+    /// MAC 密钥取 SHA256(密码)，加密密钥沿用旧的填充规则（取最短合法密钥长度）。
+    /// 这里不做口令拉伸（PBKDF2/Argon2 之类），强度取决于调用方给的密钥材料；
+    /// 需要抗离线爆破时，先用 PBKDF2 等派生密钥再传入，不要直接传人类口令。
+    /// </remarks>
+    /// <param name="sa">算法</param>
+    /// <param name="data">明文</param>
+    /// <param name="pass">密码</param>
+    /// <param name="mode">模式，默认 CBC</param>
+    /// <param name="padding">填充算法，默认 PKCS7</param>
+    /// <returns>IV + 密文 + MAC</returns>
+    public static Byte[] EncryptSafe(this SymmetricAlgorithm sa, Byte[] data, Byte[] pass, CipherMode mode = CipherMode.CBC, PaddingMode padding = PaddingMode.PKCS7)
+    {
+        if (data == null || data.Length <= 0) throw new ArgumentNullException(nameof(data));
+        if (pass == null || pass.Length <= 0) throw new ArgumentNullException(nameof(pass));
+
+        sa.Key = sa.LegalKeySizes != null && sa.LegalKeySizes.Length > 0 ? Pad(pass, sa.LegalKeySizes[0]) : pass;
+        sa.Mode = mode;
+        sa.Padding = padding;
+
+        // 每次都用随机 IV，避免相同明文得到相同密文
+        var iv = new Byte[sa.IV.Length];
+        using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create()) rng.GetBytes(iv);
+        sa.IV = iv;
+
+        var cipher = sa.Encrypt(data);
+
+        // Encrypt-then-MAC：先算密文的校验码，解密时先验后解
+        var mac = Hmac(pass, iv, cipher);
+
+        var buf = new Byte[iv.Length + cipher.Length + mac.Length];
+        buf.Write(0, iv);
+        buf.Write(iv.Length, cipher);
+        buf.Write(iv.Length + cipher.Length, mac);
+
+        return buf;
+    }
+
+    /// <summary>安全的对称解密：先校验 HMAC 再解密</summary>
+    /// <remarks>数据格式与密钥派生边界见 <see cref="EncryptSafe(SymmetricAlgorithm, Byte[], Byte[], CipherMode, PaddingMode)"/></remarks>
+    /// <param name="sa">算法</param>
+    /// <param name="data">IV + 密文 + MAC</param>
+    /// <param name="pass">密码</param>
+    /// <param name="mode">模式，默认 CBC</param>
+    /// <param name="padding">填充算法，默认 PKCS7</param>
+    /// <returns>明文</returns>
+    /// <exception cref="InvalidDataException">数据长度不足或校验码不匹配（被篡改/密码错误）</exception>
+    public static Byte[] DecryptSafe(this SymmetricAlgorithm sa, Byte[] data, Byte[] pass, CipherMode mode = CipherMode.CBC, PaddingMode padding = PaddingMode.PKCS7)
+    {
+        if (data == null || data.Length <= 0) throw new ArgumentNullException(nameof(data));
+        if (pass == null || pass.Length <= 0) throw new ArgumentNullException(nameof(pass));
+
+        var ivLength = sa.IV.Length;
+        if (data.Length <= ivLength + 32) throw new InvalidDataException(L.T("The encrypted data is too short."));
+
+        var iv = new Byte[ivLength];
+        Array.Copy(data, 0, iv, 0, ivLength);
+
+        var macLength = 32;
+        var cipherLength = data.Length - ivLength - macLength;
+        var cipher = new Byte[cipherLength];
+        Array.Copy(data, ivLength, cipher, 0, cipherLength);
+
+        var mac = new Byte[macLength];
+        Array.Copy(data, data.Length - macLength, mac, 0, macLength);
+
+        // 先验后解，篡改或密码错误都直接失败，不返回错误明文
+        var expect = Hmac(pass, iv, cipher);
+        if (!FixedTimeEquals(expect, mac)) throw new InvalidDataException(L.T("The encrypted data failed the integrity check."));
+
+        sa.Key = sa.LegalKeySizes != null && sa.LegalKeySizes.Length > 0 ? Pad(pass, sa.LegalKeySizes[0]) : pass;
+        sa.Mode = mode;
+        sa.Padding = padding;
+        sa.IV = iv;
+
+        return sa.Decrypt(cipher);
+    }
+
+    private static Byte[] Hmac(Byte[] pass, Byte[] iv, Byte[] cipher)
+    {
+        using var mac = new HMACSHA256(pass.SHA256());
+        mac.TransformBlock(iv, 0, iv.Length, null, 0);
+        mac.TransformFinalBlock(cipher, 0, cipher.Length);
+
+        return mac.Hash!;
+    }
+
+    private static Boolean FixedTimeEquals(Byte[] a, Byte[] b)
+    {
+        if (a.Length != b.Length) return false;
+
+        var diff = 0;
+        for (var i = 0; i < a.Length; i++) diff |= a[i] ^ b[i];
+
+        return diff == 0;
+    }
+
     private static Byte[] Pad(Byte[] buf, KeySizes keySize)
     {
         var psize = buf.Length * 8;
