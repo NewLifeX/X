@@ -364,7 +364,8 @@ public static class PathHelper
 #else
             using var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null);
             var di = Directory.CreateDirectory(destDir);
-            var fullName = di.FullName;
+            // 末尾补分隔符，否则 C:\dest2 会被误判为 C:\dest 的子路径
+            var fullName = di.FullName.EnsureEnd(Path.DirectorySeparatorChar + "");
             foreach (var item in zip.Entries)
             {
                 var fullPath = Path.GetFullPath(Path.Combine(fullName, item.FullName));

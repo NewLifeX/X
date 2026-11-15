@@ -81,6 +81,13 @@ public class TarFile : DisposeBase
 
     private Stream? _stream;
     private Boolean _leaveOpen = false;
+
+    /// <summary>单个条目的最大字节数，默认 2GB 上限（数组可寻址范围）。</summary>
+    /// <remarks>
+    /// 不可定位流（如 tar.gz）无法跳过条目内容，只能把整个条目读进内存；伪造的包头声明超大长度会直接吃掉内存，
+    /// 因此在这里设上限。内存受限的宿主可下调该值，超限抛 <see cref="XException"/>。
+    /// </remarks>
+    public Int64 MaxEntrySize { get; set; } = Int32.MaxValue;
     #endregion
 
     #region 构造
@@ -171,8 +178,16 @@ public class TarFile : DisposeBase
     {
         foreach (var entry in _entries)
         {
-            entry.Write(stream);
-            entry.WriteContent(stream);
+            try
+            {
+                entry.Write(stream);
+                entry.WriteContent(stream);
+            }
+            finally
+            {
+                // 写入模式下条目会打开源文件读取，无论写入是否成功都必须关掉，否则文件句柄一直挂着
+                entry.CloseFile();
+            }
         }
 
         // 写入结束标志（两个空块）
@@ -254,14 +269,25 @@ public class TarFile : DisposeBase
     /// <summary>解压 Tar 文件到指定目录。</summary>
     /// <param name="destinationDirectoryName">目标目录路径</param>
     /// <param name="overwriteFiles">是否覆盖已存在文件</param>
+    /// <exception cref="IOException">条目路径落在目标目录之外时抛出</exception>
     public void ExtractToDirectory(String destinationDirectoryName, Boolean overwriteFiles = false)
     {
+        // 归档里的文件名可以是 ../ 或绝对路径，直接拼会写到目标目录外面。
+        // 统一先算绝对路径，再要求它必须位于目标目录内（含分隔符，避免 C:\dest2 骗过 C:\dest）。
+        var root = Path.GetFullPath(destinationDirectoryName);
+        var prefix = root.EnsureEnd(Path.DirectorySeparatorChar + "");
+
         foreach (var entry in _entries)
         {
+            var name = entry.FileName.Replace('/', Path.DirectorySeparatorChar);
+            var itemPath = Path.GetFullPath(Path.Combine(root, name));
+            if (!itemPath.StartsWith(prefix, StringComparison.Ordinal))
+                throw new IOException(L.T("The archive entry '{0}' would be extracted outside the target directory.", entry.FileName));
+
             if (entry.TypeFlag == TarEntryType.RegularFile)
             {
                 // 构建目标文件路径
-                var filePath = Path.Combine(destinationDirectoryName, entry.FileName.Replace('/', Path.DirectorySeparatorChar));
+                var filePath = itemPath;
                 if (overwriteFiles || !File.Exists(filePath))
                 {
                     filePath.EnsureDirectory(true);
@@ -275,7 +301,7 @@ public class TarFile : DisposeBase
             else if (entry.TypeFlag == TarEntryType.Directory)
             {
                 // 显式目录条目，确保空目录也能创建
-                var dirPath = Path.Combine(destinationDirectoryName, entry.FileName.Replace('/', Path.DirectorySeparatorChar));
+                var dirPath = itemPath;
                 dirPath.EnsureDirectory(false);
             }
         }
@@ -511,6 +537,10 @@ public class TarEntry
             var size = (Int32)entry.FileSize;
             if (size > 0)
             {
+                // 长文件名/长链接只是名字缓冲，与条目内容分开卡上限，避免伪造包头声明超大名字
+                var max = IOHelper.MaxSafeArraySize;
+                if (size > max) throw new XException(L.T("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", size, max));
+
                 using var nameBuffer = Pool.Rent(size);
 
                 if (ReadExactly(stream, nameBuffer, size))
@@ -551,6 +581,10 @@ public class TarEntry
         }
         else
         {
+            // 不可定位流（如 tar.gz）只能整包读进内存，伪造的超大包头会直接吃掉内存，故按上限拦截
+            var max = Archiver?.MaxEntrySize ?? Int32.MaxValue;
+            if (FileSize > max) throw new XException(L.T("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", FileSize, max));
+
             var buf = stream.ReadExactly(FileSize);
             _stream = new MemoryStream(buf);
             _position = 0;
@@ -602,6 +636,16 @@ public class TarEntry
         stream!.Position = _position;
 
         return stream;
+    }
+
+    /// <summary>关闭由源文件打开的读取流。仅写入模式下创建的条目需要，读取模式条目共用归档流。</summary>
+    internal void CloseFile()
+    {
+        if (_file.IsNullOrEmpty()) return;
+
+        _stream?.Dispose();
+        _stream = null;
+        _position = 0;
     }
 
     private static void WriteOctal(ref SpanWriter writer, UInt64 value, Int32 totalLength, Boolean trailingSpace)
