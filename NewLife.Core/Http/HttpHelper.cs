@@ -126,7 +126,22 @@ public static class HttpHelper
         }
         return handler;
 #else
-        // 旧框架使用 HttpClientHandler（不支持自定义 ConnectCallback）。忽略证书为全局副作用，谨慎使用。
+#if NETFRAMEWORK
+        // .NET Framework 用 WebRequestHandler 的实例级回调：只对这个客户端生效，
+        // 不会像 ServicePointManager 那样把整个进程的证书校验都关掉
+        var handler = new WebRequestHandler
+        {
+            UseProxy = useProxy,
+            UseCookies = useCookie,
+            AutomaticDecompression = DecompressionMethods.GZip
+        };
+
+        if (ignoreSSL)
+            handler.ServerCertificateValidationCallback = (_, _, _, _) => true;
+        return handler;
+#else
+        // netstandard2.0 没有实例级证书回调，只能退化到进程级；
+        // 这个副作用会波及整个进程的 HTTPS，调用方须自行确保只在内网/测试使用
         var handler = new HttpClientHandler
         {
             UseProxy = useProxy,
@@ -137,6 +152,7 @@ public static class HttpHelper
         if (ignoreSSL)
             ServicePointManager.ServerCertificateValidationCallback = (_, _, _, _) => true;
         return handler;
+#endif
 #endif
     }
 
@@ -338,14 +354,39 @@ public static class HttpHelper
     /// <returns></returns>
     public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String>? headers = null)
     {
-        if (headers != null) client.AddHeaders(headers);
+        // 头部要挂在这一次请求上，不能写进客户端的 DefaultRequestHeaders：
+        // 那样会残留到下一次请求（包括发往别的主机），并发时还会互相打架
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        if (headers != null)
+        {
+            foreach (var item in headers)
+            {
+                // 不能用 TryAddWithoutValidation 的宽松语义直接放行不可信值：
+                // CR/LF 会被原样写上线，等于允许调用方把外部数据变成额外请求头
+                if (HasNewLine(item.Key) || HasNewLine(item.Value)) throw new ArgumentException("Header name or value contains CR/LF.", nameof(headers));
+
+                request.Headers.TryAddWithoutValidation(item.Key, item.Value);
+            }
+        }
+
 #if NET5_0_OR_GREATER
         using var source = new CancellationTokenSource(client.Timeout);
-        return client.GetStringAsync(requestUri, source.Token).ConfigureAwait(false).GetAwaiter().GetResult();
+        using var response = client.SendAsync(request, HttpCompletionOption.ResponseContentRead, source.Token).ConfigureAwait(false).GetAwaiter().GetResult();
+        response.EnsureSuccessStatusCode();
+
+        return response.Content.ReadAsStringAsync(source.Token).ConfigureAwait(false).GetAwaiter().GetResult();
 #else
-        return client.GetStringAsync(requestUri).ConfigureAwait(false).GetAwaiter().GetResult();
+        using var response = client.SendAsync(request, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false).GetAwaiter().GetResult();
+        response.EnsureSuccessStatusCode();
+
+        return response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 #endif
     }
+
+    /// <summary>判断头部名或值是否含有换行，用于挡掉 CRLF 头注入</summary>
+    /// <param name="value">头部名或值</param>
+    /// <returns>含 CR 或 LF 时返回 true</returns>
+    private static Boolean HasNewLine(String? value) => !value.IsNullOrEmpty() && (value.IndexOf('\r') >= 0 || value.IndexOf('\n') >= 0);
 
     /// <summary>内部统一 Post 发送逻辑，支持 Filter / Tracer</summary>
     private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)
@@ -400,20 +441,6 @@ public static class HttpHelper
 
             throw;
         }
-    }
-
-    private static HttpClient AddHeaders(this HttpClient client, IDictionary<String, String> headers)
-    {
-        //if (client == null) return null;
-        if (headers == null || headers.Count == 0) return client;
-
-        foreach (var item in headers)
-        {
-            if (client.DefaultRequestHeaders.Contains(item.Key)) client.DefaultRequestHeaders.Remove(item.Key);
-            client.DefaultRequestHeaders.Add(item.Key, item.Value);
-        }
-
-        return client;
     }
 
     /// <summary>下载文件到本地（覆盖/创建）</summary>
@@ -528,6 +555,7 @@ public static class HttpHelper
     /// 设置 <see cref="HttpDownloadOptions.RetryCount"/> 后，网络异常、超时与 IO 异常会按
     /// <see cref="HttpDownloadOptions.RetryDelay"/> 线性递增重试；需要切换连接或节点时，可通过
     /// <see cref="HttpDownloadOptions.ClientFactory"/> 在重试时创建新客户端。
+    /// 明确不会成功的失败不重试：4xx（除 408/429）与哈希校验失败。
     /// </remarks>
     public static async Task<String> DownloadFileAsync(this HttpClient client, String requestUri, String fileName, HttpDownloadOptions options, CancellationToken cancellationToken = default)
     {
@@ -644,6 +672,20 @@ public static class HttpHelper
     {
         if (cancellationToken.IsCancellationRequested) return false;
 
+        // 完整性校验失败（哈希不符）重试多少次结果都一样，不重试
+        if (ex is InvalidDataException) return false;
+
+        // 响应码类错误：只有 408/429/5xx 值得重试，404/403 之类重试也不会成功
+        // 旧框架的 HttpRequestException 没有 StatusCode，无法区分，维持原来的重试行为
+#if NET5_0_OR_GREATER
+        if (ex is HttpRequestException hre && hre.StatusCode != null)
+        {
+            var code = (Int32)hre.StatusCode.Value;
+
+            return code is 408 or 429 || code is >= 500 and < 600;
+        }
+#endif
+
         return ex is TimeoutException || ex is IOException || ex is HttpRequestException || ex is OperationCanceledException;
     }
 
@@ -716,7 +758,7 @@ public static class HttpHelper
                         if (File.Exists(tmp)) File.Delete(tmp);
                     }
                     catch { }
-                    throw new IOException(L.T("Save file hash verification failed."));
+                    throw new InvalidDataException(L.T("Save file hash verification failed."));
                 }
             }
 

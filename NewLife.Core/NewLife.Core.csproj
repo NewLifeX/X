@@ -123,6 +123,8 @@
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Management" />
     <Reference Include="System.Net.Http" />
+    <!-- WebRequestHandler：.NET Framework 上提供实例级证书校验回调（HttpHelper.CreateHandler 使用） -->
+    <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />

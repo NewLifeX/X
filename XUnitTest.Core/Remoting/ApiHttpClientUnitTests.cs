@@ -1037,7 +1037,7 @@ public class ApiHttpClientUnitTests
         File.Delete(file);
         try
         {
-            await Assert.ThrowsAsync<IOException>(() => client.DownloadFileRaceAsync("file.bin", file, expectedHash));
+            await Assert.ThrowsAsync<InvalidDataException>(() => client.DownloadFileRaceAsync("file.bin", file, expectedHash));
 
             // 内容哈希必然不符，保存走异常路径：选中响应必须已释放（旧实现 Dispose 在保存之后，失败即跳过）
             Assert.True(client.Contents["service1"].Disposed);

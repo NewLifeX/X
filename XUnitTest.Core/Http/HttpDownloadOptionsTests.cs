@@ -464,7 +464,7 @@ public class HttpDownloadOptionsTests
                 ExpectedHash = "md5$" + new String('0', 32),
             };
 
-            await Assert.ThrowsAsync<IOException>(() => CreateClient((_, _) => Task.FromResult(CreateResponse(data)))
+            await Assert.ThrowsAsync<InvalidDataException>(() => CreateClient((_, _) => Task.FromResult(CreateResponse(data)))
                 .DownloadFileAsync("http://x/file.bin", file, options));
 
             Assert.False(File.Exists(file));
