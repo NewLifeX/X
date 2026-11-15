@@ -3,7 +3,7 @@ using NewLife.Http;
 using NewLife.Log;
 using NewLife.Messaging;
 
-namespace Zero.WebSocketServer;
+namespace Zero.HttpServer;
 
 /// <summary>WebSocket处理器</summary>
 public class MyWebSocketHandler : IHttpHandler

@@ -349,7 +349,7 @@ public static class SmokeCases
             var text = hc.GetStringAsync($"http://127.0.0.1:{server.Port}/txt").GetAwaiter().GetResult();
             if (text != "pong-mobile") throw new Exception("HTTP 文本响应不一致: " + text);
 
-            var api = new ApiHttpClient($"http://127.0.0.1:{server.Port}");
+            using var api = new ApiHttpClient($"http://127.0.0.1:{server.Port}");
             var obj = api.GetAsync<SmokePing>("/obj").GetAwaiter().GetResult();
             if (obj?.Msg != "pong-mobile") throw new Exception("ApiHttpClient 对象响应不一致: " + (obj?.Msg ?? "null"));
         }
@@ -370,7 +370,7 @@ public static class SmokeCases
         var state = $"active={server.Active} port={server.Port} servers={server.Servers.Count}";
         SmokeEnvironment.WriteDiagnostic($"[diag] ws server {state}");
 
-        var ws = new WebSocketClient($"ws://127.0.0.1:{server.Port}/ws") { Log = XTrace.Log };
+        using var ws = new WebSocketClient($"ws://127.0.0.1:{server.Port}/ws") { Log = XTrace.Log };
         if (!ws.OpenAsync().GetAwaiter().GetResult()) throw new Exception($"WebSocket 建连失败（{state}）");
 
         ws.SendTextAsync("hi-mobile").GetAwaiter().GetResult();

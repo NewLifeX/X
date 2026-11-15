@@ -4,7 +4,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Serialization;
-using NewLife.Threading;
 using NewLife.Web;
 
 namespace Zero.Desktop;
@@ -22,22 +21,9 @@ public partial class FrmMain : Form
         Text = String.Format("{2} v{0} {1:HH:mm:ss}", asm.FileVersion, asm.Compile, Text);
 
         richTextBox1.UseWinFormControl();
-
-        _timer = new TimerX(OnBindConn, null, 1_000, 3_000);
     }
 
-    private TimerX _timer;
     private ApiClient _client;
-    private String _lastConns;
-    private void OnBindConn(Object state)
-    {
-        //var keys = DAL.ConnStrs.Keys;
-        //var ks = keys.Join(",");
-        //if (ks == _lastConns) return;
-        //_lastConns = ks;
-
-        //cbConns.DataSource = keys;
-    }
 
     private void btnOpen_Click(Object sender, EventArgs e)
     {

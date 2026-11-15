@@ -14,9 +14,10 @@ class EchoSession : NetSession<EchoNetServer>
     /// <param name="e"></param>
     protected override void OnReceive(ReceivedEventArgs e)
     {
-        if (e.Packet.Length == 0) return;
+        var pk = e.Packet;
+        if (pk == null || pk.Length == 0) return;
 
         // 把收到的数据发回去
-        Send(e.Packet);
+        Send(pk);
     }
 }

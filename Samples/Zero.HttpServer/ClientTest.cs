@@ -30,7 +30,7 @@ static class ClientTest
         XTrace.WriteLine(html);
 
         // Api接口请求
-        var http = new ApiHttpClient("http://127.0.0.5:8080")
+        using var http = new ApiHttpClient("http://127.0.0.5:8080")
         {
             Tracer = tracer,
             Log = XTrace.Log
@@ -83,7 +83,6 @@ static class ClientTest
             Tracer = tracer,
             Log = XTrace.Log
         };
-        if (client is TcpSession tcp) tcp.AutoReceive = false;
 
         await client.SendTextAsync("Hello NewLife");
 

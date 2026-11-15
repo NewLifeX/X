@@ -10,7 +10,7 @@ namespace Zero.Server;
 static class ClientTest
 {
     /// <summary>TcpClient连接NetServer</summary>
-    public static async void TcpClientTest()
+    public static async Task TcpClientTest()
     {
         await Task.Delay(1_000);
         XTrace.WriteLine("");
@@ -40,7 +40,7 @@ static class ClientTest
     }
 
     /// <summary>UdpClient连接NetServer</summary>
-    public static async void UdpClientTest()
+    public static async Task UdpClientTest()
     {
         await Task.Delay(2_000);
         XTrace.WriteLine("");
@@ -73,7 +73,7 @@ static class ClientTest
     }
 
     /// <summary>ISocketClient(TCP)连接NetServer</summary>
-    public static async void TcpSessionTest()
+    public static async Task TcpSessionTest()
     {
         await Task.Delay(3_000);
         XTrace.WriteLine("");
@@ -104,14 +104,16 @@ static class ClientTest
     }
 
     /// <summary>ISocketClient(UDP)连接NetServer</summary>
-    public static async void UdpSessionTest()
+    public static async Task UdpSessionTest()
     {
         await Task.Delay(4_000);
         XTrace.WriteLine("");
         XTrace.WriteLine("Udp会话开始连接！");
 
         // 创建客户端，改为拉取模式（AutoReceive=false）
-        var uri = new NetUri("udp://127.0.0.4:12345");
+        // UDP 客户端打开时会连接远端（TryConnect），连接态 Socket 只接收该远端地址的数据报；
+        // 服务端绑定通配地址，回复源地址为 127.0.0.1，因此这里必须使用 127.0.0.1，不能用其它环回别名
+        var uri = new NetUri("udp://127.0.0.1:12345");
         var client = uri.CreateRemote();
         client.Name = "小udp客户";
         client.Log = XTrace.Log;
