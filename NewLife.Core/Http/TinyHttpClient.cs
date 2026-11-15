@@ -42,6 +42,11 @@ public class TinyHttpClient : DisposeBase
 
     private Stream? _stream;
 
+    /// <summary>当前连接的目标主机、端口与协议，连接复用时用于确认还是同一个站点</summary>
+    private String? _connectedHost;
+    private String? _connectedScheme;
+    private Int32 _connectedPort;
+
     /// <summary>本次请求的截止时刻（UTC）。由 <see cref="SendAsync"/> 入口设定，SendDataAsync 按剩余时间建取消令牌</summary>
     private DateTime _deadline;
     #endregion
@@ -61,8 +66,19 @@ public class TinyHttpClient : DisposeBase
         base.Dispose(disposing);
 
         Client.TryDispose();
+        CloseStream();
     }
     #endregion
+
+    /// <summary>释放已建立的连接流。换主机、换端口、换协议或断开连接时调用</summary>
+    private void CloseStream()
+    {
+        _stream.TryDispose();
+        _stream = null;
+        _connectedHost = null;
+        _connectedScheme = null;
+        _connectedPort = 0;
+    }
 
     #region 核心方法
     /// <summary>获取网络数据流</summary>
@@ -73,15 +89,16 @@ public class TinyHttpClient : DisposeBase
         var tc = Client;
         var ns = _stream;
 
-        // 判断连接是否可用
+        // 判断连接是否可用。同主机同端口同协议才能复用，否则请求会沿着旧连接发到别的站点
         var active = false;
         try
         {
-            active = ns != null && tc != null && tc.Connected && ns.CanWrite && ns.CanRead;
+            var sameTarget = uri == null || (_connectedHost.EqualIgnoreCase(uri.Host) && _connectedScheme.EqualIgnoreCase(uri.Scheme) && _connectedPort == uri.Port);
+            active = ns != null && tc != null && tc.Connected && ns.CanWrite && ns.CanRead && sameTarget;
             if (active) return ns!;
 
             ns = tc?.GetStream();
-            active = ns != null && tc != null && tc.Connected && ns.CanWrite && ns.CanRead;
+            active = ns != null && tc != null && tc.Connected && ns.CanWrite && ns.CanRead && sameTarget;
         }
         catch { }
 
@@ -93,6 +110,7 @@ public class TinyHttpClient : DisposeBase
             var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
 
             tc.TryDispose();
+            CloseStream();
             tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
 
             // 建连同读取一样花整次请求的剩余预算。指向黑洞地址或被丢包的内网 VIP 时，操作系统默认 TCP 超时
@@ -120,6 +138,9 @@ public class TinyHttpClient : DisposeBase
 
             Client = tc;
             ns = tc.GetStream();
+            _connectedHost = uri.Host;
+            _connectedScheme = uri.Scheme;
+            _connectedPort = uri.Port;
 
             if (BaseAddress == null) BaseAddress = new Uri(uri, "/");
 
@@ -205,7 +226,12 @@ public class TinyHttpClient : DisposeBase
                 // 只支持 http(s) 重定向目标；其它协议（如 file）就地报错，避免带着非法端点继续建连
                 if (uri2.Scheme is not ("http" or "https")) throw new NotSupportedException(L.T("Redirect to the {0} protocol is not supported: {1}", uri2.Scheme, location));
 
-                if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
+                // 主机、端口或协议任一变化都要断连重建，否则新请求会被写到旧目标的连接上
+                if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme || uri.Port != uri2.Port)
+                {
+                    Client.TryDispose();
+                    CloseStream();
+                }
 
                 uri = uri2;
                 request.RequestUri = uri;
@@ -228,6 +254,17 @@ public class TinyHttpClient : DisposeBase
 
         if (res == null) return null;
 
+        // 跳转次数用尽仍然是重定向：不能把 3xx（且响应体已释放）当成成功返回给调用方
+        if ((Int32)res.StatusCode is >= 300 and < 400 && res.Headers.ContainsKey("Location"))
+        {
+            // 与 4xx 分支一致：错误路径不返回响应对象，必须在此释放响应体句柄
+            var body = res.Body;
+            res.Body = null;
+            body.TryDispose();
+
+            throw new InvalidDataException(L.T("Too many redirects: {0}", uri));
+        }
+
         // 4xx/5xx 才是错误响应；2xx 家族（含 201/204/206）均属正常成功
         if ((Int32)res.StatusCode >= 400)
         {
@@ -240,7 +277,11 @@ public class TinyHttpClient : DisposeBase
         }
 
         // 断开连接
-        if (!KeepAlive) Client.TryDispose();
+        if (!KeepAlive)
+        {
+            Client.TryDispose();
+            CloseStream();
+        }
 
         return res;
     }
