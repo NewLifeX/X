@@ -244,12 +244,15 @@ jobs:
         cache: true
         cache-dependency-path: '**/*.csproj'
     - name: Test
+      # 矩阵含 Windows runner（默认 shell 为 pwsh），下面的数组重跑逻辑是 bash 语法，必须显式指定 bash；
+      # project 加引号：Windows 矩阵项用反斜杠路径，bash 会吃掉未加引号的转义符
       # test.ci.runsettings：4 核 runner 把 xUnit 并行线程压到与核数匹配，避免过度订阅导致时序用例失真（macOS 用专用配置降为 3）；
       # blame-hang：用例挂起时超时转储，便于事后定位（正常单 job 约 2~3 分钟，远小于 15 分钟阈值）；
       # dump-type 取值 full/mini/none 区分大小写，写 Mini 会让 dotnet test 直接报参数错误、整个 job 秒退；
       # matrix.retry：仅对已知偶发挂起的 leg 生效，首次失败后原地重跑一次，仍失败则照常红
+      shell: bash
       run: |
-        cmd=(dotnet test ${{ matrix.project }} -f ${{ matrix.framework }} -c Release -s ${{ matrix.runsettings || 'test.ci.runsettings' }} --blame-hang-timeout 15m --blame-hang-dump-type mini --logger "trx;LogFileName=${{ matrix.name }}.trx" --results-directory TestResults)
+        cmd=(dotnet test "${{ matrix.project }}" -f ${{ matrix.framework }} -c Release -s ${{ matrix.runsettings || 'test.ci.runsettings' }} --blame-hang-timeout 15m --blame-hang-dump-type mini --logger "trx;LogFileName=${{ matrix.name }}.trx" --results-directory TestResults)
         if [ "${{ matrix.retry }}" = "true" ]; then
           "${cmd[@]}" || { echo "::warning::首次运行失败（已知偶发挂起），重跑一次"; "${cmd[@]}"; }
         else
