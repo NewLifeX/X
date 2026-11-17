@@ -11,7 +11,7 @@
 #   pwsh -File Tools/Scripts/check-package-consumer.ps1 -Keep     # 保留临时目录便于排查
 param(
     [String]$Configuration = "Release",
-    [String]$Framework = "net10.0",
+    [String]$Framework = "net11.0",
     [String]$Version,
     [Switch]$Keep
 )

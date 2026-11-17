@@ -53,7 +53,7 @@
 "Connection lost; reconnect attempt {1} will start in {0} ms to {2}.": "連線已中斷，第 {1} 次重連將於 {0}ms 後發起 {2}"
 "Connection to {0} timed out ({1:0} ms).": "連線至 {0} 逾時（{1:0}ms）"
 "Control frames must have FIN=1 and a payload of at most 125 bytes (RFC 6455 §5.5).": "控制訊框必須 FIN=1 且承載不超過 125 位元組（RFC 6455 §5.5）"
-"Core library of the NewLife framework: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), networking (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler and plugin framework. NativeAOT-ready, with built-in runtime localization; targets 11 frameworks from .NET Framework 4.5 to .NET 10.0.": "NewLife 框架的核心組件庫：日誌（檔案/網路）、組態（XML/JSON/HTTP）、快取（記憶體/分散式）、網路（TCP/UDP/HTTP/WebSocket）、序列化（二進位/XML/JSON）、APM 效能追蹤、IoC 容器、Actor 模型、定時排程與外掛框架。原生 AOT 就緒，內建執行階段多語言支援；涵蓋 .NET Framework 4.5 至 .NET 10.0 共 11 個目標框架。"
+"Core library of the NewLife framework: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), networking (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler and plugin framework. NativeAOT-ready, with built-in runtime localization; targets 13 frameworks from .NET Framework 4.5 to .NET 11.0.": "NewLife 框架的核心組件庫：日誌（檔案/網路）、組態（XML/JSON/HTTP）、快取（記憶體/分散式）、網路（TCP/UDP/HTTP/WebSocket）、序列化（二進位/XML/JSON）、APM 效能追蹤、IoC 容器、Actor 模型、定時排程與外掛框架。原生 AOT 就緒，內建執行階段多語言支援；涵蓋 .NET Framework 4.5 至 .NET 11.0 共 13 個目標框架。"
 "Corrupted protocol frame: the header is complete but the frame length field is invalid (codec {0}).": "通訊協定訊框損毀：標頭已完整但訊框長度欄位不合法（codec {0}）"
 "CPU usage": "CPU 使用率"
 "Creating configuration: {0}": "建立組態：{0}"

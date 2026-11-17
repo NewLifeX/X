@@ -4,6 +4,7 @@ using System.Net;
 using System.Reflection;
 using NewLife.Net;
 using Xunit;
+using DnsResolver = NewLife.Net.DnsResolver;
 
 namespace XUnitTest.Net;
 

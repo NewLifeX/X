@@ -8,7 +8,7 @@
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 <!-- metrics:start -->
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-13%20%28net45%20%E2%86%92%20net11.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 [![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
 <!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
@@ -19,7 +19,7 @@
 🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md)
 <!-- lang:end -->
 
-**NewLife.Core** هو أساس منظومة NewLife: حزمة واحدة للتسجيل والتهيئة والتخزين المؤقت والشبكات والتسلسل والجدولة وحاوية الكائنات وتتبّع APM. جاهز لـ NativeAOT، ويضم رسائل وقت التشغيل بـ <!--locale-count:start-->31<!--locale-count:end--> لغة، ويستهدف 11 إطار عمل من net45 إلى net10.0، ويشغّل XCode وCube وRedis وStardust وأكثر من 30 مشروعًا شقيقًا.
+**NewLife.Core** هو أساس منظومة NewLife: حزمة واحدة للتسجيل والتهيئة والتخزين المؤقت والشبكات والتسلسل والجدولة وحاوية الكائنات وتتبّع APM. جاهز لـ NativeAOT، ويضم رسائل وقت التشغيل بـ <!--locale-count:start-->31<!--locale-count:end--> لغة، ويستهدف 13 إطار عمل من net45 إلى net11.0، ويشغّل XCode وCube وRedis وStardust وأكثر من 30 مشروعًا شقيقًا.
 
 دليل المكتبة الأساسية: [https://newlifex.com/core](https://newlifex.com/core)  
 
@@ -62,7 +62,7 @@ dotnet run
 
 | البند | التغطية |
 | --- | --- |
-| أطر العمل المستهدفة | 11 إطارًا في حزمة واحدة: net45، net461، net462، netstandard2.0، netstandard2.1، net6.0، net6.0-windows، net8.0، net8.0-windows، net10.0، net10.0-windows |
+| أطر العمل المستهدفة | 13 إطارًا في حزمة واحدة: net45، net461، net462، netstandard2.0، netstandard2.1، net6.0، net6.0-windows، net8.0، net8.0-windows، net10.0، net10.0-windows، net11.0، net11.0-windows |
 | أنظمة التشغيل والمعماريات | Windows، Linux، macOS، Android، iOS؛ x64، x86، arm64، arm، loongarch64، riscv64، s390x |
 | NativeAOT | تم قياس <!--aot-scenarios:start-->31<!--aot-scenarios:end--> سيناريو أساسيًا؛ مصفوفة اختبار CI متعددة RID (win-x64 وlinux-x64 وlinux-arm64 وlinux-loongarch64 بوابات حاجزة). الإضافات والسكربتات غير متوافقة مع AOT بحكم التصميم — انظر [تحليل توافق AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) |
 | التوطين في وقت التشغيل | <!--locale-count:start-->31<!--locale-count:end--> لغة مدمجة؛ تُوطَّن رسائل السجل والاستثناءات في وقت التشغيل دون تغيير مواضع الاستدعاء (انظر [التوطين](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)) |
@@ -71,7 +71,7 @@ dotnet run
 ## لماذا NewLife.Core
 
 - **حزمة واحدة للبنية التحتية الشائعة**: التسجيل والتهيئة والتخزين المؤقت والشبكة والتسلسل والجدولة وحاوية الكائنات وحقن التبعيات — مرجع واحد يكفي.
-- **تغطية واسعة ووقت تشغيل حديث**: 11 إطار عمل مستهدفًا في حزمة واحدة (net45 → net10.0، بما في ذلك إصدارات Windows)، مع جاهزية لـ NativeAOT في المسار الأساسي ورسائل وقت التشغيل مترجمة إلى <!--locale-count:start-->31<!--locale-count:end--> لغة — نفس الواجهة البرمجية للأنظمة القديمة والمشاريع الجديدة.
+- **تغطية واسعة ووقت تشغيل حديث**: 13 إطار عمل مستهدفًا في حزمة واحدة (net45 → net11.0، بما في ذلك إصدارات Windows)، مع جاهزية لـ NativeAOT في المسار الأساسي ورسائل وقت التشغيل مترجمة إلى <!--locale-count:start-->31<!--locale-count:end--> لغة — نفس الواجهة البرمجية للأنظمة القديمة والمشاريع الجديدة.
 - **مُثبتة على نطاق المنظومة**: الأساس نفسه يشغّل XCode (جداول واحدة بمستوى 10 مليارات صف) وNet (1.77 مليون pps / 14.5 Gbps، TCP 1KB) وRedis وStardust (عشرات المليارات من السجلات).
 - **تبعيات محدودة وترخيص متسامح**: تعتمد على BCL وحزم التوافق من Microsoft فقط؛ ترخيص MIT يسمح بالتعديل وإعادة التسمية (انظر [الترخيص](#الترخيص)).
 
@@ -169,7 +169,7 @@ dotnet run
 | [قارئ Span SpanReader](https://newlifex.com/core/span_reader) | محلّل تدفّق ثنائي عالي الأداء بدون تخصيص، يدعم ترتيب البايتات الكبير والصغير. |
 | [كاتب Span SpanWriter](https://newlifex.com/core/span_writer) | كاتب بيانات ثنائية عالي الأداء بدون تخصيص، يدعم ترتيب البايتات الكبير والصغير. |
 | [مساعد Span SpanHelper](https://newlifex.com/core/span_helper) | مجموعة طرق إضافية لـ Span/ReadOnlySpan، تبسّط عمليات الذاكرة. |
-| [قارئ التسلسل SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | قارئ متسلسل عبر المقاطع (الأطر القديمة مكتملة عبر حشوات، ومتاح في جميع 11 TFM). |
+| [قارئ التسلسل SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | قارئ متسلسل عبر المقاطع (الأطر القديمة مكتملة عبر حشوات، ومتاح في جميع 13 TFM). |
 
 </details>
 
@@ -318,7 +318,7 @@ dotnet test XUnitTest.Core -c Release
 | `Doc/` | وثائق الإمكانات وفهرس المقالات |
 | `Samples/` | أمثلة الطرفية / الخدمة / Http / إنترنت الأشياء / الجوال |
 | `Benchmark/` | قياسات أداء BenchmarkDotNet |
-| `XUnitTest.Core/` | اختبارات الوحدة الرئيسية (net10.0) |
+| `XUnitTest.Core/` | اختبارات الوحدة الرئيسية (net11.0) |
 | `XUnitTest.Compat/`, `XUnitTest.Net6/` | اختبارات التوافق بين الإصدارات |
 | `AotSmoke/` | مشروع اختبار NativeAOT السريع |
 

@@ -8,7 +8,7 @@
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 <!-- metrics:start -->
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-13%20%28net45%20%E2%86%92%20net11.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 [![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
 <!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
@@ -19,7 +19,7 @@
 🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
-**NewLife.Core** — фундамент экосистемы NewLife: один пакет для логирования, конфигурации, кэширования, сетевого взаимодействия, сериализации, планирования, контейнера объектов и APM-трассировки. Он готов к NativeAOT, содержит сообщения среды выполнения на <!--locale-count:start-->31<!--locale-count:end--> языках, поддерживает 11 целевых платформ — от net45 до net10.0 — и служит основой для XCode, Cube, Redis, Stardust и более 30 родственных проектов.
+**NewLife.Core** — фундамент экосистемы NewLife: один пакет для логирования, конфигурации, кэширования, сетевого взаимодействия, сериализации, планирования, контейнера объектов и APM-трассировки. Он готов к NativeAOT, содержит сообщения среды выполнения на <!--locale-count:start-->31<!--locale-count:end--> языках, поддерживает 13 целевых платформ — от net45 до net11.0 — и служит основой для XCode, Cube, Redis, Stardust и более 30 родственных проектов.
 
 Учебник по базовой библиотеке: [https://newlifex.com/core](https://newlifex.com/core)  
 
@@ -62,7 +62,7 @@ dotnet run
 
 | Пункт | Охват |
 | --- | --- |
-| Целевые платформы | 11 в одном пакете: net45, net461, net462, netstandard2.0, netstandard2.1, net6.0, net6.0-windows, net8.0, net8.0-windows, net10.0, net10.0-windows |
+| Целевые платформы | 13 в одном пакете: net45, net461, net462, netstandard2.0, netstandard2.1, net6.0, net6.0-windows, net8.0, net8.0-windows, net10.0, net10.0-windows, net11.0, net11.0-windows |
 | ОС и архитектуры | Windows, Linux, macOS, Android, iOS; x64, x86, arm64, arm, loongarch64, riscv64, s390x |
 | NativeAOT | <!--aot-scenarios:start-->31<!--aot-scenarios:end--> проверенных ключевых сценариев; мульти-RID матрица CI-смоук-тестов (win-x64, linux-x64, linux-arm64 и linux-loongarch64 — блокирующие шлюзы). Плагины и скрипты по замыслу несовместимы с AOT — см. [Анализ AOT-совместимости](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) |
 | Локализация среды выполнения | <!--locale-count:start-->31<!--locale-count:end--> встроенных языков; сообщения журналов и исключений локализуются во время выполнения без изменения мест вызова (см. [Локализация](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)) |
@@ -71,7 +71,7 @@ dotnet run
 ## Почему NewLife.Core
 
 - **Один пакет для базовой инфраструктуры**: логирование, конфигурация, кэш, сеть, сериализация, планировщик, контейнер объектов и DI — достаточно одной ссылки.
-- **Широкий охват и современная среда выполнения**: 11 целевых платформ в одном пакете (net45 → net10.0, включая варианты Windows), готовность к NativeAOT на основном пути и сообщения среды выполнения на <!--locale-count:start-->31<!--locale-count:end--> языках — один и тот же API для старых систем и новых проектов.
+- **Широкий охват и современная среда выполнения**: 13 целевых платформ в одном пакете (net45 → net11.0, включая варианты Windows), готовность к NativeAOT на основном пути и сообщения среды выполнения на <!--locale-count:start-->31<!--locale-count:end--> языках — один и тот же API для старых систем и новых проектов.
 - **Проверено в масштабе экосистемы**: на этой основе работают XCode (отдельные таблицы на 10 млрд строк), Net (1,77M pps / 14,5 Гбит/с, TCP 1KB), Redis и Stardust (десятки миллиардов записей).
 - **Сдержанные зависимости, свободная лицензия**: только BCL и официальные пакеты совместимости Microsoft; MIT — можно изменять код и переименовывать (см. [Лицензия](#лицензия)).
 
@@ -169,7 +169,7 @@ dotnet run
 | [Читатель Span SpanReader](https://newlifex.com/core/span_reader) | Высокопроизводительный парсер бинарных потоков без выделений памяти с поддержкой порядка байтов. |
 | [Писатель Span SpanWriter](https://newlifex.com/core/span_writer) | Высокопроизводительный писатель бинарных данных без выделений памяти с поддержкой порядка байтов. |
 | [Помощник Span SpanHelper](https://newlifex.com/core/span_helper) | Набор методов расширения Span/ReadOnlySpan, упрощающий операции с памятью. |
-| [Последовательный читатель SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Читатель последовательности через сегменты (в старых фреймворках добавлен через шимы, доступен во всех 11 TFM). |
+| [Последовательный читатель SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Читатель последовательности через сегменты (в старых фреймворках добавлен через шимы, доступен во всех 13 TFM). |
 
 </details>
 
@@ -318,7 +318,7 @@ dotnet test XUnitTest.Core -c Release
 | `Doc/` | Документация по возможностям и индекс статей |
 | `Samples/` | Примеры для консоли / службы / Http / IoT / мобильных платформ |
 | `Benchmark/` | Бенчмарки производительности BenchmarkDotNet |
-| `XUnitTest.Core/` | Основные модульные тесты (net10.0) |
+| `XUnitTest.Core/` | Основные модульные тесты (net11.0) |
 | `XUnitTest.Compat/`, `XUnitTest.Net6/` | Тесты совместимости между версиями |
 | `AotSmoke/` | Проект смоук-теста NativeAOT |
 

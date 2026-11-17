@@ -8,7 +8,7 @@
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 <!-- metrics:start -->
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-13%20%28net45%20%E2%86%92%20net11.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 [![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
 <!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
@@ -19,7 +19,7 @@
 🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
-**NewLife.Core** é a base do ecossistema NewLife: um único pacote para log, configuração, cache, rede, serialização, agendamento, contêiner de objetos e rastreamento APM. É compatível com NativeAOT, oferece mensagens de runtime em <!--locale-count:start-->31<!--locale-count:end--> idiomas, tem como alvo 11 frameworks, de net45 a net10.0, e sustenta XCode, Cube, Redis, Stardust e mais de 30 projetos irmãos.
+**NewLife.Core** é a base do ecossistema NewLife: um único pacote para log, configuração, cache, rede, serialização, agendamento, contêiner de objetos e rastreamento APM. É compatível com NativeAOT, oferece mensagens de runtime em <!--locale-count:start-->31<!--locale-count:end--> idiomas, tem como alvo 13 frameworks, de net45 a net11.0, e sustenta XCode, Cube, Redis, Stardust e mais de 30 projetos irmãos.
 
 Tutorial da biblioteca principal: [https://newlifex.com/core](https://newlifex.com/core)  
 
@@ -62,7 +62,7 @@ dotnet run
 
 | Item | Cobertura |
 | --- | --- |
-| Frameworks de destino | 11 em um único pacote: net45, net461, net462, netstandard2.0, netstandard2.1, net6.0, net6.0-windows, net8.0, net8.0-windows, net10.0, net10.0-windows |
+| Frameworks de destino | 13 em um único pacote: net45, net461, net462, netstandard2.0, netstandard2.1, net6.0, net6.0-windows, net8.0, net8.0-windows, net10.0, net10.0-windows, net11.0, net11.0-windows |
 | Sistemas e arquiteturas | Windows, Linux, macOS, Android, iOS; x64, x86, arm64, arm, loongarch64, riscv64, s390x |
 | NativeAOT | <!--aot-scenarios:start-->31<!--aot-scenarios:end--> cenários centrais medidos; matriz de smoke de CI com vários RIDs (win-x64, linux-x64, linux-arm64 e linux-loongarch64 são portões bloqueantes). Plugins e scripts não são compatíveis com AOT por design — consulte [Análise de compatibilidade com AOT](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) |
 | Localização em runtime | <!--locale-count:start-->31<!--locale-count:end--> idiomas integrados; mensagens de log e de exceção são localizadas em runtime sem alterar os pontos de chamada (veja [Localização](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)) |
@@ -71,7 +71,7 @@ dotnet run
 ## Por que NewLife.Core
 
 - **Um pacote para a infraestrutura comum**: log, configuração, cache, rede, serialização, agendamento, contêiner de objetos e DI — uma única referência basta.
-- **Cobertura ampla e runtime moderno**: 11 frameworks de destino em um único pacote (net45 → net10.0, incluindo variantes do Windows), compatível com NativeAOT no caminho principal e mensagens de runtime localizadas em <!--locale-count:start-->31<!--locale-count:end--> idiomas — a mesma API para sistemas legados e projetos novos.
+- **Cobertura ampla e runtime moderno**: 13 frameworks de destino em um único pacote (net45 → net11.0, incluindo variantes do Windows), compatível com NativeAOT no caminho principal e mensagens de runtime localizadas em <!--locale-count:start-->31<!--locale-count:end--> idiomas — a mesma API para sistemas legados e projetos novos.
 - **Comprovado na escala do ecossistema**: a mesma base sustenta XCode (tabelas únicas de 10 bilhões de linhas), Net (1,77M pps / 14,5 Gbps, TCP 1KB), Redis e Stardust (dezenas de bilhões de registros).
 - **Dependências contidas e licença permissiva**: apenas a BCL e pacotes de compatibilidade da Microsoft; licença MIT, permitindo modificação e rebranding (veja [Licença](#licença)).
 
@@ -169,7 +169,7 @@ dotnet run
 | [Leitor Span SpanReader](https://newlifex.com/core/span_reader) | Analisador binário de alto desempenho com zero alocação, com suporte a big-endian e little-endian. |
 | [Escritor Span SpanWriter](https://newlifex.com/core/span_writer) | Escritor de dados binários de alto desempenho com zero alocação, com suporte a big-endian e little-endian. |
 | [Auxiliar de Span SpanHelper](https://newlifex.com/core/span_helper) | Conjunto de métodos de extensão para Span/ReadOnlySpan, simplificando operações de memória. |
-| [Leitor sequencial SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Leitor sequencial entre segmentos (em frameworks antigos, suprido por shim; disponível em todos os 11 TFMs). |
+| [Leitor sequencial SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Leitor sequencial entre segmentos (em frameworks antigos, suprido por shim; disponível em todos os 13 TFMs). |
 
 </details>
 
@@ -318,7 +318,7 @@ dotnet test XUnitTest.Core -c Release
 | `Doc/` | Documentação de capacidades e índice de artigos |
 | `Samples/` | Exemplos de console / serviço / Http / IoT / móvel |
 | `Benchmark/` | Benchmarks de desempenho com BenchmarkDotNet |
-| `XUnitTest.Core/` | Testes unitários principais (net10.0) |
+| `XUnitTest.Core/` | Testes unitários principais (net11.0) |
 | `XUnitTest.Compat/`, `XUnitTest.Net6/` | Testes de compatibilidade entre versões |
 | `AotSmoke/` | Projeto de smoke test NativeAOT |
 

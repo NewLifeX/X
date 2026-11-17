@@ -42,12 +42,12 @@ public class ProcessHelperTests
     [Fact]
     public void GetProcessName_NormalProcess()
     {
-        // 选择一个简单短命令：Windows 用 cmd /c timeout；Linux 用 sleep
+        // 选择一个简单短命令：Windows 用 cmd /c ping（不依赖控制台输入，net11 测试宿主的 stdin 可能被重定向）；Linux 用 sleep
         Process? child = null;
         try
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                child = Process.Start(new ProcessStartInfo("cmd", "/c timeout /t 3 >nul") { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden });
+                child = Process.Start(new ProcessStartInfo("cmd", "/c ping -n 4 127.0.0.1 >nul") { CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden });
             else
                 child = Process.Start("sleep", "3");
 

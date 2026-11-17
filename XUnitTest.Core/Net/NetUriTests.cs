@@ -5,6 +5,7 @@ using System.Security.Authentication;
 using NewLife;
 using NewLife.Net;
 using Xunit;
+using DnsResolver = NewLife.Net.DnsResolver;
 
 namespace XUnitTest.Net;
 

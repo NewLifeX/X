@@ -31,11 +31,12 @@ jobs:
     - name: Setup dotNET
       uses: actions/setup-dotnet@v6
       with:
-        # 含 net8.0-windows/net10.0-windows，需对应 SDK 提供 WindowsDesktop 目标包
+        # 含 net8.0-windows/net10.0-windows/net11.0-windows，需对应 SDK 提供 WindowsDesktop 目标包
         dotnet-version: |
           8.x
           9.x
           10.x
+          11.x
         cache: true
         cache-dependency-path: '**/*.csproj'
     - name: 校验 lib 资产集合
@@ -57,7 +58,8 @@ jobs:
           'netstandard2.0', 'netstandard2.1',
           'net6.0', 'net6.0-windows',
           'net8.0', 'net8.0-windows',
-          'net10.0', 'net10.0-windows'
+          'net10.0', 'net10.0-windows',
+          'net11.0', 'net11.0-windows'
         ) | Sort-Object
 
         Write-Host "实际资产：$($actual -join ', ')"

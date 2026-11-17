@@ -1,4 +1,4 @@
-﻿# 全量单元测试并行跑测脚本
+# 全量单元测试并行跑测脚本
 # 构建一次后，把全部测试宿主（4 个工程 × 目标框架，共 10 个）并行跑完，输出汇总表。
 # Windows 上 testhost 偶发跑完不退出，脚本带超时兜底（按 PID 递归终止进程树）。
 # 仅支持 Windows（Compat-net462 宿主需要 .NET Framework）；Windows PowerShell 5.1 与 PowerShell 7（pwsh）均可运行。
@@ -46,10 +46,13 @@ $hosts = @(
     [pscustomobject]@{ Name = "Core-net9.0";          Project = "XUnitTest.Core\XUnitTest.Core.csproj";                       Framework = "net9.0";          OutDir = "Bin\UnitTest\net9.0" }
     [pscustomobject]@{ Name = "Core-net10.0";         Project = "XUnitTest.Core\XUnitTest.Core.csproj";                       Framework = "net10.0";         OutDir = "Bin\UnitTest\net10.0" }
     [pscustomobject]@{ Name = "Core-net10.0-windows"; Project = "XUnitTest.Core\XUnitTest.Core.csproj";                       Framework = "net10.0-windows"; OutDir = "Bin\UnitTest\net10.0-windows" }
+    [pscustomobject]@{ Name = "Core-net11.0";         Project = "XUnitTest.Core\XUnitTest.Core.csproj";                       Framework = "net11.0";         OutDir = "Bin\UnitTest\net11.0" }
+    [pscustomobject]@{ Name = "Core-net11.0-windows"; Project = "XUnitTest.Core\XUnitTest.Core.csproj";                       Framework = "net11.0-windows"; OutDir = "Bin\UnitTest\net11.0-windows" }
     [pscustomobject]@{ Name = "Net6-net6.0";          Project = "XUnitTest.Net6\XUnitTest.Net6.csproj";                       Framework = "net6.0";          OutDir = "Bin\UnitTest6\net6.0" }
     [pscustomobject]@{ Name = "Net6-net6.0-windows";  Project = "XUnitTest.Net6\XUnitTest.Net6.csproj";                       Framework = "net6.0-windows";  OutDir = "Bin\UnitTest6\net6.0-windows" }
     [pscustomobject]@{ Name = "Compat-net462";        Project = "XUnitTest.Compat\XUnitTest.Compat.csproj";                   Framework = "net462";          OutDir = "Bin\UnitTestCompat\net462" }
     [pscustomobject]@{ Name = "Compat-net8.0";        Project = "XUnitTest.Compat\XUnitTest.Compat.csproj";                   Framework = "net8.0";          OutDir = "Bin\UnitTestCompat\net8.0" }
+[pscustomobject]@{ Name = "Compat-net11.0";       Project = "XUnitTest.Compat\XUnitTest.Compat.csproj";                     Framework = "net11.0";         OutDir = "Bin\UnitTestCompat\net11.0" }
     [pscustomobject]@{ Name = "SourceGenerator";      Project = "XUnitTest.SourceGenerator\XUnitTest.SourceGenerator.csproj"; Framework = "net10.0";         OutDir = "Bin\UnitTestSG\net10.0" }
 )
 

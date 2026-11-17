@@ -16,7 +16,7 @@ public class DnsHttpHandler(HttpMessageHandler innerHandler) : DelegatingHandler
 {
     #region 属性
     /// <summary>DNS解析器</summary>
-    public IDnsResolver Resolver { get; set; } = DnsResolver.Instance;
+    public IDnsResolver Resolver { get; set; } = NewLife.Net.DnsResolver.Instance;
     #endregion
 
 #if NET5_0_OR_GREATER

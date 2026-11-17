@@ -8,7 +8,7 @@
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 <!-- metrics:start -->
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-13%20%28net45%20%E2%86%92%20net11.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 [![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
 <!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
@@ -19,7 +19,7 @@
 🌐 [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
-**NewLife.Core** is the foundation of the NewLife ecosystem: one package for logging, configuration, caching, networking, serialization, scheduling, object container and APM tracing. It is NativeAOT-ready, ships runtime messages in <!--locale-count:start-->31<!--locale-count:end--> languages, targets 11 frameworks from net45 to net10.0, and powers XCode, Cube, Redis, Stardust and 30+ sibling projects.
+**NewLife.Core** is the foundation of the NewLife ecosystem: one package for logging, configuration, caching, networking, serialization, scheduling, object container and APM tracing. It is NativeAOT-ready, ships runtime messages in <!--locale-count:start-->31<!--locale-count:end--> languages, targets 13 frameworks from net45 to net11.0, and powers XCode, Cube, Redis, Stardust and 30+ sibling projects.
 
 Core library tutorial: [https://newlifex.com/core](https://newlifex.com/core)  
 
@@ -62,7 +62,7 @@ dotnet run
 
 | Item | Coverage |
 | --- | --- |
-| Target frameworks | 11 in one package: net45, net461, net462, netstandard2.0, netstandard2.1, net6.0, net6.0-windows, net8.0, net8.0-windows, net10.0, net10.0-windows |
+| Target frameworks | 13 in one package: net45, net461, net462, netstandard2.0, netstandard2.1, net6.0, net6.0-windows, net8.0, net8.0-windows, net10.0, net10.0-windows, net11.0, net11.0-windows |
 | OS and architecture | Windows, Linux, macOS, Android, iOS; x64, x86, arm64, arm, loongarch64, riscv64, s390x |
 | NativeAOT | <!--aot-scenarios:start-->31<!--aot-scenarios:end--> core scenarios measured; multi-RID CI smoke matrix (win-x64, linux-x64, linux-arm64 and linux-loongarch64 are blocking gates). Plugins and scripting are not AOT-compatible by design — see [AOT Compatibility Analysis](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) |
 | Runtime localization | <!--locale-count:start-->31<!--locale-count:end--> built-in locales; log and exception messages are localized at runtime without changing call sites (see [Localization](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)) |
@@ -71,7 +71,7 @@ dotnet run
 ## Why NewLife.Core
 
 - **One package for common infrastructure**: logging, configuration, caching, networking, serialization, scheduling, object container and DI — a single reference is enough.
-- **Broad coverage, modern runtime**: 11 target frameworks in one package (net45 → net10.0, including Windows variants), NativeAOT-ready on the core path, and runtime messages localized into <!--locale-count:start-->31<!--locale-count:end--> languages — the same API for legacy systems and new projects.
+- **Broad coverage, modern runtime**: 13 target frameworks in one package (net45 → net11.0, including Windows variants), NativeAOT-ready on the core path, and runtime messages localized into <!--locale-count:start-->31<!--locale-count:end--> languages — the same API for legacy systems and new projects.
 - **Proven at ecosystem scale**: the same foundation runs XCode (single tables of 10 billion rows), Net (1.77M pps / 14.5 Gbps, TCP 1KB), Redis and Stardust (tens of billions of records).
 - **Restrained dependencies, permissive license**: BCL and Microsoft compatibility packages only; MIT, so you can modify and rebrand (see [License](#license)).
 
@@ -169,7 +169,7 @@ dotnet run
 | [Span Reader SpanReader](https://newlifex.com/core/span_reader) | Zero-allocation high-performance binary stream parser supporting little/big endian. |
 | [Span Writer SpanWriter](https://newlifex.com/core/span_writer) | Zero-allocation high-performance binary data writer supporting little/big endian. |
 | [Span Helper SpanHelper](https://newlifex.com/core/span_helper) | A collection of Span/ReadOnlySpan extension methods that simplifies memory operations. |
-| [Sequence Reader SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Cross-segment sequential reader (patched with shims for older frameworks, available on all 11 TFMs). |
+| [Sequence Reader SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | Cross-segment sequential reader (patched with shims for older frameworks, available on all 13 TFMs). |
 
 </details>
 
@@ -318,7 +318,7 @@ dotnet test XUnitTest.Core -c Release
 | `Doc/` | Capability docs and article index |
 | `Samples/` | Console / service / Http / IoT / mobile samples |
 | `Benchmark/` | BenchmarkDotNet performance benchmarks |
-| `XUnitTest.Core/` | Main unit tests (net10.0) |
+| `XUnitTest.Core/` | Main unit tests (net11.0) |
 | `XUnitTest.Compat/`, `XUnitTest.Net6/` | Cross-version compatibility tests |
 | `AotSmoke/` | NativeAOT smoke project |
 

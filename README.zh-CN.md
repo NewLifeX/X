@@ -8,7 +8,7 @@
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 <!-- metrics:start -->
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-13%20%28net45%20%E2%86%92%20net11.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 [![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
 <!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
@@ -19,7 +19,7 @@
 🌐 [English](README.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
-**NewLife.Core** 是 NewLife 生态的基础库：日志、配置、缓存、网络、序列化、定时调度、对象容器与 APM 追踪，一个包即可开工。原生 AOT 就绪，内置 <!--locale-count:start-->31<!--locale-count:end--> 种语言运行时消息，单包覆盖 net45 → net10.0 共 11 个目标框架，支撑 XCode、Cube、Redis、Stardust 等 30 多个兄弟项目。
+**NewLife.Core** 是 NewLife 生态的基础库：日志、配置、缓存、网络、序列化、定时调度、对象容器与 APM 追踪，一个包即可开工。原生 AOT 就绪，内置 <!--locale-count:start-->31<!--locale-count:end--> 种语言运行时消息，单包覆盖 net45 → net11.0 共 13 个目标框架，支撑 XCode、Cube、Redis、Stardust 等 30 多个兄弟项目。
 
 核心库教程：[https://newlifex.com/core](https://newlifex.com/core)  
 
@@ -64,7 +64,7 @@ dotnet run
 
 | 项目 | 覆盖范围 |
 | --- | --- |
-| 目标框架 | 单包 11 个：net45、net461、net462、netstandard2.0、netstandard2.1、net6.0、net6.0-windows、net8.0、net8.0-windows、net10.0、net10.0-windows |
+| 目标框架 | 单包 13 个：net45、net461、net462、netstandard2.0、netstandard2.1、net6.0、net6.0-windows、net8.0、net8.0-windows、net10.0、net10.0-windows、net11.0、net11.0-windows |
 | 系统与架构 | Windows、Linux、macOS、Android、iOS；x64、x86、arm64、arm、loongarch64、riscv64、s390x |
 | NativeAOT | <!--aot-scenarios:start-->31<!--aot-scenarios:end--> 个核心场景实测通过，多 RID CI 冒烟矩阵把关（win-x64、linux-x64、linux-arm64、linux-loongarch64 为阻断门禁）。插件、脚本等动态能力按设计不支持，边界见 [AOT兼容性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) |
 | 运行时本地化 | 内置 <!--locale-count:start-->31<!--locale-count:end--> 种语言；日志与异常消息在运行时本地化，无需改动调用点（见 [多语言本地化](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md)） |
@@ -73,7 +73,7 @@ dotnet run
 ## 为什么选择 NewLife.Core
 
 - **一套组件覆盖常见基础设施**：日志、配置、缓存、网络、序列化、定时调度、对象容器与依赖注入，引用一个包即可开工。
-- **覆盖广、运行时现代**：单包 11 个目标框架（net45 → net10.0，含 Windows 变体），原生 AOT 就绪，运行时消息支持 <!--locale-count:start-->31<!--locale-count:end--> 种语言，老系统与新项目共用同一套 API。
+- **覆盖广、运行时现代**：单包 13 个目标框架（net45 → net11.0，含 Windows 变体），原生 AOT 就绪，运行时消息支持 <!--locale-count:start-->31<!--locale-count:end--> 种语言，老系统与新项目共用同一套 API。
 - **经生态规模验证**：同一套底座支撑 XCode（单表百亿级）、Net（TCP 1KB 单机 177 万 pps、14.5 Gbps）、Redis 与 Stardust（百亿级数据量）等项目。
 - **依赖克制、协议宽松**：仅使用 BCL 与微软官方兼容包；MIT 协议，允许改源码、改名私有化（见[许可证](#许可证)）。
 
@@ -171,7 +171,7 @@ dotnet run
 | [Span读取器SpanReader](https://newlifex.com/core/span_reader) | 零分配高性能二进制流解析器，支持大小端。 |
 | [Span写入器SpanWriter](https://newlifex.com/core/span_writer) | 零分配高性能二进制数据写入器，支持大小端。 |
 | [Span辅助SpanHelper](https://newlifex.com/core/span_helper) | Span/ReadOnlySpan扩展方法集，简化内存操作。 |
-| [序列读取器SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | 跨段顺序读取器（旧框架经垫片补齐，全11 TFM可用）。 |
+| [序列读取器SequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | 跨段顺序读取器（旧框架经垫片补齐，全13 TFM可用）。 |
 
 </details>
 
@@ -320,7 +320,7 @@ dotnet test XUnitTest.Core -c Release
 | `Doc/` | 能力文档与文章索引 |
 | `Samples/` | 控制台 / 服务 / Http / 物联网 / 移动端示例 |
 | `Benchmark/` | BenchmarkDotNet 性能基准 |
-| `XUnitTest.Core/` | 主单元测试工程（net10.0） |
+| `XUnitTest.Core/` | 主单元测试工程（net11.0） |
 | `XUnitTest.Compat/`、`XUnitTest.Net6/` | 跨版本兼容性测试 |
 | `AotSmoke/` | NativeAOT 冒烟工程 |
 

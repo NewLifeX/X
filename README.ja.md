@@ -8,7 +8,7 @@
 [![test](https://github.com/NewLifeX/X/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/NewLifeX/X/actions/workflows/test.yml)
 <!-- metrics:start -->
 [![AOT smoke](https://img.shields.io/badge/AOT%20smoke-31%2F31-brightgreen?logo=dotnet)](Doc/AOT兼容性分析.md)
-[![TFM](https://img.shields.io/badge/TFM-11%20%28net45%20%E2%86%92%20net10.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
+[![TFM](https://img.shields.io/badge/TFM-13%20%28net45%20%E2%86%92%20net11.0%29-512BD4?logo=dotnet)](https://www.nuget.org/packages/NewLife.Core)
 [![locales](https://img.shields.io/badge/locales-31-2ea44f?logo=dotnet)](Doc/多语言本地化.md)
 <!-- metrics:end -->
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-blue)
@@ -19,7 +19,7 @@
 🌐 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [한국어](README.ko.md) | [العربية](README.ar.md)
 <!-- lang:end -->
 
-**NewLife.Core** は NewLife エコシステムの基盤です。ログ、構成、キャッシュ、ネットワーク、シリアライズ、スケジューリング、オブジェクトコンテナ、APM トレーシングを 1 つのパッケージで提供します。NativeAOT に対応し、<!--locale-count:start-->31<!--locale-count:end--> 言語のランタイムメッセージを内蔵しています。単一パッケージで net45 から net10.0 までの 11 個のターゲットフレームワークをカバーし、XCode、Cube、Redis、Stardust など 30 以上の兄弟プロジェクトを支えています。
+**NewLife.Core** は NewLife エコシステムの基盤です。ログ、構成、キャッシュ、ネットワーク、シリアライズ、スケジューリング、オブジェクトコンテナ、APM トレーシングを 1 つのパッケージで提供します。NativeAOT に対応し、<!--locale-count:start-->31<!--locale-count:end--> 言語のランタイムメッセージを内蔵しています。単一パッケージで net45 から net11.0 までの 13 個のターゲットフレームワークをカバーし、XCode、Cube、Redis、Stardust など 30 以上の兄弟プロジェクトを支えています。
 
 コアライブラリのチュートリアル：[https://newlifex.com/core](https://newlifex.com/core)  
 
@@ -64,7 +64,7 @@ dotnet run
 
 | 項目 | 対応範囲 |
 | --- | --- |
-| ターゲットフレームワーク | 単一パッケージで 11 個：net45、net461、net462、netstandard2.0、netstandard2.1、net6.0、net6.0-windows、net8.0、net8.0-windows、net10.0、net10.0-windows |
+| ターゲットフレームワーク | 単一パッケージで 13 個：net45、net461、net462、netstandard2.0、netstandard2.1、net6.0、net6.0-windows、net8.0、net8.0-windows、net10.0、net10.0-windows、net11.0、net11.0-windows |
 | OS とアーキテクチャ | Windows、Linux、macOS、Android、iOS；x64、x86、arm64、arm、loongarch64、riscv64、s390x |
 | NativeAOT | <!--aot-scenarios:start-->31<!--aot-scenarios:end--> 個のコアシナリオを実測済み。複数 RID の CI スモークマトリクスで検証します（win-x64、linux-x64、linux-arm64、linux-loongarch64 はブロッキングゲート）。プラグインやスクリプトなどの動的機能は設計上 AOT 非対応です。境界は [AOT互換性分析](https://github.com/NewLifeX/X/blob/master/Doc/AOT兼容性分析.md) を参照してください |
 | ランタイムローカライズ | 内蔵 <!--locale-count:start-->31<!--locale-count:end--> 言語。ログと例外メッセージを実行時にローカライズし、呼び出し側の変更は不要です（[多言語ローカライズ](https://github.com/NewLifeX/X/blob/master/Doc/多语言本地化.md) を参照） |
@@ -73,7 +73,7 @@ dotnet run
 ## NewLife.Core を選ぶ理由
 
 - **共通インフラを 1 パッケージで**：ログ、構成、キャッシュ、ネットワーク、シリアライズ、スケジューリング、オブジェクトコンテナと DI を 1 つの参照で利用できます。
-- **幅広い対応範囲とモダンなランタイム**：単一パッケージで 11 個のターゲットフレームワーク（net45 → net10.0、Windows 変種を含む）に対応し、コアパスは NativeAOT 対応、ランタイムメッセージは <!--locale-count:start-->31<!--locale-count:end--> 言語にローカライズ済みです。レガシーシステムと新規プロジェクトが同じ API を共有できます。
+- **幅広い対応範囲とモダンなランタイム**：単一パッケージで 13 個のターゲットフレームワーク（net45 → net11.0、Windows 変種を含む）に対応し、コアパスは NativeAOT 対応、ランタイムメッセージは <!--locale-count:start-->31<!--locale-count:end--> 言語にローカライズ済みです。レガシーシステムと新規プロジェクトが同じ API を共有できます。
 - **エコシステム規模で実証済み**：同じ基盤が XCode（単一テーブルで百億件級）、Net（TCP 1KB で 177 万 pps、14.5 Gbps）、Redis と Stardust（数百億件のデータ量）を支えています。
 - **依存は控えめ、ライセンスは寛容**：BCL と Microsoft の互換パッケージのみ。MIT ライセンスのため、ソースの改変や自社名への変更も可能です（[ライセンス](#ライセンス)）。
 
@@ -171,7 +171,7 @@ dotnet run
 | [SpanリーダーSpanReader](https://newlifex.com/core/span_reader) | ゼロアロケーションの高性能バイナリストリームパーサーで、リトル/ビッグエンディアンをサポートします。 |
 | [SpanライターSpanWriter](https://newlifex.com/core/span_writer) | ゼロアロケーションの高性能バイナリデータライターで、リトル/ビッグエンディアンをサポートします。 |
 | [SpanヘルパーSpanHelper](https://newlifex.com/core/span_helper) | Span/ReadOnlySpan の拡張メソッド集で、メモリ操作を簡素化します。 |
-| [シーケンスリーダーSequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | セグメントをまたいで順次読み取るリーダー（旧フレームワークではシムで補完、全 11 TFM で利用可能）。 |
+| [シーケンスリーダーSequenceReader](https://github.com/NewLifeX/X/blob/dev/Doc/序列读取器SequenceReader.md) | セグメントをまたいで順次読み取るリーダー（旧フレームワークではシムで補完、全 13 TFM で利用可能）。 |
 
 </details>
 
@@ -320,7 +320,7 @@ dotnet test XUnitTest.Core -c Release
 | `Doc/` | 機能ドキュメントと記事インデックス |
 | `Samples/` | コンソール / サービス / Http / IoT / モバイルのサンプル |
 | `Benchmark/` | BenchmarkDotNet のパフォーマンスベンチマーク |
-| `XUnitTest.Core/` | メインの単体テスト（net10.0） |
+| `XUnitTest.Core/` | メインの単体テスト（net11.0） |
 | `XUnitTest.Compat/`、`XUnitTest.Net6/` | クロスバージョン互換性テスト |
 | `AotSmoke/` | NativeAOT スモークプロジェクト |
 

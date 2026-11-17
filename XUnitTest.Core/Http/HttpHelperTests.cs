@@ -12,6 +12,7 @@ using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
 using Xunit;
+using DnsResolver = NewLife.Net.DnsResolver;
 
 namespace XUnitTest.Http;
 

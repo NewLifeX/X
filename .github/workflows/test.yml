@@ -25,6 +25,7 @@ jobs:
           8.x
           9.x
           10.x
+          11.x
         cache: true
         cache-dependency-path: '**/*.csproj'
     - name: Build
@@ -97,6 +98,14 @@ jobs:
             project: 'XUnitTest.Core\XUnitTest.Core.csproj'
             framework: net10.0-windows
             dotnet: 10.x
+          - name: Core-net11.0
+            project: 'XUnitTest.Core\XUnitTest.Core.csproj'
+            framework: net11.0
+            dotnet: 11.x
+          - name: Core-net11.0-windows
+            project: 'XUnitTest.Core\XUnitTest.Core.csproj'
+            framework: net11.0-windows
+            dotnet: 11.x
           - name: Net6-net6.0
             project: 'XUnitTest.Net6\XUnitTest.Net6.csproj'
             framework: net6.0
@@ -119,6 +128,10 @@ jobs:
             dotnet: |
               8.x
               10.x
+          - name: Compat-net11.0
+            project: 'XUnitTest.Compat\XUnitTest.Compat.csproj'
+            framework: net11.0
+            dotnet: 11.x
           - name: SourceGenerator
             project: 'XUnitTest.SourceGenerator\XUnitTest.SourceGenerator.csproj'
             framework: net10.0
@@ -143,6 +156,11 @@ jobs:
             project: XUnitTest.Core/XUnitTest.Core.csproj
             framework: net10.0
             dotnet: 10.x
+          - name: Core-net11.0-linux-x64
+            os: ubuntu-latest
+            project: XUnitTest.Core/XUnitTest.Core.csproj
+            framework: net11.0
+            dotnet: 11.x
           - name: Compat-net8.0-linux-x64
             os: ubuntu-latest
             project: XUnitTest.Compat/XUnitTest.Compat.csproj
@@ -657,11 +675,12 @@ jobs:
     - name: Setup dotNET
       uses: actions/setup-dotnet@v6
       with:
-        # 主包含 net8.0-windows/net9.0-windows，pack 需对应 SDK 的 WindowsDesktop 目标包
+        # 主包含 net8.0-windows/net9.0-windows/net11.0-windows，pack 需对应 SDK 的 WindowsDesktop 目标包
         dotnet-version: |
           8.x
           9.x
           10.x
+          11.x
     - name: Pack 校验（源生成器随主包分发）
       # 校验主包 NewLife.Core 内含 analyzers/dotnet/cs 的分析器程序集，且 lib 正常
       run: |

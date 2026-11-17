@@ -41,7 +41,7 @@
 
 ### 2.2 编译期：分析器与 ILC 告警
 
-- **当前均为 0 条**：`IsAotCompatible` 已在 csproj 对 net8.0+（含 `-windows` 形态）常驻启用，分析器告警 0 条（net8.0/net9.0/net10.0 及对应 `-windows` 形态实测）；AOT 发布的 ILC 告警 0 条（冒烟工程实测）。基线（改造前）为 164 条唯一告警。
+- **当前均为 0 条**：`IsAotCompatible` 已在 csproj 对 net8.0+（含 `-windows` 形态）常驻启用，分析器告警 0 条（net8.0/net9.0/net10.0/net11.0 及对应 `-windows` 形态实测）；AOT 发布的 ILC 告警 0 条（冒烟工程实测）。基线（改造前）为 164 条唯一告警。
 - 遗留告警的三类含义与处置方式：
   - **动态能力**（IL3050/IL2026/IL3000）：设计性不支持 → 按 §5 用 `RequiresDynamicCode`/`RequiresUnreferencedCode` 声明 + 运行期守卫，或在边界方法上显式声明裁剪语义；
   - **宽面反射入口**（IL2075/IL2070/IL2057）：运行时类型无法静态表达 → 提供泛型入口承载保留要求，非泛型重载显式声明；
@@ -140,7 +140,7 @@
 
 ```powershell
 # 1) 分析器全量警告（库自身编译，期望 0 条；IsAotCompatible 已随 csproj 对 net8.0+ 常驻启用）
-dotnet build NewLife.Core\NewLife.Core.csproj -f net10.0 -c Release
+dotnet build NewLife.Core\NewLife.Core.csproj -f net11.0 -c Release
 
 # 2) 冒烟实测（31 场景工程；PublishAot 写在工程文件内）
 dotnet run -c Release --project AotSmoke\AotSmoke.csproj                # JIT 基线
@@ -175,7 +175,7 @@ dotnet publish AotSmoke\AotSmoke.csproj -c Release -r win-x64 -o out    # Native
 
 - **观察期约定**：win-x86 / linux-arm 及 win-arm64 / osx / musl 等未转正平台 job 带 `continue-on-error`，连续稳定全绿后逐项转阻断门禁；win-x64 / linux-x64 / linux-arm64 为阻断门禁；LA64 的单测与 AOT 冒烟为观察期（`workflow_dispatch` 人工触发，push/PR 不参与、失败不阻塞）；linux-riscv64 / s390x 的 smoke 与全量同样带 `continue-on-error`，全量仅人工触发，smoke 稳定后再评估是否进 push/PR 门禁。
 - **测试并行度**：Windows/Linux CI 使用 `test.ci.runsettings`（4 线程，匹配 4 vCPU runner）；macOS 3 vCPU 使用专用 `test.ci.macos.runsettings`（3 线程）。
-- **本地 Linux 预跑**：WSL/容器内 `dotnet test XUnitTest.Core -f net8.0/net10.0`（无需任何平台开关）。
+- **本地 Linux 预跑**：WSL/容器内 `dotnet test XUnitTest.Core -f net8.0/net10.0/net11.0`（无需任何平台开关）。
 
 ### 7.2 LA64（linux-loongarch64，社区支持平台）
 

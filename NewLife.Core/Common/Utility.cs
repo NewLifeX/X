@@ -456,8 +456,13 @@ public class DefaultConvert
         if (value == null || value == DBNull.Value) return defaultValue;
 
 #if NET6_0_OR_GREATER
-        value = UnwrapJsonElement(value);
-        if (value == null) return defaultValue;
+        // JsonElement 数字优先按 Decimal 直读，避免先解包为 Double 造成精度损失（.NET 11 起 Double→Decimal 保留完整二进制展开）
+        if (value is System.Text.Json.JsonElement je)
+        {
+            if (je.ValueKind == System.Text.Json.JsonValueKind.Number && je.TryGetDecimal(out var jd)) return jd;
+            value = UnwrapJsonElement(value);
+            if (value == null) return defaultValue;
+        }
 #endif
 
         // 支持表单提交的StringValues
