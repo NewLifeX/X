@@ -543,6 +543,40 @@ public class OwnerPacketTests
         Assert.Equal(0, (Int32)secondOwner.GetValue("_refCount")!);
     }
 
+    /// <summary>链上出现不可共享的节点时，Slice 必须归还已经取到的引用</summary>
+    /// <remarks>
+    /// 场景：first(4) + second(4) + 不可共享节点，跨段构建在第三个节点处失败。
+    /// 期望：抛出异常，已建的两个节点持有的引用随之归还，源链仍可用、池化缓冲不被半成品链占住。
+    /// 回归点：旧实现把半成品链随栈丢弃，每失败一次泄漏两份引用，Release 构建无析构兜底，缓冲永久无法回池。
+    /// </remarks>
+    [Fact(DisplayName = "Slice：链上出现不可共享节点时归还已取到的引用")]
+    public void Slice_UnshareableNode_ShouldReleaseAcquiredReferences()
+    {
+        var first = new OwnerPacket(4);
+        var second = new OwnerPacket(4);
+        first.Next = second;
+        second.Next = new UnshareablePacket();
+
+        Assert.Throws<NotSupportedException>(() => first.Slice(0, -1));
+
+        // 已建节点持有的引用已归还
+        Assert.Equal(1, first.RefCount);
+        Assert.Equal(1, second.RefCount);
+
+        // 源链仍可用：只切前两段不触碰不可共享节点
+        using (var ok = first.Slice(0, 8))
+        {
+            Assert.Equal(8, ok.Total);
+            Assert.Equal(2, first.RefCount);
+        }
+        Assert.Equal(1, first.RefCount);
+
+        // 源链释放后两段引用都归零
+        first.Dispose();
+        Assert.Equal(0, first.RefCount);
+        Assert.Equal(0, second.RefCount);
+    }
+
     /// <summary>原地前移窗口：不分配、不调整引用计数</summary>
     [Fact(DisplayName = "Skip：原地前移窗口")]
     public void Skip_ShouldAdvanceWindowInPlace()
@@ -943,4 +977,47 @@ public class OwnerPacketTests
         packet.Dispose();
     }
     #endregion
+}
+
+/// <summary>不可共享的链式数据包。用于验证 <see cref="OwnerPacket.Slice(Int32, Int32)"/> 跨段构建失败时的引用归还</summary>
+internal sealed class UnshareablePacket : IPacket
+{
+    /// <summary>数据长度</summary>
+    public Int32 Length { get; set; } = 4;
+
+    /// <summary>下一个链式包</summary>
+    public IPacket? Next { get; set; }
+
+    /// <summary>本视图之前的字节数</summary>
+    public Int32 FreeHeader => 0;
+
+    /// <summary>包含链式结构的总长度</summary>
+    public Int32 Total => Length + (Next?.Total ?? 0);
+
+    /// <summary>仅本段可读，不支持改写</summary>
+    public Byte this[Int32 index]
+    {
+        get => throw new NotSupportedException();
+        set => throw new NotSupportedException();
+    }
+
+    /// <summary>获取本段内存</summary>
+    public Span<Byte> GetSpan() => new Byte[Length];
+
+    /// <summary>获取本段内存块</summary>
+    public Memory<Byte> GetMemory() => new Byte[Length];
+
+    /// <summary>无法给出数组段：OwnerPacket 切片遇到此类节点只能抛异常，用于覆盖失败回滚路径</summary>
+    public Boolean TryGetArray(out ArraySegment<Byte> segment)
+    {
+        segment = default;
+        return false;
+    }
+
+    /// <summary>不支持切片</summary>
+    public IPacket Slice(Int32 offset, Int32 count = -1) => throw new NotSupportedException();
+
+    /// <summary>不支持切片</summary>
+    [Obsolete("兼容旧二进制保留")]
+    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => throw new NotSupportedException();
 }

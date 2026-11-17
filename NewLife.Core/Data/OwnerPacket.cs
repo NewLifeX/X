@@ -478,6 +478,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     /// ≤512B 小帧直接拷贝更便宜——小帧不要为共享而共享。</para>
     /// <para>本方法不改变原实例，双方（或多方）均可继续读取；每个句柄各自负责 <see cref="Dispose"/>。
     /// 线性交接场景直接传递句柄本身即可，无需切片。</para>
+    /// <para>跨段构建中途失败（链上出现不可共享的节点或已释放节点）时，已取到的引用会先归还再抛出异常，不会占住池化缓冲。</para>
     /// <para><see cref="IPacket.Slice(Int32, Int32)"/> 与 <see cref="IOwnerPacket.Slice(Int32, Int32)"/> 是本方法的显式接口实现，经接口访问时分别返回各自声明类型。</para>
     /// </remarks>
     public OwnerPacket Slice(Int32 offset, Int32 count = -1)
@@ -499,32 +500,41 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         OwnerPacket? head = null;
         OwnerPacket? tail = null;
 
-        var skip = offset;
-        var take = count;
-        IPacket? node = this;
-        while (node != null && skip >= node.Length)
+        try
         {
-            skip -= node.Length;
-            node = node.Next;
+            var skip = offset;
+            var take = count;
+            IPacket? node = this;
+            while (node != null && skip >= node.Length)
+            {
+                skip -= node.Length;
+                node = node.Next;
+            }
+
+            while (node != null && take > 0)
+            {
+                var next = node.Next;
+                var startInNode = skip;
+                var takeInNode = Math.Min(node.Length - startInNode, take);
+                skip = 0;
+
+                var item = BuildShareNode(node, startInNode, takeInNode);
+
+                if (head == null)
+                    head = item;
+                else
+                    tail!.Next = item;
+
+                tail = item;
+                take -= takeInNode;
+                node = next;
+            }
         }
-
-        while (node != null && take > 0)
+        catch
         {
-            var next = node.Next;
-            var startInNode = skip;
-            var takeInNode = Math.Min(node.Length - startInNode, take);
-            skip = 0;
-
-            var item = BuildShareNode(node, startInNode, takeInNode);
-
-            if (head == null)
-                head = item;
-            else
-                tail!.Next = item;
-
-            tail = item;
-            take -= takeInNode;
-            node = next;
+            // 已建节点各持一份引用，异常时若随栈丢弃，这些引用永远不会释放，池化缓冲也就永远回不了池
+            head.TryDispose();
+            throw;
         }
 
         return head ?? new OwnerPacket(_empty, 0, 0, null);

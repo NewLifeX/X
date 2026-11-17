@@ -379,6 +379,8 @@ var head = pk.AsReadOnlySequence(0, 8); // 头部窗口（跨段自动裁剪）
 
 若你只是做协议解析切片（多次切片），按需使用、用毕 `Dispose` 即可；漏释放的句柄会阻止缓冲回池（开发期由析构兜底告警）。
 
+跨段构建中途失败（链上出现不可共享的节点，如挂了 `Next` 的 `MemoryPacket`）时，`Slice` 会先把已取到的引用归还再抛出异常，半成品链不会占住池化缓冲。
+
 拥有句柄经 `IOwnerPacket` 接口访问切片时返回 `IOwnerPacket`，可以直接 `using` 释放：
 
 ```csharp
