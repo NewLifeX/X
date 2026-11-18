@@ -116,7 +116,10 @@ public abstract class Logger : ILog
         {
             if (_Level != null) return _Level.Value;
 
-            return Setting.Current.LogLevel;
+            // 只读已初始化的配置，绝不触发 Setting 初始化。
+            // 配置初始化会写日志（Config.Create → Save → FileConfigProvider.OnWrite → XTrace.WriteLine），
+            // 此处若再触发 Setting.Current 初始化，将形成 Setting → Save → OnWrite → Level → Setting 的无限递归（栈溢出）。
+            return Setting.TryGetCurrent()?.LogLevel ?? LogLevel.Info;
         }
         set { _Level = value; }
     }
