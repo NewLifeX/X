@@ -5,6 +5,11 @@ public interface IManageUser
 {
     #region 属性
     /// <summary>编号</summary>
+    Int32 Id { get; set; }
+
+    /// <summary>编号</summary>
+    /// <remarks>兼容旧版本，新代码请使用 Id</remarks>
+    [Obsolete("请使用 Id")]
     Int32 ID { get; set; }
 
     /// <summary>名称</summary>
