@@ -400,12 +400,13 @@ public static class StringHelper
     public static String TrimPrefix(this String str, String start)
     {
         if (str.IsNullOrEmpty() || start.IsNullOrEmpty()) return str;
-        while (str.StartsWith(start, StringComparison.OrdinalIgnoreCase))
-        {
-            str = str[start.Length..];
-            if (str.Length == 0) break;
-        }
-        return str;
+
+        // 只记录裁剪位置，最后统一截取一次，避免重复匹配时产生多个中间字符串
+        var pos = 0;
+        while (str.Length - pos >= start.Length && String.Compare(str, pos, start, 0, start.Length, StringComparison.OrdinalIgnoreCase) == 0)
+            pos += start.Length;
+
+        return pos == 0 ? str : str[pos..];
     }
 
     /// <summary>从当前字符串开头移除另一字符串，不区分大小写，循环多次匹配前缀</summary>
@@ -450,12 +451,13 @@ public static class StringHelper
     public static String TrimSuffix(this String str, String end)
     {
         if (str.IsNullOrEmpty() || end.IsNullOrEmpty()) return str;
-        while (str.EndsWith(end, StringComparison.OrdinalIgnoreCase))
-        {
-            str = str[..^end.Length];
-            if (str.Length == 0) break;
-        }
-        return str;
+
+        // 只记录裁剪位置，最后统一截取一次，避免重复匹配时产生多个中间字符串
+        var len = str.Length;
+        while (len >= end.Length && String.Compare(str, len - end.Length, end, 0, end.Length, StringComparison.OrdinalIgnoreCase) == 0)
+            len -= end.Length;
+
+        return len == str.Length ? str : str[..len];
     }
 
     /// <summary>从当前字符串结尾移除另一字符串，不区分大小写，循环多次匹配后缀</summary>

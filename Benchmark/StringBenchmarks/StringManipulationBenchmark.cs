@@ -18,6 +18,8 @@ public class StringManipulationBenchmark
     private readonly String _prefix = "catalog/";
     private readonly String _suffix = "/list";
     private readonly String _path = "data";
+    private readonly String _repeat = "aaaaaab";
+    private readonly String _unit = "a";
 
     [Benchmark(Baseline = true, OperationsPerInvoke = Ops, Description = "TrimPrefix params")]
     public String TrimPrefix_Params()
@@ -64,6 +66,22 @@ public class StringManipulationBenchmark
     {
         var rs = _path;
         for (var i = 0; i < Ops; i++) rs = _path.CombinePath("users");
+        return rs;
+    }
+
+    [Benchmark(OperationsPerInvoke = Ops, Description = "TrimPrefix repeat params")]
+    public String TrimPrefix_Repeat_Params()
+    {
+        var rs = _repeat;
+        for (var i = 0; i < Ops; i++) rs = _repeat.TrimPrefix(new String[] { _unit });
+        return rs;
+    }
+
+    [Benchmark(OperationsPerInvoke = Ops, Description = "TrimPrefix repeat overload")]
+    public String TrimPrefix_Repeat_Overload()
+    {
+        var rs = _repeat;
+        for (var i = 0; i < Ops; i++) rs = _repeat.TrimPrefix(_unit);
         return rs;
     }
 }
