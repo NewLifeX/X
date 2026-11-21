@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using NewLife.Collections;
 
 namespace NewLife.Serialization;
@@ -262,7 +263,8 @@ public class JsonParser
 
         SkipToken(); // "
 
-        var sb = Pool.StringBuilder.Get();
+        // 仅在遇到转义时才借用 StringBuilder，未转义字符串直接截取，避免每次取还池对象
+        StringBuilder? sb = null;
 
         var runIndex = -1;
 
@@ -274,11 +276,11 @@ public class JsonParser
             {
                 if (runIndex != -1)
                 {
-                    if (sb.Length == 0) return _json.Substring(runIndex, index - runIndex - 1);
+                    if (sb == null) return _json.Substring(runIndex, index - runIndex - 1);
 
                     sb.Append(_json, runIndex, index - runIndex - 1);
                 }
-                return sb.Return(true);
+                return sb == null ? String.Empty : sb.Return(true);
             }
             else if (isName && c == ':')
             {
@@ -287,11 +289,11 @@ public class JsonParser
 
                 if (runIndex != -1)
                 {
-                    if (sb.Length == 0) return _json.Substring(runIndex, index + 1 - runIndex - 1);
+                    if (sb == null) return _json.Substring(runIndex, index - runIndex);
 
-                    sb.Append(_json, runIndex, index + 1 - runIndex - 1);
+                    sb.Append(_json, runIndex, index - runIndex);
                 }
-                return sb.Return(true);
+                return sb == null ? String.Empty : sb.Return(true);
             }
 
             if (c != '\\')
@@ -305,8 +307,13 @@ public class JsonParser
 
             if (runIndex != -1)
             {
+                sb ??= Pool.StringBuilder.Get();
                 sb.Append(_json, runIndex, index - runIndex - 1);
                 runIndex = -1;
+            }
+            else
+            {
+                sb ??= Pool.StringBuilder.Get();
             }
 
             switch (_json[index++])
@@ -367,26 +374,6 @@ public class JsonParser
         return p1 + p2 + p3 + p4;
     }
 
-    private Int64 CreateLong(String s)
-    {
-        Int64 num = 0;
-        var neg = false;
-        foreach (var cc in s)
-        {
-            if (cc == '-')
-                neg = true;
-            else if (cc == '+')
-                neg = false;
-            else
-            {
-                num *= 10;
-                num += cc - '0';
-            }
-        }
-
-        return neg ? -num : num;
-    }
-
     private Object ParseNumber()
     {
         SkipToken();
@@ -394,33 +381,67 @@ public class JsonParser
         // 需要回滚1个位置，因为第一个数字也是Toekn，可能被跳过了
         var startIndex = index - 1;
         var dec = false;
-        do
+        var neg = false;
+        var num = 0L;
+        var length = _json.Length;
+        var i = startIndex;
+
+        // 首字符已被 NextTokenCore 消费；旧实现从第二个字符开始扫描，
+        // 因此这里首字符不参与 dec 判断，保持 '.' 开头数字的既有行为
+        if (i < length)
         {
-            if (index == _json.Length)
-                break;
-            var c = _json[index];
+            var first = _json[i++];
+            if (first >= '0' && first <= '9') num = first - '0';
+            else if (first == '-') neg = true;
+            else if (first == '+') neg = false;
+            else num = first - '0'; // 保持旧 CreateLong 对非法首字符（如 '.'）的既有处理
+        }
 
-            if ((c >= '0' && c <= '9') || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E')
+        while (i < length)
+        {
+            var c = _json[i];
+            if (c >= '0' && c <= '9')
             {
-                if (c == '.' || c == 'e' || c == 'E')
-                    dec = true;
-                if (++index == _json.Length) break;
-
+                num = unchecked(num * 10 + (c - '0'));
+                i++;
+                continue;
+            }
+            if (c == '.' || c == 'e' || c == 'E')
+            {
+                dec = true;
+                i++;
+                continue;
+            }
+            if (c == '-')
+            {
+                neg = true;
+                i++;
+                continue;
+            }
+            if (c == '+')
+            {
+                neg = false;
+                i++;
                 continue;
             }
             break;
-        } while (true);
+        }
+        index = i;
 
         if (dec)
         {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
+            return Double.Parse(_json.AsSpan(startIndex, index - startIndex), NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo);
+#else
             var s = _json[startIndex..index];
             return Double.Parse(s, NumberFormatInfo.InvariantInfo);
+#endif
         }
 
-        var m = CreateLong(out _, _json, startIndex, index - startIndex);
-        if (m < Int32.MaxValue && m > Int32.MinValue) return (Int32)m;
+        if (neg) num = -num;
+        if (num < Int32.MaxValue && num > Int32.MinValue) return (Int32)num;
 
-        return m;
+        return num;
     }
 
     private void ParseSingleComment()
@@ -605,28 +626,5 @@ public class JsonParser
                 return Token.String;
         }
         throw new XException("Unable to find Token at {0}", --index);
-    }
-
-    static Int64 CreateLong(out Int64 num, String s, Int32 index, Int32 count)
-    {
-        num = 0;
-        var neg = false;
-        for (var x = 0; x < count; x++, index++)
-        {
-            var cc = s[index];
-
-            if (cc == '-')
-                neg = true;
-            else if (cc == '+')
-                neg = false;
-            else
-            {
-                num *= 10;
-                num += cc - '0';
-            }
-        }
-        if (neg) num = -num;
-
-        return num;
     }
 }
