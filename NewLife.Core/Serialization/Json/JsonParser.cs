@@ -92,6 +92,19 @@ public class JsonParser
     {
         if (_json.IsNullOrEmpty()) return null;
 
+        // 普通 JSON 走快速路径；注释、未加引号键、尾随逗号等非标准写法回退到兼容解析器
+        if (index == 0 && _Ahead == Token.None && JsonParserFast.TryParse(_json, out var value))
+        {
+            // 标记已消费，保持重复调用 Decode 的既有行为
+            index = _json.Length;
+            return value;
+        }
+
+        return DecodeSlow();
+    }
+
+    private Object? DecodeSlow()
+    {
         // 找到第一个非空白字符
         var ch = _json[0];
         while (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
