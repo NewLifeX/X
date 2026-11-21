@@ -139,4 +139,37 @@ public class JsonParserTests
         Assert.NotNull(value);
         Assert.IsType(expected, value![0]);
     }
+
+    [Fact]
+    [System.ComponentModel.DisplayName("标准嵌套 JSON 与代理对转义")]
+    public void Decode_StandardNestedAndEscaped()
+    {
+        var json = """{"a":[1,2,{"b":"\u4e2d\u6587","emoji":"\ud83d\ude00","n":-1.5e2}],"ok":true,"nil":null}""";
+
+        var dic = new JsonParser(json).Decode() as IDictionary<String, Object>;
+
+        Assert.NotNull(dic);
+        var arr = Assert.IsType<List<Object>>(dic!["a"]);
+        Assert.Equal(1, arr[0]);
+        Assert.Equal(2, arr[1]);
+        var child = Assert.IsAssignableFrom<IDictionary<String, Object?>>(arr[2]);
+        Assert.Equal("中文", child["b"]);
+        Assert.Equal("😀", child["emoji"]);
+        Assert.Equal(-150d, child["n"]);
+        Assert.Equal(true, dic["ok"]);
+        Assert.Null(dic["nil"]);
+    }
+
+    [Fact]
+    [System.ComponentModel.DisplayName("非标准写法回退到兼容解析器")]
+    public void Decode_NonStandardFallback()
+    {
+        var arr = new JsonParser("[1,2,]").Decode() as IList<Object>;
+        Assert.NotNull(arr);
+        Assert.Equal(2, arr!.Count);
+
+        var dic = new JsonParser("""{"a":1,}""").Decode() as IDictionary<String, Object>;
+        Assert.NotNull(dic);
+        Assert.Equal(1, dic!["a"]);
+    }
 }
