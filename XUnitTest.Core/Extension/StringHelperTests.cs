@@ -312,8 +312,28 @@ public class StringHelperTests
 
         Assert.Equal("path", "///path".TrimPrefix("/"));
         Assert.Equal("///path///", "///path///".TrimSuffix("/path")); // 末尾匹配 path
-        Assert.Equal("data", "data".TrimPrefix(null));
+        Assert.Equal("data", "data".TrimPrefix((String[])null));
         Assert.Equal("data", "data".TrimSuffix(""));
+    }
+
+    [Fact]
+    public void SingleValueTrimAndCombinePath()
+    {
+        // 单值重载：调用点不再分配 params 数组
+        Assert.Equal("path", "///path".TrimPrefix("/"));
+        Assert.Equal("b", "aaab".TrimPrefix("a"));
+        Assert.Equal("data", "data".TrimPrefix((String)null));
+        Assert.Equal("data", "data".TrimPrefix(""));
+
+        Assert.Equal("path", "path///".TrimSuffix("/"));
+        Assert.Equal("b", "baaa".TrimSuffix("a"));
+        Assert.Equal("data", "data".TrimSuffix((String)null));
+        Assert.Equal("data", "data".TrimSuffix(""));
+
+        Assert.Equal(Path.Combine("a", "b"), "a".CombinePath("b"));
+        Assert.Equal("b", ((String)null).CombinePath("b"));
+        Assert.Equal("a", "a".CombinePath(""));
+        Assert.Equal("a", "a".CombinePath((String)null));
     }
 
     [Fact]

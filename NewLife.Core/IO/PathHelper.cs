@@ -192,10 +192,21 @@ public static class PathHelper
         return path;
     }
 
+    /// <summary>合并一段路径</summary>
+    /// <param name="path"></param>
+    /// <param name="ps"></param>
+    /// <returns></returns>
+    public static String CombinePath(this String? path, String ps)
+    {
+        path ??= String.Empty;
+        return ps.IsNullOrEmpty() ? path : Path.Combine(path, ps);
+    }
+
     /// <summary>合并多段路径</summary>
     /// <param name="path"></param>
     /// <param name="ps"></param>
     /// <returns></returns>
+    /// <remarks>单段调用请使用单值重载，避免调用点分配 <c>params</c> 数组</remarks>
     public static String CombinePath(this String? path, params String[] ps)
     {
         path ??= String.Empty;

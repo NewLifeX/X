@@ -153,13 +153,18 @@ public static String EnsureDirectory(this String path, Boolean isfile = true)
 #### CombinePath
 
 ```csharp
+public static String CombinePath(this String? path, String ps)
 public static String CombinePath(this String? path, params String[] ps)
 ```
 
-合并多段路径。
+合并一段或多段路径。单值重载不会在调用点分配 `params` 数组。
 
 **示例**：
 ```csharp
+"data".CombinePath("users")
+// Windows: data\users
+// Linux: data/users
+
 "data".CombinePath("users", "config.json")
 // Windows: data\users\config.json
 // Linux: data/users/config.json

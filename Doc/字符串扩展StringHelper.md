@@ -322,6 +322,24 @@ public static String TrimEnd(this String str, params String[] ends)
 "WorldEndEnd".TrimEnd("End")             // "World"
 ```
 
+#### TrimPrefix / TrimSuffix
+
+```csharp
+public static String TrimPrefix(this String str, String start)
+public static String TrimPrefix(this String str, params String[] starts)
+public static String TrimSuffix(this String str, String end)
+public static String TrimSuffix(this String str, params String[] ends)
+```
+
+从字符串开头/结尾移除指定的子字符串，不区分大小写，支持多次匹配。单值重载不会在调用点分配 `params` 数组。
+
+**示例**：
+```csharp
+"HelloHelloWorld".TrimPrefix("Hello")    // "World"（移除所有匹配的前缀）
+"WorldEndEnd".TrimSuffix("End")          // "World"
+"///path".TrimPrefix("/")                // "path"
+```
+
 #### CutStart / CutEnd
 
 ```csharp

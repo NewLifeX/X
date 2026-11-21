@@ -387,7 +387,7 @@ public static class StringHelper
     /// <returns>移除后的字符串</returns>
     /// <remarks>
     /// 注意：在 .NET 9+ 中，使用单个字符串参数时（如 str.TrimStart("prefix")），BCL 的 String.TrimStart(params ReadOnlySpan&lt;Char&gt;) 实例方法优先匹配，
-    /// 将参数视为字符集合逐个裁剪，而非整体前缀。若需精确前缀匹配，请改用 <see cref="TrimPrefix"/>。
+    /// 将参数视为字符集合逐个裁剪，而非整体前缀。若需精确前缀匹配，请改用 <see cref="TrimPrefix(String, String)"/>。
     /// 多字符串参数（如 str.TrimStart("a", "b")）不受此影响，扩展方法仍正确工作。
     /// </remarks>
     [Obsolete("已过期：此方法易与 ReadOnlySpan<char>.TrimStart(ReadOnlySpan<char>) 混淆——传入字符集合可能被当作要移除的字符集合而非前缀。请避免使用此方法进行按前缀截断，改为使用显式的前缀判断或其它明确方法。")]
@@ -395,8 +395,24 @@ public static class StringHelper
 
     /// <summary>从当前字符串开头移除另一字符串，不区分大小写，循环多次匹配前缀</summary>
     /// <param name="str">当前字符串</param>
+    /// <param name="start">前缀</param>
+    /// <returns>移除后的字符串</returns>
+    public static String TrimPrefix(this String str, String start)
+    {
+        if (str.IsNullOrEmpty() || start.IsNullOrEmpty()) return str;
+        while (str.StartsWith(start, StringComparison.OrdinalIgnoreCase))
+        {
+            str = str[start.Length..];
+            if (str.Length == 0) break;
+        }
+        return str;
+    }
+
+    /// <summary>从当前字符串开头移除另一字符串，不区分大小写，循环多次匹配前缀</summary>
+    /// <param name="str">当前字符串</param>
     /// <param name="starts">前缀集合</param>
     /// <returns>移除后的字符串</returns>
+    /// <remarks>单值调用请使用单值重载，避免调用点分配 <c>params</c> 数组</remarks>
     public static String TrimPrefix(this String str, params String[] starts)
     {
         if (str.IsNullOrEmpty()) return str;
@@ -421,7 +437,7 @@ public static class StringHelper
     /// <returns>移除后的字符串</returns>
     /// <remarks>
     /// 注意：在 .NET 9+ 中，使用单个字符串参数时（如 str.TrimEnd("suffix")），BCL 的 String.TrimEnd(params ReadOnlySpan&lt;Char&gt;) 实例方法优先匹配，
-    /// 将参数视为字符集合逐个裁剪，而非整体后缀。若需精确后缀匹配，请改用 <see cref="TrimSuffix"/>。
+    /// 将参数视为字符集合逐个裁剪，而非整体后缀。若需精确后缀匹配，请改用 <see cref="TrimSuffix(String, String)"/>。
     /// 多字符串参数（如 str.TrimEnd("a", "b")）不受此影响，扩展方法仍正确工作。
     /// </remarks>
     [Obsolete("此方法易与 ReadOnlySpan<char>.TrimEnd(ReadOnlySpan<char>) ")]
@@ -429,8 +445,24 @@ public static class StringHelper
 
     /// <summary>从当前字符串结尾移除另一字符串，不区分大小写，循环多次匹配后缀</summary>
     /// <param name="str">当前字符串</param>
+    /// <param name="end">后缀</param>
+    /// <returns>移除后的字符串</returns>
+    public static String TrimSuffix(this String str, String end)
+    {
+        if (str.IsNullOrEmpty() || end.IsNullOrEmpty()) return str;
+        while (str.EndsWith(end, StringComparison.OrdinalIgnoreCase))
+        {
+            str = str[..^end.Length];
+            if (str.Length == 0) break;
+        }
+        return str;
+    }
+
+    /// <summary>从当前字符串结尾移除另一字符串，不区分大小写，循环多次匹配后缀</summary>
+    /// <param name="str">当前字符串</param>
     /// <param name="ends">后缀集合</param>
     /// <returns>移除后的字符串</returns>
+    /// <remarks>单值调用请使用单值重载，避免调用点分配 <c>params</c> 数组</remarks>
     public static String TrimSuffix(this String str, params String[] ends)
     {
         if (str.IsNullOrEmpty()) return str;
