@@ -7,7 +7,7 @@ namespace Benchmark;
 
 /// <summary>JsonParser 解析性能与内存基准</summary>
 [MemoryDiagnoser]
-[ShortRunJob]
+[MediumRunJob]
 public class JsonParserBenchmarks
 {
     private String _object = null!;
