@@ -14,25 +14,45 @@ namespace NewLife;
 public static class StringHelper
 {
     #region 字符串扩展
+    /// <summary>忽略大小写的字符串相等比较</summary>
+    /// <param name="value">字符串</param>
+    /// <param name="str">待比较字符串</param>
+    /// <returns>忽略大小写相等时返回 true</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Boolean EqualIgnoreCase(this String? value, String? str) => String.Equals(value, str, StringComparison.OrdinalIgnoreCase);
+
     /// <summary>忽略大小写的字符串相等比较，判断是否与任意一个待比较字符串相等</summary>
     /// <param name="value">字符串</param>
     /// <param name="strs">待比较字符串数组</param>
     /// <returns>若任一候选（忽略大小写）相等则返回 true</returns>
+    /// <remarks>单值比较请使用单值重载，避免调用点分配 <c>params</c> 数组</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean EqualIgnoreCase(this String? value, params String?[] strs)
     {
         if (strs == null || strs.Length == 0) return false;
         foreach (var item in strs)
         {
-            if (String.Equals(value, item, StringComparison.OrdinalIgnoreCase)) return true;
+            if (EqualIgnoreCase(value, item)) return true;
         }
         return false;
+    }
+
+    /// <summary>忽略大小写的字符串开始比较</summary>
+    /// <param name="value">字符串</param>
+    /// <param name="str">待比较字符串</param>
+    /// <returns>以前缀开始且忽略大小写时返回 true</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Boolean StartsWithIgnoreCase(this String? value, String? str)
+    {
+        if (value.IsNullOrEmpty() || str.IsNullOrEmpty()) return false;
+        return value.StartsWith(str, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>忽略大小写的字符串开始比较，判断是否与任意一个待比较字符串开始</summary>
     /// <param name="value">字符串</param>
     /// <param name="strs">待比较字符串数组</param>
     /// <returns>任一前缀匹配时 true</returns>
+    /// <remarks>单值比较请使用单值重载，避免调用点分配 <c>params</c> 数组</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean StartsWithIgnoreCase(this String? value, params String?[] strs)
     {
@@ -40,15 +60,27 @@ public static class StringHelper
         if (strs == null || strs.Length == 0) return false;
         foreach (var item in strs)
         {
-            if (!item.IsNullOrEmpty() && value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+            if (StartsWithIgnoreCase(value, item)) return true;
         }
         return false;
+    }
+
+    /// <summary>忽略大小写的字符串结束比较</summary>
+    /// <param name="value">字符串</param>
+    /// <param name="str">待比较字符串</param>
+    /// <returns>以后缀结束且忽略大小写时返回 true</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Boolean EndsWithIgnoreCase(this String? value, String? str)
+    {
+        if (value.IsNullOrEmpty() || str.IsNullOrEmpty()) return false;
+        return value.EndsWith(str, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>忽略大小写的字符串结束比较，判断是否以任意一个待比较字符串结束</summary>
     /// <param name="value">字符串</param>
     /// <param name="strs">待比较字符串数组</param>
     /// <returns>任一后缀匹配时 true</returns>
+    /// <remarks>单值比较请使用单值重载，避免调用点分配 <c>params</c> 数组</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean EndsWithIgnoreCase(this String? value, params String?[] strs)
     {
@@ -56,7 +88,7 @@ public static class StringHelper
         if (strs == null || strs.Length == 0) return false;
         foreach (var item in strs)
         {
-            if (!item.IsNullOrEmpty() && value.EndsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+            if (EndsWithIgnoreCase(value, item)) return true;
         }
         return false;
     }

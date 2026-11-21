@@ -200,6 +200,24 @@ public class StringHelperTests
     }
 
     [Fact]
+    public void SingleValueComparisonOverloads()
+    {
+        // 单值重载：调用点不再分配 params 数组
+        Assert.True("abc".EqualIgnoreCase("ABC"));
+        Assert.False("abc".EqualIgnoreCase("abd"));
+        Assert.False("abc".EqualIgnoreCase((String)null));
+        Assert.True(((String)null).EqualIgnoreCase((String)null));
+
+        Assert.True("HelloWorld".StartsWithIgnoreCase("hello"));
+        Assert.False("HelloWorld".StartsWithIgnoreCase("world"));
+        Assert.False("HelloWorld".StartsWithIgnoreCase((String)null));
+
+        Assert.True("HelloWorld".EndsWithIgnoreCase("WORLD"));
+        Assert.False("HelloWorld".EndsWithIgnoreCase("HELLO"));
+        Assert.False("HelloWorld".EndsWithIgnoreCase((String)null));
+    }
+
+    [Fact]
     public void NullAndWhiteSpaceChecks()
     {
         var empty = "";

@@ -78,10 +78,15 @@ s1.IsNullOrWhiteSpace()          // true
 #### EqualIgnoreCase
 
 ```csharp
+public static Boolean EqualIgnoreCase(this String? value, String? str)
 public static Boolean EqualIgnoreCase(this String? value, params String?[] strs)
 ```
 
-忽略大小写比较字符串是否与任意一个候选字符串相等。
+忽略大小写比较字符串是否与候选字符串相等；多候选重载判断是否与任意一个候选相等。
+
+单值重载不会在调用点分配 `params` 数组，热路径（逐行、逐包、逐属性）应优先使用。
+
+> 注意：`value.EqualIgnoreCase(null)` 这类裸 `null` 字面量会产生重载二义性，请先转型为 `String` 或使用强类型变量。
 
 **示例**：
 ```csharp
@@ -93,10 +98,11 @@ public static Boolean EqualIgnoreCase(this String? value, params String?[] strs)
 #### StartsWithIgnoreCase
 
 ```csharp
+public static Boolean StartsWithIgnoreCase(this String? value, String? str)
 public static Boolean StartsWithIgnoreCase(this String? value, params String?[] strs)
 ```
 
-忽略大小写判断字符串是否以任意一个候选前缀开始。
+忽略大小写判断字符串是否以候选前缀开始；多候选重载判断是否以任意一个候选前缀开始。单值重载不会在调用点分配 `params` 数组。
 
 **示例**：
 ```csharp
@@ -107,10 +113,11 @@ public static Boolean StartsWithIgnoreCase(this String? value, params String?[] 
 #### EndsWithIgnoreCase
 
 ```csharp
+public static Boolean EndsWithIgnoreCase(this String? value, String? str)
 public static Boolean EndsWithIgnoreCase(this String? value, params String?[] strs)
 ```
 
-忽略大小写判断字符串是否以任意一个候选后缀结束。
+忽略大小写判断字符串是否以候选后缀结束；多候选重载判断是否以任意一个候选后缀结束。单值重载不会在调用点分配 `params` 数组。
 
 **示例**：
 ```csharp
